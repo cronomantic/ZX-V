@@ -1,0 +1,30 @@
+Copyright (c) 2026 Cronomantic
+
+The ZX-V documentation (this folder, docs/, with its images, and the
+specifications dev/spec.md and dev/basic.md) is licensed under the Creative
+Commons Attribution 4.0 International licence (CC BY 4.0):
+
+    https://creativecommons.org/licenses/by/4.0/
+
+You may share and adapt it for any purpose, even commercially, as long as you
+give appropriate credit ("ZX-V documentation, by Cronomantic"), provide a link
+to the licence and indicate if changes were made.
+
+The code examples in the documentation (the listings in BASIC, C and
+assembly) are an exception: you can copy them into your own programs, under
+any licence, without crediting anyone. They are dedicated to the public domain
+under CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/
+
+---
+
+La documentación de ZX-V (esta carpeta, docs/, con sus imágenes, y las
+especificaciones dev/spec.md y dev/basic.md) tiene la licencia Creative
+Commons Atribución 4.0 Internacional (CC BY 4.0), arriba enlazada: se puede
+compartir y adaptar para cualquier fin, también comercial, citando la autoría
+("documentación de ZX-V, de Cronomantic"), enlazando la licencia e indicando
+si se ha cambiado algo.
+
+Los ejemplos de código de la documentación (los listados en BASIC, C y
+ensamblador) son una excepción: puedes copiarlos en tus programas, con la
+licencia que sea, sin citar a nadie. Son de dominio público con CC0 1.0
+(arriba enlazada).
