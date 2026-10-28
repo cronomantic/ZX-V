@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZX-V</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <span class="marca">ZX-V</span>
+  <nav>
+    <div class="menu"><button class="titulo" data-t="Archivo"></button>
+      <div class="items">
+        <button id="b-abrir"><span data-t="Abrir..."></span><kbd>Alt+O</kbd></button>
+        <button id="b-tarjeta"><span data-t="La tarjeta SD..."></span></button>
+        <button id="b-grabar"><span data-t="Grabar el programa..."></span><kbd>Alt+G</kbd></button>
+        <hr>
+        <button id="b-guardar"><span data-t="Guardar una instantánea"></span><kbd>Alt+I</kbd></button>
+        <button id="b-volver" disabled><span data-t="Volver a la instantánea"></span><kbd>Alt+U</kbd></button>
+        <button id="b-descargar" disabled><span data-t="Descargar la instantánea"></span></button>
+        <hr>
+        <button id="b-imagen"><span data-t="Guardar la imagen"></span><kbd>Alt+S</kbd></button>
+      </div>
+    </div>
+    <div class="menu"><button class="titulo" data-t="Máquina"></button>
+      <div class="items">
+        <button id="b-reiniciar"><span data-t="Reiniciar"></span><kbd>Alt+R</kbd></button>
+        <button id="b-cad"><span data-t="Ctrl+Alt+Supr (vuelve al BASIC)"></span></button>
+        <hr>
+        <button id="b-parar"><span data-t="Parar"></span><kbd>Alt+P</kbd></button>
+        <button id="b-paso"><span data-t="Una instrucción"></span><kbd>Alt+N</kbd></button>
+        <button id="b-depurar"><span data-t="Panel de depuración"></span><kbd>Alt+D</kbd></button>
+      </div>
+    </div>
+    <div class="menu"><button class="titulo" data-t="Ver"></button>
+      <div class="items">
+        <button id="b-sonido"><span data-t="Sonido"></span></button>
+        <button id="b-borde"><span data-t="Cambiar el borde"></span><kbd>Alt+B</kbd></button>
+        <button id="b-completa"><span data-t="Pantalla completa"></span><kbd data-t="Alt+Intro"></kbd></button>
+        <button id="b-opciones"><span data-t="Opciones..."></span></button>
+        <button id="b-pestana" hidden><span data-t="Abrir en una pestaña aparte"></span></button>
+      </div>
+    </div>
+    <div class="menu"><button class="titulo" data-t="Ayuda"></button>
+      <div class="items">
+        <button id="b-ayuda"><span data-t="El teclado y los atajos"></span></button>
+        <a class="item" href="https://github.com/cronomantic/ZX-V" target="_blank" rel="noopener" data-t="El proyecto (GitHub)"></a>
+        <a class="item" href="LICENSE.txt" target="_blank" rel="noopener" data-t="Términos de uso"></a>
+        <a class="item" href="THIRD_PARTY_NOTICES.txt" target="_blank" rel="noopener" data-t="Avisos de terceros"></a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div id="marco">
+    <canvas id="pantalla" width="720" height="576" tabindex="0"></canvas>
+    <div id="cargando" data-t="Cargando..."></div>
+  </div>
+</main>
+
+<footer>
+  <span id="estado"></span>
+  <span id="aviso"></span>
+</footer>
+
+<input type="file" id="fichero" multiple hidden>
+<input type="file" id="subir" multiple hidden>
+
+<dialog id="d-tarjeta">
+  <h2 data-t="La tarjeta SD"></h2>
+  <p class="nota" data-t="La tarjeta se guarda en este navegador. Los ficheros que se suben, o se arrastran a la página, van a la carpeta que se ve."></p>
+  <div class="ruta"><button id="t-arriba">..</button> <span id="t-ruta"></span></div>
+  <table id="t-lista"></table>
+  <div class="botones">
+    <button id="t-subir" data-t="Subir ficheros..."></button>
+    <button id="t-carpeta" data-t="Nueva carpeta..."></button>
+    <button id="t-cerrar" data-t="Cerrar"></button>
+  </div>
+</dialog>
+
+<dialog id="d-opciones">
+  <h2 data-t="Opciones"></h2>
+  <label><span data-t="Idioma"></span>
+    <select id="o-idioma"><option value="es">Español</option><option value="en">English</option></select></label>
+  <label><span data-t="Borde"></span>
+    <select id="o-borde">
+      <option value="0" data-t="Completo (720 x 576)"></option>
+      <option value="1" data-t="Mediano (640 x 480)"></option>
+      <option value="2" data-t="Pequeño (576 x 432)"></option>
+      <option value="3" data-t="Sin borde (512 x 384)"></option>
+    </select></label>
+  <label><span data-t="Escalado"></span>
+    <select id="o-escalado">
+      <option value="proporcion" data-t="Mantener la proporción"></option>
+      <option value="entera" data-t="Escala entera (los píxeles, todos iguales)"></option>
+      <option value="llenar" data-t="Llenar la ventana (deformando la imagen)"></option>
+    </select></label>
+  <label><input type="checkbox" id="o-estricto"> <span data-t="Modo estricto (avisa de lo que no haría la máquina)"></span></label>
+  <label><input type="checkbox" id="o-turbo"> <span data-t="CPU sin límite de velocidad"></span></label>
+  <label><input type="checkbox" id="o-puntero"> <span data-t="Ocultar el puntero sobre la imagen"></span></label>
+  <p class="nota" data-t="El idioma de la máquina cambia al reiniciar."></p>
+  <div class="botones"><button id="o-cerrar" data-t="Cerrar"></button></div>
+</dialog>
+
+<dialog id="d-ayuda">
+  <div id="ayuda-texto"></div>
+  <div class="botones"><button id="a-cerrar" data-t="Cerrar"></button></div>
+</dialog>
+
+<script src="zxv.js"></script>
+</body>
+</html>

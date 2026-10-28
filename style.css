@@ -1,0 +1,179 @@
+:root {
+    --fondo: #1d1d1f;
+    --barra: #2b2b2e;
+    --texto: #e8e8ea;
+    --tenue: #9a9aa0;
+    --borde: #44444a;
+    --acento: #d7d700;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--fondo);
+    color: var(--texto);
+    font: 14px/1.4 system-ui, sans-serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 10px;
+    background: var(--barra);
+    border-bottom: 1px solid var(--borde);
+    flex-wrap: wrap;
+}
+
+/* La franja del Spectrum, bajo el nombre. */
+.marca {
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding-bottom: 2px;
+    background: linear-gradient(90deg, #d70000 0 25%, #d7d700 25% 50%, #00d700 50% 75%, #00d7d7 75%) bottom / 100% 3px no-repeat;
+}
+
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+
+/* Los menús. */
+.menu { position: relative; }
+.menu .titulo { background: none; border-color: transparent; }
+.menu.abierto .titulo, .menu .titulo:hover { background: #3a3a3f; }
+.menu .items {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 10;
+    min-width: 260px;
+    padding: 4px 0;
+    background: var(--barra);
+    border: 1px solid var(--borde);
+    border-radius: 4px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+}
+.menu.abierto .items { display: block; }
+.menu .items button, .menu .items .item {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    width: 100%;
+    padding: 5px 14px;
+    background: none;
+    border: none;
+    border-radius: 0;
+    color: var(--texto);
+    text-align: left;
+    text-decoration: none;
+    font: inherit;
+}
+.menu .items button:hover:not(:disabled), .menu .items .item:hover { background: #3f3f46; }
+.menu .items kbd { color: var(--tenue); font: 12px system-ui, sans-serif; }
+.menu .items hr { border: none; border-top: 1px solid var(--borde); margin: 4px 0; }
+.menu .items button.activo::after { content: "✓"; color: var(--acento); }
+
+
+button {
+    background: #3a3a3f;
+    color: var(--texto);
+    border: 1px solid var(--borde);
+    border-radius: 4px;
+    padding: 4px 9px;
+    font: inherit;
+    cursor: pointer;
+}
+button:hover:not(:disabled) { background: #4a4a50; }
+button:disabled { opacity: .45; cursor: default; }
+button.activo { border-color: var(--acento); color: var(--acento); }
+
+main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: 8px;
+}
+
+#marco {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* El canvas ocupa todo el sitio: zxv.js dibuja en él la imagen, con el borde
+ * y el escalado de las opciones. */
+canvas {
+    width: 100%;
+    height: 100%;
+    outline: none;
+}
+canvas.sin-puntero { cursor: none; }
+
+#cargando {
+    position: absolute;
+    color: var(--tenue);
+}
+
+#marco.arrastrando canvas { outline: 3px dashed var(--acento); }
+
+footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 3px 10px;
+    background: var(--barra);
+    border-top: 1px solid var(--borde);
+    color: var(--tenue);
+    font-size: 12px;
+    min-height: 22px;
+}
+#aviso { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+dialog {
+    background: var(--barra);
+    color: var(--texto);
+    border: 1px solid var(--borde);
+    border-radius: 6px;
+    min-width: 420px;
+    max-width: min(760px, 95vw);
+    max-height: 85vh;
+}
+dialog::backdrop { background: rgba(0, 0, 0, .5); }
+dialog h2 { margin-top: 0; font-size: 17px; }
+dialog label { display: block; margin: 8px 0; }
+.nota { color: var(--tenue); font-size: 12px; }
+.botones { display: flex; gap: 6px; justify-content: flex-end; margin-top: 12px; }
+.ruta { margin: 6px 0; font-family: monospace; }
+
+#t-lista { width: 100%; border-collapse: collapse; }
+#t-lista td { padding: 3px 6px; border-bottom: 1px solid var(--borde); }
+#t-lista td.tam { text-align: right; color: var(--tenue); font-variant-numeric: tabular-nums; }
+#t-lista td.acc { text-align: right; white-space: nowrap; }
+#t-lista a { color: var(--texto); cursor: pointer; text-decoration: underline; }
+
+#ayuda-texto table { border-collapse: collapse; }
+#ayuda-texto td { padding: 2px 8px; vertical-align: top; }
+#ayuda-texto kbd {
+    background: #3a3a3f;
+    border: 1px solid var(--borde);
+    border-radius: 3px;
+    padding: 0 4px;
+    font-size: 12px;
+}

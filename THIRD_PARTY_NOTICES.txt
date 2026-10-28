@@ -1,0 +1,46 @@
+ZX-V (versión web): avisos de terceros
+======================================
+
+(English below.)
+
+El emulador y la ROM (el BASIC) son de ZX-V, (c) 2026 Cronomantic, con
+los términos de uso de LICENSE.txt; los programas de ejemplo, también de
+ZX-V, tienen la licencia MIT. La versión web lleva además lo siguiente,
+que es de otros. Los textos completos de sus licencias están en la carpeta
+licenses.
+
+Emscripten (el núcleo en WebAssembly, zxv-core.js y zxv-core.wasm)
+  El código que Emscripten añade al programa: su JavaScript, con la licencia
+  MIT, y su biblioteca de C, basada en musl, con la licencia MIT
+  (licenses/emscripten.txt y licenses/musl.txt). (c) Emscripten authors,
+  (c) 2005-2020 Rich Felker y los demás autores de musl.
+
+fdlibm (las matemáticas de la ROM)
+  (c) 1993 Sun Microsystems, Inc. Su aviso, en licenses/fdlibm.txt.
+
+picolibc (en el ejemplo files.zxv y en el disco ROM)
+  La biblioteca estándar de C de los programas del SDK que la usan. Varias
+  licencias de tipo BSD; sus avisos, en licenses/picolibc.txt.
+
+
+ZX-V (web version): third-party notices
+=======================================
+
+The emulator and the ROM (the BASIC) belong to ZX-V, (c) 2026 Cronomantic,
+under the terms of use in LICENSE.txt; the example programs, also from
+ZX-V, are under the MIT licence. The web version also contains the
+following, which belongs to others. The full texts of their licences are
+in the licenses folder.
+
+Emscripten (the WebAssembly core, zxv-core.js and zxv-core.wasm)
+  The code Emscripten adds to the program: its JavaScript, under the MIT
+  licence, and its C library, based on musl, under the MIT licence
+  (licenses/emscripten.txt and licenses/musl.txt). (c) Emscripten
+  authors, (c) 2005-2020 Rich Felker and the other authors of musl.
+
+fdlibm (the ROM's maths)
+  (c) 1993 Sun Microsystems, Inc. Its notice is in licenses/fdlibm.txt.
+
+picolibc (in the example files.zxv and on the ROM disk)
+  The standard C library of the SDK programs that use it. Several BSD-style
+  licences; its notices are in licenses/picolibc.txt.
