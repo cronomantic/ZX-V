@@ -8,8 +8,8 @@
 #define ZXV_VERSION_H
 
 #define ZXV_VERSION_MAJOR   0
-#define ZXV_VERSION_MINOR   3
+#define ZXV_VERSION_MINOR   4
 #define ZXV_VERSION_PATCH   0
-#define ZXV_VERSION         "0.3.0"
+#define ZXV_VERSION         "0.4.0"
 
 #endif

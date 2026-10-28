@@ -320,7 +320,7 @@ lists them all). These are the ones you are most likely to use:
 | `--screenshot F.bmp` | Save the screen at the end |
 | `--wav F.wav` | Record the sound to a WAV file |
 | `--strict` | Strict mode: warn about anything the real machine would not allow |
-| `--version` | Print the ZX-V version (`ZX-V 0.3.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
+| `--version` | Print the ZX-V version (`ZX-V 0.4.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
 
 The rest (`--rom`, `--elf`, `--load`, `--gdb`, `--debug`, `--profile`,
 `--panel`, `--test`, `--fail-on-warning`) are for programmers and are explained
