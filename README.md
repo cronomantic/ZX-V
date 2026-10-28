@@ -1,6 +1,11 @@
 **English** · [Español](README.es.md)
 
-# ZX-V
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/logo-dark.svg">
+    <img src="docs/images/logo-light.svg" alt="ZX-V" width="236">
+  </picture>
+</h1>
 
 A 32-bit hobby computer inspired by the ZX Spectrum. It is not a Spectrum
 clone or a Spectrum emulator: it is a new machine that keeps the spirit of the
