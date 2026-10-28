@@ -201,15 +201,72 @@ const HID = (() => {
 /* --- La máquina ------------------------------------------------------------------ */
 
 const canvas = document.getElementById('pantalla');
-const ctx2d = canvas.getContext('2d');
-/* El cuadro entero (720 x 576) se pinta aparte; en el canvas, la parte que
- * se ve con el borde elegido, escalada (present). */
+/* Se pinta con WebGL: el cuadro va a una textura y el escalado lo hace la
+ * tarjeta gráfica. Con el canvas 2D (si no hay WebGL), escalar costaba en
+ * Firefox unos 5 ms por frame, la cuarta parte de los 20 que hay. */
+const gl = canvas.getContext('webgl', { alpha: true, antialias: false, preserveDrawingBuffer: true });
+const ctx2d = gl ? null : canvas.getContext('2d');
+/* El cuadro entero (720 x 576) en un canvas aparte: con 2D se pinta en él en
+ * cada frame; con WebGL, solo cuando hace falta (guardar la imagen, pixel). */
 const frameCanvas = document.createElement('canvas');
 frameCanvas.width = W;
 frameCanvas.height = H;
 const frameCtx = frameCanvas.getContext('2d');
+let frameStale = false;
 const big = document.createElement('canvas');
 const bigCtx = big.getContext('2d');
+let glTex = null, glProg = null, glSrc = null, glPrescale = null;
+
+/* El escalado de present() en un solo paso: como ampliar sin suavizar al
+ * múltiplo entero de encima (prescale) y reducir suavizando, que deja los
+ * píxeles nítidos y todos iguales ("sharp bilinear"). */
+function glInit() {
+    const sh = (type, src) => {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        return s;
+    };
+    glProg = gl.createProgram();
+    gl.attachShader(glProg, sh(gl.VERTEX_SHADER,
+        'attribute vec2 p; uniform vec4 src; varying vec2 t;' +
+        'void main() { t = src.xy + (p * 0.5 + 0.5) * src.zw; gl_Position = vec4(p.x, -p.y, 0.0, 1.0); }'));
+    gl.attachShader(glProg, sh(gl.FRAGMENT_SHADER,
+        'precision highp float; uniform sampler2D tex; uniform vec2 size, prescale; varying vec2 t;' +
+        'void main() {' +
+        '  vec2 c = fract(t) - 0.5, r = 0.5 - 0.5 / prescale;' +
+        '  vec2 u = floor(t) + (c - clamp(c, -r, r)) * prescale + 0.5;' +
+        '  gl_FragColor = texture2D(tex, u / size); }'));
+    gl.linkProgram(glProg);
+    gl.useProgram(glProg);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    const p = gl.getAttribLocation(glProg, 'p');
+    gl.enableVertexAttribArray(p);
+    gl.vertexAttribPointer(p, 2, gl.FLOAT, false, 0, 0);
+    glTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, glTex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, W, H, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.uniform2f(gl.getUniformLocation(glProg, 'size'), W, H);
+    glSrc = gl.getUniformLocation(glProg, 'src');
+    glPrescale = gl.getUniformLocation(glProg, 'prescale');
+    gl.clearColor(0, 0, 0, 0);
+}
+if (gl)
+    glInit();
+
+/* Con WebGL, el canvas del cuadro se pone al día solo cuando se lee. */
+function frameCanvasNow() {
+    if (frameStale && image) {
+        frameCtx.putImageData(image, 0, 0);
+        frameStale = false;
+    }
+    return frameCanvas;
+}
 const BORDER_SIDES = [[104, 96], [64, 48], [32, 24], [0, 0]];   // options_border_rect
 let border = Math.min(3, Math.max(0, parseInt(store('zxv-borde'), 10) || 0));
 let fit = ['proporcion', 'entera', 'llenar'].includes(store('zxv-escalado')) ? store('zxv-escalado') : 'proporcion';
@@ -243,7 +300,14 @@ function draw() {
         image = new ImageData(new Uint8ClampedArray(Module.HEAPU8.buffer, ptr, W * H * 4), W, H);
         image.ptr = ptr;
     }
-    frameCtx.putImageData(image, 0, 0);
+    if (gl) {
+        gl.bindTexture(gl.TEXTURE_2D, glTex);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, H, gl.RGBA, gl.UNSIGNED_BYTE,
+                         new Uint8Array(Module.HEAPU8.buffer, ptr, W * H * 4));
+        frameStale = true;
+    } else {
+        frameCtx.putImageData(image, 0, 0);
+    }
     present();
 }
 
@@ -280,6 +344,16 @@ function present() {
         dh = Math.max(1, Math.round(sh * s));
     }
     const dx = Math.floor((cw - dw) / 2), dy = Math.floor((ch - dh) / 2);
+    shown = { sx, sy, sw, sh, dx, dy, dw, dh };
+    if (gl) {
+        gl.viewport(0, 0, cw, ch);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.viewport(dx, ch - dy - dh, dw, dh);
+        gl.uniform4f(glSrc, sx, sy, sw, sh);
+        gl.uniform2f(glPrescale, Math.ceil(dw / sw), Math.ceil(dh / sh));
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        return;
+    }
     ctx2d.clearRect(0, 0, cw, ch);
     if (dw % sw === 0 && dh % sh === 0) {
         ctx2d.imageSmoothingEnabled = false;
@@ -296,7 +370,6 @@ function present() {
         ctx2d.imageSmoothingQuality = 'low';     // bilineal
         ctx2d.drawImage(big, dx, dy, dw, dh);
     }
-    shown = { sx, sy, sw, sh, dx, dy, dw, dh };
 }
 
 function setBorder(b) {
@@ -598,7 +671,7 @@ function screenshot() {
     const c = document.createElement('canvas');
     c.width = sw;
     c.height = sh;
-    c.getContext('2d').drawImage(frameCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
+    c.getContext('2d').drawImage(frameCanvasNow(), sx, sy, sw, sh, 0, 0, sw, sh);
     c.toBlob(b => download('zxv.png', b, 'image/png'), 'image/png');
 }
 
@@ -927,12 +1000,19 @@ window.zxv = {
     view: v => { view = core.view(v); draw(); },
     /* Un píxel del cuadro de 720 x 576 (con cualquier borde) */
     pixel(x, y) {
+        frameCanvasNow();
         const d = frameCtx.getImageData(x, y, 1, 1).data;
         return ((d[0] << 16) | (d[1] << 8) | d[2]).toString(16).padStart(6, '0').toUpperCase();
     },
     /* Un píxel del canvas (en píxeles del dispositivo), y dónde está el cuadro en él */
     canvasPixel(x, y) {
-        const d = ctx2d.getImageData(x, y, 1, 1).data;
+        let d;
+        if (gl) {
+            d = new Uint8Array(4);
+            gl.readPixels(x, canvas.height - 1 - y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, d);
+        } else {
+            d = ctx2d.getImageData(x, y, 1, 1).data;
+        }
         return ((d[0] << 16) | (d[1] << 8) | d[2]).toString(16).padStart(6, '0').toUpperCase();
     },
     get shown() { return shown; },
