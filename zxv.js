@@ -5,13 +5,15 @@
  *
  * El ritmo: con sonido, se hacen los frames que faltan para tener unos 60 ms
  * en la cola (como zxv y zxv-sdl); sin sonido (hasta la primera tecla o el
- * primer clic, que el navegador no deja sonar antes), uno cada 20 ms.
+ * primer clic, que el navegador no deja sonar antes), uno cada 1/60 s.
  */
 (() => {
 'use strict';
 
 const CARD = '/tarjeta';
-const W = 720, H = 576, RATE = 48000, FRAME_SAMPLES = 960;
+const W = 640, H = 480, RATE = 48000;     // el cuadro (D81)
+const FRAME_HZ = 60;                        // ZXV_FRAME_HZ (D81)
+const FRAME_SAMPLES = RATE / FRAME_HZ;      // 800
 const AUDIO_AHEAD = 0.06;                   // segundos en la cola
 const QUICK_SNAPSHOT = '/instantanea.zxvs'; // la de Alt+I y Alt+U (en memoria)
 
@@ -39,8 +41,7 @@ const EN = {
     'Pantalla completa': 'Full screen',
     'Cambiar el borde': 'Change the border',
     'Borde': 'Border',
-    'Completo (720 x 576)': 'Full (720 x 576)',
-    'Mediano (640 x 480)': 'Medium (640 x 480)',
+    'Completo (640 x 480)': 'Full (640 x 480)',
     'Pequeño (576 x 432)': 'Small (576 x 432)',
     'Sin borde (512 x 384)': 'No border (512 x 384)',
     'Escalado': 'Scaling',
@@ -107,7 +108,7 @@ typed letter by letter. Click on the image so it gets the keyboard.</p>
 <tr><td><kbd>Alt+P</kbd>, <kbd>Alt+N</kbd></td><td>stop or continue; one instruction</td></tr>
 <tr><td><kbd>Alt+D</kbd></td><td>debug panel (CPU, VRAM, sound, line table)</td></tr>
 <tr><td><kbd>Alt+S</kbd></td><td>save the image (PNG)</td></tr>
-<tr><td><kbd>Alt+B</kbd></td><td>change the border (full, medium, small, none)</td></tr>
+<tr><td><kbd>Alt+B</kbd></td><td>change the border (full, small, none)</td></tr>
 <tr><td><kbd>Alt+Enter</kbd></td><td>full screen</td></tr>
 </table>
 <p>You can drag files onto the page: they are copied to the card and the first one is opened.
@@ -138,7 +139,7 @@ teclado.</p>
 <tr><td><kbd>Alt+P</kbd>, <kbd>Alt+N</kbd></td><td>parar o seguir; una instrucción</td></tr>
 <tr><td><kbd>Alt+D</kbd></td><td>panel de depuración (CPU, VRAM, sonido, tabla por línea)</td></tr>
 <tr><td><kbd>Alt+S</kbd></td><td>guardar la imagen (PNG)</td></tr>
-<tr><td><kbd>Alt+B</kbd></td><td>cambiar el borde (completo, mediano, pequeño, ninguno)</td></tr>
+<tr><td><kbd>Alt+B</kbd></td><td>cambiar el borde (completo, pequeño, ninguno)</td></tr>
 <tr><td><kbd>Alt+Intro</kbd></td><td>pantalla completa</td></tr>
 </table>
 <p>Se pueden arrastrar ficheros a la página: se copian a la tarjeta y se abre el primero. La
@@ -206,7 +207,7 @@ const canvas = document.getElementById('pantalla');
  * Firefox unos 5 ms por frame, la cuarta parte de los 20 que hay. */
 const gl = canvas.getContext('webgl', { alpha: true, antialias: false, preserveDrawingBuffer: true });
 const ctx2d = gl ? null : canvas.getContext('2d');
-/* El cuadro entero (720 x 576) en un canvas aparte: con 2D se pinta en él en
+/* El cuadro entero (640 x 480) en un canvas aparte: con 2D se pinta en él en
  * cada frame; con WebGL, solo cuando hace falta (guardar la imagen, pixel). */
 const frameCanvas = document.createElement('canvas');
 frameCanvas.width = W;
@@ -267,8 +268,15 @@ function frameCanvasNow() {
     }
     return frameCanvas;
 }
-const BORDER_SIDES = [[104, 96], [64, 48], [32, 24], [0, 0]];   // options_border_rect
-let border = Math.min(3, Math.max(0, parseInt(store('zxv-borde'), 10) || 0));
+/* Como options_border_rect: el cuadro entero (640 x 480), el pequeño y
+ * ninguno. Antes de D81, con el cuadro de 720 x 576, 'zxv-borde' contaba
+ * también el de 720 x 576 (0) y el de 640 x 480 (1), que ahora es el
+ * completo. */
+const BORDER_SIDES = [[64, 48], [32, 24], [0, 0]];
+let border = parseInt(store('zxv-borde-salida') ?? '', 10);
+if (isNaN(border))
+    border = Math.max(0, (parseInt(store('zxv-borde'), 10) || 0) - 1);
+border = Math.min(BORDER_SIDES.length - 1, Math.max(0, border));
 let fit = ['proporcion', 'entera', 'llenar'].includes(store('zxv-escalado')) ? store('zxv-escalado') : 'proporcion';
 let shown = null;           // lo que se ve: x, y, w, h del cuadro; y dónde, en el canvas
 let core = null;            // las funciones de web_main.c
@@ -374,7 +382,7 @@ function present() {
 
 function setBorder(b) {
     border = b;
-    store('zxv-borde', String(b));
+    store('zxv-borde-salida', String(b));
     document.getElementById('o-borde').value = String(b);
     present();
 }
@@ -427,7 +435,7 @@ function tick() {
                 clockNext = now;                // muy atrasados: no recuperar
             for (let i = 0; i < 4 && now >= clockNext; i++) {
                 frame();
-                clockNext += 20;
+                clockNext += 1000 / FRAME_HZ;
             }
         }
     }
@@ -726,7 +734,7 @@ function onKey(e, down) {
         core.text(e.key.codePointAt(0));
 }
 
-/* El ratón, en píxeles del cuadro de 720 x 576. */
+/* El ratón, en píxeles del cuadro de 640 x 480. */
 function mouseXY(e) {
     const r = canvas.getBoundingClientRect();
     const px = (e.clientX - r.left) * canvas.width / r.width, py = (e.clientY - r.top) * canvas.height / r.height;
@@ -998,7 +1006,7 @@ window.zxv = {
     paste: (text, delay) => withStr(text, p => core.paste(p, delay || 0)),
     reset: () => core.reset(),
     view: v => { view = core.view(v); draw(); },
-    /* Un píxel del cuadro de 720 x 576 (con cualquier borde) */
+    /* Un píxel del cuadro de 640 x 480 (con cualquier borde) */
     pixel(x, y) {
         frameCanvasNow();
         const d = frameCtx.getImageData(x, y, 1, 1).data;
