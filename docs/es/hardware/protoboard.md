@@ -123,7 +123,7 @@ puede probar sin ellas; si el enlace da errores (ver
 
 - Sin la **línea del sonido** hay imagen pero no sonido.
 - Sin el **canal de vuelta** todo funciona, pero a los programas siempre se
-  les dice que la salida es HDMI a 50 Hz, y el informe de la CPU lo avisa.
+  les dice que la salida es HDMI a 60 Hz, y el informe de la CPU lo avisa.
 
 ## El HDMI
 

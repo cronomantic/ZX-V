@@ -119,7 +119,7 @@ Un zumbido que sube:
 ```
 
 La línea 20 enciende el tono de la voz A a todo volumen, el bucle baja el
-periodo (así que la nota sube) una vez cada cincuentavo de segundo y la línea
+periodo (así que la nota sube) una vez cada sesentavo de segundo y la línea
 70 baja el volumen a 0. `WAIT 1` espera al siguiente frame de la pantalla:
 lo volverás a ver en los próximos capítulos.
 

@@ -53,11 +53,11 @@ time.
 | Ctrl+Alt+Del (back to BASIC) | The emergency reset: stops whatever is running and goes back to BASIC, keeping your BASIC program |
 | Paste text (Alt+V) | Type the text on the clipboard into the machine, as if you typed it |
 
-**View**: the window size (x1 is 720 × 576, up to x4), the border, the scaling, full screen
+**View**: the window size (x1 is 640 × 480, up to x4), the border, the scaling, full screen
 (Alt+Enter, without menus) and the status bar. The border is what surrounds
-the 512 × 384 drawing area: **Full** shows the whole frame that goes out over
-HDMI (720 × 576), **Medium** (640 × 480) and **Small** (576 × 432) crop it, and
-**No border** leaves just the drawing area. It is remembered for next time. **Scaling**
+the 512 × 384 drawing area: **Full** shows what the real machine sends to
+the screen (640 × 480), **Small** (576 × 432) crops it, and **No border**
+leaves just the drawing area. It is remembered for next time. **Scaling**
 says how the picture fills the window when you make it bigger: **Keep the
 aspect ratio** (the usual: as big as fits without distortion), **Integer
 scale** (only x1, x2, x3..., with every pixel the same size) or **Fill the
@@ -246,10 +246,10 @@ PC.
 
 ### Speed
 
-The emulator runs the machine at its real speed: 50 frames per second, with a
+The emulator runs the machine at its real speed: 60 frames per second, with a
 144 MHz processor. **Options > Unlimited CPU speed** lets the processor run as
 fast as your PC can (up to twenty times more work per frame), while the
-screen and the sound stay at their normal 50 frames per second. Programs that
+screen and the sound stay at their normal 60 frames per second. Programs that
 synchronise with the screen (most games) look the same; long BASIC
 calculations finish much sooner.
 
@@ -285,7 +285,7 @@ mouse as in `zxv`, and you control the emulator with these keys:
 | Alt+I, Alt+U | Save a snapshot (in `zxv.zxvs`, or the last one opened); go back to it |
 | Alt+P, Alt+N, Alt+F | Pause or continue; one instruction; to the end of the frame |
 | Alt+D | Debug panel over the picture: CPU, VRAM, sound, line table, none |
-| Alt+B | The border: full, medium, small, none (with the debug panel it is always shown whole) |
+| Alt+B | The border: full (640 × 480), small, none (with the debug panel it is always shown whole) |
 | Ctrl+Alt+Del | Emergency reset: back to BASIC |
 | Alt+Q | Quit |
 
@@ -307,20 +307,20 @@ lists them all). These are the ones you are most likely to use:
 | `--romdisk FILE` | The `ROM:` drive (by default, `romdisk.bin` next to the program) |
 | `--lang XX` | The machine's language, `en` or `es`, for this session only. In `zxv-sdl` and `zxv-cli` it is also the language of the emulator's messages |
 | `--scale N` | Window size, 1 to 4 (`zxv`, `zxv-sdl`) |
-| `--border SIZE` | The border: `full` (`completo`), `medium` (`mediano`), `small` (`pequeño`) or `none` (`ninguno`) (`zxv`, `zxv-sdl`) |
+| `--border SIZE` | The border: `full` (`completo`, 640 × 480), `small` (`pequeño`) or `none` (`ninguno`) (`zxv`, `zxv-sdl`) |
 | `--no-sound` | No sound (`zxv`, `zxv-sdl`) |
 | `--turbo` | Unlimited CPU speed |
 | `--cpu-hz N` | Emulated processor speed in Hz (default 144000000) |
 | `--clock DATE` | The clock: `host` (your PC's time, the default), `"2026-01-31 12:00:00"` (that time at start-up, then running), or `off` (no time until a program sets it) |
-| `--type TEXT` | Type TEXT at start-up. `\n` or `{ENTER}` is Enter; also `{ESC}`, `{TAB}`, `{BS}`, `{DEL}`, `{UP}`, `{DOWN}`, `{LEFT}`, `{RIGHT}`, `{HOME}`, `{END}`, `{PGUP}`, `{PGDN}`, `{F1}`...`{F12}`, `{CTRL+END}`, `{SHIFT+UP}`; `{WAIT n}` waits n frames, `{RESET}` presses Ctrl+Alt+Del and `{JOY bits}` holds gamepad 1 with those buttons (those of [`JOY`](basic/reference.md#joy)) until the next `{JOY}`: `{JOY 1}{WAIT 50}{JOY 0}` pushes it right for one second |
+| `--type TEXT` | Type TEXT at start-up. `\n` or `{ENTER}` is Enter; also `{ESC}`, `{TAB}`, `{BS}`, `{DEL}`, `{UP}`, `{DOWN}`, `{LEFT}`, `{RIGHT}`, `{HOME}`, `{END}`, `{PGUP}`, `{PGDN}`, `{F1}`...`{F12}`, `{CTRL+END}`, `{SHIFT+UP}`; `{WAIT n}` waits n frames, `{RESET}` presses Ctrl+Alt+Del and `{JOY bits}` holds gamepad 1 with those buttons (those of [`JOY`](basic/reference.md#joy)) until the next `{JOY}`: `{JOY 1}{WAIT 60}{JOY 0}` pushes it right for one second |
 | `--paste FILE` | Type the contents of a text file (a BASIC listing, for example) after `--type`, much faster than key by key |
 | `--load-snapshot F.zxvs` | Start from a snapshot |
 | `--save-snapshot F.zxvs` | Save a snapshot at the end (`zxv-cli`) |
-| `--frames N` | Stop after N frames (50 per second) |
+| `--frames N` | Stop after N frames (60 per second) |
 | `--screenshot F.bmp` | Save the screen at the end |
 | `--wav F.wav` | Record the sound to a WAV file |
 | `--strict` | Strict mode: warn about anything the real machine would not allow |
-| `--version` | Print the ZX-V version (`ZX-V 0.4.1`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
+| `--version` | Print the ZX-V version (`ZX-V 0.5.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
 
 The rest (`--rom`, `--elf`, `--load`, `--gdb`, `--debug`, `--profile`,
 `--panel`, `--test`, `--fail-on-warning`) are for programmers and are explained

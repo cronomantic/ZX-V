@@ -614,8 +614,8 @@ it is the place for comments.
 PAUSE n
 ```
 
-Waits `n` frames (there are 50 frames a second), or until a key is pressed,
-whichever comes first. `PAUSE 0` waits for a key for ever. Only keys pressed
+Waits `n` fiftieths of a second (`PAUSE 50` is one second, as on the
+Spectrum), or until a key is pressed, whichever comes first. `PAUSE 0` waits for a key for ever. Only keys pressed
 after the `PAUSE` starts count. `n` goes from 0 to 65535.
 
 ```
@@ -631,9 +631,9 @@ WAIT [n]
 ```
 
 Waits for the next frame, and until `n` frames (1 if omitted) have passed
-since the previous `WAIT`. This keeps a game loop at a steady speed even if
-some turns of the loop take longer than others: `WAIT 2` gives 25 turns a
-second. `n` goes from 0 to 65535.
+since the previous `WAIT`. There are 60 frames a second. This keeps a game
+loop at a steady speed even if some turns of the loop take longer than
+others: `WAIT 2` gives 30 turns a second. `n` goes from 0 to 65535.
 
 ```
 10 FOR x=0 TO 200: BOX 0,x,80,8,8: WAIT: NEXT x
@@ -1279,12 +1279,12 @@ while the program runs:
 - `RASTER` alone turns all this off.
 
 Lines are pixel rows counted from the top of the screen (0). The border lines
-above the picture are negative (down to -48 in mode 0, -96 in mode 1) and
-those below go past the height (up to 239 in mode 0, 479 in mode 1).
+above the picture are negative (down to -24 in mode 0, -48 in mode 1) and
+those below go past the height (up to 215 in mode 0, 431 in mode 1).
 `MODE` turns this off.
 
 ```
-10 FOR y=-48 TO 239 STEP 4: RASTER BORDER y,y+1,2: RASTER BORDER y+2,y+3,6: NEXT y
+10 FOR y=-24 TO 215 STEP 4: RASTER BORDER y,y+1,2: RASTER BORDER y+2,y+3,6: NEXT y
 ```
 
 ## Sprites, tile maps and fast graphics
@@ -2183,7 +2183,8 @@ value from -255 to -1 is written as 256 plus that value).
 PRINT PEEK 536872704
 ```
 
-prints the low byte of the frame counter.
+prints the low byte of the ZX-V frame counter (60 per second; the
+Spectrum's, `FRAMES`, is at 23672).
 
 ### The virtual Spectrum memory
 
@@ -2202,7 +2203,8 @@ System variables that work: `LAST K` (23560, the last key), `CHARS`
 (23606, where the character set is; you can point it to your own font in
 virtual memory), `BORDCR` (23624), `PROG` (23635), `FLAGS2` (23658, bit 3 is
 Caps Lock), `DF SZ` (23659), `SEED` (23670, the `RND` seed), `FRAMES`
-(23672, three bytes counting frames), `UDG` (23675), `COORDS` (23677, the
+(23672, three bytes counting fiftieths of a second, like the Spectrum's
+frames), `UDG` (23675), `COORDS` (23677, the
 last point of `PLOT`), `S POSN` (23688), `SCR CT` (23692), `ATTR P`,
 `MASK P`, `ATTR T`, `MASK T` and `P FLAG` (23693 to 23697) and `RAMTOP`
 (23730).
@@ -2267,11 +2269,11 @@ off with `KEY`, `JOY`, `MOUSE`, `BORDER` and `SOUND`.
 TIME
 ```
 
-The number of frames since the machine was switched on, 50 per second. To
+The number of frames since the machine was switched on, 60 per second. To
 time something, subtract two readings:
 
 ```
-10 LET t=TIME: PAUSE 100: PRINT (TIME-t)/50; " seconds"
+10 LET t=TIME: PAUSE 100: PRINT (TIME-t)/60; " seconds"
 ```
 
 ### CLOCK

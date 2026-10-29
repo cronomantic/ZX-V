@@ -3,7 +3,7 @@
 30 REM Rufo te persigue, Lila te corta el paso, Niebla vigila su rincon
 40 REM y Chispa va a su aire. Lo que se hace en cada frame va al principio.
 50 GO TO @empezar
-100 REM --- Una vida: el bucle del juego, a 50 imagenes por segundo ---
+100 REM --- Una vida: el bucle del juego, a 60 imagenes por segundo ---
 110 DEF PROC jugar
 120 REPEAT
 130 LET fr=fr+1
@@ -83,7 +83,7 @@
 1020 IF e(i)=0 OR e(i)>2 THEN END PROC
 1030 IF z(i) THEN
 1040 LET z(i)=0: LET e(i)=4+(e(i)=1): LET ce=ce+1: LET puntos=puntos+100*2^ce
-1050 LET hielo=24: LET po=i: LET pn=49+ce: LET pw=24+8*(ce=4): LET fp=200: LET fd=-12: LET fv=15
+1050 LET hielo=29: LET po=i: LET pn=49+ce: LET pw=24+8*(ce=4): LET fp=200: LET fd=-12: LET fv=15
 1060 ELSE
 1070 LET muerto=1
 1080 END IF
@@ -120,12 +120,12 @@
 1550 NEXT l
 1560 END PROC
 1600 DEF PROC fruta
-1610 LET puntos=puntos+bv: LET bt=0: LET bp=80: LET fp=40: LET fd=8: LET fv=15
+1610 LET puntos=puntos+bv: LET bt=0: LET bp=96: LET fp=40: LET fd=8: LET fv=15
 1620 END PROC
 1700 REM --- Los relojes: el susto, persecucion o retirada, las salidas de casa ---
 1710 DEF PROC tiempos
 1720 IF am THEN
-1730 LET am=am-1: LET fl=0: IF am<80 THEN LET fl=INT (am/10)-2*INT (am/20)
+1730 LET am=am-1: LET fl=0: IF am<96 THEN LET fl=INT (am/12)-2*INT (am/24)
 1740 IF am=0 THEN FOR l=1 TO 4: LET z(l)=0: NEXT l
 1750 ELSE
 1760 LET ft=ft-1: IF ft=0 THEN LET fa=fa+1: LET ft=t(fa): PROC vuelta
@@ -143,11 +143,11 @@
 1900 REM --- Dibujar: el laberinto, los perseguidores, el jugador y el marcador ---
 1910 DEF PROC dibujar
 1920 SCREEN s: MAP 0
-1930 LET kk=fr-16*INT (fr/16): IF kk=0 THEN TILE 8,2,p$
-1940 IF kk=8 THEN TILE 8,2,e$
+1930 LET kk=fr-20*INT (fr/20): IF kk=0 THEN TILE 8,2,p$
+1940 IF kk=10 THEN TILE 8,2,e$
 1950 IF bt THEN SPRITE 39+fk,123,135
 1960 IF bp THEN SPRITE bs,bx,136
-1970 LET an=INT (fr/6)-2*INT (fr/12): LET oj=0
+1970 LET an=INT (fr/7.2)-2*INT (fr/14.4): LET oj=0
 1980 IF sinfan=0 THEN
 1990 FOR i=1 TO 4
 2000 IF i=po THEN SPRITE pn,x(i)+4-pw/2,y(i)+8 ELSE IF e(i)>3 THEN SPRITE 30+d(i),x(i)-1,y(i)+7: LET oj=1 ELSE IF z(i) THEN SPRITE 36+an+2*fl,x(i)-1,y(i)+7 ELSE SPRITE 18+2*d(i)+an,x(i)-1,y(i)+7,0,k$(i)
@@ -161,17 +161,17 @@
 2080 SPRITE 39+fk,204,0,0,"",8,8
 2090 IF m$<>"" THEN PRINT AT 15,16-LEN m$/2; INK 6; BRIGHT 1; PAPER 0; m$
 2100 PAGE s: LET s=1-s
-2110 REM El sonido: el efecto del canal A y la sirena del canal B (segundo chip)
-2120 IF fv>0 THEN LET fp=fp+fd/2: LET fv=fv-.5: SOUND 16,fp;24,fv
-2130 LET kk=fr-24*INT (fr/24): LET kk=ABS (kk-12)/2
-2140 IF oj THEN LET sv=40+4*kk ELSE IF am THEN LET sv=240+30*INT ((fr-8*INT (fr/8))/2) ELSE LET sv=100+quedan/3+5*kk
+2110 REM El sonido: el efecto del canal A y la sirena del canal B (segundo chip), al ritmo de antes (50 por segundo)
+2120 IF fv>0 THEN LET fp=fp+fd*5/12: LET fv=fv-5/12: SOUND 16,fp;24,fv
+2130 LET kk=fr-28.8*INT (fr/28.8): LET kk=ABS (kk-14.4)/2.4
+2140 IF oj THEN LET sv=40+4*kk ELSE IF am THEN LET sv=240+30*INT ((fr-9.6*INT (fr/9.6))/2.4) ELSE LET sv=100+quedan/3+5*kk
 2150 SOUND 18,sv-256*INT (sv/256);19,INT (sv/256)
 2160 WAIT 1
 2170 END PROC
 2200 REM --- La entrada: cursores, OPQA o un mando; la ultima direccion se recuerda ---
 2210 DEF PROC entrada
 2220 IF demo THEN
-2230 IF INKEY$<>"" OR JOY 0 OR fr>3000 THEN LET quit=1
+2230 IF INKEY$<>"" OR JOY 0 OR fr>60*60 THEN LET quit=1
 2240 ELSE
 2250 LET j=JOY 0: IF j THEN LET j=j-16*INT (j/16): IF j THEN LET nd=1+(j>1)+(j>3)+(j>7)
 2260 IF KEY 9 OR KEY 112 THEN LET nd=1
@@ -230,10 +230,11 @@
 3230 LET quedan=np: LET comidos=0: LET dp=1
 3240 LET fk=nivel-4*INT ((nivel-1)/4): LET k=nivel: IF k>6 THEN LET k=6
 3250 LET bv=b(k): LET bs=53+k: LET bx=128-4*LEN STR$ bv
-3260 REM Las velocidades, en pixeles por imagen, y lo que dura el susto (en imagenes)
+3260 REM Las velocidades, en pixeles por imagen: el jugador anda siempre uno (sin paradas ni saltos) y los demas,
+3265 REM en proporcion a el (vp era 1+.02 por nivel). El susto, en imagenes: 300 (los pixeles que anda el jugador), 40 menos en cada nivel
 3270 LET vp=1+.02*(nivel-1): IF vp>1.1 THEN LET vp=1.1
 3280 LET vf=.8+.05*(nivel-1): IF vf>1.05 THEN LET vf=1.05
-3290 LET vm=.5+.02*nivel: LET vt=.45
+3290 LET vm=.5+.02*nivel: LET vt=.45: LET vf=vf/vp: LET vm=vm/vp: LET vt=vt/vp: LET vp=1
 3300 LET tm=300-40*(nivel-1): IF tm<60 THEN LET tm=60
 3310 LET primera=1
 3320 REPEAT
@@ -256,28 +257,29 @@
 3500 LET n(3)=7: LET n(4)=17: LET w(3)=200: LET w(4)=400
 3510 END IF
 3520 SOUND 24,0;25,0
-3530 IF primera THEN LET m$=FN t$("NIVEL ","LEVEL ")+STR$ nivel: FOR k=1 TO 40: PROC dibujar: NEXT k
+3530 IF primera THEN LET m$=FN t$("NIVEL ","LEVEL ")+STR$ nivel: FOR k=1 TO 48: PROC dibujar: NEXT k
 3540 LET m$=r$: PROC dibujar
-3550 IF primera AND NOT demo THEN PLAY "T190O5 3cegCgece egbEDbgb 5Cg7C","O3 5cgcg ebeb cg7c" ELSE FOR k=1 TO 60: PROC dibujar: NEXT k
+3550 IF primera AND NOT demo THEN PLAY "T190O5 3cegCgece egbEDbgb 5Cg7C","O3 5cgcg ebeb cg7c" ELSE FOR k=1 TO 72: PROC dibujar: NEXT k
 3560 LET m$="": SOUND 25,9
 3570 END PROC
 3600 REM --- Te han pillado: todo se para y el jugador desaparece ---
 3610 DEF PROC muerte
 3620 SOUND 25,0;24,0: LET fv=0: LET po=0
-3630 FOR k=1 TO 40: PROC dibujar: NEXT k
+3630 FOR k=1 TO 48: PROC dibujar: NEXT k
 3640 LET sinfan=1: LET bt=0: LET bp=0
 3650 FOR k=1 TO 10
-3660 LET mf=k: SOUND 16,40+k*18;24,13: PROC dibujar: PROC dibujar: SOUND 16,50+k*19;24,10: PROC dibujar: PROC dibujar
+3660 LET mf=k: SOUND 16,40+k*18;24,13: PROC dibujar: PROC dibujar: IF k<9 THEN PROC dibujar
+3665 SOUND 16,50+k*19;24,10: PROC dibujar: PROC dibujar
 3670 NEXT k
-3680 SOUND 24,0: FOR k=1 TO 30: PROC dibujar: NEXT k
+3680 SOUND 24,0: FOR k=1 TO 36: PROC dibujar: NEXT k
 3690 LET vidas=vidas-1: LET mf=0: LET sinfan=0
 3700 END PROC
 3800 REM --- Nivel superado: las paredes parpadean (REMAP) ---
 3810 DEF PROC superado
 3820 SOUND 24,0;25,0: LET fv=0
-3830 FOR k=1 TO 40: PROC dibujar: NEXT k
+3830 FOR k=1 TO 48: PROC dibujar: NEXT k
 3840 LET sinfan=1: LET bt=0: LET bp=0
-3850 FOR k=1 TO 8: REMAP 9,9+6*(k-2*INT (k/2)): FOR j=1 TO 6: PROC dibujar: NEXT j: NEXT k
+3850 FOR k=1 TO 8: REMAP 9,9+6*(k-2*INT (k/2)): FOR j=1 TO 7+(k>6): PROC dibujar: NEXT j: NEXT k
 3860 REMAP: LET sinfan=0
 3870 END PROC
 4000 REM --- El titulo: el nombre, los perseguidores, las teclas y el record ---
@@ -287,17 +289,17 @@
 4040 LET s=1
 4050 REPEAT
 4060 SCREEN s: BOX 0,0,160,256,32
-4070 IF INT (t/25)-2*INT (t/50) THEN PROC centro(20,15,FN t$("PULSA ESPACIO O EL BOTON","PRESS SPACE OR FIRE"))
+4070 IF INT (t/30)-2*INT (t/60) THEN PROC centro(20,15,FN t$("PULSA ESPACIO O EL BOTON","PRESS SPACE OR FIRE"))
 4080 REM Abajo pasa el jugador perseguido por los cuatro
-4090 LET k=272-(t-340*INT (t/340))*1.2: LET a=INT (t/3): LET a=a-4*INT (a/4): IF a=3 THEN LET a=1
+4090 LET k=272-(t-408*INT (t/408)): LET a=INT (t/3.6): LET a=a-4*INT (a/4): IF a=3 THEN LET a=1
 4100 SPRITE 1+(a>0)*a,k,176,1
-4110 FOR l=1 TO 4: SPRITE 22+INT (t/6)-2*INT (t/12),k+12+14*l,176,0,k$(l): NEXT l
+4110 FOR l=1 TO 4: SPRITE 22+INT (t/7.2)-2*INT (t/14.4),k+12+14*l,176,0,k$(l): NEXT l
 4120 PAGE s: LET s=1-s: WAIT 1: LET t=t+1
-4130 UNTIL KEY 32 OR KEY 13 OR JOY 0>=16 OR t>500
-4140 LET demo=t>500
+4130 UNTIL KEY 32 OR KEY 13 OR JOY 0>=16 OR t>10*60
+4140 LET demo=t>10*60
 4150 END PROC
 4200 DEF PROC portada
-4210 SPRITE 60,22,10,0,"..............1",216,24: SPRITE 60,20,8,0,"",216,24
+4210 SPRITE 60,46,10,0,"..............1",168,24: SPRITE 60,44,8,0,"",168,24
 4220 PROC centro(5,15,FN t$("COME TODOS LOS PUNTOS","EAT ALL THE DOTS"))
 4230 RESTORE @nombres
 4240 FOR l=1 TO 4
@@ -410,7 +412,7 @@
 6040 FOR k=1 TO 6: PRINT AT 0,0; INK 3; BRIGHT 1; PAPER 0; b(k): GRAB 53+k,0,0,8*LEN STR$ b(k),8,0: NEXT k
 6050 REM El nombre (60) para el titulo, y una pildora (61)
 6060 PRINT AT 21,0; INK 6; BRIGHT 1; PAPER 0; "MUNCHER"
-6070 GRAB 60,0,168,72,8,0: GRAB 61,8,p$
+6070 GRAB 60,0,168,56,8,0: GRAB 61,8,p$
 6090 SCREEN 0: CLS
 6100 END PROC
 6200 REM Una casilla de pared en la columna c y la fila r: a, b, k, n dicen si
@@ -461,7 +463,7 @@
 9010 @tablas: DATA 1,-1,0,0,0,0,1,-1,2,1,4,3,4,2,3,1
 9020 REM Los rincones (g, h): Rufo arriba a la derecha, Lila arriba a la izquierda...
 9030 DATA 32,5,3,34,-1,-1,25,25
-9040 REM Retirada y persecucion: 7, 20, 7, 20, 5, 20 y 5 segundos, y despues siempre
+9040 REM Retirada y persecucion, en imagenes (unos 6, 17, 6, 17, 4, 17 y 4 segundos), y despues siempre
 9050 DATA 350,1000,350,1000,250,1000,250,1E9
 9060 REM Lo que vale la fruta en cada nivel
 9070 DATA 100,300,500,1000,2000,3000

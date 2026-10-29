@@ -63,23 +63,20 @@ Para tus programas solo hay una máquina: no notan que haya dos chips.
 
 ### La pantalla (HDMI)
 
-Enchufa cualquier tele o monitor HDMI al conector **HDMI**. La Pico ULA tiene
-cuatro modos de salida:
+Enchufa cualquier tele o monitor HDMI al conector **HDMI**. La imagen es
+siempre de 640 × 480 a 60 Hz, un modo que toda pantalla HDMI tiene que
+aceptar, y la Pico ULA tiene dos modos de salida:
 
 | Modo | Salida | Sonido en la pantalla | El LED del enlace parpadea al arrancar |
 |---|---|---|---|
-| 0 | HDMI, 720 × 576 a 50 Hz (el de partida) | Sí | Una vez |
-| 1 | HDMI, 640 × 480 a 60 Hz | Sí | Dos veces |
-| 2 | DVI, 720 × 576 a 50 Hz | No | Tres veces |
-| 3 | DVI, 640 × 480 a 60 Hz (el **modo seguro**) | No | Cuatro veces |
+| 0 | HDMI (el de partida) | Sí | Una vez |
+| 1 | DVI (el **modo seguro**) | No | Dos veces |
 
-- **Una pulsación corta del pulsador MODO** pasa al modo siguiente. La Pico
-  ULA se reinicia con él (el BASIC sigue a lo suyo) y lo recuerda al apagar.
+- **Una pulsación corta del pulsador MODO** pasa al otro modo. La Pico ULA se
+  reinicia con él (el BASIC sigue a lo suyo) y lo recuerda al apagar.
 - **Si lo mantienes apretado al encender**, arranca en el modo seguro, solo esa
   vez. Lo acepta cualquier pantalla, también los monitores DVI antiguos que no
-  admiten HDMI ni 50 Hz.
-- A 640 × 480 se recorta un poco el borde, y a 60 Hz la máquina sigue a 50
-  imágenes por segundo (la pantalla repite una de cada cinco).
+  admiten HDMI.
 - Los programas no pueden cambiar el modo; solo leerlo.
 
 ### El sonido

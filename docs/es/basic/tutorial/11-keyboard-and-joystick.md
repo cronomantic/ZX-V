@@ -82,7 +82,7 @@ bordes.
 
 ## Una velocidad fija: `WAIT` y `TIME`
 
-La pantalla se redibuja 50 veces por segundo; cada vez es un **frame**.
+La pantalla se redibuja 60 veces por segundo; cada vez es un **frame**.
 `WAIT n` espera a que hayan pasado `n` frames desde el último `WAIT`. En el
 programa de arriba, `WAIT 3` hace que cada vuelta del bucle dure justo tres
 frames, así que la `@` va a la misma velocidad tenga el bucle mucho o poco
@@ -99,11 +99,13 @@ medir el tiempo. Este juego mide tus reflejos:
 50 BORDER 4: LET t=TIME
 60 REPEAT: UNTIL KEY 32
 70 LET t=TIME-t
-80 PRINT "Tu tiempo: ";t*20;" milisegundos"
+80 PRINT "Tu tiempo: ";INT (t*1000/60);" milisegundos"
 90 PAUSE 0
 ```
 
-Cada frame dura 20 milisegundos; de ahí el `t*20`. Sin el `PAUSE 0` de la
+Cada frame dura un sesentavo de segundo; de ahí el `t*1000/60`. (`PAUSE`
+cuenta en cincuentavos de segundo, como en el Spectrum: `PAUSE 50` es un
+segundo.) Sin el `PAUSE 0` de la
 línea 90, el espacio que has pulsado te devolvería al editor antes de que
 pudieras leer tu tiempo.
 

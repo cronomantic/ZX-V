@@ -39,7 +39,7 @@ BOX 4, 100, 20, 20, 20
 
 | Órdenes | |
 |---|---|
-| `MODE`, `PAGE`, `SCREEN`, `SCROLL`, `REMAP`, `WAIT` | Los modos, la página que se ve y en la que se dibuja (el doble buffer), el scroll, los cambios de color y el ritmo de 50 imágenes por segundo |
+| `MODE`, `PAGE`, `SCREEN`, `SCROLL`, `REMAP`, `WAIT` | Los modos, la página que se ve y en la que se dibuja (el doble buffer), el scroll, los cambios de color y el ritmo de 60 imágenes por segundo |
 | `GRAB`, `GRABSTR`, `SPRITE`, `HIT` | Los sprites, con espejo, otros colores o escalados, y los choques al píxel |
 | `BOX`, `DISC`, `POLY`, `CLIP`, `PIXEL` | Figuras rellenas, el recorte y el color de un píxel |
 | `KEY`, `JOY`, `SOUND`, `TIME` | Las teclas pulsadas, los mandos, los registros de los AY y el contador de frames |
@@ -102,7 +102,7 @@ con un tipo más grande los contadores que lleguen al límite.
 
 [Stardust](../../examples/zxbasic/stardust/README.es.md) es un juego pequeño
 hecho con `zxv.bas`: doble buffer, sprites de cadenas, choques, teclado o
-mando y sonido, a 50 imágenes por segundo.
+mando y sonido, a 60 imágenes por segundo.
 
 ## La licencia de tus programas
 

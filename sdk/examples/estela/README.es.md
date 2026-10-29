@@ -53,8 +53,16 @@ También está en el disco ROM de la máquina: `LOAD "ROM:estela"`.
 
 - **Doble buffer:** cada frame se dibuja entero en la página oculta
   (`zxv_gfx_draw_page`), que se enseña en el siguiente VBLANK
-  (`zxv_set_page` y `zxv_wait_vblank`). Un frame perdido se nota en
-  `ZXV_SV_FRAMES`.
+  (`zxv_set_page` y `zxv_wait_vblank`), 60 veces por segundo. Un frame
+  perdido se nota en `ZXV_SV_FRAMES`.
+- **El tiempo:** el juego se ajustó cuando la máquina iba a 50 imágenes por
+  segundo, y a 60 (`ZXV_FRAME_HZ`) todo dura lo mismo en segundos: las
+  velocidades siguen escritas en 1/16 de píxel cada 1/50 de segundo y `V()`
+  las pasa a cada frame; los tiempos van en milisegundos con `MS()`. El
+  terreno avanza un píxel por frame, así que las fases se miden en
+  cincuentavos de segundo (sus píxeles a 50 Hz) y `PX()` los pasa a los
+  píxeles de ahora: a 60, las fases son un 20 % más largas, y las oleadas,
+  las torretas y el jefe salen a los mismos segundos.
 - **Sprites sin ficheros:** la nave, los dardos y las torretas son dibujos
   con caracteres en el código (`sprite_ascii`); las rocas, la mina, las
   explosiones y los jefes se dibujan con círculos, rectángulos y polígonos
@@ -64,11 +72,13 @@ También está en el disco ROM de la máquina: `LOAD "ROM:estela"`.
   fase (un camino aleatorio con un hueco mínimo y una zona llana para el
   jefe). Se dibujan solo las franjas de arriba y de abajo donde hay pared, y
   los choques se miran con `zxv_map_cell`.
-- **Las posiciones** van en 1/16 de píxel, y los ángulos en 64 pasos por
-  vuelta con una tabla del seno: nada de coma flotante.
+- **Las posiciones** van en 1/96 de píxel (así `V()` es exacta a 50 y a
+  60 Hz), y los ángulos en 64 pasos por vuelta con una tabla del seno: nada
+  de coma flotante.
 - **El sonido:** la música va por el primer AY (melodía, bajo y batería con
   el ruido); los efectos, por el segundo (disparos y mejoras en el canal A,
-  explosiones con ruido y envolvente en el B). Las explosiones grandes llevan
+  explosiones con ruido y envolvente en el B), los dos a 50 pasos por
+  segundo, como cuando se compusieron. Las explosiones grandes llevan
   además una muestra de 0,6 s a 8 kHz por el volumen del canal C, mandada
   poco a poco, unos 30 ms por delante, con `zxv_ay_event` (spec §5.4).
 - **El teclado:** se lee el mapa de teclas pulsadas (`ZXV_I_KEYMAP`) para
@@ -90,13 +100,18 @@ minutos: cada vida perdida bajaba el arma, y con el arma al mínimo todo se
 alargaba. Ahora el arma se conserva, los jefes tienen menos vida y disparan
 menos, las ruedas, las torretas y los dardos van más despacio, la nave es
 invulnerable un poco más tras un golpe y lo que cuenta para las balas es
-solo su centro (7 × 3 píxeles). Con seis semillas, el piloto pierde de 2 a
-7 vidas en toda la partida, y el último jefe le dura unos 40 segundos.
+solo su centro (7 × 3 píxeles). Con seis semillas, el piloto pierde de 4 a
+7 vidas en toda la partida (de 2 a 7 cuando la máquina iba a 50 imágenes por
+segundo), y el último jefe le dura unos 40 segundos; cada fase y cada jefe
+duran lo mismo que entonces. A 60 imágenes por segundo, el piloto mira
+también la pared que la nave aún tiene encima o debajo: con pasos más
+cortos, se iba al hueco siguiente antes de tiempo y chocaba con el borde.
 
 ## Rendimiento
 
 Compilado con `make -C sdk -B build/estela.zxv EXTRA_CFLAGS=-DESTELA_STATS`,
 el marcador enseña los frames perdidos y la demostración juega las tres fases
-enteras, con sus jefes. En el emulador (a 144 MHz) no se pierde ninguno, ni
-con decenas de balas en pantalla. En la Pico 2 no está medido.
+enteras, con sus jefes. En el emulador (a 144 MHz y 60 imágenes por segundo)
+no se pierde ninguno jugando, ni con decenas de balas en pantalla; solo uno
+al arrancar, con lo que se prepara antes del primer frame. En la Pico 2 no está medido.
 

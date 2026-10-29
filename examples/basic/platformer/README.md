@@ -43,11 +43,13 @@ elsewhere: `LOAD "platformer"` loads it, and `RUN` starts it.
   its number: the program knows that 1–3 are solid, 4 is a coin, 5 are spikes
   and 6 is the goal. To change the level, edit `level.png` with those tiles.
 - **Drawing:** each frame is drawn on the hidden page (`SCREEN s`) and shown
-  with `PAGE s`; `WAIT 2` keeps a steady 25 frames per second. The map (`MAP`)
-  is drawn shifted by the camera, then the bugs and the robot (`SPRITE`) on
-  top, and the scoreboard (`PRINT AT`) above. `CLIP` limits drawing to the
-  level area, which is what gets redrawn every frame: without it, a robot
-  falling into a pit would be drawn below and stay there.
+  with `PAGE s`; `WAIT 2` keeps a steady 30 frames per second (the machine
+  makes 60). Speeds are in pixels per turn of the loop: 2.5 when walking (75 a
+  second) and, for jumps, the same parabola as when the game ran at 25. The
+  map (`MAP`) is drawn shifted by the camera, then the bugs and the robot
+  (`SPRITE`) on top, and the scoreboard (`PRINT AT`) above. `CLIP` limits
+  drawing to the level area, which is what gets redrawn every frame: without
+  it, a robot falling into a pit would be drawn below and stay there.
 - **Collisions:** with the scenery, `CELL` at points on the robot's edge
   (`DEF FN s` says whether a point is solid); between the robot and the bugs,
   `HIT`. A coin is removed from the map with `MAP POKE`.

@@ -73,11 +73,14 @@ También está en el disco ROM de la máquina: `LOAD "ROM:mine"`.
 | `sound.c` | La música (primer AY) y los efectos (segundo AY) |
 | `game.c` | La partida, el desplazamiento, el título, la demostración y el récord |
 
-- **Pasos y píxeles:** la cueva avanza a pasos de 5 o 6 frames (según la
+- **Pasos y píxeles:** la cueva avanza a pasos de 100 o 120 ms (según la
   cueva): se recorre de arriba abajo y cada cosa hace lo suyo una vez. Pero
   lo que se mueve en un paso se dibuja entre su celda de antes y la nueva,
   frame a frame, así el minero, las piedras que caen y los bichos se
-  deslizan en vez de saltar 16 píxeles.
+  deslizan en vez de saltar 16 píxeles. A 60 imágenes por segundo, un paso
+  de 120 ms son 7,2 frames: el juego cuenta lo que le queda a cada paso y
+  dibuja en proporción, así que lo que se mueve va a velocidad fija aunque
+  unos pasos duren 7 frames y otros 8.
 - **El desplazamiento:** la ventana de 256 × 176 sigue al minero píxel a
   píxel cuando se aleja del centro, sin salirse de la cueva. Cada frame se
   dibujan en la página oculta las celdas que se ven de un mapa de tiles
@@ -137,6 +140,6 @@ el tiempo.
 Compilado con `make -C sdk -B build/mine.zxv EXTRA_CFLAGS=-DMINA_STATS`, el
 marcador enseña los frames perdidos. En el emulador (a 144 MHz) no se
 pierde ninguno en las doce cuevas, con el piloto simulando los pasos
-siguientes: el frame más lento tarda unos 4,4 ms de los 20 que hay. No se
-ha medido en la Pico 2.
+siguientes: el frame más lento tarda unos 4,4 ms de los 16,7 que dura un
+frame a 60 por segundo. No se ha medido en la Pico 2.
 

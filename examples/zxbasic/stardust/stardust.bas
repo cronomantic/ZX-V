@@ -2,19 +2,23 @@ REM Stardust: un juego pequeño para ZX-V en ZX Basic, con zxv.bas.
 REM
 REM Coge las gemas y esquiva las rocas. Cursores, O y P o un mando para
 REM moverse; espacio o fuego para empezar. Todo se dibuja en la página oculta
-REM y luego se enseña (doble buffer), a 50 imágenes por segundo.
+REM y luego se enseña (doble buffer), a 60 imágenes por segundo.
+REM
+REM Todo se mueve un número entero de píxeles en cada imagen (sin paradas);
+REM lo que va por segundo (los objetos nuevos, los tiempos) cuenta con HZ.
 REM
 REM   zxbc --arch zxv stardust.bas
 
 #include <zxv.bas>
 
+CONST HZ AS INTEGER = 60                    ' imágenes por segundo
 CONST SHIPY AS INTEGER = 178
 CONST NOBJ AS UBYTE = 8
 CONST NSTARS AS UBYTE = 32
 
 DIM ox(NOBJ - 1) AS INTEGER
 DIM oy(NOBJ - 1) AS INTEGER
-DIM ov(NOBJ - 1) AS UBYTE                   ' velocidad
+DIM ov(NOBJ - 1) AS UBYTE                   ' velocidad (píxeles por imagen)
 DIM ok(NOBJ - 1) AS UBYTE                   ' sprite (0: ninguno)
 DIM sx(NSTARS - 1) AS INTEGER
 DIM sy(NSTARS - 1) AS INTEGER
@@ -60,8 +64,9 @@ SUB play()
         IF px < 0 THEN px = 0
         IF px > 240 THEN px = 240
 
-        REM Una gema o una roca nueva, más a menudo cuantos más puntos
-        IF RND * 1000 < 40 + score / 4 THEN
+        REM Una gema o una roca nueva, más a menudo cuantos más puntos: de 2 por
+        REM segundo al principio (40 de cada 1000 cincuentavos de segundo)
+        IF RND * 1000 * HZ / 50 < 40 + score / 4 THEN
             FOR i = 0 TO NOBJ - 1
                 IF ok(i) = 0 THEN
                     ok(i) = 1
@@ -81,10 +86,10 @@ SUB play()
                 ELSEIF HIT(ok(i), ox(i), oy(i), 0, px, SHIPY) THEN
                     IF ok(i) = 1 THEN
                         score = score + 10
-                        SOUND 7, 62: SOUND 0, 60: SOUND 1, 0: SOUND 8, 13: fx = 5
+                        SOUND 7, 62: SOUND 0, 60: SOUND 1, 0: SOUND 8, 13: fx = HZ / 10
                     ELSE
-                        lives = lives - 1: hurt = 25
-                        SOUND 7, 55: SOUND 6, 24: SOUND 8, 15: fx = 15
+                        lives = lives - 1: hurt = HZ / 2
+                        SOUND 7, 55: SOUND 6, 24: SOUND 8, 15: fx = HZ * 3 / 10
                     END IF
                     ok(i) = 0
                 END IF
@@ -111,7 +116,7 @@ SUB play()
 
     IF score > best THEN best = score
     SOUND 8, 0
-    FOR i = 1 TO 100
+    FOR i = 1 TO 2 * HZ
         frame()
         PRINT AT 10, 11; INK 10; "SE ACABO"
         PRINT AT 12, 8; INK 15; "PUNTOS "; score

@@ -53,12 +53,11 @@ para la próxima vez.
 | Ctrl+Alt+Supr (vuelve al BASIC) | El reset de emergencia: para lo que esté en marcha y vuelve al BASIC, conservando tu programa BASIC |
 | Pegar texto (Alt+V) | Teclea en la máquina el texto del portapapeles, como si lo escribieras tú |
 
-**Ver**: el tamaño de la ventana (x1 es 720 × 576, hasta x4), el borde, el
+**Ver**: el tamaño de la ventana (x1 es 640 × 480, hasta x4), el borde, el
 escalado, la pantalla completa (Alt+Intro, sin menús) y la barra de estado. El borde es
-lo que rodea el área de 512 × 384 en la que se dibuja: **Completo** enseña el
-cuadro entero que sale por HDMI (720 × 576), **Mediano** (640 × 480) y
-**Pequeño** (576 × 432) lo recortan y **Sin borde** deja solo el área de
-dibujo. Se recuerda para la próxima vez. **Escalado** dice cómo llena la
+lo que rodea el área de 512 × 384 en la que se dibuja: **Completo** enseña lo
+que la máquina de verdad manda a la pantalla (640 × 480), **Pequeño**
+(576 × 432) lo recorta y **Sin borde** deja solo el área de dibujo. Se recuerda para la próxima vez. **Escalado** dice cómo llena la
 imagen la ventana cuando la agrandas: **Mantener la proporción** (lo normal:
 tan grande como quepa sin deformarse), **Escala entera** (solo a x1, x2,
 x3..., con todos los píxeles iguales) o **Llenar la ventana**, aunque la
@@ -250,10 +249,10 @@ No se graba vídeo; para eso, usa un programa de grabación de pantalla en tu PC
 
 ### La velocidad
 
-El emulador lleva la máquina a su velocidad real: 50 imágenes por segundo, con
+El emulador lleva la máquina a su velocidad real: 60 imágenes por segundo, con
 un procesador de 144 MHz. **Opciones > CPU sin límite de velocidad** deja que
 el procesador vaya todo lo rápido que pueda tu PC (hasta veinte veces más
-trabajo en cada imagen), mientras la pantalla y el sonido siguen a sus 50
+trabajo en cada imagen), mientras la pantalla y el sonido siguen a sus 60
 imágenes por segundo. Los programas que se sincronizan con la pantalla (casi
 todos los juegos) se ven igual; los cálculos largos en BASIC terminan mucho
 antes.
@@ -290,7 +289,7 @@ ratón como en `zxv`, y el emulador se maneja con estas teclas:
 | Alt+I, Alt+U | Guarda una instantánea (en `zxv.zxvs`, o en la última que se abrió); vuelve a ella |
 | Alt+P, Alt+N, Alt+F | Parar o seguir; una instrucción; hasta el final del frame |
 | Alt+D | Panel de depuración sobre la imagen: CPU, VRAM, sonido, tabla por línea, ninguno |
-| Alt+B | El borde: completo, mediano, pequeño, ninguno (con el panel de depuración se ve siempre entero) |
+| Alt+B | El borde: completo (640 × 480), pequeño, ninguno (con el panel de depuración se ve siempre entero) |
 | Ctrl+Alt+Supr | Reset de emergencia: vuelve al BASIC |
 | Alt+Q | Salir |
 
@@ -312,20 +311,20 @@ lista todas). Estas son las que más vas a usar:
 | `--romdisk FICHERO` | La unidad `ROM:` (si no, `romdisk.bin` junto al programa) |
 | `--lang XX` | El idioma de la máquina, `es` o `en`, solo para esa vez. En `zxv-sdl` y `zxv-cli` es también el de los mensajes del emulador |
 | `--scale N` | Tamaño de la ventana, de 1 a 4 (`zxv`, `zxv-sdl`) |
-| `--border TAMAÑO` | El borde: `completo` (`full`), `mediano` (`medium`), `pequeño` (`small`) o `ninguno` (`none`) (`zxv`, `zxv-sdl`) |
+| `--border TAMAÑO` | El borde: `completo` (`full`, 640 × 480), `pequeño` (`small`) o `ninguno` (`none`) (`zxv`, `zxv-sdl`) |
 | `--no-sound` | Sin sonido (`zxv`, `zxv-sdl`) |
 | `--turbo` | CPU sin límite de velocidad |
 | `--cpu-hz N` | La velocidad del procesador emulado, en Hz (144000000 si no se dice) |
 | `--clock FECHA` | El reloj: `host` (la hora de tu PC, la de partida), `"2026-01-31 12:00:00"` (esa hora al arrancar, y luego avanza) u `off` (sin hora hasta que un programa la ponga) |
-| `--type TEXTO` | Teclea TEXTO al arrancar. `\n` o `{ENTER}` es Intro; también `{ESC}`, `{TAB}`, `{BS}`, `{DEL}`, `{UP}`, `{DOWN}`, `{LEFT}`, `{RIGHT}`, `{HOME}`, `{END}`, `{PGUP}`, `{PGDN}`, `{F1}`...`{F12}`, `{CTRL+END}`, `{SHIFT+UP}`; `{WAIT n}` espera n imágenes, `{RESET}` pulsa Ctrl+Alt+Supr y `{JOY bits}` deja el mando 1 con esos botones (los de [`JOY`](basic/reference.md#joy)) hasta el siguiente `{JOY}`: `{JOY 1}{WAIT 50}{JOY 0}` lo lleva a la derecha un segundo |
+| `--type TEXTO` | Teclea TEXTO al arrancar. `\n` o `{ENTER}` es Intro; también `{ESC}`, `{TAB}`, `{BS}`, `{DEL}`, `{UP}`, `{DOWN}`, `{LEFT}`, `{RIGHT}`, `{HOME}`, `{END}`, `{PGUP}`, `{PGDN}`, `{F1}`...`{F12}`, `{CTRL+END}`, `{SHIFT+UP}`; `{WAIT n}` espera n imágenes, `{RESET}` pulsa Ctrl+Alt+Supr y `{JOY bits}` deja el mando 1 con esos botones (los de [`JOY`](basic/reference.md#joy)) hasta el siguiente `{JOY}`: `{JOY 1}{WAIT 60}{JOY 0}` lo lleva a la derecha un segundo |
 | `--paste FICHERO` | Teclea el contenido de un fichero de texto (un listado BASIC, por ejemplo) después de `--type`, mucho más deprisa que tecla a tecla |
 | `--load-snapshot F.zxvs` | Empieza desde una instantánea |
 | `--save-snapshot F.zxvs` | Guarda una instantánea al terminar (`zxv-cli`) |
-| `--frames N` | Termina tras N imágenes (50 por segundo) |
+| `--frames N` | Termina tras N imágenes (60 por segundo) |
 | `--screenshot F.bmp` | Guarda la pantalla al terminar |
 | `--wav F.wav` | Graba el sonido en un fichero WAV |
 | `--strict` | Modo estricto: avisa de lo que la máquina real no permitiría |
-| `--version` | Escribe la versión de ZX-V (`ZX-V 0.4.1`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
+| `--version` | Escribe la versión de ZX-V (`ZX-V 0.5.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
 
 Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--debug`, `--profile`,
 `--panel`, `--test`, `--fail-on-warning`) son para programadores y se explican

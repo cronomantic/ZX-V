@@ -7,7 +7,10 @@ target: catch the falling gems and dodge the rocks. It is an example of the
 `zxv.bas` library, which brings to ZX Basic the ZX-V BASIC's own commands with
 the same names: double buffering (`SCREEN` and `PAGE`), `WAIT`, sprites from a
 string (`GRABSTR`) with pixel-exact collisions (`HIT`), `BOX`, `KEY`, `JOY` and
-`SOUND`. It runs at 50 frames per second.
+`SOUND`. It runs at 60 frames per second (`HZ`). Everything moves a whole
+number of pixels each frame, so it moves smoothly, a fifth quicker than when
+the machine made 50; new gems and rocks still come at the same rate per
+second, so there are slightly fewer of them on screen.
 
 | File | Contents |
 |---|---|

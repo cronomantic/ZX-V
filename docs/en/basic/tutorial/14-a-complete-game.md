@@ -22,7 +22,7 @@ Before typing, it helps to think about the pieces:
   (8 × 8).
 - **The state of the game**, in variables: the basket's position `px`; the
   star's position `sx`, `sy` and speed `sp`; `score` and `lives`.
-- **The game loop**, repeated 25 times a second: read the controls and move
+- **The game loop**, repeated 30 times a second: read the controls and move
   the basket, move the star, check whether it has been caught or has reached
   the ground, and draw everything.
 - **Around the loop**: a title screen, the end of the game, and the best
@@ -62,7 +62,7 @@ Each piece will be a procedure, so the main program will be short.
   white centre (`f`).
 - `drawall` draws a complete picture on the hidden page `s`: the blue sky,
   the green ground, the star, the basket and the score line, then shows it
-  and waits two frames with `WAIT 2`. That gives 25 pictures a second.
+  and waits two frames with `WAIT 2`. That gives 30 pictures a second.
 - Line 80 gives the variables some values just to try `drawall`. Run it: you
   see the scene, still.
 

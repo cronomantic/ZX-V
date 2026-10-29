@@ -6,7 +6,7 @@ A game in ZX-V BASIC in the style of *Missile Command*: missiles fall on six cit
 with the mouse, firing from three bases. Each explosion destroys the missiles
 it touches, and each missile destroyed explodes in turn: a chain reaction. A
 way to see the mouse, the fast graphics and the new BASIC structures (the
-block IF, `SELECT CASE` and procedures) in a game that runs at 50 frames per
+block IF, `SELECT CASE` and procedures) in a game that runs at 60 frames per
 second. The texts follow the machine's language.
 
 | File | Contents |
@@ -95,6 +95,6 @@ This is how it is laid out:
   start.
 - **The loops only go through the used slots** of each table.
 
-That way it runs at 50 frames per second up to the eighth wave; after that,
+That way it runs at 60 frames per second up to the eighth wave; after that,
 with nine missiles and several explosions at once, the game slows down a
 little, as arcade machines did.

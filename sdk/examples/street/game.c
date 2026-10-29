@@ -5,8 +5,10 @@
  * las azoteas, peleando con los matones de las bandas. La pantalla se queda
  * quieta hasta acabar con cada grupo; entonces «GO» deja seguir. Al final de
  * cada fase espera el jefe de la banda. Todo se dibuja cada frame en la
- * página oculta y se cambia de página en el VBLANK (doble buffer, a 50
- * imágenes por segundo).
+ * página oculta y se cambia de página en el VBLANK (doble buffer, a 60
+ * imágenes por segundo). Los tiempos y las velocidades se escriben en
+ * cincuentavos de segundo, como cuando la máquina iba a 50, y F50 y VEL
+ * (street.h) los pasan a frames.
  *
  * Controles: cursores o OPQA para andar, espacio o M para pegar, N o Z para
  * saltar (y en el aire, patada), los dos a la vez para la patada giratoria;
@@ -139,7 +141,7 @@ static void read_input(void)
 /* --- Las fases ------------------------------------------------------------------- */
 
 typedef struct {
-    uint8_t kind, right, delay;         /* delay en 1/12,5 s (de 4 en 4 frames) */
+    uint8_t kind, right, delay;         /* delay en 1/12,5 s (de 4 en 4 cincuentavos) */
 } foe_def;
 
 typedef struct {
@@ -209,6 +211,7 @@ static const stage_t stages[3] = {
 #define STAGE_END   (26 * SLOT_W - W)   /* el final de la calle, para la cámara */
 
 static int group_i, group_on, group_t0, group_out, go_t, props_i, boss_on;
+static int cam_sub;                     /* el trozo de píxel de la cámara, en 1/ZXV_FRAME_HZ */
 static uint32_t record;
 static int message_t;
 static const char *message, *message2;
@@ -294,6 +297,7 @@ static void stage_start(void)
     fight_reset();
     scenery_make(stage);
     cam = 0;
+    cam_sub = 0;
     group_i = 0;
     group_on = 0;
     go_t = 0;
@@ -301,7 +305,7 @@ static void stage_start(void)
     boss_on = 0;
     cam_max = stages[stage].groups[0].at;
     hero_spawn(40, 156);
-    message_t = 150;
+    message_t = F50(150);
     static char title[24];
     char *p = title;
     const char *f = T("FASE ", "STAGE ");
@@ -334,7 +338,7 @@ static void group_frame(void)
                 sound_song(SONG_BOSS);
                 message = T("¡EL JEFE!", "THE BOSS!");
                 message2 = 0;
-                message_t = 90;
+                message_t = F50(90);
             }
         }
         return;
@@ -343,7 +347,7 @@ static void group_frame(void)
     int pending = 0;
     for (int k = 0; k < g->n; k++) {
         const foe_def *d = &g->foes[k];
-        int when = d->delay * 4;
+        int when = F50(d->delay * 4);
         if (group_out & (1 << k))
             continue;
         pending = 1;
@@ -358,7 +362,7 @@ static void group_frame(void)
         group_i++;
         if (group_i < st->ngroups) {
             cam_max = st->groups[group_i].at;
-            go_t = 200;
+            go_t = F50(200);
             sound_fx(FX_GO);
         }
     }
@@ -373,12 +377,20 @@ static void update(int in)
         go_t--;
     fight_update(in);
     group_frame();
-    /* La cámara: solo hacia delante, hasta donde deje el grupo. */
+    /* La cámara: solo hacia delante, hasta donde deje el grupo; si se ha
+     * quedado atrás, a 2 píxeles por cincuentavo. */
     int want = fighters[0].x / FX - 110;
     if (want > cam_max)
         want = cam_max;
-    if (want > cam)
-        cam += want - cam > 2 ? 2 : want - cam;
+    if (want - cam <= 2) {
+        if (want > cam)
+            cam = want;
+        cam_sub = 0;
+    } else {
+        cam_sub += 2 * 50;
+        cam += cam_sub / ZXV_FRAME_HZ;
+        cam_sub %= ZXV_FRAME_HZ;
+    }
 }
 
 #ifdef STREET_BOT
@@ -399,7 +411,7 @@ static int banner(const char *a, const char *b, int frames)
         video_end();
         frame++;
 #ifndef STREET_BOT
-        if (t > 50 && (input_edge & (IN_A | IN_B | IN_ESC)))
+        if (t > F50(50) && (input_edge & (IN_A | IN_B | IN_ESC)))
             return (input_edge & IN_ESC) != 0;
 #endif
     }
@@ -414,7 +426,7 @@ static int run_stage(void)
 #ifndef STREET_BOT
         if (demo && (input_edge & (IN_A | IN_B | IN_ESC | IN_PAUSE)))
             return R_QUIT;
-        if (demo && frame > 1500)
+        if (demo && frame > F50(1500))
             return R_QUIT;
 #endif
         if (input_edge & IN_ESC)
@@ -438,13 +450,13 @@ static int run_stage(void)
         int in_now = demo ? autopilot(go_t || (!group_on && cam < cam_max)) : input_now;
         update(in_now);
 #ifdef STREET_TRACE
-        if (frame % 10 == 0 || (frame > 1500 && frame < 1512)) {
+        if (frame % 10 == 0 || (frame > F50(1500) && frame < F50(1500) + 12)) {
             bot_write("in ");
             bot_number(in_now);
             bot_write(" x16 ");
-            bot_number(fighters[0].x);
+            bot_number(fighters[0].x * 16 / FX);
             bot_write(" vx ");
-            bot_number(fighters[0].vx + 1000);
+            bot_number(fighters[0].vx * 16 / FX + 1000);
             bot_write(" fl ");
             bot_number(fighters[0].face_left);
             bot_write(" st ");
@@ -488,10 +500,10 @@ static int run_stage(void)
         video_end();
 #ifdef STREET_BOT
         bot_boss_f += boss_on;
-        if (frame > 90000)              /* atascado: se da por perdida */
+        if (frame > F50(90000))         /* atascado: se da por perdida */
             return R_OVER;
 #endif
-        if (lives <= 0 && fighters[0].t > 60)
+        if (lives <= 0 && fighters[0].t > F50(60))
             return R_OVER;
         if (boss_on && !group_on && group_i >= stages[stage].ngroups)
             return R_CLEAR;
@@ -565,9 +577,9 @@ static void play(int demo_mode)
         bot_write("), golpes recibidos ");
         bot_number(bot_hits);
         bot_write(", segundos ");
-        bot_number((frame - f0) / 50);
+        bot_number((frame - f0) / ZXV_FRAME_HZ);
         bot_write(" (el jefe ");
-        bot_number(bot_boss_f / 50);
+        bot_number(bot_boss_f / ZXV_FRAME_HZ);
         bot_write("), frames perdidos ");
         bot_number((int)(video_lost() - lost0));
         bot_write("\n");
@@ -586,13 +598,13 @@ static void play(int demo_mode)
                 record = score;
                 save_record();
             }
-            banner(T("FIN DE LA PARTIDA", "GAME OVER"), better ? T("¡NUEVO RÉCORD!", "NEW HIGH SCORE!") : 0, 300);
+            banner(T("FIN DE LA PARTIDA", "GAME OVER"), better ? T("¡NUEVO RÉCORD!", "NEW HIGH SCORE!") : 0, F50(300));
             return;
         }
         add_score(5000 * (stage + 1) + fighters[0].hp * 20);
         hero_wins();
         sound_song(SONG_CLEAR);
-        if (stage < 2 && banner(T("¡FASE SUPERADA!", "STAGE CLEAR!"), 0, 200))
+        if (stage < 2 && banner(T("¡FASE SUPERADA!", "STAGE CLEAR!"), 0, F50(200)))
             return;
     }
     /* Las tres fases: la bonificación por las vidas que quedan. */
@@ -604,7 +616,7 @@ static void play(int demo_mode)
     }
     hero_wins();
     banner(T("¡LAS CALLES SON TUYAS!", "THE STREETS ARE YOURS!"), better ? T("¡NUEVO RÉCORD!", "NEW HIGH SCORE!") : 0,
-           400);
+           F50(400));
 }
 
 /* El título: 0 para jugar, 1 para la demostración, -1 para salir. */
@@ -623,12 +635,12 @@ static int title(void)
         read_input();
         if (input_edge & IN_ESC)
             return -1;
-        if (t > 20 && (input_edge & (IN_A | IN_B)))
+        if (t > F50(20) && (input_edge & (IN_A | IN_B)))
             return 0;
-        if (t > 600)
+        if (t > F50(600))
             return 1;
         frame = t;
-        cam = (t / 2) % STAGE_END;
+        cam = (S50(t) / 2) % STAGE_END;
         video_begin();
         scenery_draw(cam);
         zxv_gfx_rect(0, 0, W, HUD_H, 0);
@@ -639,16 +651,16 @@ static int title(void)
         b->x = (cam + 164) * FX;
         b->y = 127 * FX;
         b->face_left = 1;
-        int beat = t % 120;
-        a->state = beat < 60 ? ST_IDLE : ST_ATTACK;     /* en guardia, o un puñetazo */
+        int beat = t % F50(120);
+        a->state = beat < F50(60) ? ST_IDLE : ST_ATTACK;     /* en guardia, o un puñetazo */
         a->attack = 0;
-        a->t = (int16_t)(beat - 60);
-        b->state = beat >= 64 && beat < 82 ? ST_HURT : ST_IDLE;
+        a->t = (int16_t)(beat - F50(60));
+        b->state = beat >= F50(64) && beat < F50(82) ? ST_HURT : ST_IDLE;
         b->t = 0;
-        b->flash = (uint8_t)(beat >= 64 && beat < 67 ? 3 : 0);
+        b->flash = (uint8_t)(beat >= F50(64) && beat < F50(67) ? 3 : 0);
         fight_draw();
         zxv_gfx_rect(0, HUD_H, W, 60, 0);
-        text_big((W - 6 * 6 * 4 + 4) / 2, 21 + isin(t) / 32, "STREET", 4, logo);
+        text_big((W - 6 * 6 * 4 + 4) / 2, 21 + isin(S50(t)) / 32, "STREET", 4, logo);
         text_big((W - 7 * 6 * 3 + 3) / 2, 53, "JUSTICE", 3, logo2);
         zxv_gfx_rect(0, 128, W, H - 128, 0);
         text_center(132, T("CURSORES O OPQA: ANDAR", "ARROWS OR OPQA: MOVE"), 7);

@@ -7,7 +7,7 @@ del laberinto mientras cuatro perseguidores te buscan, cada uno a su manera.
 Una píldora da la vuelta a la tortilla durante unos segundos. Para ver los
 mapas de tiles, los sprites sobre un fondo quieto, el doble buffer y las
 estructuras nuevas del BASIC (el IF de bloque, `REPEAT` y los procedimientos)
-en un juego que va a 50 imágenes por segundo. Los textos siguen el idioma de
+en un juego que va a 60 imágenes por segundo. Los textos siguen el idioma de
 la máquina.
 
 | Fichero | Contenido |
@@ -47,7 +47,7 @@ cruce y girarás en cuanto el pasillo lo permita.
     persigue cuando entras en su parte del laberinto.
   - **Chispa** (verde) te persigue, pero en muchos cruces tira por cualquier
     lado.
-- **Retirada y persecución:** de vez en cuando (7, 20, 7, 20, 5, 20 y 5
+- **Retirada y persecución:** de vez en cuando (unos 6, 17, 6, 17, 4, 17 y 4
   segundos) dejan de perseguirte y cada uno se va un rato a su rincón; en cada
   cambio dan la vuelta.
 - **Las píldoras** (los cuatro puntos gordos, 50 puntos): los perseguidores se
@@ -57,7 +57,7 @@ cruce y girarás en cuanto el pasillo lo permita.
 - **El túnel** de los lados te lleva al otro lado; los perseguidores van más
   despacio por él.
 - **La fruta:** dos veces por nivel (a los 70 y a los 170 puntos comidos) sale
-  una fruta bajo la casa durante diez segundos: una cereza (100 puntos), un
+  una fruta bajo la casa durante ocho segundos: una cereza (100 puntos), un
   limón (300), uvas (500), una seta (1000)... Arriba se ve la del nivel.
 - **Niveles:** tras los 224 puntos, las paredes parpadean y empieza el
   siguiente, con los perseguidores más rápidos y el susto más corto. Tres
@@ -94,8 +94,14 @@ cruce y girarás en cuanto el pasillo lo permita.
   cada vez más abierta.
 - **El movimiento** va de píxel en píxel; en el centro de cada casilla, el
   perseguidor elige la casilla vecina más cercana a su blanco (sin dar nunca
-  la vuelta), como en la recreativa, y el jugador gira si puede. Las
-  velocidades son fracciones de píxel por imagen, que se van sumando (`f(i)`).
+  la vuelta), como en la recreativa, y el jugador gira si puede. El jugador
+  anda siempre un píxel por imagen (60 por segundo), sin paradas ni saltos;
+  las velocidades de los perseguidores son fracciones de eso, que se van
+  sumando (`f(i)`), en la misma proporción que cuando el juego iba a 50
+  imágenes por segundo. Los tiempos del juego (el susto, las retiradas,
+  cuándo sale cada uno, la fruta) se cuentan en imágenes, tantas como
+  entonces: en el laberinto el juego es el mismo, solo que una quinta parte
+  más rápido.
 - **El sonido:** `SOUND` en el segundo chip: los puntos y los efectos en el
   canal A, y en el canal B una sirena que cambia con el susto y cuando hay ojos
   volviendo a casa. `PLAY` toca la música del principio de cada nivel en el
@@ -106,8 +112,8 @@ cruce y girarás en cuanto el pasillo lo permita.
 
 ## Velocidad
 
-El juego va a 50 imágenes por segundo (medido en el emulador con `TIME`); la
-demostración, cuyo piloto piensa más, a 49 o 50. Para que siga así:
+El juego va a 60 imágenes por segundo (medido en el emulador con `TIME`), y
+la demostración, cuyo piloto piensa más, también. Para que siga así:
 
 - **Lo que se hace en cada imagen va primero** (líneas 100 a 2640), y lo que
   se hace una vez (los gráficos, el título, las pantallas entre niveles),

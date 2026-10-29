@@ -40,7 +40,7 @@ línea y lo vuelves a ejecutar en un segundo.
 Usa un **programa nativo** cuando necesites:
 
 - **Velocidad.** El C va muchas veces más rápido que el BASIC: la CPU hace
-  unos 2,9 millones de instrucciones por frame (50 frames por segundo).
+  unos 2,4 millones de instrucciones por frame (60 frames por segundo).
 - **Control.** Tus propias estructuras de datos, aritmética de coma fija,
   tu propio motor de sonido, tus propios formatos de fichero.
 - **Espacio.** Casi 248 KB para código y datos, con toda la memoria de la
@@ -218,7 +218,7 @@ carga la máquina. Copia `hello.zxv` a la tarjeta SD y escribe
 - `zxv_plot(x, y, color)` pinta un píxel. La pantalla mide 256 × 192
   píxeles, con el (0, 0) arriba a la izquierda.
 - `zxv_key_get()` devuelve la siguiente tecla pulsada, o −1 si no hay
-  ninguna. `zxv_wait_vblank()` espera al siguiente frame (1/50 de segundo)
+  ninguna. `zxv_wait_vblank()` espera al siguiente frame (1/60 de segundo)
   para que el bucle no dé vueltas en vano.
 - Cuando `main` devuelve 0, estás otra vez en el BASIC con el informe
   `0 OK`.
@@ -596,11 +596,11 @@ int main(void)
     zxv_print_str("La de 440 Hz, Mi de 659 Hz en el\nsegundo AY y luego el beeper.");
 
     note_a(0, 440, 15);                         /* primer AY: La4 */
-    wait_frames(25);
+    wait_frames(ZXV_FRAME_HZ / 2);              /* medio segundo */
     zxv_ay_write(8, 0);                         /* silencio */
 
     note_a(ZXV_AY2, 659, 15);                   /* segundo AY: Mi5 */
-    wait_frames(25);
+    wait_frames(ZXV_FRAME_HZ / 2);              /* medio segundo */
     zxv_ay_write(ZXV_AY2 + 8, 0);
 
     /* El beeper, con la hora exacta: 1 kHz durante un cuarto de segundo.
@@ -982,7 +982,7 @@ lista de lo que funciona está en
 
 ## El tiempo y el bucle de frames
 
-ZX-V dibuja **50 frames por segundo**. El momento entre dos frames es el
+ZX-V dibuja **60 frames por segundo**. El momento entre dos frames es el
 **VBLANK**, y todo en un juego gira a su alrededor:
 
 ```c
@@ -995,10 +995,12 @@ for (;;) {
 }
 ```
 
-A la velocidad de referencia el procesador hace unos **2,88 millones de
+A la velocidad de referencia el procesador hace unos **2,4 millones de
 instrucciones por frame**. Si una vuelta de tu bucle tarda más de un
-frame, `zxv_wait_vblank` espera al siguiente y el juego va a 25 frames por
-segundo en vez de a 50.
+frame, `zxv_wait_vblank` espera al siguiente y el juego va a 30 frames por
+segundo en vez de a 60. `ZXV_FRAME_HZ` (60) es el número de frames por
+segundo: escribe los tiempos como `2 * ZXV_FRAME_HZ` y no como un número de
+frames.
 
 Hay tres relojes:
 
@@ -1025,7 +1027,7 @@ con el resto del programa deben ser `volatile`:
 
 static volatile uint32_t ticks;                 /* la cambia el gancho: volatile */
 
-static void on_frame(void)                      /* en cada VBLANK, 50 veces por segundo */
+static void on_frame(void)                      /* en cada VBLANK, 60 veces por segundo */
 {
     ticks++;
 }
@@ -1048,7 +1050,7 @@ int main(void)
     zxv_set_frame_hook(on_frame);
 
     uint32_t f0 = *frames, t0 = zxv_time_us();
-    while (ticks < 100)                         /* dos segundos, sin wait_vblank */
+    while (ticks < 2 * ZXV_FRAME_HZ)            /* dos segundos, sin wait_vblank */
         ;
     uint32_t us = zxv_time_us() - t0;           /* sin signo: bien aunque dé la vuelta */
     zxv_set_frame_hook(0);                      /* quita el gancho antes de salir */
@@ -1063,7 +1065,7 @@ int main(void)
 }
 ```
 
-Escribe 100 frames y unos 2.000.000 de microsegundos. Quita el gancho antes
+Escribe 120 frames y unos 2.000.000 de microsegundos. Quita el gancho antes
 de que termine tu programa.
 
 ### Las interrupciones

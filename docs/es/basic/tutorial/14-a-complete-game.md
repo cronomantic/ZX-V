@@ -24,7 +24,7 @@ Antes de teclear, conviene pensar en las piezas:
 - **El estado del juego**, en variables: la posición de la cesta, `px`; la
   posición de la estrella, `sx` y `sy`, y su velocidad, `sp`; `puntos` y
   `vidas`.
-- **El bucle del juego**, que se repite 25 veces por segundo: leer los
+- **El bucle del juego**, que se repite 30 veces por segundo: leer los
   controles y mover la cesta, mover la estrella, comprobar si se ha atrapado
   o si ha llegado al suelo, y dibujarlo todo.
 - **Alrededor del bucle**: una pantalla de título, el final de la partida y
@@ -64,7 +64,7 @@ Cada pieza será un procedimiento, así que el programa principal será corto.
   brillante (`e`) con el centro blanco (`f`).
 - `dibujar` dibuja un cuadro completo en la página escondida `s`: el cielo
   azul, el suelo verde, la estrella, la cesta y la línea de los puntos; luego
-  lo enseña y espera dos frames con `WAIT 2`. Eso da 25 cuadros por segundo.
+  lo enseña y espera dos frames con `WAIT 2`. Eso da 30 cuadros por segundo.
 - La línea 80 da unos valores a las variables solo para probar `dibujar`.
   Ejecútalo: verás la escena, quieta.
 

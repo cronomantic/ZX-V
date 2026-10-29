@@ -5,7 +5,9 @@
  * capas; en la segunda y la tercera fase, entre las paredes de un cañón y de
  * una fortaleza (un mapa de tiles que se desplaza píxel a píxel). Al final de
  * cada fase espera un jefe. Todo se dibuja cada frame en la página oculta y
- * se cambia de página en el VBLANK (doble buffer, a 50 imágenes por segundo).
+ * se cambia de página en el VBLANK (doble buffer, a 60 imágenes por segundo,
+ * ZXV_FRAME_HZ; las velocidades y los tiempos, en segundos, como cuando iba a
+ * 50: V() y MS() en estela.h; el terreno, un píxel por frame, con PX()).
  *
  * Controles: cursores o OPQA para mover, espacio o M para disparar, Intro
  * para la pausa y Esc para salir; o un mando. Sin tocar nada en el título,
@@ -372,14 +374,23 @@ static void make_tiles(void)
             }
 }
 
-/* El terreno de una fase: 0 sin paredes, 1 el cañón, 2 la fortaleza. */
+/* El terreno avanza un píxel por frame. Lo que mide el recorrido de una fase
+ * (dónde salen las oleadas, dónde espera el jefe...) va en cincuentavos de
+ * segundo, que eran sus píxeles cuando el juego iba a 50 Hz: PX() lo pasa a
+ * los píxeles de ahora, y todo sale a los mismos segundos (a 60 Hz, con las
+ * fases un 20 % más largas). */
+#define PX(t)       ((t) * ZXV_FRAME_HZ / 50)
+
+/* El terreno de una fase: 0 sin paredes, 1 el cañón, 2 la fortaleza. Las
+ * paredes cambian de media cada 5 (o 12) cincuentavos de segundo. */
 static void make_terrain(int style, int length)
 {
     int ceil = 2, ground = 21;
     band_top = 0;
     band_bottom = MAP_ROWS;
     for (int c = 0; c < MAP_COLS; c++) {
-        if (style && c > 40 && c * 8 < length - 160 && (rnd() % (style == 1 ? 5 : 12)) == 0) {
+        if (style && c > PX(40) && c * 8 < length - PX(160) &&
+            rnd() % ((style == 1 ? 5 : 12) * ZXV_FRAME_HZ) < 50) {
             int step = style == 1 ? 1 : 2;
             ceil += rnd() & 1 ? step : -step;
             ground += rnd() & 1 ? step : -step;
@@ -395,7 +406,7 @@ static void make_terrain(int style, int length)
                 }
             }
         }
-        if (c * 8 >= length - 160) {        /* donde espera el jefe, sin estrecheces */
+        if (c * 8 >= length - PX(160)) {    /* donde espera el jefe, sin estrecheces */
             ceil += ceil > 2 ? -1 : 0;
             ground += ground < 21 ? 1 : 0;
         }
@@ -432,7 +443,7 @@ static int solid(int x, int y)
 enum { P_LINE, P_COLUMN, P_RANDOM, P_GROUND, P_CEIL };
 
 typedef struct {
-    uint16_t at;                        /* píxel de desplazamiento en el que aparece */
+    uint16_t at;                        /* cuándo aparece, en cincuentavos de segundo (PX()) */
     uint8_t type, n, pattern, y;
 } wave_t;
 
@@ -472,7 +483,7 @@ typedef struct {
     const char *name_es, *name_en;
     int terrain;
     const wave_t *waves;
-    int nwaves, length;
+    int nwaves, length;                 /* length, en cincuentavos de segundo (PX()) */
 } stage_t;
 
 static const stage_t stages[3] = {
@@ -486,8 +497,8 @@ static const stage_t stages[3] = {
 typedef struct {
     uint8_t alive, type, flash, flip;
     int16_t hp;
-    int x, y, vx, vy;                   /* en 1/16 de píxel */
-    int t, base, amp;
+    int x, y, vx, vy;                   /* en FX, y FX por frame */
+    int t, base, amp;                   /* t en frames; amp, el vaivén en píxeles */
     const sprite_t *spr;
 } enemy_t;
 
@@ -518,8 +529,8 @@ static boom_t booms[MAX_BOOMS];
 static power_t powers[MAX_POWERS];
 
 static struct {
-    int x, y;                           /* en 1/16 de píxel */
-    int lives, weapon, shield, invuln, dead, cooldown;
+    int x, y;                           /* en FX */
+    int lives, weapon, shield, invuln, dead, cooldown;  /* cooldown, en milésimas de frame */
     uint32_t score, next_life;
 } pl;
 
@@ -554,8 +565,9 @@ static void add_score(int v)
     }
 }
 
-/* Una bala enemiga desde (x, y) hacia el jugador, a v/16 píxeles por frame,
- * girada da pasos de 1/64 de vuelta. */
+/* Una bala enemiga desde (x, y) hacia el jugador, a v/16 de píxel cada 1/50
+ * de segundo, girada da pasos de 1/64 de vuelta. Las cuentas, en esa unidad
+ * (con sus redondeos, los de siempre), y luego a FX por frame con V(). */
 static void fire_at(int x, int y, int v, int da)
 {
     int dx = (pl.x - x) / FX, dy = (pl.y - y) / FX + 4;
@@ -571,18 +583,19 @@ static void fire_at(int x, int y, int v, int da)
     }
     for (int i = 0; i < MAX_BULLETS; i++)
         if (!bullets[i].alive) {
-            bullets[i] = (shot_t){ 1, x, y, vx, vy };
+            bullets[i] = (shot_t){ 1, x, y, V(vx), V(vy) };
             return;
         }
 }
 
+/* Un anillo de n balas, a v como en fire_at(). */
 static void ring(int x, int y, int n, int v, int phase)
 {
     for (int k = 0; k < n; k++) {
         int a = phase + k * 64 / n;
         for (int i = 0; i < MAX_BULLETS; i++)
             if (!bullets[i].alive) {
-                bullets[i] = (shot_t){ 1, x, y, v * icos(a) / 64, v * isin(a) / 64 };
+                bullets[i] = (shot_t){ 1, x, y, V(v * icos(a) / 64), V(v * isin(a) / 64) };
                 break;
             }
     }
@@ -601,15 +614,15 @@ static enemy_t *spawn(int type, int x, int y)
             e->x = x * FX;
             e->y = y * FX;
             e->base = y * FX;
-            e->t = (int)(rnd() & 63);
+            e->t = (int)(rnd() & 63) * ZXV_FRAME_HZ / 50;          /* hasta 1,26 s */
             switch (type) {
-            case E_DART: e->vx = -28; e->amp = 10; e->spr = &s_dart; break;
-            case E_WHEEL: e->vx = -20; e->amp = 24; e->spr = &s_wheel[0]; break;
-            case E_ROCK: e->vx = -12 - (int)(rnd() % 10); e->vy = (int)(rnd() % 9) - 4; e->spr = &s_rock; break;
-            case E_PEBBLE: e->vx = -24 - (int)(rnd() % 12); e->vy = (int)(rnd() % 13) - 6; e->spr = &s_pebble; break;
-            case E_TURRET: e->vx = -16; e->spr = &s_turret; break;
-            case E_MINE: e->vx = -10; e->spr = &s_mine; break;
-            default: e->vx = -16; e->spr = &s_carrier; break;
+            case E_DART: e->vx = V(-28); e->amp = 40; e->spr = &s_dart; break;
+            case E_WHEEL: e->vx = V(-20); e->amp = 96; e->spr = &s_wheel[0]; break;
+            case E_ROCK: e->vx = V(-12 - (int)(rnd() % 10)); e->vy = V((int)(rnd() % 9) - 4); e->spr = &s_rock; break;
+            case E_PEBBLE: e->vx = V(-24 - (int)(rnd() % 12)); e->vy = V((int)(rnd() % 13) - 6); e->spr = &s_pebble; break;
+            case E_TURRET: e->vx = 0; e->spr = &s_turret; break;  /* va con el terreno */
+            case E_MINE: e->vx = V(-10); e->spr = &s_mine; break;
+            default: e->vx = V(-16); e->spr = &s_carrier; break;
             }
             return e;
         }
@@ -633,10 +646,10 @@ static void spawn_wave(const wave_t *w)
             y = HUD_H + 16 + (int)(rnd() % (H - HUD_H - 40));
             break;
         default: {                          /* torretas sobre el suelo o en el techo */
-            int col = (scroll + W + 8 + k * 40) / 8;
+            int col = (scroll + W + 8 + k * PX(40)) / 8;  /* separadas como en 4/5 s */
             if (col >= MAP_COLS)
                 col = MAP_COLS - 1;
-            x = W + 8 + k * 40;
+            x = W + 8 + k * PX(40);
             if (w->pattern == P_GROUND)
                 y = ground_row[col] * 8 - 7;
             else
@@ -669,7 +682,7 @@ static void kill_enemy(enemy_t *e)
         for (int k = 0; k < 2; k++) {
             enemy_t *p = spawn(E_PEBBLE, e->x / FX + 6, e->y / FX + 6);
             if (p)
-                p->vy = k ? 14 : -14;
+                p->vy = V(k ? 14 : -14);
         }
     if (e->type == E_CARRIER)
         for (int i = 0; i < MAX_POWERS; i++)
@@ -700,11 +713,11 @@ static void player_hit(void)
 #endif
     if (pl.shield) {
         pl.shield = 0;
-        pl.invuln = 90;
+        pl.invuln = MS(1800);
         sound_fx(FX_HIT);
         return;
     }
-    pl.dead = 100;
+    pl.dead = MS(2000);
     pl.lives--;
     add_boom(pl.x / FX, pl.y / FX - 3);
     add_boom(pl.x / FX - 4, pl.y / FX + 2);
@@ -725,7 +738,7 @@ static int autopilot(void)
         }
     }
     if (boss.alive && !boss.dying)
-        target = boss.y / FX + boss.spr->h / 2 - 5 + isin(frame) / 3;
+        target = boss.y / FX + boss.spr->h / 2 - 5 + isin_f(frame * 50, ZXV_FRAME_HZ) / 3;
     for (int i = 0; i < MAX_POWERS; i++)        /* las mejoras, antes que nada */
         if (powers[i].alive && powers[i].x / FX > px - 4)
             target = powers[i].y / FX;
@@ -741,8 +754,11 @@ static int autopilot(void)
         if (e->alive && ex > -e->spr->w && ex < 28 && ey > -e->spr->h / 2 - 8 && ey < e->spr->h / 2 + 8)
             target = py + (ey > 0 ? -24 : 24);
     }
-    int col = (scroll + px + 8) / 8 % MAP_COLS;
-    int lo = ceil_rows[col] * 8 + 6, hi = ground_row[col] * 8 - 16;
+    /* Las paredes: las de la columna de delante y las de la que aún tiene
+     * encima o debajo (si no, va hacia un hueco antes de dejar atrás la pared). */
+    int c0 = (scroll + px + 4) / 8 % MAP_COLS, c1 = (scroll + px + 8) / 8 % MAP_COLS;
+    int lo = (ceil_rows[c0] > ceil_rows[c1] ? ceil_rows[c0] : ceil_rows[c1]) * 8 + 6;
+    int hi = (ground_row[c0] < ground_row[c1] ? ground_row[c0] : ground_row[c1]) * 8 - 16;
     if (target < lo)
         target = lo;
     if (target > hi)
@@ -765,14 +781,14 @@ static void player_frame(void)
         if (--pl.dead == 0 && pl.lives > 0) {
             pl.x = 24 * FX;
             pl.y = 96 * FX;
-            pl.invuln = 150;
+            pl.invuln = MS(3000);
         }
         return;
     }
     if (pl.lives <= 0)                  /* fin de la partida */
         return;
     int in = demo ? autopilot() : input_now;
-    int v = 32;                         /* 2 píxeles por frame */
+    int v = V(32);                      /* 100 píxeles por segundo */
     if (in & IN_UP) pl.y -= v;
     if (in & IN_DOWN) pl.y += v;
     if (in & IN_LEFT) pl.x -= v;
@@ -784,9 +800,9 @@ static void player_frame(void)
     if (pl.invuln)
         pl.invuln--;
 
-    if (pl.cooldown)
-        pl.cooldown--;
-    if ((in & IN_FIRE) && !pl.cooldown) {
+    if (pl.cooldown > 0)
+        pl.cooldown -= 1000;
+    if ((in & IN_FIRE) && pl.cooldown <= 0) {
         static const int8_t pattern[3][3][2] = {
             { { 0, 0 }, { 0, 0 }, { 0, 0 } }, { { -3, 0 }, { 3, 0 }, { 0, 0 } }, { { 0, -16 }, { 0, 0 }, { 0, 16 } },
         };
@@ -795,10 +811,10 @@ static void player_frame(void)
             for (int i = 0; i < MAX_SHOTS; i++)
                 if (!shots[i].alive) {
                     const int8_t *p = pattern[pl.weapon - 1][k];
-                    shots[i] = (shot_t){ 1, pl.x + 14 * FX, pl.y + (4 + p[0]) * FX, 80, p[1] };
+                    shots[i] = (shot_t){ 1, pl.x + 14 * FX, pl.y + (4 + p[0]) * FX, V(80), V(p[1]) };
                     break;
                 }
-        pl.cooldown = 7;
+        pl.cooldown += 140 * ZXV_FRAME_HZ;  /* uno cada 140 ms, aunque no sean frames enteros */
         sound_fx(FX_SHOT);
     }
 
@@ -838,7 +854,7 @@ static void boss_frame(void)
         return;
     int bx = boss.x / FX, by = boss.y / FX, cx = bx + boss.spr->w / 2, cy = by + boss.spr->h / 2;
     if (boss.dying) {
-        if (boss.dying % 4 == 0)
+        if (boss.dying % (ZXV_FRAME_HZ / 12) == 0)  /* unas 12 por segundo */
             add_boom(bx + (int)(rnd() % boss.spr->w) - 8, by + (int)(rnd() % boss.spr->h) - 8);
         if (--boss.dying == 0)
             boss.alive = 0;
@@ -849,41 +865,44 @@ static void boss_frame(void)
         boss.flash--;
     int home = (W - boss.spr->w - 12) * FX;
     if (boss.x > home) {
-        boss.x -= 16;
+        boss.x -= V(16);
         return;                         /* llega */
     }
     int mid = (H + HUD_H) / 2 - boss.spr->h / 2;
     int amp = stage == 1 ? 50 : 36;
-    boss.y = (mid + isin(boss.t / 3) * amp / 64) * FX;
+    /* A saltos de un paso (de 64 por vuelta) cada 3/50 de segundo, como
+     * siempre: con un vaivén suave, al núcleo se le acierta más (con el piloto
+     * automático, dura un 15 % menos). */
+    boss.y = (mid + isin(boss.t * 50 / (3 * ZXV_FRAME_HZ)) * amp / 64) * FX;
     int t = boss.t;
     switch (boss.type) {
     case 0:                             /* la roca madre: anillos y piedras */
-        if (t % 100 == 0)
-            ring(cx * FX, cy * FX, 10, 22, t / 7);
-        if (t % 50 == 25) {
+        if (t % MS(2000) == 0)
+            ring(cx * FX, cy * FX, 10, 22, t * 50 / (7 * ZXV_FRAME_HZ));
+        if (t % MS(1000) == MS(500)) {
             enemy_t *e = spawn(E_PEBBLE, bx - 4, cy - 6);
             if (e) {
-                e->vx = -30;
-                e->vy = ((pl.y / FX) - cy) * 30 / 120;
+                e->vx = V(-30);
+                e->vy = V(((pl.y / FX) - cy) * 30 / 120);
             }
         }
         break;
     case 1:                             /* el guardián: ráfagas y dardos */
-        if (t % 60 == 0)
+        if (t % MS(1200) == 0)
             for (int k = -1; k <= 1; k++)
                 fire_at(bx * FX, (by + 18) * FX, 30, k * 3);
-        if (t % 150 == 75)
+        if (t % MS(3000) == MS(1500))
             for (int k = 0; k < 3; k++)
                 spawn(E_DART, bx, by + 6 + k * 12);
         break;
     default:                            /* el núcleo: se abre y se cierra */
-        boss.open = (t / 30) % 7 < 4;
-        if (!boss.open && t % 45 == 0)
-            ring(cx * FX, cy * FX, 12, 20, t / 5);
-        if (boss.open && t % 40 == 0)
+        boss.open = (t / MS(600)) % 7 < 4;
+        if (!boss.open && t % MS(900) == 0)
+            ring(cx * FX, cy * FX, 12, 20, t * 10 / ZXV_FRAME_HZ);
+        if (boss.open && t % MS(800) == 0)
             for (int k = -1; k <= 1; k++)
                 fire_at((bx + 2) * FX, (by + 16) * FX, 28, k * 3);
-        if (t % 200 == 100)
+        if (t % MS(4000) == MS(2000))
             spawn(E_MINE, bx - 8, cy - 7);
         break;
     }
@@ -908,19 +927,19 @@ static void stage_start(void)
     boss.alive = 0;
     scroll = 0;
     wave_i = 0;
-    speed = 16;
-    make_terrain(stages[stage].terrain, stages[stage].length);
+    speed = FX;                         /* las estrellas cercanas, con el terreno */
+    make_terrain(stages[stage].terrain, PX(stages[stage].length));
 #ifndef ESTELA_STATS
     if (demo)                           /* la demostración: el final de la fase y el jefe */
-        scroll = stages[stage].length - 900;
+        scroll = PX(stages[stage].length - 900);
 #endif
-    while (wave_i < stages[stage].nwaves && stages[stage].waves[wave_i].at <= scroll)
+    while (wave_i < stages[stage].nwaves && PX(stages[stage].waves[wave_i].at) <= scroll)
         wave_i++;
     pl.x = 24 * FX;
     pl.y = 96 * FX;
-    pl.invuln = 60;
+    pl.invuln = MS(1200);
     pl.dead = 0;
-    message_t = 150;
+    message_t = MS(3000);
     static char title[24];
     char *p = title;
     const char *f = T("FASE ", "STAGE ");
@@ -939,22 +958,22 @@ static void update(void)
     if (message_t)
         message_t--;
 
-    /* El desplazamiento y las oleadas; al final, el jefe. */
+    /* El desplazamiento, un píxel por frame, y las oleadas; al final, el jefe. */
     const stage_t *st = &stages[stage];
-    if (!boss.alive && scroll < st->length) {
+    int moving = !boss.alive && scroll < PX(st->length);
+    if (moving) {
         scroll++;
-        while (wave_i < st->nwaves && st->waves[wave_i].at <= scroll)
+        while (wave_i < st->nwaves && PX(st->waves[wave_i].at) <= scroll)
             spawn_wave(&st->waves[wave_i++]);
-        if (scroll == st->length) {
+        if (scroll == PX(st->length)) {
             boss_start();
             message = T("¡PELIGRO!", "WARNING!");
             message2 = 0;
-            message_t = 100;
+            message_t = MS(2000);
             sound_fx(FX_ALARM);
-            speed = 8;
+            speed = FX / 2;
         }
     }
-    int moving = !boss.alive && scroll < st->length;
 
     player_frame();
     boss_frame();
@@ -967,25 +986,25 @@ static void update(void)
         if (e->flash)
             e->flash--;
         switch (e->type) {
-        case E_DART:
+        case E_DART:                    /* el vaivén, a 100 pasos (de 64 por vuelta) por segundo */
             e->x += e->vx;
-            e->y = e->base + isin(e->t * 2) * e->amp;
+            e->y = e->base + isin_f(e->t * 100, ZXV_FRAME_HZ) * e->amp * FX / 64;
             break;
-        case E_WHEEL:
+        case E_WHEEL:                   /* a 50; la rueda cambia de dibujo 12,5 veces por segundo */
             e->x += e->vx;
-            e->y = e->base + isin(e->t) * e->amp;
-            e->spr = &s_wheel[(e->t >> 2) & 1];
-            if (e->t % 90 == 45 && e->x < W * FX)
+            e->y = e->base + isin_f(e->t * 50, ZXV_FRAME_HZ) * e->amp * FX / 64;
+            e->spr = &s_wheel[(e->t * 25 / (2 * ZXV_FRAME_HZ)) & 1];
+            if (e->t % MS(1800) == MS(900) && e->x < W * FX)
                 fire_at(e->x + 6 * FX, e->y + 6 * FX, 20, 0);
             break;
-        case E_TURRET:
-            e->x += moving ? -16 : 0;
-            if (e->t % 100 == 50 && e->x < (W - 8) * FX && e->x > 0)
+        case E_TURRET:                  /* pegada al terreno */
+            e->x -= moving ? FX : 0;
+            if (e->t % MS(2000) == MS(1000) && e->x < (W - 8) * FX && e->x > 0)
                 fire_at(e->x + 8 * FX, e->y + (e->flip ? 7 : 0) * FX, 22, 0);
             break;
         case E_MINE:
-            e->x += e->vx + (pl.x > e->x ? 4 : -4);
-            e->y += pl.y > e->y ? 6 : -6;
+            e->x += e->vx + (pl.x > e->x ? V(4) : V(-4));
+            e->y += pl.y > e->y ? V(6) : V(-6);
             break;
         default:                        /* rocas y portador: en línea recta */
             e->x += e->vx;
@@ -1015,7 +1034,7 @@ static void update(void)
             int ex = e->x / FX, ey = e->y / FX;
             if (e->alive && sx + 6 > ex && sx < ex + e->spr->w && sy + 2 > ey && sy < ey + e->spr->h) {
                 s->alive = 0;
-                e->flash = 3;
+                e->flash = (uint8_t)MS(60);
                 if (--e->hp <= 0)
                     kill_enemy(e);
                 else
@@ -1025,11 +1044,11 @@ static void update(void)
         }
         if (s->alive && boss.alive && !boss.dying && boss_hit_box(sx + 5, sy + 1)) {
             s->alive = 0;
-            boss.flash = 2;
+            boss.flash = MS(40);
             add_score(10);
             sound_fx(FX_HIT);
             if (--boss.hp <= 0) {
-                boss.dying = 90;
+                boss.dying = MS(1800);
                 add_score(5000 * (stage + 1));
                 sound_fx(FX_BIG);
                 for (int k = 0; k < MAX_BULLETS; k++)
@@ -1094,14 +1113,14 @@ static void update(void)
         power_t *p = &powers[i];
         if (p->alive) {
             p->t++;
-            p->x -= 10;
-            p->y += isin(p->t) / 8;
+            p->x -= V(10);
+            p->y += V(isin_f(p->t * 50, ZXV_FRAME_HZ)) / 8;
             if (p->x < -16 * FX)
                 p->alive = 0;
         }
     }
-    for (int i = 0; i < MAX_BOOMS; i++)
-        if (booms[i].alive && ++booms[i].t >= 16)
+    for (int i = 0; i < MAX_BOOMS; i++)                 /* las explosiones duran 0,32 s */
+        if (booms[i].alive && ++booms[i].t >= MS(320))
             booms[i].alive = 0;
 }
 
@@ -1181,7 +1200,7 @@ static void draw_world(void)
             draw_sprite(&s_ebullet, bullets[i].x / FX, bullets[i].y / FX, 0, 0);
     for (int i = 0; i < MAX_BOOMS; i++)
         if (booms[i].alive)
-            draw_sprite(&s_boom[booms[i].t / 4], booms[i].x, booms[i].y, 0, 0);
+            draw_sprite(&s_boom[booms[i].t * 4 / MS(320)], booms[i].x, booms[i].y, 0, 0);
 
     draw_hud();
     if (message_t && message) {
@@ -1237,7 +1256,7 @@ static int banner(const char *a, const char *b, int frames)
         sound_frame();
         video_end();
         update();                       /* las explosiones y las balas siguen */
-        if (t > 50 && (input_edge & (IN_FIRE | IN_ESC)))
+        if (t > ZXV_FRAME_HZ && (input_edge & (IN_FIRE | IN_ESC)))
             return (input_edge & IN_ESC) != 0;
     }
     return 0;
@@ -1251,7 +1270,7 @@ static int run_stage(void)
         if (demo && (input_edge & (IN_FIRE | IN_ESC | IN_PAUSE)))
             return R_QUIT;
 #ifndef ESTELA_STATS
-        if (demo && frame > 1600)
+        if (demo && frame > 32 * ZXV_FRAME_HZ)
             return R_QUIT;
 #endif
         if (input_edge & IN_ESC)
@@ -1279,12 +1298,12 @@ static int run_stage(void)
         video_end();
 #ifdef ESTELA_BOT
         bot_boss_f += boss.alive != 0;
-        if (frame > 60000)              /* el jefe, imposible: se da por perdida */
+        if (frame > 1200 * ZXV_FRAME_HZ)    /* el jefe, imposible: se da por perdida */
             return R_OVER;
 #endif
         if (pl.lives <= 0 && !pl.dead)
             return R_OVER;
-        if (boss.alive == 0 && boss.dying == 0 && scroll >= stages[stage].length && boss.hp <= 0 && boss.maxhp)
+        if (boss.alive == 0 && boss.dying == 0 && scroll >= PX(stages[stage].length) && boss.hp <= 0 && boss.maxhp)
             return R_CLEAR;
     }
 }
@@ -1319,7 +1338,7 @@ static void play(int demo_mode)
         bot_write(", golpes ");
         bot_number(bot_hits);
         bot_write(", segundos ");
-        bot_number((frame - f0) / 50);
+        bot_number((frame - f0) / ZXV_FRAME_HZ);
         bot_write(" [paredes ");
         bot_number(bot_cause[0]);
         bot_write(", balas ");
@@ -1331,7 +1350,7 @@ static void play(int demo_mode)
         bot_write("] con el jefe ");
         bot_number(bot_boss);
         bot_write(" en ");
-        bot_number(bot_boss_f / 50);
+        bot_number(bot_boss_f / ZXV_FRAME_HZ);
         bot_write(" s");
         bot_boss = bot_boss_f = 0;
         bot_cause[0] = bot_cause[1] = bot_cause[2] = bot_cause[3] = 0;
@@ -1355,11 +1374,12 @@ static void play(int demo_mode)
                 record = pl.score;
                 save_record();
             }
-            banner(T("FIN DE LA PARTIDA", "GAME OVER"), better ? T("¡NUEVO RÉCORD!", "NEW HIGH SCORE!") : 0, 300);
+            banner(T("FIN DE LA PARTIDA", "GAME OVER"), better ? T("¡NUEVO RÉCORD!", "NEW HIGH SCORE!") : 0,
+                   6 * ZXV_FRAME_HZ);
             return;
         }
         sound_song(SONG_CLEAR);
-        if (stage < 2 && banner(T("¡FASE SUPERADA!", "STAGE CLEAR!"), 0, 180))
+        if (stage < 2 && banner(T("¡FASE SUPERADA!", "STAGE CLEAR!"), 0, MS(3600)))
             return;
     }
     /* Las tres fases: la bonificación por las naves que quedan. */
@@ -1369,7 +1389,8 @@ static void play(int demo_mode)
         record = pl.score;
         save_record();
     }
-    banner(T("¡MISIÓN CUMPLIDA!", "MISSION COMPLETE!"), better ? T("¡NUEVO RÉCORD!", "NEW HIGH SCORE!") : 0, 400);
+    banner(T("¡MISIÓN CUMPLIDA!", "MISSION COMPLETE!"), better ? T("¡NUEVO RÉCORD!", "NEW HIGH SCORE!") : 0,
+           8 * ZXV_FRAME_HZ);
 }
 
 /* El título: 0 para jugar, 1 para la demostración, -1 para salir. */
@@ -1381,15 +1402,16 @@ static int title(void)
         read_input();
         if (input_edge & IN_ESC)
             return -1;
-        if (t > 20 && (input_edge & IN_FIRE))
+        if (t > MS(400) && (input_edge & IN_FIRE))
             return 0;
-        if (t > 600)
+        if (t > 12 * ZXV_FRAME_HZ)
             return 1;
         video_begin();
-        stars_draw(24);
-        int y = 26 + isin(t) / 16;
+        stars_draw(V(24));
+        int y = 26 + isin_f(t * 50, ZXV_FRAME_HZ) / 16;
         text_big((W - 6 * 6 * 4 + 4) / 2, y, "ESTELA", 4, logo);
-        draw_sprite(&s_ship, (t * 2) % (W + 64) - 32, 74 + isin(t * 2) / 6, 0, 0);
+        draw_sprite(&s_ship, t * 100 / ZXV_FRAME_HZ % (W + 64) - 32,       /* a 100 píxeles por segundo */
+                    74 + isin_f(t * 100, ZXV_FRAME_HZ) / 6, 0, 0);
         text_center(94, T("UN MATAMARCIANOS PARA ZX-V", "A SHOOT 'EM UP FOR ZX-V"), 5);
         char buf[16], line[32];
         number(buf, record, 6);

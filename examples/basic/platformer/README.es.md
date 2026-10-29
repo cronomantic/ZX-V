@@ -44,11 +44,13 @@ parte: `LOAD "platformer"` lo carga y `RUN` lo arranca.
   5 son pinchos y 6 la meta. Para cambiar el nivel basta con editar
   `level.png` usando esos tiles.
 - **Dibujo:** cada frame se dibuja en la página oculta (`SCREEN s`) y se
-  enseña con `PAGE s`; `WAIT 2` da 25 frames por segundo fijos. El mapa
-  (`MAP`) se dibuja desplazado según la cámara, encima los bichos y el robot
-  (`SPRITE`) y arriba el marcador (`PRINT AT`). `CLIP` limita el dibujo a la
-  zona del nivel, que es la que se redibuja cada frame: sin él, el robot que
-  cae por un foso se dibuja debajo y ahí se queda.
+  enseña con `PAGE s`; `WAIT 2` da 30 frames por segundo fijos (la máquina
+  hace 60). Las velocidades van en píxeles por vuelta del bucle: 2,5 al andar
+  (75 por segundo) y, en los saltos, la misma parábola que cuando iba a 25.
+  El mapa (`MAP`) se dibuja desplazado según la cámara, encima los bichos y
+  el robot (`SPRITE`) y arriba el marcador (`PRINT AT`). `CLIP` limita el
+  dibujo a la zona del nivel, que es la que se redibuja cada frame: sin él, el
+  robot que cae por un foso se dibuja debajo y ahí se queda.
 - **Colisiones:** con el escenario, `CELL` en los puntos del borde del robot
   (`DEF FN s` dice si un punto es sólido); entre el robot y los bichos,
   `HIT`. Una moneda se quita del mapa con `MAP POKE`.

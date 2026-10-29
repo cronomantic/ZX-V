@@ -7,7 +7,10 @@ su target para ZX-V: coge las gemas que caen y esquiva las rocas. Sirve de
 ejemplo de la librería `zxv.bas`, que trae a ZX Basic las órdenes propias del
 BASIC de ZX-V con sus mismos nombres: el doble buffer (`SCREEN` y `PAGE`),
 `WAIT`, los sprites de una cadena (`GRABSTR`) con choques al píxel (`HIT`),
-`BOX`, `KEY`, `JOY` y `SOUND`. Va a 50 imágenes por segundo.
+`BOX`, `KEY`, `JOY` y `SOUND`. Va a 60 imágenes por segundo (`HZ`). Todo se
+mueve un número entero de píxeles en cada imagen, así que va suave, una quinta
+parte más deprisa que cuando la máquina hacía 50; las gemas y las rocas nuevas
+siguen saliendo igual por segundo, así que hay algunas menos en la pantalla.
 
 | Fichero | Contenido |
 |---|---|

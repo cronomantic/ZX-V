@@ -78,7 +78,8 @@ extern const uint8_t car_colours[6][16];
 extern zxv_bitmap bg_far, bg_near, bg_clouds;   /* el paisaje de la etapa (art_background) */
 
 void art_init(void);
-void art_background(int theme);         /* las montañas de una etapa */
+void art_background(int theme);         /* las montañas de una etapa, ya */
+void art_prepare(int theme);            /* las de la que viene, un trozo (en cada frame) */
 
 /* --- road.c ------------------------------------------------------------------- */
 
@@ -94,8 +95,9 @@ enum { THEME_COAST, THEME_DESERT, THEME_FOREST, THEMES };
 
 typedef struct {
     int32_t z;                          /* a lo largo del circuito */
+    int32_t speed;                      /* en unidades por segundo x 16 */
+    int z_rest;                         /* lo que sobra del avance (per_frame) */
     int16_t x;                          /* lateral, en 1/X1 de media carretera */
-    int16_t speed;                      /* en unidades por frame x 16 */
     int16_t target;                     /* el carril al que va */
     uint8_t type, colour;
 } car_t;
@@ -130,7 +132,7 @@ enum { SONG_NONE, SONG_RACE, SONG_TITLE, SONG_GOAL, SONG_OVER };
 enum { FX_CHECKPOINT, FX_CRASH, FX_BUMP, FX_BEEP, FX_GO, FX_SHIFT };
 
 void sound_init(void);
-void sound_frame(void);                 /* una vez por frame */
+void sound_frame(void);                 /* una vez por frame (la música va a 50 pasos por segundo) */
 void sound_song(int song);
 void sound_fx(int fx);
 void sound_engine(int rpm, int skid, int offroad);  /* rpm 0-1000; skid y offroad 0-15 */

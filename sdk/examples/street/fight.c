@@ -27,25 +27,25 @@ enum { A_JAB, A_CROSS, A_UPPER, A_KNEE, A_SPIN, A_PUNCH, A_PUNCH2, A_KICK, A_SLA
        A_FLURRY, A_THROW, ATTACKS };
 
 typedef struct {
-    uint8_t pose_pre, pose_hit, pre, act, post;
+    uint8_t pose_pre, pose_hit, pre, act, post;     /* los tiempos, en frames */
     int8_t rmin, rmax;                  /* el alcance, delante (en píxeles) */
     uint8_t dmg, knock;
 } attack_t;
 
 static const attack_t attacks[ATTACKS] = {
-    [A_JAB] = { P_IDLE, P_JAB, 2, 3, 7, 4, 25, 4, 0 },
-    [A_CROSS] = { P_IDLE, P_CROSS, 2, 3, 8, 4, 25, 5, 0 },
-    [A_UPPER] = { P_JAB, P_UPPER, 4, 4, 14, 4, 24, 9, 1 },
-    [A_KNEE] = { P_GRAB, P_KNEE, 3, 3, 9, 0, 22, 6, 0 },
-    [A_SPIN] = { P_IDLE, P_SPIN, 3, 18, 8, -28, 28, 8, 1 },
-    [A_PUNCH] = { P_WINDUP, P_JAB, 16, 4, 18, 4, 24, 7, 0 },
-    [A_PUNCH2] = { P_IDLE, P_CROSS, 6, 4, 22, 4, 24, 6, 0 },
-    [A_KICK] = { P_WINDUP, P_KICK, 12, 5, 20, 4, 30, 6, 0 },
-    [A_SLAM] = { P_WINDUP, P_UPPER, 22, 5, 26, 4, 27, 13, 1 },
-    [A_CHARGE] = { P_WINDUP, P_CROSS, 18, 40, 20, -2, 18, 10, 1 },
-    [A_SWING] = { P_WINDUP, P_JAB, 18, 5, 22, 4, 34, 14, 1 },
-    [A_FLURRY] = { P_IDLE, P_JAB, 8, 3, 6, 4, 26, 5, 0 },
-    [A_THROW] = { P_THROW, P_THROW, 0, 0, 16, 0, 0, 0, 0 },
+    [A_JAB] = { P_IDLE, P_JAB, F50(2), F50(3), F50(7), 4, 25, 4, 0 },
+    [A_CROSS] = { P_IDLE, P_CROSS, F50(2), F50(3), F50(8), 4, 25, 5, 0 },
+    [A_UPPER] = { P_JAB, P_UPPER, F50(4), F50(4), F50(14), 4, 24, 9, 1 },
+    [A_KNEE] = { P_GRAB, P_KNEE, F50(3), F50(3), F50(9), 0, 22, 6, 0 },
+    [A_SPIN] = { P_IDLE, P_SPIN, F50(3), F50(18), F50(8), -28, 28, 8, 1 },
+    [A_PUNCH] = { P_WINDUP, P_JAB, F50(16), F50(4), F50(18), 4, 24, 7, 0 },
+    [A_PUNCH2] = { P_IDLE, P_CROSS, F50(6), F50(4), F50(22), 4, 24, 6, 0 },
+    [A_KICK] = { P_WINDUP, P_KICK, F50(12), F50(5), F50(20), 4, 30, 6, 0 },
+    [A_SLAM] = { P_WINDUP, P_UPPER, F50(22), F50(5), F50(26), 4, 27, 13, 1 },
+    [A_CHARGE] = { P_WINDUP, P_CROSS, F50(18), F50(40), F50(20), -2, 18, 10, 1 },
+    [A_SWING] = { P_WINDUP, P_JAB, F50(18), F50(5), F50(22), 4, 34, 14, 1 },
+    [A_FLURRY] = { P_IDLE, P_JAB, F50(8), F50(3), F50(6), 4, 26, 5, 0 },
+    [A_THROW] = { P_THROW, P_THROW, F50(0), F50(0), F50(16), 0, 0, 0, 0 },
 };
 
 /* --- Los tipos ------------------------------------------------------------------- */
@@ -56,7 +56,7 @@ typedef struct {
     const char *es, *en;
     uint8_t body, head, scale, weapon;  /* scale en 1/16 */
     int16_t hp;
-    uint8_t vx, vy;                     /* en 1/16 de píxel por frame */
+    uint8_t vx, vy;                     /* en 1/16 de píxel por cincuentavo (VEL) */
     uint8_t attack, attack2;
     uint16_t points;
     uint8_t col[2][16];
@@ -137,7 +137,7 @@ void hero_spawn(int x, int y)
     f->x = x * FX;
     f->y = y * FX;
     f->held = -1;
-    f->invuln = 60;
+    f->invuln = F50(60);
 }
 
 fighter_t *foe_spawn(int kind, int x, int y)
@@ -155,8 +155,8 @@ fighter_t *foe_spawn(int kind, int x, int y)
             f->held = -1;
             f->face_left = x > fighters[0].x / FX;
             f->side = f->face_left ? 1 : -1;
-            f->ai_t = (int16_t)(20 + rnd() % 30);
-            f->cool = 30;
+            f->ai_t = (int16_t)(F50(20) + rnd() % F50(30));
+            f->cool = F50(30);
             return f;
         }
     return 0;
@@ -169,7 +169,7 @@ void item_spawn(int kind, int x, int y, int drop)
             things[i] = (item_t){ 1, (uint8_t)kind, (uint8_t)drop, 0, x * FX, y * FX, 0, 0 };
             if (kind >= FOOD_APPLE) {   /* la comida salta al salir */
                 things[i].z = 8 * FX;
-                things[i].vz = 24;
+                things[i].vz = VEL(24);
             }
             return;
         }
@@ -197,8 +197,8 @@ static void knock_down(fighter_t *f, int dir, int strong)
         f->held = -1;
     }
     set_state(f, ST_FALL);
-    f->vx = dir * (strong ? 30 : 20);
-    f->vz = strong ? 44 : 36;
+    f->vx = dir * (strong ? VEL(30) : VEL(20));
+    f->vz = strong ? VEL(44) : VEL(36);
     f->vy = 0;
     f->engaged = 0;
     f->hits = 0;
@@ -208,7 +208,7 @@ static void hurt(fighter_t *t, const fighter_t *a, int dmg, int knock)
 {
     int dir = t->x >= a->x ? 1 : -1;
     t->hp = (int16_t)(t->hp - dmg);
-    t->flash = 4;
+    t->flash = F50(4);
     if (t == &fighters[0]) {
 #ifdef STREET_BOT
         bot_hits++;
@@ -221,7 +221,7 @@ static void hurt(fighter_t *t, const fighter_t *a, int dmg, int knock)
     } else {
         add_score(dmg * 10);
         last_foe = (int)(t - fighters);
-        last_foe_t = 150;
+        last_foe_t = F50(150);
     }
     sound_fx(knock || t->hp <= 0 ? FX_HEAVY : FX_HIT);
     if (t->state == ST_HELD && !knock && t->hp > 0)
@@ -231,7 +231,7 @@ static void hurt(fighter_t *t, const fighter_t *a, int dmg, int knock)
         t->hits++;
     else
         t->hits = 1;
-    t->hits_t = 50;
+    t->hits_t = F50(50);
     if (t->hp <= 0 || knock || (t->hits >= 4 && t != &fighters[0]) || t->state == ST_JUMP) {
         knock_down(t, dir, knock || t->hp <= 0);
         return;
@@ -243,10 +243,10 @@ static void hurt(fighter_t *t, const fighter_t *a, int dmg, int knock)
         t->held = -1;
     }
     /* Los grandes no se paran con cualquier cosa. */
-    if (is_boss(t) && t->state == ST_ATTACK && t->t >= attacks[t->attack].pre - 6 && t->hits < 3)
+    if (is_boss(t) && t->state == ST_ATTACK && t->t >= attacks[t->attack].pre - F50(6) && t->hits < 3)
         return;
     set_state(t, ST_HURT);
-    t->vx = dir * 12;
+    t->vx = dir * VEL(12);
     t->face_left = dir > 0;
 }
 
@@ -325,7 +325,7 @@ static void hero_grab_check(fighter_t *p, int in)
             continue;
         int dx = (e->x - p->x) / FX * dir, dy = (e->y - p->y) / FX;
         if (dx >= 8 && dx <= 15 && dy >= -3 && dy <= 3) {
-            if (++p->grab_t >= 8) {
+            if (++p->grab_t >= F50(8)) {
                 set_state(p, ST_GRAB);
                 set_state(e, ST_HELD);
                 p->held = (int8_t)i;
@@ -370,8 +370,8 @@ static void hero_frame(fighter_t *p, int in)
         }
         if (edge & IN_B) {
             set_state(p, ST_JUMP);
-            p->vz = 60;
-            p->vx = dx * 26;
+            p->vz = VEL(60);
+            p->vx = dx * VEL(26);
             p->kick = 0;
             p->hitmask = 0;
             if (dx)
@@ -379,8 +379,8 @@ static void hero_frame(fighter_t *p, int in)
             sound_fx(FX_JUMP);
             break;
         }
-        p->vx = dx * kinds[K_HERO].vx;
-        p->vy = dy * kinds[K_HERO].vy;
+        p->vx = dx * VEL(kinds[K_HERO].vx);
+        p->vy = dy * VEL(kinds[K_HERO].vy);
         if (dx)
             p->face_left = dx < 0;
         if (dx || dy) {
@@ -400,7 +400,7 @@ static void hero_frame(fighter_t *p, int in)
             if (p->t == a->pre) {
                 hurt(e, p, a->dmg, ++p->knees >= 3);
                 if (e->state == ST_HELD)
-                    e->flash = 4;
+                    e->flash = F50(4);
             }
             if (p->t >= a->pre + a->act + a->post) {
                 set_state(p, p->held >= 0 ? ST_GRAB : ST_IDLE);
@@ -410,14 +410,14 @@ static void hero_frame(fighter_t *p, int in)
         }
         if (p->t >= a->pre && p->t < a->pre + a->act)
             strike(p, a->rmin, a->rmax, a->dmg, a->knock);
-        if (p->attack == A_SPIN && p->t >= a->pre && ((p->t - a->pre) & 3) == 0)
+        if (p->attack == A_SPIN && p->t >= a->pre && (p->t - a->pre) % F50(4) == 0)
             p->face_left ^= 1;          /* gira */
         if (p->t >= a->pre + a->act + a->post) {
             if (!p->hitmask)
                 p->combo = 0;           /* al aire: la serie vuelve a empezar */
             if (p->combo > 3 || p->attack == A_UPPER)
                 p->combo = 0;
-            p->cool = 24;
+            p->cool = F50(24);
             set_state(p, ST_IDLE);
             if (p->buffered)
                 hero_frame(p, in);
@@ -425,7 +425,7 @@ static void hero_frame(fighter_t *p, int in)
         break;
     }
     case ST_JUMP:
-        if ((edge & (IN_A | IN_B)) && !p->kick && p->t > 2) {
+        if ((edge & (IN_A | IN_B)) && !p->kick && p->t > F50(2)) {
             p->kick = 1;
             sound_fx(FX_SWING);
         }
@@ -453,15 +453,15 @@ static void hero_frame(fighter_t *p, int in)
             set_state(e, ST_THROWN);
             e->held = -1;
             p->held = -1;
-            e->vx = p->face_left ? -44 : 44;
-            e->vz = 40;
+            e->vx = p->face_left ? -VEL(44) : VEL(44);
+            e->vz = VEL(40);
             e->z = 12 * FX;
             e->hitmask = 1;
             e->face_left = !p->face_left;
             sound_fx(FX_SWING);
             break;
         }
-        if (++p->grab_t > 90) {         /* se suelta */
+        if (++p->grab_t > F50(90)) {    /* se suelta */
             p->held = -1;
             e->held = -1;
             set_state(e, ST_HURT);
@@ -519,6 +519,11 @@ static void choose_side(fighter_t *e)
             same++;
     }
     e->side = (int16_t)(same && (e->kind == K_RUNNER || rnd() % 2) ? -mine : mine);
+    /* Con el jugador contra el borde, por ese lado no hay sitio para pegarle:
+     * se quedaría esperando para siempre. */
+    int px = p->x / FX, room = e->side > 0 ? cam + W - 6 - px : px - cam - 6;
+    if (room < 10)
+        e->side = (int16_t)-e->side;
 }
 
 static void foe_frame(fighter_t *e)
@@ -535,7 +540,7 @@ static void foe_frame(fighter_t *e)
         int pre = a->pre, end = a->pre + a->act + a->post;
         if (e->attack == A_CHARGE) {
             if (e->t >= pre && e->t < pre + a->act) {
-                e->vx = e->face_left ? -44 : 44;
+                e->vx = e->face_left ? -VEL(44) : VEL(44);
                 strike(e, a->rmin, a->rmax, a->dmg, a->knock);
                 int sx = e->x / FX - cam;
                 if (e->hitmask || sx < 8 || sx > W - 8)
@@ -561,13 +566,13 @@ static void foe_frame(fighter_t *e)
                     return;
                 }
             }
-            e->cool = (int16_t)(stage == 0 ? 50 + rnd() % 50 : 36 + rnd() % 40);
+            e->cool = (int16_t)(stage == 0 ? F50(50) + rnd() % F50(50) : F50(36) + rnd() % F50(40));
             if (e->kind == K_RUNNER) {  /* pega y se va */
-                e->retreat = 50;
+                e->retreat = F50(50);
                 e->engaged = 0;
             } else if (!is_boss(e) && rnd() % 3 == 0) {
                 e->engaged = 0;         /* deja sitio a otro */
-                e->retreat = 30;
+                e->retreat = F50(30);
             }
         }
         return;
@@ -584,12 +589,12 @@ static void foe_frame(fighter_t *e)
     int px = p->x / FX, py = p->y / FX, ex = e->x / FX, ey = e->y / FX;
     if (e->engaged && (e->ai_t-- <= 0)) {
         choose_side(e);
-        e->ai_t = (int16_t)(60 + rnd() % 60);
+        e->ai_t = (int16_t)(F50(60) + rnd() % F50(60));
     }
     int reach = attacks[k->attack].rmax * k->scale / 16, tx, ty, dist = reach - 6;
     if (e->retreat) {
         tx = px + (ex >= px ? 70 : -70);
-        ty = py + (e->retreat & 32 ? 14 : -14);
+        ty = py + (e->retreat >= F50(32) ? 14 : -14);
     } else if (e->engaged) {
         tx = px + e->side * dist;
         ty = py;
@@ -609,14 +614,14 @@ static void foe_frame(fighter_t *e)
         ty = BAND_BOTTOM;
 
     int dx = tx - ex, dy = ty - ey;
-    e->vx = dx > 1 ? k->vx : dx < -1 ? -k->vx : 0;
+    e->vx = dx > 1 ? VEL(k->vx) : dx < -1 ? -VEL(k->vx) : 0;
     /* Si ya lo tiene a tiro, no se aleja: espera ahí. */
     if (e->engaged && !e->retreat && (ex - px) * e->side > 8 && (ex - px) * e->side <= dist)
         e->vx = 0;
-    e->vy = dy > 1 ? k->vy : dy < -1 ? -k->vy : 0;
+    e->vy = dy > 1 ? VEL(k->vy) : dy < -1 ? -VEL(k->vy) : 0;
     /* Al rodear al jugador para cambiar de lado, se aparta de su línea. */
     if (e->engaged && ((ex < px) != (tx < px)) && (ey - py) * (ey - py) < 100 && (ex - px) * (ex - px) < 900)
-        e->vy = ey >= py ? k->vy : -k->vy;
+        e->vy = ey >= py ? VEL(k->vy) : -VEL(k->vy);
     if (!e->retreat)
         e->face_left = px < ex;
     else
@@ -632,28 +637,28 @@ static void foe_frame(fighter_t *e)
     if (ady < 0)
         ady = -ady;
     int ready = !e->cool && e->engaged && !e->retreat && hittable(p) && p->state != ST_GETUP;
-    if (ready && ady <= 3 && adx >= 6 && adx <= reach - 2 && rnd() % 4 == 0) {
+    if (ready && ady <= 3 && adx >= 6 && adx <= reach - 2 && chance(4)) {
         e->face_left = px < ex;
         start_attack(e, k->attack);
         return;
     }
     /* La carga, desde lejos, en la misma línea. */
-    if (ready && k->attack2 == A_CHARGE && ady <= 4 && adx > 50 && adx < 150 && rnd() % 40 == 0) {
+    if (ready && k->attack2 == A_CHARGE && ady <= 4 && adx > 50 && adx < 150 && chance(40)) {
         e->face_left = px < ex;
         start_attack(e, A_CHARGE);
         return;
     }
-    if (ready && e->kind == K_BOSS3 && ady <= 6 && adx > 40 && adx < 90 && rnd() % 50 == 0) {
+    if (ready && e->kind == K_BOSS3 && ady <= 6 && adx > 40 && adx < 90 && chance(50)) {
         set_state(e, ST_JUMP);          /* la patada voladora del jefe */
         e->face_left = px < ex;
-        e->vz = 56;
-        e->vx = e->face_left ? -30 : 30;
+        e->vz = VEL(56);
+        e->vx = e->face_left ? -VEL(30) : VEL(30);
         e->hitmask = 0;
         e->kick = 1;
-        e->cool = 80;
+        e->cool = F50(80);
         return;
     }
-    if (ready && k->attack2 == A_FLURRY && ady <= 3 && adx <= 26 * k->scale / 16 && rnd() % 6 == 0) {
+    if (ready && k->attack2 == A_FLURRY && ady <= 3 && adx <= 26 * k->scale / 16 && chance(6)) {
         e->face_left = px < ex;
         start_attack(e, A_FLURRY);
     }
@@ -673,15 +678,15 @@ static void body_frame(fighter_t *f, int i)
 
     switch (f->state) {
     case ST_HURT:
-        if (f->t > 3)
+        if (f->t > F50(3))
             f->vx = 0;
-        if (f->t >= (i == 0 ? 14 : is_boss(f) ? 10 : 18))
+        if (f->t >= (i == 0 ? F50(14) : is_boss(f) ? F50(10) : F50(18)))
             set_state(f, ST_IDLE);
         break;
     case ST_JUMP:
     case ST_FALL:
     case ST_THROWN:
-        f->vz -= 4;
+        f->vz -= ACC(4);
         if (f->state == ST_THROWN)
             strike(f, -16, 16, 10, 1);
         if (f->z + f->vz <= 0) {
@@ -701,7 +706,7 @@ static void body_frame(fighter_t *f, int i)
         }
         break;
     case ST_DOWN:
-        if (f->t >= (i == 0 ? 50 : 40)) {
+        if (f->t >= (i == 0 ? F50(50) : F50(40))) {
             if (f->hp <= 0) {
                 if (i == 0) {           /* el jugador pierde una vida */
 #ifdef STREET_BOT
@@ -720,7 +725,7 @@ static void body_frame(fighter_t *f, int i)
                     /* Los de cerca se apartan. */
                     for (int k = 1; k < MAX_F; k++)
                         if (fighters[k].alive && fighters[k].state < ST_HURT) {
-                            fighters[k].retreat = 60;
+                            fighters[k].retreat = F50(60);
                             fighters[k].engaged = 0;
                         }
                 } else {
@@ -733,13 +738,13 @@ static void body_frame(fighter_t *f, int i)
         }
         break;
     case ST_GETUP:
-        if (f->t >= 16) {
+        if (f->t >= F50(16)) {
             set_state(f, ST_IDLE);
-            f->invuln = (int16_t)(i == 0 ? 100 : 20);
+            f->invuln = (int16_t)(i == 0 ? F50(100) : F50(20));
         }
         break;
     case ST_DEAD:
-        if (i && f->t >= 40)
+        if (i && f->t >= F50(40))
             f->alive = 0;
         break;
     case ST_HELD:
@@ -787,7 +792,7 @@ void fight_update(int input)
         if (t->flash)
             t->flash--;
         if (t->z || t->vz) {
-            t->vz -= 3;
+            t->vz -= ACC(3);
             t->z += t->vz;
             if (t->z <= 0)
                 t->z = t->vz = 0;
@@ -817,7 +822,7 @@ static int pose_of(const fighter_t *f)
     switch (f->state) {
     case ST_WALK: {
         static const uint8_t walk[4] = { P_WALK1, P_WALK2, P_WALK3, P_WALK4 };
-        return walk[(f->t / (f->kind == K_RUNNER ? 4 : 6)) & 3];
+        return walk[(S50(f->t) / (f->kind == K_RUNNER ? 4 : 6)) & 3];
     }
     case ST_ATTACK: {
         const attack_t *a = &attacks[f->attack];
@@ -833,7 +838,7 @@ static int pose_of(const fighter_t *f)
     case ST_THROWN: return P_FALL;
     case ST_DOWN:
     case ST_DEAD: return P_DOWN;
-    case ST_GETUP: return f->t < 8 ? P_DOWN : P_GETUP;
+    case ST_GETUP: return f->t < F50(8) ? P_DOWN : P_GETUP;
     case ST_GRAB: return P_GRAB;
     case ST_HELD: return P_HELD;
     case ST_WIN: return P_WIN;
@@ -1001,7 +1006,7 @@ int autopilot(int go)
         tx = ex - side * 18;
         ty = ey;
         int dx = ex - px, adx = dx < 0 ? -dx : dx, ady = ey > py ? ey - py : py - ey;
-        if (left && right && p->hp > 30 && p->state <= ST_WALK && phase % 40 == 0)
+        if (left && right && p->hp > 30 && p->state <= ST_WALK && phase % F50(40) == 0)
             return IN_A | IN_B;         /* rodeado: la patada giratoria */
         if (ady <= 3 && adx >= 6 && adx <= 24 && hittable(e)) {
             in |= side > 0 ? (p->face_left ? IN_RIGHT : 0) : (p->face_left ? 0 : IN_LEFT);
@@ -1010,7 +1015,7 @@ int autopilot(int go)
             if (!threat)
                 return in;
         }
-        if (ady <= 3 && adx > 34 && adx < 60 && p->state <= ST_WALK && phase % 50 == 0 && hittable(e))
+        if (ady <= 3 && adx > 34 && adx < 60 && p->state <= ST_WALK && phase % F50(50) == 0 && hittable(e))
             return (side > 0 ? IN_RIGHT : IN_LEFT) | IN_B;      /* la patada voladora */
         if (p->state == ST_JUMP)
             return phase & 1 ? IN_A : 0;

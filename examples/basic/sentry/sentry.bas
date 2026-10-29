@@ -24,8 +24,8 @@
 340 ELSE
 350 LET mx=MOUSE 0: LET my=MOUSE 1: LET j=JOY 0
 360 LET dx=(KEY 9 OR FN b(j,0))-(KEY 8 OR FN b(j,1)): LET dy=(KEY 10 OR FN b(j,2))-(KEY 11 OR FN b(j,3))
-365 REM Con las teclas o la cruceta, la mira acelera: de 2 a 8 pixeles por imagen
-370 IF dx OR dy THEN LET ac=ac+1: LET sp=2+INT (ac/3): LET sp=sp-(sp-8)*(sp>8): LET mx=mx+dx*sp: LET my=my+dy*sp: MOUSE mx,my
+365 REM Con las teclas o la cruceta, la mira acelera: de 2 a 8 pixeles cada cincuentavo de segundo (por 5/6 en cada imagen; rx y ry, lo que sobra de pixel)
+370 IF dx OR dy THEN LET ac=ac+1: LET sp=2+INT (ac/3.6): LET sp=(sp-(sp-8)*(sp>8))*5/6: LET a=mx+dx*sp+rx: LET mx=INT a: LET rx=a-mx: LET a=my+dy*sp+ry: LET my=INT a: LET ry=a-my: MOUSE mx,my
 375 IF NOT (dx OR dy) THEN LET ac=0
 380 LET bt=MOUSE 2>0 OR KEY 32 OR j>=16
 390 END IF
@@ -39,8 +39,9 @@
 500 REM --- Todo se mueve y se dibuja: los misiles, las explosiones y los choques ---
 510 DEF PROC mover
 520 LET vivos=0: LET expl=0
+525 REM Un misil que se divide lo echa a suertes en 5 de cada 6 imagenes: las mismas veces por pixel que a 50 por segundo
 530 FOR i=1 TO he: REM solo hasta el hueco mas alto que se ha usado
-540 IF e(i,1) THEN LET vivos=vivos+1: LET e(i,4)=e(i,4)+e(i,6): LET e(i,5)=e(i,5)+e(i,7): POLY tc,e(i,2),e(i,3),e(i,4),e(i,5): POLY 15,e(i,4),e(i,5): IF e(i,9) THEN IF e(i,5)>60+RND*40 THEN LET e(i,9)=0: PROC lanzar(e(i,4),e(i,5)): PROC lanzar(e(i,4),e(i,5))
+540 IF e(i,1) THEN LET vivos=vivos+1: LET e(i,4)=e(i,4)+e(i,6): LET e(i,5)=e(i,5)+e(i,7): POLY tc,e(i,2),e(i,3),e(i,4),e(i,5): POLY 15,e(i,4),e(i,5): IF e(i,9) AND fr-6*INT (fr/6) THEN IF e(i,5)>60+RND*40 THEN LET e(i,9)=0: PROC lanzar(e(i,4),e(i,5)): PROC lanzar(e(i,4),e(i,5))
 550 IF e(i,1) THEN IF e(i,5)>=t(e(i,8),2) THEN PROC impacto(i)
 560 NEXT i
 570 FOR i=1 TO 6
@@ -51,12 +52,13 @@
 620 IF x(k,1) THEN PROC estallido(k)
 630 NEXT k
 640 IF puntos>=extra THEN PROC premio
-650 IF fv THEN LET fv=fv-1: LET fp=fp+25: SOUND 16,fp-256*INT (fp/256); 17,INT (fp/256); 24,fv
-660 IF xv THEN LET xv=xv-1: SOUND 25,xv
+645 REM Los efectos, al ritmo de antes: lo de un cincuentavo de segundo, por 5/6 en cada imagen
+650 IF fv>0 THEN LET fv=fv-5/6: LET fp=fp+25*5/6: SOUND 16,INT fp-256*INT (fp/256); 17,INT (fp/256); 24,fv*(fv>0)
+660 IF xv>0 THEN LET xv=xv-5/6: SOUND 25,xv*(xv>0)
 670 END PROC
-700 REM Una explosion: crece, se encoge y derriba los misiles que toca
+700 REM Una explosion: crece, se encoge y derriba los misiles que toca (32 fases a 50 por segundo: 5/6 de fase por imagen)
 710 DEF PROC estallido(k)
-720 LET x(k,1)=x(k,1)+1: LET expl=expl+1
+720 LET x(k,1)=x(k,1)+5/6: LET expl=expl+1
 730 IF x(k,1)>32 THEN LET x(k,1)=0: END PROC
 740 LET r=x(k,1)*1.25: IF x(k,1)>16 THEN LET r=(33-x(k,1))*1.25
 750 DISC c(1+(a+k)-4*INT ((a+k)/4)),x(k,2),x(k,3),r
@@ -94,7 +96,8 @@
 1200 LET z(b)=z(b)-1: LET p(i,1)=1: LET p(i,2)=t(6+b,1): LET p(i,3)=164
 1210 LET p(i,4)=p(i,2): LET p(i,5)=164: LET p(i,9)=mx: LET p(i,10)=my
 1220 LET a=mx-p(i,2): LET l=my-164: LET l=SQR (a*a+l*l): IF l<1 THEN LET l=1
-1230 LET p(i,6)=(mx-p(i,2))/l*5: LET p(i,7)=(my-164)/l*5: LET p(i,8)=INT (l/5)+1
+1225 REM 5 pixeles cada cincuentavo de segundo: 5*5/6 por imagen
+1230 LET p(i,6)=(mx-p(i,2))/l*5*5/6: LET p(i,7)=(my-164)/l*5*5/6: LET p(i,8)=INT (l/(5*5/6))+1
 1240 LET fp=40: LET fv=13: SOUND 17,0
 1250 ELSE
 1260 SOUND 16,200; 17,1; 24,10: LET fv=3: LET fp=600: REM sin misiles: un chasquido
@@ -144,18 +147,19 @@
 1840 FOR i=1 TO he: IF e(i,1) THEN IF e(i,5)>ay THEN LET ay=e(i,5): LET b=i
 1850 NEXT i
 1860 IF b THEN
-1870 LET ax=e(b,4)+e(b,6)*30: LET ay=e(b,5)+e(b,7)*30
-1880 LET mx=mx+SGN (ax-mx)*4*(ABS (ax-mx)>4): LET my=my+SGN (ay-my)*4*(ABS (ay-my)>4)
-1890 IF ABS (ax-mx)<8 AND ABS (ay-my)<8 AND fr>=cd THEN LET bt=1: LET cd=fr+20
+1865 REM Por delante: donde estara en 0.6 segundos; la mira va a 200 pixeles por segundo y dispara cada 0.4
+1870 LET ax=e(b,4)+e(b,6)*36: LET ay=e(b,5)+e(b,7)*36
+1880 LET mx=mx+SGN (ax-mx)*10/3*(ABS (ax-mx)>4): LET my=my+SGN (ay-my)*10/3*(ABS (ay-my)>4)
+1890 IF ABS (ax-mx)<8 AND ABS (ay-my)<8 AND fr>=cd THEN LET bt=1: LET cd=fr+24
 1900 END IF
-1910 IF fr>1500 OR INKEY$<>"" OR MOUSE 2 OR JOY 0 THEN LET quit=1
+1910 IF fr>30*60 OR INKEY$<>"" OR MOUSE 2 OR JOY 0 THEN LET quit=1
 1920 END PROC
 2000 REM --- Empezar: el idioma, las tablas, los graficos y el record ---
 2010 @empezar: BORDER 0: PAPER 0: INK 7: CLS: CLEAR
 2012 REM Las variables se buscan en el orden en que se crearon: primero, las de cada frame
 2014 DIM e(12,9): DIM x(12,3): DIM p(6,10): DIM t(9,3): DIM z(3): DIM c(10)
 2016 LET i=0: LET k=0: LET he=0: LET u=0: LET v=0: LET r=0: LET a=0: LET tc=0: LET fr=0: LET s=0
-2018 LET vivos=0: LET expl=0: LET mx=0: LET my=0: LET mult=1: LET puntos=0: LET fv=0: LET xv=0: LET ac=0: LET sp=2
+2018 LET vivos=0: LET expl=0: LET mx=0: LET my=0: LET mult=1: LET puntos=0: LET fv=0: LET xv=0: LET ac=0: LET sp=2: LET rx=0: LET ry=0
 2020 LET en=PEEK 536872736<>101 OR PEEK 536872737<>115: REM no es "es": en ingles
 2030 DEF FN t$(a$,b$)=(a$ AND NOT en)+(b$ AND en)
 2040 DEF FN b(j,n)=INT (j/2^n)-2*INT (j/2^(n+1))
@@ -196,7 +200,7 @@
 2430 GRAB 20,0,0,256,192
 2440 REM El nombre (21): se escribe y se copia, para dibujarlo grande
 2450 PRINT AT 21,0; INK 6; BRIGHT 1; PAPER 0; "SENTRY"
-2460 GRAB 21,0,168,72,8,0
+2460 GRAB 21,0,168,48,8,0
 2470 SCREEN 0: CLS
 2480 END PROC
 2500 REM --- El titulo: el nombre, las teclas y el record; sin tocar nada, la demostracion ---
@@ -204,7 +208,7 @@
 2520 LET s=1: LET t=0: LET demo=0
 2530 REPEAT
 2540 SCREEN s: SPRITE 20,0,0
-2550 SPRITE 21,22,30,0,"..............2",216,24: SPRITE 21,20,28,0,"",216,24
+2550 SPRITE 21,58,30,0,"..............2",144,24: SPRITE 21,56,28,0,"",144,24
 2560 PROC centro(8,15,FN t$("DEFIENDE LAS CIUDADES","DEFEND THE CITIES"))
 2570 PROC centro(9,15,FN t$("DE LOS MISILES","FROM THE MISSILES"))
 2580 PROC centro(12,13,FN t$("RATON: APUNTAR Y DISPARAR","MOUSE: AIM AND FIRE"))
@@ -212,10 +216,10 @@
 2595 PROC centro(14,13,FN t$("MANDO: CRUCETA Y BOTON","GAMEPAD: D-PAD AND BUTTON"))
 2600 PROC centro(15,13,FN t$("ESC: SALIR","ESC: QUIT"))
 2610 PROC centro(17,14,FN t$("RECORD ","HIGH SCORE ")+STR$ hi)
-2620 IF INT (t/25)-2*INT (t/50) THEN PROC centro(19,15,FN t$("PULSA EL BOTON","PRESS THE BUTTON"))
+2620 IF INT (t/30)-2*INT (t/60) THEN PROC centro(19,15,FN t$("PULSA EL BOTON","PRESS THE BUTTON"))
 2630 PAGE s: LET s=1-s: WAIT 1: LET t=t+1
-2640 UNTIL MOUSE 2 OR KEY 32 OR JOY 0>=16 OR t>500
-2650 LET demo=t>500
+2640 UNTIL MOUSE 2 OR KEY 32 OR JOY 0>=16 OR t>10*60
+2650 LET demo=t>10*60
 2660 END PROC
 2700 REM Un texto centrado en la fila r, del color c (de 0 a 15: del 8 en adelante, con BRIGHT)
 2710 DEF PROC centro(r,c,a$)
@@ -245,17 +249,18 @@
 3210 END IF
 3220 END PROC
 3300 REM --- Una oleada: cuantos misiles, a que velocidad y cada cuanto ---
+3305 REM vel: pixeles por imagen (de 15 a 55 por segundo); li: imagenes (de 1.2 a 0.36 segundos)
 3310 DEF PROC oleada
 3320 FOR k=1 TO 12: LET e(k,1)=0: LET x(k,1)=0: NEXT k
 3330 FOR k=1 TO 6: LET p(k,1)=0: NEXT k
 3340 FOR k=1 TO 3: LET z(k)=10: LET t(6+k,3)=1: NEXT k
 3350 LET nl=6+ola*2: IF nl>30 THEN LET nl=30
-3360 LET vel=.3+ola*.06: IF vel>1.1 THEN LET vel=1.1
-3370 LET li=60-ola*4: IF li<18 THEN LET li=18
+3360 LET vel=(15+ola*3)/60: IF vel>55/60 THEN LET vel=55/60
+3370 LET li=(1.2-ola*.08)*60: IF li<.36*60 THEN LET li=.36*60
 3380 LET maxv=3+ola: IF maxv>10 THEN LET maxv=10
 3390 LET mult=INT ((ola+1)/2): IF mult>6 THEN LET mult=6
 3400 LET tc=c(4+ola-6*INT ((ola-1)/6)): REM el color de las estelas
-3410 LET he=0: LET lanzados=0: LET vivos=0: LET expl=0: LET prox=fr+60: LET ciudades=0
+3410 LET he=0: LET lanzados=0: LET vivos=0: LET expl=0: LET prox=fr+72: LET ciudades=0
 3420 FOR k=1 TO 6: LET ciudades=ciudades+t(k,3): NEXT k
 3430 SCREEN s: SPRITE 20,0,0: PROC escena
 3440 PROC centro(10,15,o$+STR$ ola)

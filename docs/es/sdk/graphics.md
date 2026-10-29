@@ -436,9 +436,10 @@ pantallas partidas, el agua, las carreteras y las rayas del borde, sin
 cambiar registros a mitad de frame.
 
 Tiene una entrada de 8 bytes por cada línea del cuadro entero, **borde
-incluido**: 288 líneas en el modo 0 (las 48 primeras son el borde de
-arriba, así que la línea *y* de la pantalla es la entrada 48 + *y*) y 576
-en el modo 1 (96 de borde arriba).
+incluido**: 240 líneas en el modo 0 (las 24 primeras son el borde de
+arriba, así que la línea *y* de la pantalla es la entrada 24 + *y*) y 480
+en el modo 1 (48 de borde arriba). En `zxv.h`, `ZXV_FRAME_LINES(modo)` y
+`ZXV_BORDER_LINES(modo)`.
 
 | Desplazamiento | Tamaño | Campo | Valor «como siempre» |
 |---|---|---|---|
@@ -488,9 +489,9 @@ int main(void)
     for (int i = 0; i < 6; i++)                 /* seis franjas de los colores 1 a 6 */
         zxv_gfx_rect(0, 40 + i * 16, 256, 16, 1 + i);
 
-    /* Tabla por línea: cada línea del cuadro de 288 (primero 48 de borde)
+    /* Tabla por línea: cada línea del cuadro de 240 (primero 24 de borde)
      * tiene su color de borde; el resto de la entrada es «como siempre». */
-    for (int l = 0; l < 288; l++) {
+    for (int l = 0; l < ZXV_FRAME_LINES(0); l++) {
         volatile uint8_t *e = lines + l * ZXV_LINE_ENTRY_SIZE;
         e[ZXV_LT_BORDER] = (uint8_t)(9 + (l / 8) % 7);     /* rayas brillantes */
         e[ZXV_LT_REMAP] = 0xFF;
@@ -744,24 +745,24 @@ espera `zxv_m7tex`.
 
 ## ¿Cuánto cuesta?
 
-A 50 frames por segundo el procesador tiene unos **2,88 millones de ciclos
+A 60 frames por segundo el procesador tiene unos **2,4 millones de ciclos
 por frame**. Estas cifras se midieron en la máquina real:
 
 | Operación | Modo 0 (256 × 192) | Modo 1 (512 × 384) |
 |---|---|---|
-| Borrar la página | 1,0 % de un frame | 2,2 % |
-| Pantalla entera de tiles de 8 × 8, alineada | 3,2 % | 9,7 % |
-| Pantalla entera de tiles de 8 × 8, desplazada cualquier número de píxeles | 10,9 % | 40 % |
-| Pantalla entera de tiles de 16 × 16, alineada | 1,8 % | 5,3 % |
-| 100 sprites de 16 × 16 | 5,1 % | 4,7 % |
-| 100 sprites de 16 × 16 escalados a 32 × 32 | 52 % | 51 % |
-| 100 sprites de 16 × 16 escalados a 12 × 12 | 23 % | 23 % |
-| Modo 7, pantalla entera | 26 % | 101 % |
-| 100 triángulos de unos 470 píxeles | 24 % | 23 % |
-| 100 líneas al azar | 12 % | 21 % |
+| Borrar la página | 1,2 % de un frame | 2,7 % |
+| Pantalla entera de tiles de 8 × 8, alineada | 3,9 % | 11,7 % |
+| Pantalla entera de tiles de 8 × 8, desplazada cualquier número de píxeles | 13,1 % | 48 % |
+| Pantalla entera de tiles de 16 × 16, alineada | 2,2 % | 6,4 % |
+| 100 sprites de 16 × 16 | 6,1 % | 5,6 % |
+| 100 sprites de 16 × 16 escalados a 32 × 32 | 63 % | 62 % |
+| 100 sprites de 16 × 16 escalados a 12 × 12 | 28 % | 27 % |
+| Modo 7, pantalla entera | 31 % | 121 % |
+| 100 triángulos de unos 470 píxeles | 29 % | 28 % |
+| 100 líneas al azar | 14 % | 25 % |
 
 - Con el [scroll por hardware](#scroll-por-hardware) el escenario no se
-  redibuja: una columna nueva de 8 × 144 píxeles cuesta el 0,7 % en el modo
+  redibuja: una columna nueva de 8 × 144 píxeles cuesta el 0,8 % en el modo
   0. En el modo 1 es casi obligatorio.
 - Los tiles opacos (sin el bit de transparencia) se dibujan más deprisa que
   los transparentes.

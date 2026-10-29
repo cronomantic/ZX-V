@@ -20,8 +20,8 @@ machine in the emulator and in the real hardware.
 | Input | USB keyboard, mouse and up to two gamepads |
 | Clock | Date and time, kept while the machine is off |
 | Languages | English and Spanish |
-| Rhythm | 50 frames per second |
-| Picture output | HDMI or DVI, 720 × 576 at 50 Hz or 640 × 480 at 60 Hz |
+| Rhythm | 60 frames per second |
+| Picture output | HDMI or DVI, 640 × 480 at 60 Hz |
 
 It starts straight into BASIC, and it also runs **native programs** written in
 C for its processor (see the [SDK](sdk/README.md)).
@@ -42,8 +42,8 @@ Both fill the same area of your TV: a mode 1 pixel is half the width and half
 the height of a mode 0 pixel. In BASIC, `MODE 0` and `MODE 1` switch between
 them. Your programs start in mode 0.
 
-On a screen running at 640 × 480 a little of the border is cut off; the paper
-is always seen whole.
+The screen is 640 × 480: around the paper there is a border of 64 pixels at
+each side and 48 lines above and below.
 
 ### Colours
 
@@ -279,8 +279,11 @@ sets it.
 If the clock has never been set, the machine works normally and files are
 dated 1 January 2026.
 
-For measuring time inside a program, the machine counts **frames**: 50 per
-second, always, even when the screen runs at 60 Hz (in BASIC, `TIME`).
+For measuring time inside a program, the machine counts **frames**: 60 per
+second, the same as the screen (in BASIC, `TIME`). What imitates the
+Spectrum keeps the Spectrum's time, fiftieths of a second: `PAUSE 50` is one
+second, and the Spectrum's `FRAMES` variable (`PEEK 23672`) counts 50 per
+second, so Spectrum programs time things as they always did.
 
 ## Languages
 

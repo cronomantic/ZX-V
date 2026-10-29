@@ -87,19 +87,28 @@ También está en el disco ROM de la máquina: `LOAD "ROM:route128"`.
   se ven de lejos para que aguanten de cerca.
 - **El paisaje:** nubes, montañas y el mar, las dunas o las lomas, en tres
   capas de 512 píxeles que se repiten y se desplazan a distinta velocidad
-  con las curvas. Se dibujan de nuevo al cambiar de etapa.
+  con las curvas. Las de la etapa que viene se dibujan en otro juego, un
+  trozo por frame (cerca de un milisegundo) al acercarse a ella, y al llegar
+  se cambian por las otras: dibujarlas de una vez no cabe en un frame junto
+  con la carretera.
 - **El sonido:** el motor son dos tonos del segundo AY, uno una octava más
   grave, que siguen a las vueltas de la marcha; el derrape y la cuneta, su
   ruido; y la música, el primer AY.
 - **Sin coma flotante:** las posiciones y la proyección van con enteros (la
   curva en 1/16, el lateral en 1/1024 de media carretera).
+- **A 60 imágenes por segundo:** las velocidades, las aceleraciones y los
+  tiempos van por segundo (`ZXV_FRAME_HZ`), y lo que sobra de lo que toca en
+  cada frame pasa al siguiente: nada se mueve a tirones. La música y los
+  efectos van a pasos de un cincuentavo de segundo, como se escribieron.
 
 ## Rendimiento
 
 Compilado con `make -C sdk -B build/route128.zxv EXTRA_CFLAGS=-DRUTA128_STATS`,
 el marcador enseña los frames perdidos y lo que tardó el frame más lento del
 último segundo, en microsegundos, y la demostración corre el circuito entero.
-En el emulador (a 144 MHz) no se pierde ninguno: el peor frame tarda unos
-10 ms de los 20 de un frame a 50 por segundo (la costa y el bosque, con más
-objetos; el desierto, la mitad). En la Pico 2 no está medido.
+En el emulador (a 144 MHz) el peor frame tarda unos 11 ms de los 16,7 de un
+frame a 60 por segundo (la costa y el bosque, con más objetos; el desierto,
+menos de la mitad), y no se pierde ninguno en todo el circuito, con los
+cambios de etapa, ni al pasar del título a la carrera y volver. En la Pico 2
+no está medido.
 

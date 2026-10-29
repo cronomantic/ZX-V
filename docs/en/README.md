@@ -54,13 +54,13 @@ BASIC or in C, and how to build the real machine.
 - [Rock, Paper, Scissors in BASIC](../../examples/basic/rps) — the block IF,
   `SELECT CASE` and procedures, in a listing you load as text.
 - [Sentry, a missile defence game in BASIC](../../examples/basic/sentry) —
-  the mouse, fast graphics and chain explosions at 50 frames per second.
+  the mouse, fast graphics and chain explosions at 60 frames per second.
 - [Estela, a shooter in C](../../sdk/examples/estela) — a complete native
   game.
 - [Route 128, a racing game in C](../../sdk/examples/route128) — a pseudo-3D road
   with bends and crests, and scaled sprites.
 - [Muncher in BASIC](../../examples/basic/muncher) — a maze with four
-  chasers, each hunting you in its own way, with a tile map and sprites at 50
+  chasers, each hunting you in its own way, with a tile map and sprites at 60
   frames per second.
 - [The Mine, a digging game in C](../../sdk/examples/mine) — boulders and
   diamonds that fall and roll, in caves bigger than the screen.
@@ -68,7 +68,7 @@ BASIC or in C, and how to build the real machine.
   streets against the gangs' thugs, with fighters drawn by the engine from a
   skeleton.
 - [Stardust, a game in ZX Basic](../../examples/zxbasic/stardust) — double
-  buffering, sprites and collisions with `zxv.bas`, at 50 frames per second.
+  buffering, sprites and collisions with `zxv.bas`, at 60 frames per second.
 
 ---
 

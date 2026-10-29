@@ -20,8 +20,8 @@ emulador y en el hardware real.
 | Entrada | Teclado USB, ratón y hasta dos mandos |
 | Reloj | Fecha y hora, que se mantienen con la máquina apagada |
 | Idiomas | Español e inglés |
-| Ritmo | 50 imágenes por segundo |
-| Salida de imagen | HDMI o DVI, 720 × 576 a 50 Hz o 640 × 480 a 60 Hz |
+| Ritmo | 60 imágenes por segundo |
+| Salida de imagen | HDMI o DVI, 640 × 480 a 60 Hz |
 
 Arranca directamente en el BASIC, y también ejecuta **programas nativos**
 escritos en C para su procesador (ver el [SDK](sdk/README.md)).
@@ -42,8 +42,8 @@ Los dos ocupan la misma superficie de la tele: un píxel del modo 1 mide la
 mitad de ancho y la mitad de alto que uno del modo 0. En el BASIC, `MODE 0` y
 `MODE 1` cambian de uno a otro. Tus programas empiezan en el modo 0.
 
-En una pantalla a 640 × 480 se recorta un poco del borde; el papel se ve
-siempre entero.
+La pantalla es de 640 × 480: alrededor del papel hay un borde de 64 píxeles a
+cada lado y 48 líneas arriba y abajo.
 
 ### Los colores
 
@@ -289,8 +289,11 @@ Si el reloj no se ha puesto nunca en hora, la máquina funciona igual y los
 ficheros se fechan el 1 de enero de 2026.
 
 Para medir el tiempo dentro de un programa, la máquina cuenta **imágenes**
-(frames): 50 por segundo, siempre, aunque la pantalla vaya a 60 Hz (en el
-BASIC, `TIME`).
+(frames): 60 por segundo, las mismas que la pantalla (en el BASIC, `TIME`).
+Lo que imita al Spectrum sigue con su tiempo, cincuentavos de segundo:
+`PAUSE 50` es un segundo, y la variable `FRAMES` del Spectrum (`PEEK 23672`)
+cuenta 50 por segundo, así que los programas del Spectrum miden el tiempo
+como siempre.
 
 ## Los idiomas
 

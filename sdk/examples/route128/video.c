@@ -18,6 +18,7 @@ void video_init(void)
     zxv_set_mode(0);
     visible = 0;
     zxv_set_page(0);
+    zxv_wait_vblank();                  /* el primer frame, entero */
     last_frame = frames_now();
     lost = 0;
 }
@@ -265,7 +266,7 @@ void number(char *out, uint32_t v, int digits)
 
 /* --- Los sprites --------------------------------------------------------------- */
 
-static uint32_t pool[24576];            /* los sprites preparados (96 KB) */
+static uint32_t pool[19200];            /* los sprites preparados (75 KB; usan unos 71) */
 static uint32_t pool_used;
 static uint32_t canvas_mem[160 * 128 / 8];
 static zxv_bitmap canvas_bmp;

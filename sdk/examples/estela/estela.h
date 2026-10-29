@@ -14,7 +14,14 @@
 #define W           256
 #define H           192
 #define HUD_H       8                   /* la línea del marcador */
-#define FX          16                  /* las posiciones, en 1/16 de píxel */
+#define FX          96                  /* las posiciones, en 1/96 de píxel */
+
+/* El tiempo: el juego va a ZXV_FRAME_HZ imágenes por segundo (60), pero se
+ * ajustó cuando iba a 50, y sus velocidades siguen en aquella unidad: V(v)
+ * es una velocidad de v/16 de píxel cada 1/50 de segundo, en FX por frame
+ * (exacta a 50 y a 60 Hz con FX = 96). MS(ms), unos milisegundos en frames. */
+#define V(v)        ((v) * (FX / 16) * 50 / ZXV_FRAME_HZ)
+#define MS(ms)      ((ms) * ZXV_FRAME_HZ / 1000)
 
 /* --- draw.c ------------------------------------------------------------------ */
 
@@ -52,7 +59,7 @@ int sprites_touch(const sprite_t *a, int ax, int ay, const sprite_t *b, int bx, 
 
 /* Las estrellas del fondo, en tres capas. */
 void stars_init(void);
-void stars_draw(int speed);             /* speed en 1/16 de píxel por frame de la capa cercana */
+void stars_draw(int speed);             /* speed en FX por frame, la de la capa cercana */
 
 /* --- sound.c ------------------------------------------------------------------ */
 
@@ -78,6 +85,13 @@ static inline uint32_t rnd(void)
 extern const int8_t sin64[64];          /* seno x 64, 64 pasos por vuelta */
 static inline int isin(int a) { return sin64[a & 63]; }
 static inline int icos(int a) { return sin64[(a + 16) & 63]; }
+/* El seno de a/d pasos (a >= 0), entre dos de la tabla: para lo que gira unos
+ * pasos por segundo, que no son un número entero por frame. */
+static inline int isin_f(int a, int d)
+{
+    int i = a / d, f = a % d;
+    return (isin(i) * (d - f) + isin(i + 1) * f) / d;
+}
 
 /* El idioma de la máquina: 0 español, 1 inglés. */
 extern int lang;

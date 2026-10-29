@@ -6,7 +6,7 @@ A maze game in ZX-V BASIC in the style of *Pac-Man*: eat every dot in the maze w
 four chasers hunt you down, each in its own way. A power pill turns the tables
 for a few seconds. A way to see tile
 maps, sprites over a still background, double buffering and the new BASIC
-structures (the block IF, `REPEAT` and procedures) in a game that runs at 50
+structures (the block IF, `REPEAT` and procedures) in a game that runs at 60
 frames per second. The texts follow the machine's language.
 
 | File | Contents |
@@ -44,7 +44,8 @@ crossing and you turn as soon as the corridor allows it.
   - **Niebla** (cyan) guards her corner (bottom left): she only chases you
     when you come into her part of the maze.
   - **Chispa** (green) chases you, but at many crossings he takes any way.
-- **Retreat and chase:** every so often (7, 20, 7, 20, 5, 20 and 5 seconds)
+- **Retreat and chase:** every so often (about 6, 17, 6, 17, 4, 17 and 4
+  seconds)
   they stop chasing and each goes off to its own corner for a while; at every
   change they turn round.
 - **Power pills** (the four big dots, 50 points): the chasers turn blue, turn
@@ -54,7 +55,7 @@ crossing and you turn as soon as the corridor allows it.
 - **The tunnel** on the sides takes you to the other side; the chasers slow
   down in it.
 - **Fruit:** twice per level (after 70 and 170 dots) a fruit appears under the
-  house for ten seconds: a cherry (100 points), a lemon (300), grapes (500), a
+  house for eight seconds: a cherry (100 points), a lemon (300), grapes (500), a
   mushroom (1000)... The one for the current level is shown at the top.
 - **Levels:** after all 224 dots, the walls flash and the next level begins,
   with faster chasers and a shorter fright. Three lives, and one more at
@@ -89,8 +90,13 @@ crossing and you turn as soon as the corridor allows it.
   out with `POLY`, wider and wider.
 - **Movement** goes pixel by pixel; in the centre of each square the chaser
   picks the neighbouring square closest to its target (never turning round),
-  as in the arcade game, and the player turns if it can. Speeds are fractions
-  of a pixel per frame, accumulated (`f(i)`).
+  as in the arcade game, and the player turns if it can. The player always
+  moves one pixel per frame (60 a second), without stops or jumps; the
+  chasers' speeds are fractions of that, accumulated (`f(i)`), in the same
+  proportion as when the game ran at 50 frames per second. The
+  times of the game (the fright, the retreats, when each chaser comes out,
+  the fruit) are counted in frames, as many as when the machine made 50: in
+  maze terms the game is the same, only a fifth quicker.
 - **The sound:** `SOUND` on the second chip: the dots and the effects on
   channel A, and a siren on channel B that changes with the fright and when
   there are eyes going home. `PLAY` plays the tune at the start of each level
@@ -101,8 +107,8 @@ crossing and you turn as soon as the corridor allows it.
 
 ## Speed
 
-The game runs at 50 frames per second (measured in the emulator with
-`TIME`); the demo, whose autopilot thinks more, at 49 or 50. To keep it so:
+The game runs at 60 frames per second (measured in the emulator with
+`TIME`), and so does the demo, whose autopilot thinks more. To keep it so:
 
 - **What is done every frame goes first** (lines 100 to 2640), and what is
   done once (the graphics, the title, the screens between levels), after it.

@@ -54,7 +54,7 @@ programarlo en BASIC o en C y cómo construir la máquina real.
   el IF de bloque, `SELECT CASE` y procedimientos, en un listado que se carga
   en texto.
 - [Sentry, defensa contra misiles en BASIC](../../examples/basic/sentry/README.es.md):
-  el ratón, los gráficos rápidos y explosiones en cadena, a 50 imágenes por
+  el ratón, los gráficos rápidos y explosiones en cadena, a 60 imágenes por
   segundo.
 - [Estela, un matamarcianos en C](../../sdk/examples/estela/README.es.md): un juego nativo
   completo.
@@ -62,7 +62,7 @@ programarlo en BASIC o en C y cómo construir la máquina real.
   carretera en pseudo-3D con curvas y rasantes, y sprites escalados.
 - [Muncher en BASIC](../../examples/basic/muncher/README.es.md): un
   laberinto con cuatro perseguidores, cada uno con su manera de buscarte, con
-  un mapa de tiles y sprites a 50 imágenes por segundo.
+  un mapa de tiles y sprites a 60 imágenes por segundo.
 - [The Mine, un juego de cavar en C](../../sdk/examples/mine/README.es.md):
   piedras y diamantes que caen y ruedan, en cuevas más grandes que la
   pantalla.
@@ -70,7 +70,7 @@ programarlo en BASIC o en C y cómo construir la máquina real.
   por las calles contra los matones de las bandas, con luchadores dibujados
   por el motor a partir de un esqueleto.
 - [Stardust, un juego en ZX Basic](../../examples/zxbasic/stardust/README.es.md):
-  doble buffer, sprites y choques con `zxv.bas`, a 50 imágenes por segundo.
+  doble buffer, sprites y choques con `zxv.bas`, a 60 imágenes por segundo.
 
 ---
 

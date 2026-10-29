@@ -22,7 +22,7 @@
 1080 PLAY "T150O5 3cegC5g3eC7C"
 1090 LET demo=1: LET t0=TIME
 1100 REPEAT: WAIT 1: IF INKEY$<>"" OR JOY 0>0 THEN LET demo=0
-1110 UNTIL demo=0 OR TIME-t0>300
+1110 UNTIL demo=0 OR TIME-t0>6*60
 1120 END PROC
 2000 REM --- Una partida ---
 2010 DEF PROC partida
@@ -45,12 +45,13 @@
 3050 IF demo THEN PROC piloto: GO TO 3100
 3060 LET j=JOY 0: LET iz=KEY 8 OR KEY CODE "o" OR FN b(j,1): LET de=KEY 9 OR KEY CODE "p" OR FN b(j,0)
 3070 LET sa=KEY 11 OR KEY CODE "q" OR KEY 32 OR FN b(j,3) OR FN b(j,4)
-3100 REM Movimiento
-3110 IF iz THEN LET vx=-3: LET fl=1
-3120 IF de THEN LET vx=3: LET fl=0
+3100 REM Movimiento, en pixeles por vuelta (30 por segundo): 75 por segundo andando; el salto
+3101 REM hace la misma parabola que con 25 vueltas (-8 y .8 por vuelta)
+3110 IF iz THEN LET vx=-2.5: LET fl=1
+3120 IF de THEN LET vx=2.5: LET fl=0
 3130 IF NOT iz AND NOT de THEN LET vx=0
-3140 IF sa AND suelo THEN LET vy=-8: SOUND 0,150;1,0;8,13: LET vol=13
-3150 LET vy=vy+.8: IF vy>8 THEN LET vy=8
+3140 IF sa AND suelo THEN LET vy=-119/18: SOUND 0,150;1,0;8,13: LET vol=13
+3150 LET vy=vy+5/9: IF vy>20/3 THEN LET vy=20/3
 3160 LET nx=px+vx
 3170 IF vx>0 THEN IF FN s(nx+13,py+1) OR FN s(nx+13,py+14) THEN LET nx=INT ((nx+13)/8)*8-14
 3180 IF vx<0 THEN IF FN s(nx+2,py+1) OR FN s(nx+2,py+14) THEN LET nx=INT ((nx+2)/8)*8+6
@@ -68,22 +69,22 @@
 3300 REM Bichos: andan hasta un muro o un borde; si se les pisa, mueren
 3310 FOR k=1 TO 4
 3320 IF NOT a(k) THEN GO TO 3360
-3330 LET nx=e(k)+g(k)*2: LET ex=nx+(g(k)>0)*15
+3330 LET nx=e(k)+g(k)*5/3: LET ex=nx+(g(k)>0)*15
 3340 IF FN s(ex,f(k)+8) OR NOT FN s(ex,f(k)+17) THEN LET g(k)=-g(k) ELSE LET e(k)=nx
-3350 IF ABS (e(k)-px)<15 AND ABS (f(k)-py)<16 THEN IF HIT(0,px,py,2,e(k),f(k)) THEN IF vy>0 AND py<f(k) THEN LET a(k)=0: LET vy=-6: LET puntos=puntos+50: SOUND 0,90;1,0;8,15: LET vol=15 ELSE LET muerto=1
+3350 IF ABS (e(k)-px)<15 AND ABS (f(k)-py)<16 THEN IF HIT(0,px,py,2,e(k),f(k)) THEN IF vy>0 AND py<f(k) THEN LET a(k)=0: LET vy=-89/18: LET puntos=puntos+50: SOUND 0,90;1,0;8,15: LET vol=15 ELSE LET muerto=1
 3360 NEXT k
 3400 REM Dibujo: en la pagina oculta, que se ensena en el VBLANK; solo en la zona del
 3401 REM nivel, que es la que se redibuja (al caer por un foso, el robot queda debajo)
-3410 LET cam=INT (px-120): IF cam<0 THEN LET cam=0
+3410 LET cam=INT (px+.5)-120: IF cam<0 THEN LET cam=0
 3420 IF cam>1024 THEN LET cam=1024
 3430 SCREEN s: CLIP 0,16,256,160: MAP 0,cam,0,0,16,256,160
 3440 FOR k=1 TO 4
-3450 IF a(k) THEN IF ABS (e(k)-cam-120)<150 THEN SPRITE 2+INT (n/4)-2*INT (n/8),e(k)-cam,f(k)+16,g(k)>0
+3450 IF a(k) THEN IF ABS (e(k)-cam-120)<150 THEN SPRITE 2+INT (n/4.8)-2*INT (n/9.6),e(k)-cam,f(k)+16,g(k)>0
 3460 NEXT k
-3470 SPRITE (vx<>0 AND suelo)*(INT (n/3)-2*INT (n/6)),px-cam,py+16,fl
+3470 SPRITE (vx<>0 AND suelo)*(INT (n/3.6)-2*INT (n/7.2)),px-cam,py+16,fl
 3480 PRINT AT 0,1; PAPER 0; INK 6; "PUNTOS "; puntos; AT 0,23; "VIDAS "; vidas
 3490 PAGE s: LET s=1-s: WAIT 2
-3500 IF vol>0 THEN LET vol=vol-1: SOUND 8,vol
+3500 IF vol>0 THEN LET vol=vol-5/6: SOUND 8,vol*(vol>0)
 3510 UNTIL muerto OR gana
 3520 IF muerto THEN LET vidas=vidas-1: SOUND 8,0: PLAY "T200O4 3gfedc5c"
 3530 END PROC
@@ -91,7 +92,7 @@
 3610 DEF PROC piloto
 3620 LET de=1: LET sa=FN s(px+18,py+8) OR NOT FN s(px+20,py+20) OR FN t(px+24,py+8)=5
 3630 FOR k=1 TO 4
-3640 IF a(k) AND e(k)-px>0 AND e(k)-px<40 AND ABS (f(k)-py)<8 THEN LET sa=1
+3640 IF a(k) AND e(k)-px>0 AND e(k)-px<46 AND ABS (f(k)-py)<8 THEN LET sa=1
 3650 NEXT k
 3660 IF INKEY$<>"" THEN LET vidas=1: LET muerto=1
 3670 END PROC

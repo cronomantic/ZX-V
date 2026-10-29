@@ -305,7 +305,7 @@ void stars_draw(int speed)
         }
         int x = stars[i].x / FX;
         pset(x, stars[i].y, colour[l]);
-        if (l == 2 && speed > 32)
+        if (l == 2 && speed > V(32))
             pset(x + 1, stars[i].y, 7);     /* las cercanas dejan estela si se va deprisa */
     }
 }

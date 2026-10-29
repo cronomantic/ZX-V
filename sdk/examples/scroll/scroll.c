@@ -65,10 +65,10 @@ static void draw_hills(void)
     }
 }
 
-/* La línea y de la pantalla (las del borde superior van antes: 48 en modo 0). */
+/* La línea y de la pantalla (las del borde superior van antes: 24 en modo 0). */
 static volatile uint8_t *line_entry(int y)
 {
-    return (volatile uint8_t *)(uintptr_t)(ZXV_LINE_TABLE + (uint32_t)(48 + y) * ZXV_LINE_ENTRY_SIZE);
+    return (volatile uint8_t *)(uintptr_t)(ZXV_LINE_TABLE + (uint32_t)(ZXV_BORDER_LINES(0) + y) * ZXV_LINE_ENTRY_SIZE);
 }
 
 int main(void)

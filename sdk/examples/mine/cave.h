@@ -42,7 +42,7 @@ typedef struct {
     uint8_t w, h;                       /* con el borde de acero */
     uint8_t need, time;                 /* diamantes; segundos */
     uint8_t value, extra;               /* puntos por diamante, antes y después de los necesarios */
-    uint8_t tick;                       /* frames por paso */
+    uint8_t tick;                       /* lo que dura un paso, en milisegundos */
     uint8_t p_boulder, p_diamond, p_empty;  /* el relleno de los '.', en 1/256 */
     uint8_t seed;
     uint8_t moss_slow, sieve_time;      /* segundos */

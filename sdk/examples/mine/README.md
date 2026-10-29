@@ -76,11 +76,14 @@ It is also on the machine's ROM disk: `LOAD "ROM:mine"`.
 
 The source code and its comments are in Spanish.
 
-- **Steps and pixels:** the cave moves in steps of 5 or 6 frames (it
+- **Steps and pixels:** the cave moves in steps of 100 or 120 ms (it
   depends on the cave): it is scanned from top to bottom and each thing
   does its part once. But what moves in a step is drawn between its old
   cell and the new one, frame by frame, so the miner, the falling boulders
-  and the creatures glide instead of jumping 16 pixels.
+  and the creatures glide instead of jumping 16 pixels. At 60 frames per
+  second a 120 ms step is 7.2 frames: the game counts what is left of each
+  step and draws in proportion, so what moves keeps a steady speed even
+  though some steps last 7 frames and others 8.
 - **The scrolling:** the 256 × 176 window follows the miner pixel by pixel
   when he moves away from the centre, without leaving the cave. Every frame
   the visible cells of a tile map (`zxv_map_draw`, opaque 16 × 16 tiles) are
@@ -137,6 +140,6 @@ next to an ember until time runs out.
 Built with `make -C sdk -B build/mine.zxv EXTRA_CFLAGS=-DMINA_STATS`, the
 score line shows the lost frames. On the emulator (at 144 MHz) no frame is
 lost in the twelve caves, with the autopilot simulating the next steps: the
-slowest frame takes about 4.4 ms of the 20 available. It has not been
-measured on the Pico 2.
+slowest frame takes about 4.4 ms of the 16.7 that a frame lasts at 60 per
+second. It has not been measured on the Pico 2.
 

@@ -117,7 +117,7 @@ A zap that rises:
 ```
 
 Line 20 turns on the tone of voice A at full volume, the loop lowers the
-period (so the note goes up) once every fiftieth of a second, and line 70
+period (so the note goes up) once every sixtieth of a second, and line 70
 turns the volume down to 0. `WAIT 1` waits for the next frame of the screen:
 you will see it again in the next chapters.
 

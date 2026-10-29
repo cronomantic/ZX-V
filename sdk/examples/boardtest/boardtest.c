@@ -73,7 +73,7 @@ static void video(void)
     char s[40], *p = s;
     p = cat(p, (o & 0xFF) == ZXV_OUT_HDMI ? "HDMI " : (o & 0xFF) == ZXV_OUT_DVI ? "DVI " : "? ");
     unsigned hz = (o >> 8) & 0xFF;
-    p = cat(p, hz == 60 ? "640x480 " : "720x576 ");
+    p = cat(p, "640x480 ");
     p = num(p, (int)hz, 1);
     cat(p, " Hz");
     rest(10, 2);

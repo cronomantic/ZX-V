@@ -69,7 +69,7 @@ read the [SDK guide](README.md) and [Graphics](graphics.md).
 void zxv_wait_vblank(void);
 ```
 
-Waits for the next VBLANK, the start of a frame (50 per second). It turns
+Waits for the next VBLANK, the start of a frame (60 per second). It turns
 interrupts on if they were off. Do not call it from a frame hook.
 
 ### `zxv_set_frame_hook`
@@ -112,7 +112,7 @@ variable `ZXV_SV_VERSION`.
 
 | Constant | Value | Meaning |
 |---|---|---|
-| `ZXV_FRAME_HZ` | 50 | Frames per second |
+| `ZXV_FRAME_HZ` | 60 | Frames per second |
 | `ZXV_CPU_HZ_REF` | 144000000 | Reference speed of the processor (Hz) |
 | `ZXV_SPEC_VERSION` | 1 | Version of the specification (0.1) |
 
@@ -764,11 +764,10 @@ Write them at any time; the system applies them at the next VBLANK.
 | `ZXV_V_SCROLL_Y` | 16 bits | Vertical scroll, wrapping round |
 | `ZXV_V_REMAP` | 8 bits | Colour remapping table in use, 0–3 |
 | `ZXV_V_VSIZE` | 8 bits | Page size in mode 0 (see below) |
-| `ZXV_V_OUT_INFO` | 32 bits | Read only: bits 0–3, the output (`ZXV_OUT_DVI` 1, no sound; `ZXV_OUT_HDMI` 2, with sound); bits 8–15, the refresh rate (50 or 60 Hz); bits 16–17, the screen (`ZXV_OUT_SCREEN_ON` connected, `ZXV_OUT_SCREEN_NONE` unplugged, `ZXV_OUT_SCREEN_UNKNOWN` not known: on a protoboard, or before one has been connected). The user chooses the output, not programs |
+| `ZXV_V_OUT_INFO` | 32 bits | Read only: bits 0–3, the output (`ZXV_OUT_DVI` 1, no sound; `ZXV_OUT_HDMI` 2, with sound); bits 8–15, the refresh rate (always 60 Hz); bits 16–17, the screen (`ZXV_OUT_SCREEN_ON` connected, `ZXV_OUT_SCREEN_NONE` unplugged, `ZXV_OUT_SCREEN_UNKNOWN` not known: on a protoboard, or before one has been connected). The user chooses the output, not programs |
 
 With scroll, screen pixel (x, y) shows page pixel ((x + SCROLL_X) mod
-width, (y + SCROLL_Y) mod height). At 60 Hz the machine still runs at 50
-frames per second; the display repeats one frame in five.
+width, (y + SCROLL_Y) mod height).
 
 **Page sizes** (`ZXV_V_VSIZE`, mode 0 only; ignored in mode 1):
 
@@ -784,8 +783,11 @@ frames per second; the display repeats one frame in five.
 for pixel value *v*. They start as the identity.
 
 **Line table:** at `ZXV_LINE_TABLE`, one entry of `ZXV_LINE_ENTRY_SIZE`
-(8) bytes per line of the whole frame, border included: 288 lines in mode
-0 (the picture starts at line 48), 576 in mode 1 (picture from line 96).
+(8) bytes per line of the whole frame, border included: 240 lines in mode
+0 (the picture starts at line 24), 480 in mode 1 (picture from line 48):
+`ZXV_FRAME_LINES(mode)` and `ZXV_BORDER_LINES(mode)`. The frame is
+`ZXV_FRAME_W` × `ZXV_FRAME_H` (640 × 480), with a border of `ZXV_BORDER_X`
+(64) pixels at each side and `ZXV_BORDER_Y` (48) lines above and below.
 
 | Offset | Size | Field | Value for "as usual" |
 |---|---|---|---|
@@ -998,7 +1000,7 @@ can replace an entry to intercept a routine.
 | `0x2000_0800` | `ZXV_AY_FIFO` | AY queue (256 × 2 bytes) |
 | `0x2000_0A00` | `ZXV_BEEP_QUEUE` | Timed queue (256 × 8 bytes) |
 | `0x2000_1200` | `ZXV_REMAP_TABLES` | Colour remapping tables (4 × 16 bytes) |
-| `0x2000_1800` | `ZXV_LINE_TABLE` | Line table (576 × 8 bytes) |
+| `0x2000_1800` | `ZXV_LINE_TABLE` | Line table (480 × 8 bytes) |
 
 The rest of the system area is for the ROM's internal use.
 

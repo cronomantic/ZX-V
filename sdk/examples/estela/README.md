@@ -56,8 +56,16 @@ The source code and its comments are in Spanish.
 
 - **Double buffering:** every frame is drawn in full on the hidden page
   (`zxv_gfx_draw_page`), which is shown at the next VBLANK
-  (`zxv_set_page` and `zxv_wait_vblank`). A lost frame shows up in
-  `ZXV_SV_FRAMES`.
+  (`zxv_set_page` and `zxv_wait_vblank`), 60 times a second. A lost frame
+  shows up in `ZXV_SV_FRAMES`.
+- **Time:** the game was tuned when the machine ran at 50 frames per
+  second, and at 60 (`ZXV_FRAME_HZ`) everything takes the same time in
+  seconds: speeds are still written in 1/16 of a pixel every 1/50 of a
+  second and `V()` turns them into a step per frame; times are in
+  milliseconds with `MS()`. The terrain moves one pixel per frame, so the
+  stages are measured in fiftieths of a second (their pixels at 50 Hz) and
+  `PX()` turns that into today's pixels: at 60 the stages are 20% longer,
+  and the waves, the turrets and the boss come at the same seconds.
 - **Sprites without files:** the ship, the darts and the turrets are
   drawings made of characters in the code (`sprite_ascii`); the rocks, the
   mine, the explosions and the bosses are drawn with the engine's circles,
@@ -67,13 +75,15 @@ The source code and its comments are in Spanish.
   starts (a random path with a minimum gap and a flat area for the boss).
   Only the bands at the top and bottom where there is wall are drawn, and
   collisions are checked with `zxv_map_cell`.
-- **Positions** are in 1/16 of a pixel, and angles in 64 steps per turn
-  with a sine table: no floating point at all.
+- **Positions** are in 1/96 of a pixel (so that `V()` is exact at 50 and
+  60 Hz), and angles in 64 steps per turn with a sine table: no floating
+  point at all.
 - **The sound:** the music goes on the first AY (melody, bass and drums
   with the noise); the effects, on the second (shots and power-ups on
   channel A, explosions with noise and envelope on B). Big explosions also
   have a 0.6 s sample at 8 kHz through the volume of channel C, sent a
-  little at a time, about 30 ms ahead, with `zxv_ay_event`.
+  little at a time, about 30 ms ahead, with `zxv_ay_event`. Music and
+  effects move on 50 steps per second, as when they were composed.
 - **The keyboard:** the map of keys held down (`ZXV_I_KEYMAP`) is read to
   move and fire at the same time, and the key queue is emptied every frame
   so that what was typed does not reach BASIC on the way back.
@@ -93,14 +103,19 @@ each life lost took the weapon down, and with the weapon at its lowest
 everything dragged on. Now the weapon is kept, the bosses have less life and
 fire less, the wheels, turrets and darts are slower, the ship stays
 invulnerable a little longer after a hit, and only its centre (7 × 3 pixels)
-counts for bullets. Over six seeds, the pilot loses 2 to 7 lives in the whole
-game, and the last boss lasts about 40 seconds.
+counts for bullets. Over six seeds, the pilot loses 4 to 7 lives in the whole
+game (2 to 7 when the machine ran at 50 frames per second), and the last boss
+lasts about 40 seconds; each stage and each boss take as long as they did
+then. At 60 frames per second the pilot also looks at the wall that is still
+above or below the ship: with shorter steps, it moved into the next gap too
+early and hit the edge.
 
 ## Performance
 
 Built with `make -C sdk -B build/estela.zxv EXTRA_CFLAGS=-DESTELA_STATS`,
 the score line shows the lost frames, and the demo plays the three stages
-in full, with their bosses. On the emulator (at 144 MHz) no frame is lost,
-even with dozens of bullets on screen. It has not been measured on the
+in full, with their bosses. On the emulator (at 144 MHz and 60 frames per
+second) no frame is lost while playing, even with dozens of bullets on
+screen; only one at start-up, with what is prepared before the first frame. It has not been measured on the
 Pico 2.
 

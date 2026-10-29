@@ -84,19 +84,27 @@ It is also on the machine's ROM disk: `LOAD "ROM:route128"`.
   seen from afar so that they hold up close by.
 - **The scenery:** clouds, mountains and the sea, the dunes or the hills, in
   three 512-pixel layers that repeat and move at different speeds with the
-  bends. They are redrawn when the stage changes.
+  bends. The next stage's are drawn in a second set, a piece each frame
+  (about a millisecond) as it approaches, and swapped in on reaching it:
+  drawing them all at once does not fit in a frame along with the road.
 - **The sound:** the engine is two tones of the second AY, one an octave
   lower, that follow the gear's revs; skidding and the verge, its noise; and
   the music, the first AY.
 - **No floating point:** positions and projection use integers (the curve in
   1/16, the lateral position in 1/1024 of half the road).
+- **At 60 frames per second:** speeds, accelerations and times are written
+  per second (`ZXV_FRAME_HZ`), and what is left over from each frame's share
+  carries on to the next, so nothing moves in jerks. The music and the sound
+  effects go in steps of a fiftieth of a second, as they were written.
 
 ## Performance
 
 Built with `make -C sdk -B build/route128.zxv EXTRA_CFLAGS=-DRUTA128_STATS`,
 the HUD shows the frames lost and how long the slowest frame of the last
 second took, in microseconds, and the demo drives the whole track. In the
-emulator (at 144 MHz) none are lost: the worst frame takes about 10 ms of the
-20 of a frame at 50 per second (the coast and the forest, with more objects;
-the desert, half that). It has not been measured on the Pico 2.
+emulator (at 144 MHz) the worst frame takes about 11 ms of the 16.7 of a frame
+at 60 per second (the coast and the forest, with more objects; the desert,
+less than half that), and none are lost on the whole track, the changes of
+stage included, nor going from the title to the race and back. It has not
+been measured on the Pico 2.
 

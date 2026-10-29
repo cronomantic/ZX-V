@@ -105,22 +105,20 @@ Fíjate en el **LED rojo del enlace** (`ENLACE` en la placa) al encender.
   cables de masa.
 
 Las veces que parpadea al arrancar son el modo de vídeo más uno (una vez en el
-modo 0, cuatro en el 3).
+modo 0, dos en el 1).
 
 **El modo seguro.** Mantén apretado **MODO** mientras enciendes: la ULA arranca
-en DVI a 640 × 480 y 60 Hz, que lo acepta cualquier pantalla. Dura solo hasta
-el siguiente reinicio. Para quedarte con un modo, pulsa MODO brevemente con la
-máquina en marcha: cada pulsación corta pasa al modo siguiente (0, 1, 2, 3 y
-otra vez 0), lo guarda y reinicia la ULA. Si tu pantalla solo se ve en el modo
-seguro, pulsa MODO hasta que el LED del enlace parpadee **cuatro veces** al
-arrancar: es el modo 3, el mismo que el seguro, y se queda guardado.
+en DVI, que lo acepta cualquier pantalla. Dura solo hasta el siguiente
+reinicio. Para quedarte con un modo, pulsa MODO brevemente con la máquina en
+marcha: cada pulsación corta pasa de HDMI a DVI o al revés, lo guarda y
+reinicia la ULA. Si tu pantalla solo se ve en el modo seguro, pulsa MODO hasta
+que el LED del enlace parpadee **dos veces** al arrancar: es el modo 1, el
+mismo que el seguro, y se queda guardado.
 
 | Modo | Salida | Sonido en la pantalla |
 |---|---|---|
-| 0 | HDMI 720 × 576, 50 Hz (el de partida) | Sí |
-| 1 | HDMI 640 × 480, 60 Hz | Sí |
-| 2 | DVI 720 × 576, 50 Hz | No |
-| 3 | DVI 640 × 480, 60 Hz (el modo seguro) | No |
+| 0 | HDMI 640 × 480, 60 Hz (el de partida) | Sí |
+| 1 | DVI 640 × 480, 60 Hz (el modo seguro) | No |
 
 **Se ven unas demos en lugar del BASIC** (un juego que se desplaza, rayas de
 colores, círculos): la Pico ULA lleva `zxv_ula.uf2`, la prueba. Cárgale
@@ -134,8 +132,8 @@ además 5 V en el pin 18 del conector HDMI
 
 ### No hay sonido
 
-- **En los modos 2 y 3 (DVI) la pantalla no tiene sonido.** Pasa al modo 0 o
-  al 1 con MODO, o usa el jack de audio.
+- **En el modo 1 (DVI) la pantalla no tiene sonido.** Pasa al modo 0 con
+  MODO, o usa el jack de audio.
 - **El jack da nivel de línea**: necesita unos altavoces con amplificador, un
   amplificador o la entrada de audio de una tele. Unos auriculares necesitan
   un amplificador.
@@ -158,7 +156,7 @@ además 5 V en el pin 18 del conector HDMI
   GP27 (pin 32).
 - **El informe dice `sin canal de vuelta`**: falta el cable de GP20 de la ULA
   (pin 26) a GP18 de la CPU (pin 24). Todo funciona sin él, salvo que a los
-  programas siempre se les dice que la salida es HDMI a 50 Hz.
+  programas siempre se les dice que la salida es HDMI.
 
 ### La página de diagnóstico
 
@@ -179,7 +177,7 @@ En `zxv-uf2.zip` vienen también unas pruebas. Dos son útiles al montarla:
 | Fichero | En | Qué hace |
 |---|---|---|
 | `zxv_ula.uf2` | Una Pico 2 sola | La imagen y el sonido de la ULA con unas demos, sin la Pico CPU. Comprueba la salida HDMI y el jack. El pulsador MODO va igual |
-| `zxv_hdmi.uf2` | Una Pico 2 sola | Barras de colores y un tono de prueba a cada lado (izquierda, derecha y centro) por el HDMI. `zxv_dvi.uf2`, `zxv_dvi_480p60.uf2` y `zxv_hdmi_480p60.uf2` son lo mismo en otros modos |
+| `zxv_hdmi.uf2` | Una Pico 2 sola | Barras de colores y un tono de prueba a cada lado (izquierda, derecha y centro) por el HDMI. `zxv_dvi.uf2` es lo mismo en DVI, sin sonido |
 
 Los demás (`zxv_linktx`, `zxv_bench`, `zxv_bench_ram`, `zxv_isatest`) son para
 quien desarrolla el firmware. Acuérdate de volver a cargar el firmware de

@@ -279,22 +279,22 @@ static const char *const c10[20] = {
 };
 
 /* Nombre; ancho y alto; diamantes; segundos; puntos por diamante (antes y
- * después de los necesarios); frames por paso; relleno de piedras, diamantes
- * y huecos; semilla; segundos del musgo lento; segundos del tamiz; colores
- * de la tierra, sus motas y el ladrillo; premio; filas. */
+ * después de los necesarios); milisegundos por paso; relleno de piedras,
+ * diamantes y huecos; semilla; segundos del musgo lento; segundos del
+ * tamiz; colores de la tierra, sus motas y el ladrillo; premio; filas. */
 const cave_t caves[] = {
-    { "LA ENTRADA", "THE WAY IN", 40, 22, 10, 150, 10, 15, 6, 28, 12, 6, 1, 0, 0, 2, 6, 7, 0, c1 },
-    { "VETAS", "SEAMS", 40, 22, 16, 130, 10, 15, 6, 40, 4, 4, 2, 0, 0, 3, 11, 7, 0, c2 },
-    { "LAS ASCUAS", "EMBERS", 40, 22, 14, 120, 10, 20, 6, 36, 12, 6, 3, 0, 0, 4, 12, 6, 0, c3 },
-    { "LA CASCADA", "THE CASCADE", 40, 22, 18, 110, 15, 20, 5, 100, 40, 116, 4, 0, 0, 1, 9, 5, 0, c4 },
-    { "LA LLUVIA", "THE RAIN", 16, 11, 6, 20, 30, 40, 5, 0, 0, 0, 5, 0, 0, 5, 13, 7, 1, b1 },
-    { "MURCIÉLAGOS", "BATS", 40, 22, 14, 120, 15, 20, 5, 40, 12, 6, 6, 0, 0, 2, 10, 6, 0, c5 },
-    { "EL MUSGO", "THE MOSS", 40, 22, 15, 120, 15, 25, 5, 40, 12, 4, 7, 45, 0, 4, 12, 7, 0, c6 },
-    { "EL TAMIZ", "THE SIEVE", 40, 22, 18, 120, 15, 25, 5, 36, 10, 4, 8, 0, 20, 1, 9, 7, 0, c7 },
-    { "EL LABERINTO", "THE MAZE", 40, 22, 14, 170, 20, 30, 5, 0, 0, 0, 9, 0, 0, 3, 11, 5, 0, c8 },
-    { "EL SÓTANO", "THE CELLAR", 16, 11, 8, 25, 40, 50, 5, 0, 0, 0, 10, 0, 0, 2, 10, 7, 1, b2 },
-    { "LA AVALANCHA", "THE AVALANCHE", 40, 22, 20, 110, 20, 30, 5, 80, 16, 4, 11, 0, 0, 2, 6, 7, 0, c9 },
-    { "EL CORAZÓN", "THE HEART", 40, 22, 20, 170, 25, 40, 5, 44, 12, 4, 12, 100, 20, 3, 11, 6, 0, c10 },
+    { "LA ENTRADA", "THE WAY IN", 40, 22, 10, 150, 10, 15, 120, 28, 12, 6, 1, 0, 0, 2, 6, 7, 0, c1 },
+    { "VETAS", "SEAMS", 40, 22, 16, 130, 10, 15, 120, 40, 4, 4, 2, 0, 0, 3, 11, 7, 0, c2 },
+    { "LAS ASCUAS", "EMBERS", 40, 22, 14, 120, 10, 20, 120, 36, 12, 6, 3, 0, 0, 4, 12, 6, 0, c3 },
+    { "LA CASCADA", "THE CASCADE", 40, 22, 18, 110, 15, 20, 100, 100, 40, 116, 4, 0, 0, 1, 9, 5, 0, c4 },
+    { "LA LLUVIA", "THE RAIN", 16, 11, 6, 20, 30, 40, 100, 0, 0, 0, 5, 0, 0, 5, 13, 7, 1, b1 },
+    { "MURCIÉLAGOS", "BATS", 40, 22, 14, 120, 15, 20, 100, 40, 12, 6, 6, 0, 0, 2, 10, 6, 0, c5 },
+    { "EL MUSGO", "THE MOSS", 40, 22, 15, 120, 15, 25, 100, 40, 12, 4, 7, 45, 0, 4, 12, 7, 0, c6 },
+    { "EL TAMIZ", "THE SIEVE", 40, 22, 18, 120, 15, 25, 100, 36, 10, 4, 8, 0, 20, 1, 9, 7, 0, c7 },
+    { "EL LABERINTO", "THE MAZE", 40, 22, 14, 170, 20, 30, 100, 0, 0, 0, 9, 0, 0, 3, 11, 5, 0, c8 },
+    { "EL SÓTANO", "THE CELLAR", 16, 11, 8, 25, 40, 50, 100, 0, 0, 0, 10, 0, 0, 2, 10, 7, 1, b2 },
+    { "LA AVALANCHA", "THE AVALANCHE", 40, 22, 20, 110, 20, 30, 100, 80, 16, 4, 11, 0, 0, 2, 6, 7, 0, c9 },
+    { "EL CORAZÓN", "THE HEART", 40, 22, 20, 170, 25, 40, 100, 44, 12, 4, 12, 100, 20, 3, 11, 6, 0, c10 },
 };
 
 const int ncaves = sizeof(caves) / sizeof(caves[0]);

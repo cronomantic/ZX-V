@@ -47,7 +47,7 @@ static int pnote(int n)
 /* --- La música ----------------------------------------------------------------- */
 
 typedef struct {
-    uint8_t tempo, rows, loop;
+    uint8_t tempo, rows, loop;          /* tempo: cincuentavos de segundo por fila */
     const uint8_t *melody, *bass, *drums;
 } song_t;
 
@@ -344,12 +344,18 @@ void sound_mute(int on)
     }
 }
 
+/* La música y los efectos avanzan 50 veces por segundo, como se
+ * escribieron, con la máquina a ZXV_FRAME_HZ: a 60 Hz, en cinco de cada
+ * seis frames. */
 void sound_frame(void)
 {
+    static int acc;
     if (muted)
         return;
-    music_frame();
-    effects_frame();
+    for (acc += 50; acc >= ZXV_FRAME_HZ; acc -= ZXV_FRAME_HZ) {
+        music_frame();
+        effects_frame();
+    }
 }
 
 void sound_off(void)

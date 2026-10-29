@@ -63,9 +63,9 @@ También está en el disco ROM de la máquina: `LOAD "ROM:street"`.
 | `sound.c` | La música (primer AY) y los efectos (segundo AY) |
 | `game.c` | Las fases, la cámara, los grupos, el marcador, el título, la demostración y el récord |
 
-- **Doble buffer:** cada frame se dibuja entero en la página oculta, que se
-  enseña en el siguiente VBLANK. Un frame perdido se nota en
-  `ZXV_SV_FRAMES`.
+- **Doble buffer:** cada frame (60 por segundo) se dibuja entero en la
+  página oculta, que se enseña en el siguiente VBLANK. Un frame perdido se
+  nota en `ZXV_SV_FRAMES`.
 - **Luchadores sin ficheros:** cada uno es un esqueleto (muslos, piernas,
   torso, brazos) con sus largos y anchos, puesto en una de 22 poses (andar,
   los golpes, el salto, caer, levantarse...) con ángulos de 64 pasos por
@@ -82,7 +82,14 @@ También está en el disco ROM de la máquina: `LOAD "ROM:street"`.
   fondo lejano (que se desplaza a un cuarto de velocidad), seis fachadas de
   64 píxeles que se repiten en el orden de la fase, y el suelo. Cada frame
   son unas pocas copias de bitmaps.
-- **Las posiciones** van en 1/16 de píxel: nada de coma flotante.
+- **Las posiciones** van en 1/576 de píxel (16 × 36): nada de coma flotante.
+- **El tiempo:** el juego se ajustó cuando la máquina enseñaba 50 imágenes
+  por segundo, y sus tiempos y velocidades siguen escritos en cincuentavos
+  de segundo. `F50`, `VEL` y `ACC` (en `street.h`) los pasan a frames de la
+  máquina (`ZXV_FRAME_HZ`, 60 por segundo), así que se juega a la misma
+  velocidad, pero más suave; con el 36 de las posiciones, las velocidades y
+  la gravedad salen exactas. La música y los efectos siguen avanzando 50
+  pasos por segundo.
 - **El teclado:** se lee el mapa de teclas pulsadas (`ZXV_I_KEYMAP`) para
   andar y pegar a la vez, y se vacía la cola de teclas cada frame para que lo
   tecleado no le llegue al BASIC al volver.

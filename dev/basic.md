@@ -59,7 +59,7 @@ más preciso.
   en modo 0, 64×48 en modo 1, o las de la página con el campo virtual), para que
   `ATTR()` funcione.
 - **`FLASH 1`.** El intérprete lleva la cuenta de las celdas con FLASH e intercambia
-  su tinta y su papel cada 16 frames, en las dos páginas a la vez (la que se ve
+  su tinta y su papel cada 16/50 s (cada 16 frames del Spectrum), en las dos páginas a la vez (la que se ve
   parpadea aunque se dibuje en la otra). Lo hace entre sentencias y en las
   esperas (`PAUSE`, `WAIT`, `INPUT`), así que se para durante una sentencia
   larga como `BEEP`. Las órdenes del motor gráfico (§9.8) quitan el FLASH de
@@ -80,7 +80,7 @@ virtual de 64 KB** que el intérprete traduce:
 | 0–16383 (ROM) | `PEEK` devuelve 0, excepto la fuente en 15616 (`0x3D00`), que contiene la fuente de ZX-V |
 | 16384–22527 (pantalla) | `POKE` dibuja en la VRAM con la tinta y el papel de la sombra de atributos. `PEEK` lee una sombra de la pantalla Spectrum (6.144 B) |
 | 22528–23295 (atributos) | `POKE` cambia los colores de la celda (repinta sus píxeles). `PEEK` lee la sombra de atributos |
-| 23552–23733 (variables del sistema) | Se emulan las que usan los programas: `LAST K` (23560), `CHARS` (23606), `BORDCR` (23624), `PROG` (23635, siempre 23755), `FLAGS2` (23658, bloqueo de mayúsculas), `DF SZ` (23659), `SEED` (23670), `FRAMES` (23672), `UDG` (23675), `COORDS` (23677), `S POSN` (23688), `SCR CT` (23692), `ATTR P`/`MASK P`/`ATTR T`/`MASK T`/`P FLAG` (23693–23697) y `RAMTOP` (23730). El resto se guarda y se lee como memoria normal |
+| 23552–23733 (variables del sistema) | Se emulan las que usan los programas: `LAST K` (23560), `CHARS` (23606), `BORDCR` (23624), `PROG` (23635, siempre 23755), `FLAGS2` (23658, bloqueo de mayúsculas), `DF SZ` (23659), `SEED` (23670), `FRAMES` (23672, en cincuentavos de segundo como en el 48K, aunque la máquina va a 60 imágenes por segundo: D81), `UDG` (23675), `COORDS` (23677), `S POSN` (23688), `SCR CT` (23692), `ATTR P`/`MASK P`/`ATTR T`/`MASK T`/`P FLAG` (23693–23697) y `RAMTOP` (23730). El resto se guarda y se lee como memoria normal |
 | 65368–65535 (UDG) | Los 21 UDG (A–U). `POKE USR "a"+n, valor` funciona |
 | 23296–65535 (resto) | Memoria de respaldo de 42 KB: lo que se escribe con `POKE` se lee con `PEEK` |
 
@@ -484,7 +484,7 @@ Solo como órdenes directas (en un programa dan `C Nonsense in BASIC`):
 
 | Palabra clave | Efecto |
 |---|---|
-| `TIME` | Frames desde el arranque (50 por segundo) |
+| `TIME` | Frames desde el arranque (60 por segundo) |
 | `JOY n` | Mando 0 o 1: bits 0–8 (derecha, izquierda, abajo, arriba, fuego 1–3, start y select) o 0 si no está conectado |
 | `JOY n, modo` | El mando `n` se presenta también como teclas: 0 no, 1 Sinclair 1, 2 Sinclair 2, 3 Cursor (ver §5). Un `n` fuera de 0–1 o un modo fuera de 0–3 da `B Integer out of range`, como la función `JOY n` |
 | `KEY n` | 1 si la tecla está pulsada ahora: `n` es el código de una letra, una cifra, Enter (13), espacio (32), los cursores (8–11) o Borrar (12), o 256 más un código de uso HID para las demás |

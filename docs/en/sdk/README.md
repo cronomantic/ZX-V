@@ -38,8 +38,8 @@ again in a second.
 
 Use a **native program** when you need:
 
-- **Speed.** C runs many times faster than BASIC: the CPU does about 2.9
-  million instructions per frame (50 frames per second).
+- **Speed.** C runs many times faster than BASIC: the CPU does about 2.4
+  million instructions per frame (60 frames per second).
 - **Control.** Your own data structures, fixed-point maths, your own sound
   engine, your own file formats.
 - **Size.** Up to almost 248 KB for code and data, with all the memory of the
@@ -213,7 +213,7 @@ machine loads. Copy `hello.zxv` to the SD card and type `LOAD "hello"`:
 - `zxv_plot(x, y, colour)` sets one pixel. The screen is 256 × 192 pixels,
   with (0, 0) at the top left.
 - `zxv_key_get()` returns the next key typed, or −1 if there is none.
-  `zxv_wait_vblank()` waits for the next frame (1/50 of a second) so the
+  `zxv_wait_vblank()` waits for the next frame (1/60 of a second) so the
   loop does not spin for nothing.
 - When `main` returns 0, you are back in BASIC with the report `0 OK`.
 
@@ -586,11 +586,11 @@ int main(void)
     zxv_print_str("A 440 Hz, then E 659 Hz on the\nsecond AY, then the beeper.");
 
     note_a(0, 440, 15);                         /* first AY: A4 */
-    wait_frames(25);
+    wait_frames(ZXV_FRAME_HZ / 2);              /* half a second */
     zxv_ay_write(8, 0);                         /* silence it */
 
     note_a(ZXV_AY2, 659, 15);                   /* second AY: E5 */
-    wait_frames(25);
+    wait_frames(ZXV_FRAME_HZ / 2);              /* half a second */
     zxv_ay_write(ZXV_AY2 + 8, 0);
 
     /* The beeper, with exact timing: 1 kHz for a quarter of a second.
@@ -970,7 +970,7 @@ The list of what works is in [the reference](reference.md#the-standard-c-library
 
 ## Timing and the frame loop
 
-ZX-V draws **50 frames per second**. The moment between two frames is the
+ZX-V draws **60 frames per second**. The moment between two frames is the
 **VBLANK**, and everything in a game revolves around it:
 
 ```c
@@ -983,10 +983,12 @@ for (;;) {
 }
 ```
 
-At the reference speed the processor does about **2.88 million
+At the reference speed the processor does about **2.4 million
 instructions per frame**. If one turn of your loop takes longer than a
 frame, `zxv_wait_vblank` waits for the following one and the game runs at
-25 frames per second instead of 50.
+30 frames per second instead of 60. `ZXV_FRAME_HZ` (60) is the number of
+frames per second: write times as `2 * ZXV_FRAME_HZ` rather than as a
+number of frames.
 
 There are three clocks:
 
@@ -1013,7 +1015,7 @@ program must be `volatile`:
 
 static volatile uint32_t ticks;                 /* changed by the hook: volatile */
 
-static void on_frame(void)                      /* runs at every VBLANK, 50 times a second */
+static void on_frame(void)                      /* runs at every VBLANK, 60 times a second */
 {
     ticks++;
 }
@@ -1036,7 +1038,7 @@ int main(void)
     zxv_set_frame_hook(on_frame);
 
     uint32_t f0 = *frames, t0 = zxv_time_us();
-    while (ticks < 100)                         /* two seconds, without wait_vblank */
+    while (ticks < 2 * ZXV_FRAME_HZ)            /* two seconds, without wait_vblank */
         ;
     uint32_t us = zxv_time_us() - t0;           /* unsigned: right even if it wraps */
     zxv_set_frame_hook(0);                      /* remove the hook before leaving */
@@ -1051,7 +1053,7 @@ int main(void)
 }
 ```
 
-It prints 100 frames and about 2,000,000 microseconds. Remove the hook
+It prints 120 frames and about 2,000,000 microseconds. Remove the hook
 before your program ends.
 
 ### Interrupts

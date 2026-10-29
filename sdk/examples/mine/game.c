@@ -7,10 +7,11 @@
  * murciélagos que siguen las paredes, musgo que crece y un tamiz que cambia
  * piedras por diamantes (ver cave.c).
  *
- * El mundo avanza a pasos de 5 o 6 frames, pero lo que se mueve se dibuja
- * entre una celda y otra, frame a frame, y la ventana de 256 x 176 sigue al
- * minero píxel a píxel por la cueva de 640 x 352. Todo se dibuja cada frame
- * en la página oculta (doble buffer, a 50 imágenes por segundo).
+ * El mundo avanza a pasos de 100 o 120 ms (6 o 7,2 frames), pero lo que se
+ * mueve se dibuja entre una celda y otra, frame a frame, y la ventana de
+ * 256 x 176 sigue al minero píxel a píxel por la cueva de 640 x 352. Todo se
+ * dibuja cada frame en la página oculta (doble buffer, a ZXV_FRAME_HZ, 60
+ * imágenes por segundo). Los tiempos van en milisegundos (FRAMES).
  *
  * Controles: cursores o OPQA para moverse, espacio o M con una dirección
  * para cavar o coger sin moverse, Intro para la pausa y Esc para salir; o
@@ -31,6 +32,11 @@
 
 uint32_t rng_state = 1;
 int lang;
+
+/* Un tiempo en milisegundos, en frames de la máquina (redondeado). */
+#define FRAMES(ms)  (((ms) * ZXV_FRAME_HZ + 500) / 1000)
+#define FRAME_T     1000                /* un frame, en ms x ZXV_FRAME_HZ */
+#define REVEAL      FRAMES(1280)        /* lo que tarda en destaparse la cueva */
 
 #ifdef MINA_BOT
 #define MINA_STATS
@@ -143,8 +149,9 @@ static int player_dir(void)
 
 static world_t wd;
 static uint8_t moved_dir[CW * CH];      /* 1 + la dirección con la que llegó en el último paso */
-static int sub, frame, demo, cam_x, cam_y, flash, reveal, paused;
-static int time_left, time_frames, miner_dir, dead_t, idle_t;
+static int sub;                         /* lo que le queda al paso, en ms x ZXV_FRAME_HZ */
+static int frame, demo, cam_x, cam_y, flash, reveal, paused;
+static int time_left, time_frames, bonus_t, miner_dir, dead_t, idle_t;
 static int lives, cave_n;
 static uint32_t score, record, next_life;
 static const char *msg, *msg2;
@@ -199,11 +206,12 @@ static void add_score(uint32_t v)
     }
 }
 
-/* El píxel del minero en la cueva, entre una celda y otra. */
+/* El píxel del minero en la cueva, entre una celda y otra: lo que le falta
+ * por recorrer es lo que le queda al paso. */
 static int slide(int d, int axis)
 {
     static const int8_t dx[4] = { 0, 1, 0, -1 }, dy[4] = { -1, 0, 1, 0 };
-    int off = CELL * (wd.tick - 1 - sub) / wd.tick;
+    int off = CELL * sub / (wd.tick * ZXV_FRAME_HZ);
     return -(axis ? dy[d] : dx[d]) * off;
 }
 
@@ -302,10 +310,11 @@ static void draw_cave(void)
     /* Las celdas del mapa, solo las que se ven. */
     int x0 = cam_x / CELL, y0 = cam_y / CELL, x1 = (cam_x + W - 1) / CELL, y1 = (cam_y + VIEW_H - 1) / CELL;
     int ex = wd.mi % CW, ey = wd.mi / CW;
+    int r = reveal * 50 / ZXV_FRAME_HZ;     /* lo destapado, en medias celdas: 25 celdas por segundo */
     for (int y = y0; y <= y1 && y < CH; y++)
         for (int x = x0; x <= x1 && x < CW; x++) {
             int i = y * CW + x, t = cell_tile(wd.g[i], i);
-            if (reveal < 64 && (x - ex) * (x - ex) + (y - ey) * (y - ey) > reveal * reveal / 4)
+            if (reveal < REVEAL && (x - ex) * (x - ex) + (y - ey) * (y - ey) > r * r / 4)
                 t = T_STEEL;            /* la cueva se destapa desde la entrada */
             view[i] = (uint16_t)t;
         }
@@ -326,7 +335,7 @@ static void draw_cave(void)
                 spr = T_EMBER + ((frame >> 2) & 3);
             else if (t >= O_BAT && t < O_BOOM)
                 spr = T_BAT + ((frame >> 2) & 3);
-            if (spr < 0 || reveal < 64)
+            if (spr < 0 || reveal < REVEAL)
                 continue;
             int px = x * CELL - cam_x, py = y * CELL - cam_y + HUD_H;
             if (moved_dir[i]) {
@@ -342,7 +351,7 @@ static void draw_cave(void)
         int px, py, f = M_STAND, flip = wd.facing == D_LEFT ? ZXV_FLIP_H : 0;
         miner_px(&px, &py);
         if (moved_dir[wd.mi]) {
-            int d = moved_dir[wd.mi] - 1, step = sub * 2 >= wd.tick;
+            int d = moved_dir[wd.mi] - 1, step = sub * 2 < wd.tick * ZXV_FRAME_HZ;
             if (d == D_LEFT || d == D_RIGHT)
                 f = step ? M_WALK2 : M_WALK1;
             else
@@ -351,7 +360,7 @@ static void draw_cave(void)
             f = M_PUSH;
         } else {
             flip = 0;
-            if (idle_t % 150 > 140)
+            if (idle_t % FRAMES(3000) > FRAMES(2800))
                 f = M_BLINK;
         }
         draw_sprite(&s_miner[f], px - cam_x, py - cam_y + HUD_H, flip, 0);
@@ -401,7 +410,7 @@ static void step_world(void)
     else if (ev & EV_DIG) sound_fx(FX_DIG);
     if (ev & EV_OPEN) {
         sound_fx(FX_OPEN);
-        flash = 3;
+        flash = FRAMES(60);
     } else if (ev & EV_CHANGE) {
         sound_fx(FX_MAGIC);
     } else if (ev & EV_BORN) {
@@ -428,6 +437,7 @@ static int run_cave(int n)
     art_cave(c);
     time_left = c->time;
     time_frames = 0;
+    bonus_t = 0;
     sub = 0;
     dead_t = 0;
     idle_t = 0;
@@ -464,13 +474,13 @@ static int run_cave(int n)
     number(need + k, c->need, 2);
     msg = title;
     msg2 = need;
-    msg_t = 120;
+    msg_t = FRAMES(2400);
 
     for (reveal = 0;; frame++) {
         read_input();
         if ((input_edge & IN_ESC) || (demo && input_edge))
             return R_QUIT;
-        if (input_edge & IN_PAUSE && !demo && reveal >= 64) {
+        if (input_edge & IN_PAUSE && !demo && reveal >= REVEAL) {
             paused = !paused;
             sound_mute(paused);
         }
@@ -482,19 +492,23 @@ static int run_cave(int n)
             video_end();
             continue;
         }
-        if (reveal < 64) {
+        if (reveal < REVEAL) {
             reveal++;
         } else {
-            if (sub == 0)
+            /* Un paso cada wd.tick ms, aunque no sea un número entero de
+             * frames (a 60 Hz, 120 ms son 7,2): sub cuenta lo que le queda,
+             * en ms x ZXV_FRAME_HZ, y lo que se mueve va a velocidad fija. */
+            if (sub < FRAME_T) {
                 step_world();
-            if (++sub >= wd.tick)
-                sub = 0;
+                sub += wd.tick * ZXV_FRAME_HZ;
+            }
+            sub -= FRAME_T;
             idle_t++;
             if (flash)
                 flash--;
 
             /* El tiempo corre con el minero en la cueva. */
-            if (wd.state == ST_PLAY && ++time_frames >= 50) {
+            if (wd.state == ST_PLAY && ++time_frames >= ZXV_FRAME_HZ) {
                 time_frames = 0;
                 if (time_left > 0)
                     time_left--;
@@ -505,7 +519,7 @@ static int run_cave(int n)
                     sound_fx(FX_BOOM);
                     msg = T("¡SIN TIEMPO!", "OUT OF TIME!");
                     msg2 = 0;
-                    msg_t = 120;
+                    msg_t = FRAMES(2400);
                 }
             }
         }
@@ -516,21 +530,26 @@ static int run_cave(int n)
         sound_frame();
         video_end();
 
-        if (wd.state == ST_DEAD && ++dead_t > 110)
+        if (wd.state == ST_DEAD && ++dead_t > FRAMES(2200))
             return R_DEAD;
         if (wd.state == ST_OUT) {
-            /* La bonificación por el tiempo que queda, segundo a segundo. */
+            /* La bonificación por el tiempo que queda, segundo a segundo:
+             * cuenta 100 por segundo (a 60 Hz, 1 o 2 en cada frame). */
             if (time_left > 0) {
-                int s = time_left > 2 ? 2 : time_left;
+                bonus_t += 100;
+                int s = bonus_t / ZXV_FRAME_HZ;
+                bonus_t %= ZXV_FRAME_HZ;
+                if (s > time_left)
+                    s = time_left;
                 time_left -= s;
                 add_score((uint32_t)s);
                 sound_fx(FX_BONUS);
-            } else if (++dead_t > 40) {
+            } else if (++dead_t > FRAMES(800)) {
                 return R_CLEAR;
             }
         }
 #ifndef MINA_BOT
-        if (demo && frame > 1500)
+        if (demo && frame > FRAMES(30000))
             return R_QUIT;
 #endif
     }
@@ -549,7 +568,7 @@ static int banner(const char *a, const char *b, int frames)
             label(84, b, 13);
         sound_frame();
         video_end();
-        if (t > 40 && (input_edge & (IN_FIRE | IN_ESC | IN_PAUSE)))
+        if (t > FRAMES(800) && (input_edge & (IN_FIRE | IN_ESC | IN_PAUSE)))
             return (input_edge & IN_ESC) != 0;
     }
     return 0;
@@ -588,7 +607,7 @@ static void play(int start, int demo_mode)
         bot_number(n + 1);
         bot_write(r == R_CLEAR ? ": superada" : ": SIN TERMINAR");
         bot_write(", segundos ");
-        bot_number((frame - f0) / 50);
+        bot_number((frame - f0) / ZXV_FRAME_HZ);
         bot_write(", diamantes ");
         bot_number(wd.got);
         bot_write("/");
@@ -617,7 +636,7 @@ static void play(int start, int demo_mode)
             if (!caves[n].bonus && --lives <= 0) {
                 sound_song(SONG_OVER);
                 int better = end_game();
-                banner(T("FIN DE LA PARTIDA", "GAME OVER"), better ? T("¡NUEVO RÉCORD!", "NEW HIGH SCORE!") : 0, 300);
+                banner(T("FIN DE LA PARTIDA", "GAME OVER"), better ? T("¡NUEVO RÉCORD!", "NEW HIGH SCORE!") : 0, FRAMES(6000));
                 return;
             }
             if (caves[n].bonus)
@@ -625,7 +644,7 @@ static void play(int start, int demo_mode)
             continue;
         }
         sound_song(SONG_CLEAR);
-        if (n + 1 < ncaves && banner(caves[n].bonus ? T("¡PREMIO!", "BONUS!") : T("¡CUEVA SUPERADA!", "CAVE CLEAR!"), 0, 120)) {
+        if (n + 1 < ncaves && banner(caves[n].bonus ? T("¡PREMIO!", "BONUS!") : T("¡CUEVA SUPERADA!", "CAVE CLEAR!"), 0, FRAMES(2400))) {
             end_game();
             return;
         }
@@ -635,7 +654,7 @@ static void play(int start, int demo_mode)
     add_score((uint32_t)lives * 100);
     sound_song(SONG_WIN);
     int better = end_game();
-    banner(T("¡LA MINA ES TUYA!", "THE MINE IS YOURS!"), better ? T("¡NUEVO RÉCORD!", "NEW HIGH SCORE!") : 0, 400);
+    banner(T("¡LA MINA ES TUYA!", "THE MINE IS YOURS!"), better ? T("¡NUEVO RÉCORD!", "NEW HIGH SCORE!") : 0, FRAMES(8000));
 }
 
 /* --- El título ---------------------------------------------------------------- */
@@ -655,13 +674,13 @@ static int title(int *choice)
             return -1;
         if (input_now)
             idle = 0;
-        if (t > 20 && (input_edge & IN_FIRE))
+        if (t > FRAMES(400) && (input_edge & IN_FIRE))
             return *choice;
         if (input_edge & IN_LEFT)
             *choice = (*choice + STARTS - 1) % STARTS;
         if (input_edge & IN_RIGHT)
             *choice = (*choice + 1) % STARTS;
-        if (++idle > 600)
+        if (++idle > FRAMES(12000))
             return STARTS + demos++ % 3;
 
         video_begin();
@@ -671,7 +690,7 @@ static int title(int *choice)
 
         /* Una galería: el minero cava una veta de diamantes. */
         uint16_t band[16 * 3];
-        int mx = (t * 2) % (W + 96) - 48;
+        int mx = t * 100 / ZXV_FRAME_HZ % (W + 96) - 48;   /* 100 píxeles por segundo */
         for (int x = 0; x < 16; x++) {
             band[x] = (x * 5) % 7 == 2 ? T_BOULDER : T_STEEL;
             band[16 + x] = x * CELL + 8 < mx ? T_EMPTY : x % 3 == 1 ? T_DIAMOND + (((t >> 2) + x) & 3) : T_DIRT;

@@ -63,8 +63,9 @@ It is also on the machine's ROM disk: `LOAD "ROM:street"`.
 | `sound.c` | The music (first AY) and the effects (second AY) |
 | `game.c` | The stages, the camera, the groups, the score bar, the title, the demo and the high score |
 
-- **Double buffering:** each frame is drawn in full on the hidden page,
-  which is shown at the next VBLANK. A lost frame shows in `ZXV_SV_FRAMES`.
+- **Double buffering:** each frame (60 per second) is drawn in full on the
+  hidden page, which is shown at the next VBLANK. A lost frame shows in
+  `ZXV_SV_FRAMES`.
 - **Fighters without files:** each one is a skeleton (thighs, legs, torso,
   arms) with its lengths and widths, put in one of 22 poses (walking, the
   moves, the jump, falling, getting up...) with angles in 64 steps per turn.
@@ -81,7 +82,14 @@ It is also on the machine's ROM disk: `LOAD "ROM:street"`.
   bitmaps: the far background (which scrolls at a quarter of the speed), six
   64-pixel facades repeated in the stage's order, and the floor. Each frame
   is a few bitmap copies.
-- **Positions** are in 1/16 of a pixel: no floating point.
+- **Positions** are in 1/576 of a pixel (16 × 36): no floating point.
+- **Time:** the game was tuned when the machine showed 50 frames per
+  second, and its times and speeds are still written in fiftieths of a
+  second. `F50`, `VEL` and `ACC` (in `street.h`) turn them into the
+  machine's frames (`ZXV_FRAME_HZ`, 60 per second), so it plays at the same
+  speed, only smoother; with the 36 of the positions, speeds and gravity
+  come out exact. The music and the effects still advance 50 steps per
+  second.
 - **The keyboard:** the map of keys held down (`ZXV_I_KEYMAP`) is read so
   you can walk and punch at the same time, and the key queue is emptied
   every frame so that what was typed does not reach BASIC on the way back.

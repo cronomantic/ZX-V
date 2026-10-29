@@ -632,8 +632,8 @@ ignora.
 PAUSE n
 ```
 
-Espera `n` frames (hay 50 por segundo), o hasta que se pulse una tecla, lo
-que llegue antes. `PAUSE 0` espera una tecla sin límite. Solo cuentan las
+Espera `n` cincuentavos de segundo (`PAUSE 50` es un segundo, como en el
+Spectrum), o hasta que se pulse una tecla, lo que llegue antes. `PAUSE 0` espera una tecla sin límite. Solo cuentan las
 teclas que se pulsan después de empezar el `PAUSE`. `n` va de 0 a 65535.
 
 ```
@@ -649,8 +649,9 @@ WAIT [n]
 ```
 
 Espera al frame siguiente, y hasta que hayan pasado `n` frames (1 si no se
-pone) desde el `WAIT` anterior. Así el bucle de un juego va a un ritmo fijo
-aunque unas vueltas tarden más que otras: `WAIT 2` da 25 vueltas por segundo.
+pone) desde el `WAIT` anterior. Hay 60 frames por segundo. Así el bucle de un
+juego va a un ritmo fijo aunque unas vueltas tarden más que otras: `WAIT 2`
+da 30 vueltas por segundo.
 `n` va de 0 a 65535.
 
 ```
@@ -1304,12 +1305,12 @@ procesador mientras el programa sigue:
 - `RASTER` sin nada lo quita todo.
 
 Las líneas son filas de píxeles contadas desde arriba de la pantalla (la 0).
-Las del borde de arriba son negativas (hasta -48 en el modo 0 y -96 en el
-modo 1) y las de abajo pasan del alto (hasta 239 en el modo 0 y 479 en el
+Las del borde de arriba son negativas (hasta -24 en el modo 0 y -48 en el
+modo 1) y las de abajo pasan del alto (hasta 215 en el modo 0 y 431 en el
 modo 1). `MODE` lo quita.
 
 ```
-10 FOR y=-48 TO 239 STEP 4: RASTER BORDER y,y+1,2: RASTER BORDER y+2,y+3,6: NEXT y
+10 FOR y=-24 TO 215 STEP 4: RASTER BORDER y,y+1,2: RASTER BORDER y+2,y+3,6: NEXT y
 ```
 
 ## Sprites, mapas de tiles y gráficos rápidos
@@ -2237,7 +2238,8 @@ negativo, de -255 a -1, se escribe como 256 más ese valor).
 PRINT PEEK 536872704
 ```
 
-escribe el byte bajo del contador de frames.
+escribe el byte bajo del contador de frames de ZX-V (60 por segundo; el del
+Spectrum, `FRAMES`, está en la 23672).
 
 ### La memoria del Spectrum virtual
 
@@ -2258,7 +2260,7 @@ Variables del sistema que funcionan: `LAST K` (23560, la última tecla),
 fuente tuya en la memoria virtual), `BORDCR` (23624), `PROG` (23635),
 `FLAGS2` (23658, el bit 3 es el bloqueo de mayúsculas), `DF SZ` (23659),
 `SEED` (23670, la semilla de `RND`), `FRAMES` (23672, tres bytes que cuentan
-frames), `UDG` (23675), `COORDS` (23677, el último punto de `PLOT`), `S POSN`
+cincuentavos de segundo, como los frames del Spectrum), `UDG` (23675), `COORDS` (23677, el último punto de `PLOT`), `S POSN`
 (23688), `SCR CT` (23692), `ATTR P`, `MASK P`, `ATTR T`, `MASK T` y `P FLAG`
 (de 23693 a 23697) y `RAMTOP` (23730).
 
@@ -2323,11 +2325,11 @@ programas hechos para ZX-V es mejor `KEY`, `JOY`, `MOUSE`, `BORDER` y `SOUND`.
 TIME
 ```
 
-El número de frames desde que se encendió la máquina, 50 por segundo. Para
+El número de frames desde que se encendió la máquina, 60 por segundo. Para
 medir un tiempo, resta dos lecturas:
 
 ```
-10 LET t=TIME: PAUSE 100: PRINT (TIME-t)/50; " segundos"
+10 LET t=TIME: PAUSE 100: PRINT (TIME-t)/60; " segundos"
 ```
 
 ### CLOCK

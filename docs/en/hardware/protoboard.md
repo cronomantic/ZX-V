@@ -123,7 +123,7 @@ without the resistors; if the link shows errors (see
 
 - Without the **sound line** there is a picture but no sound.
 - Without the **return channel** everything works, but programs are always
-  told the output is HDMI at 50 Hz, and the CPU's report warns about it.
+  told the output is HDMI at 60 Hz, and the CPU's report warns about it.
 
 ## HDMI
 

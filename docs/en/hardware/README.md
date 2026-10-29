@@ -63,24 +63,21 @@ tell that there are two chips.
 
 ### The screen (HDMI)
 
-Plug any HDMI TV or monitor into the **HDMI** connector. The ULA Pico has four
-output modes:
+Plug any HDMI TV or monitor into the **HDMI** connector. The picture is
+always 640 × 480 at 60 Hz, a mode every HDMI screen must accept, and the ULA
+Pico has two output modes:
 
 | Mode | Output | Sound on the screen | The link LED blinks at start-up |
 |---|---|---|---|
-| 0 | HDMI, 720 × 576 at 50 Hz (the default) | Yes | Once |
-| 1 | HDMI, 640 × 480 at 60 Hz | Yes | Twice |
-| 2 | DVI, 720 × 576 at 50 Hz | No | Three times |
-| 3 | DVI, 640 × 480 at 60 Hz (the **safe mode**) | No | Four times |
+| 0 | HDMI (the default) | Yes | Once |
+| 1 | DVI (the **safe mode**) | No | Twice |
 
-- **A short press of the MODE button** switches to the next mode. The ULA Pico
-  restarts with it (the BASIC carries on) and remembers it when you switch off.
+- **A short press of the MODE button** switches to the other mode. The ULA
+  Pico restarts with it (the BASIC carries on) and remembers it when you
+  switch off.
 - **Holding MODE down while you switch on** starts in the safe mode, just that
   once. Every screen should accept it, including old DVI monitors that reject
-  HDMI or 50 Hz.
-- At 640 × 480 a little of the border is cut off, and at 60 Hz the machine
-  still runs at 50 frames per second (the screen shows one frame in five
-  twice).
+  HDMI.
 - Programs cannot change the mode, only read it.
 
 ### Sound

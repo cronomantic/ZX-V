@@ -298,12 +298,17 @@ void sound_mute(int on)
     }
 }
 
+/* La música y los efectos se escribieron a 50 pasos por segundo: van a ese
+ * paso, sea cual sea ZXV_FRAME_HZ. */
 void sound_frame(void)
 {
+    static int acc;
     if (muted)
         return;
-    music_frame();
-    effects_frame();
+    for (acc += 50; acc >= ZXV_FRAME_HZ; acc -= ZXV_FRAME_HZ) {
+        music_frame();
+        effects_frame();
+    }
 }
 
 void sound_off(void)

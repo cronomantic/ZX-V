@@ -20,7 +20,9 @@ en [basic.md](basic.md).
    memoria normales: leer no cambia nada, escribir solo guarda el valor, y el
    sistema los aplica en el siguiente VBLANK. Las operaciones que sí necesitan
    efecto por escritura (como el AY) usan **colas** en memoria.
-3. **Sincronización por frame, no por ciclos.** La máquina funciona a 50 Hz lógicos.
+3. **Sincronización por frame, no por ciclos.** La máquina funciona a 60 Hz lógicos
+   (D81). Lo que imita al Spectrum (`PAUSE`, la variable `FRAMES` del 48K
+   emulado) va en cincuentavos de segundo, con su propio reloj.
    Los programas se sincronizan con el VBLANK, nunca contando ciclos.
 4. **Los periféricos del RP2350 no forman parte de la máquina.** Los programas solo
    usan los registros ZX-V, la API de la ROM y la propia CPU.
@@ -120,7 +122,7 @@ son las pilas de sus dos núcleos y algo de código que tiene que ir rápido.
 | `0x0A00` | 2 KB | Cola de eventos del beeper (256 × 8 B) |
 | `0x1200` | 64 B | Tablas de remapeo de color (4 × 16 B) |
 | `0x1240` | ~1,5 KB | Interfaz interna ROM ↔ plataforma (no usar desde programas) |
-| `0x1800` | 4,5 KB | Tabla por línea (576 × 8 B) |
+| `0x1800` | 4,5 KB | Tabla por línea (480 × 8 B; el resto, reservado) |
 | `0x2A00` | 5,5 KB | Espacio de trabajo interno de la ROM |
 
 ---
@@ -176,16 +178,17 @@ las operaciones de desplazamiento y máscara en registros de 32 bits son directa
 
 ### 4.4 Cuadro lógico y borde
 
-La pantalla se define como un **cuadro lógico** con borde, equivalente a 720×576
-píxeles de salida:
+La pantalla se define como un **cuadro lógico** con borde, de 640×480 píxeles
+de salida, lo mismo que sale por la pantalla (D81):
 
 | Modo | Cuadro lógico | Área activa | Posición del área activa |
 |---|---|---|---|
-| 0 | 360 × 288 | 256 × 192 | (52, 48) |
-| 1 | 720 × 576 | 512 × 384 | (104, 96) |
+| 0 | 320 × 240 | 256 × 192 | (32, 24) |
+| 1 | 640 × 480 | 512 × 384 | (64, 48) |
 
-Las salidas que muestran menos superficie (por ejemplo 640×480) recortan el borde
-de forma simétrica. El área activa siempre se ve completa.
+El borde es de 64 píxeles a cada lado y 48 líneas arriba y abajo (la mitad en
+píxeles de modo 0). En `zxv.h`: `ZXV_FRAME_W`, `ZXV_FRAME_H`, `ZXV_BORDER_X`,
+`ZXV_BORDER_Y`, `ZXV_FRAME_LINES(modo)` y `ZXV_BORDER_LINES(modo)`.
 
 ### 4.5 Registros de vídeo (`0x2000_0400`, *provisional*)
 
@@ -199,7 +202,7 @@ de forma simétrica. El área activa siempre se ve completa.
 | `+0x06` | `SCROLL_Y` | u16 | Desplazamiento vertical del área activa (circular) |
 | `+0x08` | `REMAP` | u8 | Tabla de remapeo activa (0–3) |
 | `+0x09` | `VSIZE` | u8 | Tamaño de la página en modo 0 (4.9): 0 = el de la pantalla |
-| `+0x0C` | `OUT_INFO` | u32 | Solo lectura: tipo de salida (bits 0–3: 1 DVI, sin audio; 2 HDMI, con audio; los demás valores, reservados) y frecuencia de refresco en Hz (bits 8–15: 50 a 720×576, 60 a 640×480). Bits 16–17, el monitor, por el HPD del HDMI: 0 no se sabe (la protoboard, o aún no se ha conectado ninguno), 1 desconectado, 2 conectado (el emulador dice siempre 2). La salida la elige el usuario en la máquina (4.10); los programas solo la leen |
+| `+0x0C` | `OUT_INFO` | u32 | Solo lectura: tipo de salida (bits 0–3: 1 DVI, sin audio; 2 HDMI, con audio; los demás valores, reservados) y frecuencia de refresco en Hz (bits 8–15: siempre 60). Bits 16–17, el monitor, por el HPD del HDMI: 0 no se sabe (la protoboard, o aún no se ha conectado ninguno), 1 desconectado, 2 conectado (el emulador dice siempre 2). La salida la elige el usuario en la máquina (4.10); los programas solo la leen |
 
 Con scroll, el píxel activo `(x, y)` muestra el píxel de la página
 `((x + SCROLL_X) mod ancho, (y + SCROLL_Y) mod alto)`, donde `ancho` y `alto` son
@@ -213,7 +216,7 @@ de color, FLASH y efectos, siempre dentro de los 15 colores.
 
 ### 4.7 Tabla por línea (`0x2000_1800`)
 
-Cuando `VFLAGS.LINETAB = 1`, cada línea del cuadro lógico (288 en modo 0, 576 en
+Cuando `VFLAGS.LINETAB = 1`, cada línea del cuadro lógico (240 en modo 0, 480 en
 modo 1, empezando por la primera línea del borde superior) tiene una entrada de 8
 bytes:
 
@@ -277,18 +280,19 @@ la tabla por línea:
 
 | Salida | Señal | Notas |
 |---|---|---|
-| DVI/HDMI | 720×576@50 (por defecto) o 640×480@60 | Digital: HDMI con el audio (48 kHz, estéreo), o DVI sin audio para las pantallas que no acepten HDMI |
+| DVI/HDMI | 640×480@60 | Digital: HDMI con el audio (48 kHz, estéreo), o DVI sin audio para las pantallas que no acepten HDMI |
 
-**El modo lo elige el usuario**, no los programas: en la Pico, con un pulsador
-de la placa, y se conserva al apagar. Un programa lo lee en `OUT_INFO` (4.5);
-a 640×480 se recortan 40 píxeles del borde a cada lado y 48 líneas arriba y
-abajo del cuadro de 720×576 (4.4).
+640×480 a 60 Hz es el modo que toda pantalla HDMI tiene que aceptar, y el VBLANK
+llega en cada imagen de la salida: la máquina y la pantalla van al mismo ritmo
+(D81). Se ve el cuadro lógico entero (4.4).
+
+**HDMI o DVI lo elige el usuario**, no los programas: en la Pico, con un
+pulsador de la placa, y se conserva al apagar. Un programa lo lee en `OUT_INFO`
+(4.5).
 
 No hay salida de vídeo analógica (decisiones D36). El sonido sale también por una
 salida analógica de línea, en la placa.
 
-Con salidas a 60 Hz **la máquina sigue funcionando a 50 Hz**: la pantalla repite un
-frame de cada cinco.
 
 ---
 
@@ -606,7 +610,7 @@ Los números de función no se reordenarán a partir de la v1.0.
 
 ### 7.4 Interrupciones
 
-- La ROM es dueña de `mtvec`. En cada VBLANK (50 Hz):
+- La ROM es dueña de `mtvec`. En cada VBLANK (60 Hz):
   1. Incrementa `FRAMES`.
   2. Llama al gancho de frame, si hay uno, con las interrupciones desactivadas.
   3. Vuelve.
@@ -877,7 +881,7 @@ escena que el motor compilado para el PC, bit a bit.
 
 #### Rendimiento (medido en una Pico 2)
 
-A 144 MHz y 50 fps hay **2,88 millones de ciclos por frame**. Estas cifras son
+A 144 MHz y 60 fps hay **2,4 millones de ciclos por frame**. Estas cifras son
 ciclos reales en una Pico 2 (medidos a 150 MHz: en ciclos apenas cambia), con
 el motor ejecutándose desde la flash como la ROM (`pico/bench`). El emulador cuenta una instrucción por
 ciclo; en la Pico cuesta lo mismo (modo 7) o hasta 1,8 veces más (mapa
@@ -887,24 +891,24 @@ flash basta.
 
 | Operación | Modo 0 (256×192) | Modo 1 (512×384) |
 |---|---|---|
-| Borrar la página | 28.000 ciclos (1,0 %) | 64.000 (2,2 %) |
-| Mapa de tiles de 8×8 completo, alineado | 93.000 (3,2 %) | 280.000 (9,7 %) |
-| Mapa de tiles de 8×8 completo, desplazado | 315.000 (10,9 %) | 1,14 M (40 %) |
-| Mapa de tiles de 16×16 completo, alineado | 52.000 (1,8 %) | 153.000 (5,3 %) |
-| 100 sprites de 16×16 con máscara | 146.000 (5,1 %) | 134.000 (4,7 %) |
-| 100 sprites de 16×16 escalados a 32×32 | 1,50 M (52 %) | 1,48 M (51 %) |
-| 100 sprites de 16×16 escalados a 12×12 | 668.000 (23 %) | 653.000 (23 %) |
-| Modo 7 a pantalla completa (~15 ciclos por píxel) | 738.000 (26 %) | 2,90 M (101 %) |
-| 100 triángulos de unos 470 píxeles | 688.000 (24 %) | 675.000 (23 %) |
-| 100 líneas al azar | 333.000 (12 %) | 610.000 (21 %) |
+| Borrar la página | 28.000 ciclos (1,2 %) | 64.000 (2,7 %) |
+| Mapa de tiles de 8×8 completo, alineado | 93.000 (3,9 %) | 280.000 (11,7 %) |
+| Mapa de tiles de 8×8 completo, desplazado | 315.000 (13,1 %) | 1,14 M (48 %) |
+| Mapa de tiles de 16×16 completo, alineado | 52.000 (2,2 %) | 153.000 (6,4 %) |
+| 100 sprites de 16×16 con máscara | 146.000 (6,1 %) | 134.000 (5,6 %) |
+| 100 sprites de 16×16 escalados a 32×32 | 1,50 M (63 %) | 1,48 M (62 %) |
+| 100 sprites de 16×16 escalados a 12×12 | 668.000 (28 %) | 653.000 (27 %) |
+| Modo 7 a pantalla completa (~15 ciclos por píxel) | 738.000 (31 %) | 2,90 M (121 %) |
+| 100 triángulos de unos 470 píxeles | 688.000 (29 %) | 675.000 (28 %) |
+| 100 líneas al azar | 333.000 (14 %) | 610.000 (25 %) |
 
 - Con el campo virtual (4.9) el escenario no se redibuja: el scroll lo hace el
   vídeo y solo se dibuja la franja que entra (una columna de 8 × 144 píxeles
-  cuesta unos 19.000 ciclos en modo 0, el 0,7 %). En modo 1 es casi obligatorio:
-  redibujar el mapa desplazado entero se lleva el 40 % del frame.
+  cuesta unos 19.000 ciclos en modo 0, el 0,8 %). En modo 1 es casi obligatorio:
+  redibujar el mapa desplazado entero se lleva el 48 % del frame.
 - En modo 1, el modo 7 a pantalla completa no cabe en un frame: hay que
   limitarlo al suelo (en `sdk/examples/graphics`, 56 líneas en modo 0 cuestan
-  unos 215.000 ciclos) o ir a 25 fps.
+  unos 215.000 ciclos) o ir a 30 fps.
 - Un sprite escalado cuesta unas tres veces lo que uno de su tamaño final, y
   algo más en los pequeños (unos 6.700 ciclos por sprite de 12×12): para unos
   pocos objetos que se acercan, no para todos. En la Pico va a 1,08 ciclos
@@ -985,7 +989,7 @@ minúsculas guardado en un u32, la primera letra en el byte bajo:
 
 | Desp. | Nombre | Tipo | Descripción |
 |---|---|---|---|
-| `+0x00` | `FRAMES` | u32 | Contador de frames (50 Hz) |
+| `+0x00` | `FRAMES` | u32 | Contador de frames (60 Hz). No es el `FRAMES` del Spectrum (23672 en el BASIC), que cuenta cincuentavos de segundo |
 | `+0x04` | `VERSION` | u32 | Versión de la especificación (`mayor << 16 \| menor`) |
 | `+0x08` | `FRAME_HOOK` | u32 | Gancho de frame actual (cámbialo con `set_frame_hook`) |
 | `+0x0C` | `RAMTOP` | u32 | Tope de la RAM usable; la pila del núcleo 0 empieza aquí |

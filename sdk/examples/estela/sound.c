@@ -53,7 +53,7 @@ static void note(int ch, int n)
 /* --- La música ----------------------------------------------------------------- */
 
 typedef struct {
-    uint8_t tempo, rows, loop;
+    uint8_t tempo, rows, loop;          /* tempo: pasos (de 1/50 s) por fila */
     const uint8_t *melody, *bass, *drums;
 } song_t;
 
@@ -101,7 +101,7 @@ void sound_song(int s)
     drum = 0;
 }
 
-static void music_frame(void)
+static void music_tick(void)
 {
     if (song && tick == 0) {
         int m = song->melody[row], b = song->bass[row];
@@ -161,7 +161,7 @@ static void music_frame(void)
 
 static int fx_a, fx_a_age;              /* el canal A del segundo AY */
 
-static void effects_frame(void)
+static void effects_tick(void)
 {
     int age = fx_a_age++;
     switch (fx_a) {
@@ -327,10 +327,16 @@ void sound_mute(int on)
 
 void sound_frame(void)
 {
+    static int acc;
     if (muted)
         return;
-    music_frame();
-    effects_frame();
+    /* La música y los efectos, a 50 pasos por segundo (se compusieron así,
+     * cuando el juego iba a 50 imágenes por segundo): a 60, uno de cada seis
+     * frames no da ningún paso. */
+    for (acc += 50; acc >= ZXV_FRAME_HZ; acc -= ZXV_FRAME_HZ) {
+        music_tick();
+        effects_tick();
+    }
     digital_frame();
 }
 

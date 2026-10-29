@@ -428,8 +428,9 @@ the scenery scrolls at its own speed), split screens, water, road effects
 and border stripes, without changing registers in the middle of a frame.
 
 It has one 8-byte entry for each line of the whole frame **including the
-border**: 288 lines in mode 0 (the first 48 are the top border, so screen
-line *y* is entry 48 + *y*) and 576 in mode 1 (96 of top border).
+border**: 240 lines in mode 0 (the first 24 are the top border, so screen
+line *y* is entry 24 + *y*) and 480 in mode 1 (48 of top border). In
+`zxv.h`, `ZXV_FRAME_LINES(mode)` and `ZXV_BORDER_LINES(mode)`.
 
 | Offset | Size | Field | "As usual" value |
 |---|---|---|---|
@@ -479,9 +480,9 @@ int main(void)
     for (int i = 0; i < 6; i++)                 /* six bands in colours 1 to 6 */
         zxv_gfx_rect(0, 40 + i * 16, 256, 16, 1 + i);
 
-    /* Line table: every line of the 288-line frame (48 of top border first)
+    /* Line table: every line of the 240-line frame (24 of top border first)
      * gets its own border colour; the rest of each entry means "as usual". */
-    for (int l = 0; l < 288; l++) {
+    for (int l = 0; l < ZXV_FRAME_LINES(0); l++) {
         volatile uint8_t *e = lines + l * ZXV_LINE_ENTRY_SIZE;
         e[ZXV_LT_BORDER] = (uint8_t)(9 + (l / 8) % 7);     /* bright stripes */
         e[ZXV_LT_REMAP] = 0xFF;
@@ -735,24 +736,24 @@ expects.
 
 ## How fast is it?
 
-At 50 frames per second the processor has about **2.88 million cycles per
+At 60 frames per second the processor has about **2.4 million cycles per
 frame**. These figures were measured on the real machine:
 
 | Operation | Mode 0 (256 × 192) | Mode 1 (512 × 384) |
 |---|---|---|
-| Clear the page | 1.0 % of a frame | 2.2 % |
-| Full screen of 8 × 8 tiles, aligned | 3.2 % | 9.7 % |
-| Full screen of 8 × 8 tiles, scrolled by any number of pixels | 10.9 % | 40 % |
-| Full screen of 16 × 16 tiles, aligned | 1.8 % | 5.3 % |
-| 100 sprites of 16 × 16 | 5.1 % | 4.7 % |
-| 100 sprites of 16 × 16 scaled to 32 × 32 | 52 % | 51 % |
-| 100 sprites of 16 × 16 scaled to 12 × 12 | 23 % | 23 % |
-| Mode 7, full screen | 26 % | 101 % |
-| 100 triangles of about 470 pixels | 24 % | 23 % |
-| 100 random lines | 12 % | 21 % |
+| Clear the page | 1.2 % of a frame | 2.7 % |
+| Full screen of 8 × 8 tiles, aligned | 3.9 % | 11.7 % |
+| Full screen of 8 × 8 tiles, scrolled by any number of pixels | 13.1 % | 48 % |
+| Full screen of 16 × 16 tiles, aligned | 2.2 % | 6.4 % |
+| 100 sprites of 16 × 16 | 6.1 % | 5.6 % |
+| 100 sprites of 16 × 16 scaled to 32 × 32 | 63 % | 62 % |
+| 100 sprites of 16 × 16 scaled to 12 × 12 | 28 % | 27 % |
+| Mode 7, full screen | 31 % | 121 % |
+| 100 triangles of about 470 pixels | 29 % | 28 % |
+| 100 random lines | 14 % | 25 % |
 
 - With [hardware scrolling](#hardware-scrolling) the scenery is not
-  redrawn: a new column of 8 × 144 pixels costs 0.7 % in mode 0. In mode 1
+  redrawn: a new column of 8 × 144 pixels costs 0.8 % in mode 0. In mode 1
   it is almost a must.
 - Opaque tiles (without the transparency bit) draw faster than
   transparent ones.

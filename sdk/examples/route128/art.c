@@ -299,11 +299,20 @@ static sprite_t make_gate(const char *label, int paper, int checks)
 
 /* --- El paisaje ------------------------------------------------------------- */
 
+/* Dos juegos de capas: las que se ven (bg_far, bg_near y bg_clouds) y las de
+ * la etapa que viene, que se dibujan poco a poco, un trozo por frame
+ * (art_prepare), y se cambian por las otras al llegar a ella: dibujarlas de
+ * una vez no cabe en un frame junto con la carretera. */
 #define BG_W    512
-static uint32_t far_mem[BG_W * 40 / 8], near_mem[BG_W * 24 / 8], cloud_mem[BG_W * 20 / 8];
-zxv_bitmap bg_far = { (uint8_t *)far_mem, BG_W / 2, BG_W, 40, 0 };
-zxv_bitmap bg_near = { (uint8_t *)near_mem, BG_W / 2, BG_W, 24, 0 };
-zxv_bitmap bg_clouds = { (uint8_t *)cloud_mem, BG_W / 2, BG_W, 20, 0 };
+static uint32_t far_mem[2][BG_W * 40 / 8], near_mem[2][BG_W * 24 / 8], cloud_mem[2][BG_W * 20 / 8];
+zxv_bitmap bg_far = { (uint8_t *)far_mem[0], BG_W / 2, BG_W, 40, 0 };
+zxv_bitmap bg_near = { (uint8_t *)near_mem[0], BG_W / 2, BG_W, 24, 0 };
+zxv_bitmap bg_clouds = { (uint8_t *)cloud_mem[0], BG_W / 2, BG_W, 20, 0 };
+static zxv_bitmap next_far = { (uint8_t *)far_mem[1], BG_W / 2, BG_W, 40, 0 };
+static zxv_bitmap next_near = { (uint8_t *)near_mem[1], BG_W / 2, BG_W, 24, 0 };
+static zxv_bitmap next_clouds = { (uint8_t *)cloud_mem[1], BG_W / 2, BG_W, 20, 0 };
+static int shown_theme = -1;            /* la etapa de las que se ven */
+static int next_theme = -1, next_step;  /* la de las otras, y los trozos que van */
 
 /* Una silueta que se repite cada BG_W píxeles: unas ondas de periodos que lo dividen. */
 static int ridge(int x, int a, int b, int c)
@@ -311,20 +320,25 @@ static int ridge(int x, int a, int b, int c)
     return (isin(x * 64 * 2 / BG_W) * a + isin(x * 64 * 5 / BG_W + 9) * b + isin(x * 64 * 13 / BG_W + 23) * c) / 64;
 }
 
-static void bg_begin(zxv_bitmap *b)
+static void bg_clear(zxv_bitmap *b)
 {
-    uint8_t *p = b->pix;
-    for (int i = 0; i < b->stride * b->h; i++)
-        p[i] = 0x88;
+    uint32_t *p = (uint32_t *)(void *)b->pix;
+    for (int i = 0; i < b->stride * b->h / 4; i++)
+        p[i] = 0x88888888u;             /* todo transparente */
+}
+
+static void bg_target(zxv_bitmap *b)
+{
     zxv_gfx_target(b);
     zxv_gfx_clip(0, 0, b->w, b->h);
 }
 
-void art_background(int theme)
+/* Arriba: unas nubes, que van más despacio que todo. */
+static void draw_clouds(zxv_bitmap *b, int theme)
 {
-    /* Arriba: unas nubes, que van más despacio que todo. */
     static const uint8_t cloud[THEMES][2] = { { 15, 13 }, { 15, 15 }, { 15, 14 } };
-    bg_begin(&bg_clouds);
+    bg_clear(b);
+    bg_target(b);
     for (int i = 0; i < 6; i++) {
         int cx = 40 + i * 83 + (i * 37) % 23, cy = 8 + (i * 5) % 7, w = 14 + (i * 11) % 12;
         zxv_gfx_circle(cx, cy + 3, 5, cloud[theme][1], 1);
@@ -333,9 +347,13 @@ void art_background(int theme)
         zxv_gfx_circle(cx + w / 2, cy, 6, cloud[theme][0], 1);
         rect(cx, cy + 3, w, 3, cloud[theme][0]);
     }
-    /* Lejos: montañas. */
-    bg_begin(&bg_far);
-    for (int x = 0; x < BG_W; x++) {
+}
+
+/* Lejos: montañas; las columnas de x0 a x1 (sin x1). */
+static void draw_far(zxv_bitmap *b, int theme, int x0, int x1)
+{
+    bg_target(b);
+    for (int x = x0; x < x1; x++) {
         int h;
         switch (theme) {
         case THEME_COAST:
@@ -365,9 +383,13 @@ void art_background(int theme)
             break;
         }
     }
-    /* Cerca: el mar con brillos, dunas o lomas con árboles. */
-    bg_begin(&bg_near);
-    for (int x = 0; x < BG_W; x++) {
+}
+
+/* Cerca: el mar con brillos, dunas o lomas con árboles; de x0 a x1. */
+static void draw_near(zxv_bitmap *b, int theme, int x0, int x1)
+{
+    bg_target(b);
+    for (int x = x0; x < x1; x++) {
         switch (theme) {
         case THEME_COAST:
             rect(x, 16, 1, 8, 1);
@@ -389,8 +411,62 @@ void art_background(int theme)
         }
         }
     }
+}
+
+/* Uno de los BG_STEPS trozos de las capas de la etapa que viene: las nubes,
+ * y las montañas y lo de cerca en cuartos de 128 columnas (borrando la capa
+ * con el primero). Cada uno tarda alrededor de un milisegundo. */
+#define BG_STEPS    9
+#define BG_PART     (BG_W / 4)
+
+static void bg_step(int theme, int step)
+{
+    if (step == 0) {
+        draw_clouds(&next_clouds, theme);
+    } else if (step <= 4) {
+        if (step == 1)
+            bg_clear(&next_far);
+        draw_far(&next_far, theme, (step - 1) * BG_PART, step * BG_PART);
+    } else {
+        if (step == 5)
+            bg_clear(&next_near);
+        draw_near(&next_near, theme, (step - 5) * BG_PART, (step - 4) * BG_PART);
+    }
     zxv_gfx_target(0);
     zxv_gfx_clip(0, 0, W, H);
+}
+
+static void swap_pix(zxv_bitmap *a, zxv_bitmap *b)
+{
+    uint8_t *p = a->pix;
+    a->pix = b->pix;
+    b->pix = p;
+}
+
+void art_prepare(int theme)
+{
+    if (theme == shown_theme)
+        return;
+    if (theme != next_theme) {
+        next_theme = theme;
+        next_step = 0;
+    }
+    if (next_step < BG_STEPS)
+        bg_step(theme, next_step++);
+}
+
+void art_background(int theme)
+{
+    if (theme == shown_theme)
+        return;
+    while (next_theme != theme || next_step < BG_STEPS)
+        art_prepare(theme);             /* lo que falte, de una vez */
+    swap_pix(&bg_far, &next_far);
+    swap_pix(&bg_near, &next_near);
+    swap_pix(&bg_clouds, &next_clouds);
+    next_theme = shown_theme;           /* las otras se quedan con la de antes, enteras */
+    next_step = BG_STEPS;
+    shown_theme = theme;
 }
 
 /* --- Todo ------------------------------------------------------------------- */

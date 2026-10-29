@@ -7,8 +7,9 @@
  * y hay que llegar a la meta antes de que se acabe. Todo lo que hay junto a
  * la carretera y los coches del tráfico son sprites escalados según la
  * distancia; la carretera se pinta línea a línea cada frame, en la página
- * oculta, y se cambia de página en el VBLANK (doble buffer, a 50 imágenes por
- * segundo).
+ * oculta, y se cambia de página en el VBLANK (doble buffer, a 60 imágenes por
+ * segundo). Las velocidades van por segundo y los tiempos en segundos
+ * (ZXV_FRAME_HZ frames): lo de cada frame sale de ahí (per_frame).
  *
  * Controles: cursores o OPQA; arriba, Q o espacio acelera y abajo o A
  * frena; Z cambia de marcha; Intro para la pausa y Esc para salir; o un mando
@@ -38,6 +39,16 @@ const int8_t sin64[64] = {
 };
 
 static int abs_i(int v) { return v < 0 ? -v : v; }
+
+/* Lo que toca en este frame de algo que va a per_second por segundo; *rest
+ * guarda lo que sobra, para el siguiente (así no se pierde nada al dividir). */
+static int per_frame(int *rest, int per_second)
+{
+    int v = per_second + *rest;
+    int q = v / ZXV_FRAME_HZ;
+    *rest = v - q * ZXV_FRAME_HZ;
+    return q;
+}
 
 /* --- La entrada -------------------------------------------------------------------- */
 
@@ -90,20 +101,28 @@ static void read_input(void)
 
 /* --- La carrera ------------------------------------------------------------------ */
 
-#define SPEED_MAX   (SEG_LEN * 16)      /* un segmento por frame: unos 290 km/h */
+#define SPEED_MAX   (SEG_LEN * 16 * 50) /* 50 segmentos por segundo: unos 290 km/h */
 #define LO_TOP      (SPEED_MAX * 66 / 100)  /* lo más que da LO: unos 190 km/h */
 #define HI_LUG      (SPEED_MAX * 40 / 100)  /* por debajo, HI apenas tira: unos 120 */
-#define GRIP_FRAMES 25                  /* el agarre tras cambiar de marcha */
+/* Una aceleración de n/64 de SPEED_MAX por segundo, en lo que cambia la
+ * velocidad en un frame. */
+#define ACCEL(n)    (SPEED_MAX / 64 * (n) / ZXV_FRAME_HZ)
+#define GRIP_FRAMES (ZXV_FRAME_HZ / 2)  /* el agarre tras cambiar de marcha */
+#define CRASH_FRAMES (ZXV_FRAME_HZ * 3 / 2) /* lo que dura el trompo */
+#define BUMP_FRAMES (ZXV_FRAME_HZ / 4)  /* y el golpe con otro coche */
+#define LANE_SPEED  600                 /* el tráfico al cambiar de carril, en 1/X1 por segundo */
 #define CAR_HW      330                 /* la mitad del ancho del coche, en 1/X1 */
+#define BG_AHEAD    40                  /* el paisaje de la etapa que viene, desde tantos segmentos antes */
 #define START_Z     ((int32_t)8 * SEG_LEN)
-#define TIME_START  (50 * 50)
-#define TIME_EXTEND (42 * 50)
+#define TIME_START  (50 * ZXV_FRAME_HZ)
+#define TIME_EXTEND (42 * ZXV_FRAME_HZ)
 #define PLAYER_Y    (HORIZON + CAM_H * DEPTH / PLAYER_Z)    /* la carretera bajo el coche */
 
 static struct {
     int32_t z;                          /* la cámara; el coche va PLAYER_Z por delante */
     int x;                              /* en 1/X1 de media carretera */
-    int speed;                          /* x 16 */
+    int speed;                          /* en unidades por segundo x 16 */
+    int z_rest, x_rest, bg_rest, score_rest;    /* lo que sobra de cada frame (per_frame) */
     int gear;                           /* 0 LO, 1 HI */
     int time;                           /* en frames */
     uint32_t score;
@@ -135,10 +154,11 @@ static void cars_init(void)
         c->z = (int32_t)(60 + i * (goal_seg - 80) / CARS + (int)(rnd() % 20)) * SEG_LEN;
         c->target = (int16_t)(((int)(rnd() % 3) - 1) * X1 * 2 / 3);
         c->x = c->target;
-        c->speed = (int16_t)(SPEED_MAX * (35 + (int)(rnd() % 35)) / 100);
+        c->z_rest = 0;
+        c->speed = SPEED_MAX * (35 + (int)(rnd() % 35)) / 100;
         c->type = (uint8_t)(rnd() % 10 < 6 ? CAR_COUPE : rnd() % 2 ? CAR_VAN : CAR_TRUCK);
         if (c->type == CAR_TRUCK)
-            c->speed = (int16_t)(c->speed * 3 / 4);
+            c->speed = c->speed * 3 / 4;
         c->colour = (uint8_t)(rnd() % 6);
     }
 }
@@ -148,7 +168,7 @@ static void cars_update(void)
     int32_t pz = player_z();
     for (int i = 0; i < CARS; i++) {
         car_t *c = &cars[i];
-        c->z += c->speed / 16;
+        c->z += per_frame(&c->z_rest, c->speed / 16);
         if (c->z >= track_len - SEG_LEN)
             c->z -= track_len - SEG_LEN;
         /* Uno que ha quedado muy atrás vuelve a salir por delante, fuera de la vista. */
@@ -169,10 +189,11 @@ static void cars_update(void)
                 break;
             }
         }
+        int step = LANE_SPEED / ZXV_FRAME_HZ;
         if (c->x < c->target)
-            c->x = (int16_t)(c->x + 12 > c->target ? c->target : c->x + 12);
+            c->x = (int16_t)(c->x + step > c->target ? c->target : c->x + step);
         else if (c->x > c->target)
-            c->x = (int16_t)(c->x - 12 < c->target ? c->target : c->x - 12);
+            c->x = (int16_t)(c->x - step < c->target ? c->target : c->x - step);
     }
 }
 
@@ -196,7 +217,9 @@ static int autopilot(void)
         if (abs_i(c) > abs_i(curve))
             curve = c;
     }
-    /* Dónde estará dentro de unos frames si no gira: la curva lo empuja hacia fuera. */
+    /* Dónde estará dentro de un quinto de segundo si no gira: la curva lo
+     * empuja hacia fuera (drift, lo que lo mueve en un cincuentavo; véase
+     * race_update). */
     int sp = pl.speed * 256 / SPEED_MAX;
     int drift = 44 * sp / 256 * sp / 256 * seg_curve(ps + 2) * 22 / 1600;
     int x = pl.x - drift * 10;
@@ -215,7 +238,7 @@ static int autopilot(void)
 
 static void crash_into(void)
 {
-    pl.crash = 75;
+    pl.crash = CRASH_FRAMES;
     pl.grip = 0;
     sound_fx(FX_CRASH);
 }
@@ -232,10 +255,10 @@ static void race_update(int in)
         in = 0;                         /* se acabó: el coche sigue rodando */
     if (pl.crash) {
         pl.crash--;
-        pl.speed = pl.speed * 9 / 10;
+        pl.speed -= pl.speed * 50 / (10 * ZXV_FRAME_HZ);   /* una décima cada cincuentavo */
         in = 0;
-        if (pl.crash < 30)              /* vuelve a la carretera */
-            pl.x -= pl.x / 12;
+        if (pl.crash < ZXV_FRAME_HZ * 3 / 5)               /* vuelve a la carretera */
+            pl.x -= pl.x * 50 / (12 * ZXV_FRAME_HZ);
     } else {
         /* Cambiar de marcha da medio segundo de agarre: la curva empuja
          * menos. Cambiar otra vez mientras dura no lo alarga (de HI a LO y
@@ -246,43 +269,42 @@ static void race_update(int in)
             if (!pl.grip)
                 pl.grip = GRIP_FRAMES;
         }
-        /* El motor: LO tira fuerte hasta su tope; HI, hasta el final, pero
-         * con poca fuerza y casi nada por debajo de HI_LUG. */
+        /* El motor: LO tira fuerte hasta su tope (de 0 a 190 en un segundo
+         * y medio); HI, hasta el final, pero con poca fuerza y casi nada por
+         * debajo de HI_LUG. */
         if (in & IN_GAS) {
             if (!pl.gear)
-                pl.speed += pl.speed < LO_TOP ? SPEED_MAX / 110 : 0;
+                pl.speed += pl.speed < LO_TOP ? ACCEL(29) : 0;
             else
-                pl.speed += pl.speed < HI_LUG ? SPEED_MAX / 700 : SPEED_MAX / 280;
+                pl.speed += pl.speed < HI_LUG ? ACCEL(4) : ACCEL(11);
         } else if (in & IN_BRAKE) {
-            pl.speed -= SPEED_MAX / 55;
+            pl.speed -= ACCEL(58);
         } else {
-            pl.speed -= SPEED_MAX / 420;
+            pl.speed -= ACCEL(7);
         }
         /* LO por encima de su tope: el motor frena, más que soltar el gas y
          * menos que el freno, hasta el tope. */
         if (!pl.gear && pl.speed > LO_TOP) {
-            pl.speed -= SPEED_MAX / 160;
+            pl.speed -= ACCEL(20);
             if (pl.speed < LO_TOP)
                 pl.speed = LO_TOP;
         }
         if (off && pl.speed > SPEED_MAX / 4)     /* la cuneta frena */
-            pl.speed -= SPEED_MAX / 70;
-        /* La dirección y la fuerza de la curva, más fuertes cuanto más deprisa. */
+            pl.speed -= ACCEL(45);
+        /* La dirección y la fuerza de la curva, más fuertes cuanto más
+         * deprisa: lo que mueven en un cincuentavo de segundo. */
         int steer = 44 * sp / 256;
         pl.steer = 0;
-        if (in & IN_LEFT) {
-            pl.x -= steer;
+        if (in & IN_LEFT)
             pl.steer = -1;
-        } else if (in & IN_RIGHT) {
-            pl.x += steer;
+        else if (in & IN_RIGHT)
             pl.steer = 1;
-        }
         int push = 44 * sp / 256 * sp / 256 * curve * 22 / 1600;
         if (pl.grip) {
             push /= 3;
             pl.grip--;
         }
-        pl.x -= push;
+        pl.x += per_frame(&pl.x_rest, (pl.steer * steer - push) * 50);
     }
     if (pl.speed < 0)
         pl.speed = 0;
@@ -294,10 +316,10 @@ static void race_update(int in)
         pl.x = X1 * 5 / 2;
 
     /* Avanza; el paisaje se mueve con la curva. */
-    pl.z += pl.speed / 16;
-    pl.bg_x += curve * pl.speed / SPEED_MAX;
+    pl.z += per_frame(&pl.z_rest, pl.speed / 16);
+    pl.bg_x += per_frame(&pl.bg_rest, curve * pl.speed / SPEED_MAX * 50);
     if (!pl.finished && pl.time > 0)
-        pl.score += (uint32_t)(pl.speed / 64);
+        pl.score += (uint32_t)per_frame(&pl.score_rest, pl.speed / 64);
 
     /* Los choques: con lo que hay junto a la carretera... */
     ps = player_seg();
@@ -320,7 +342,7 @@ static void race_update(int in)
             abs_i(pl.x - c->x) < CAR_HW + CAR_HW * 7 / 10) {
             pl.speed = c->speed * 6 / 10;
             pl.z = c->z - PLAYER_Z - SEG_LEN / 2;
-            pl.bump = 12;
+            pl.bump = BUMP_FRAMES;
             sound_fx(FX_BUMP);
         }
     }
@@ -336,20 +358,25 @@ static void race_update(int in)
             pl.time += TIME_EXTEND;
             banner_a = T("¡TIEMPO EXTRA!", "EXTENDED PLAY!");
             banner_b = 0;
-            banner_t = 120;
+            banner_t = ZXV_FRAME_HZ * 12 / 5;   /* 2,4 s */
             sound_fx(FX_CHECKPOINT);
         }
         pl.next_cp++;
     }
     if (!pl.finished && pl.time > 0) {
         pl.time--;
-        if (pl.time > 0 && pl.time <= 5 * 50 && pl.time % 50 == 0)
+        if (pl.time > 0 && pl.time <= 5 * ZXV_FRAME_HZ && pl.time % ZXV_FRAME_HZ == 0)
             sound_fx(FX_BEEP);
     }
+    /* El paisaje: el de la etapa que viene se va dibujando antes, un trozo
+     * por frame, y al llegar solo hay que cambiarlo; acabada la carrera, el
+     * de la salida, para la siguiente. */
     int t = seg_theme(ps);
     if (t != pl.theme) {
         pl.theme = t;
         art_background(t);
+    } else {
+        art_prepare(pl.finished || pl.time <= 0 ? THEME_COAST : seg_theme(ps + BG_AHEAD));
     }
 
     /* El sonido del coche. */
@@ -366,7 +393,7 @@ static void hud(void)
     /* El tiempo, grande y en el centro; en rojo los últimos segundos. */
     static const uint8_t time_ok[7] = { 14, 14, 14, 14, 6, 6, 6 };
     static const uint8_t time_low[7] = { 15, 10, 10, 10, 10, 2, 2 };
-    int secs = (pl.time + 49) / 50;
+    int secs = (pl.time + ZXV_FRAME_HZ - 1) / ZXV_FRAME_HZ;
     number(buf, (uint32_t)secs, 2);
     text_shadow(116, 2, T("TIEMPO", "TIME"), 15);
     text_big(116, 11, buf, 2, secs <= 5 && (frame & 16) ? time_low : time_ok);
@@ -410,8 +437,9 @@ static void draw_world(void)
     int flags = 0, dx = 0, dy = 0;
     if (pl.crash) {
         static const uint8_t spin[4] = { 2, 4, 2, 0 };
-        pose = spin[(pl.crash / 4) & 3];
-        dy = pl.crash > 40 ? -(int)((75 - pl.crash) * (pl.crash - 40) / 60) : 0;
+        int c = pl.crash * 50 / ZXV_FRAME_HZ;   /* en cincuentavos: de 75 a 0 */
+        pose = spin[(c / 4) & 3];
+        dy = c > 40 ? -(int)((75 - c) * (c - 40) / 60) : 0;
     }
     if (abs_i(pl.x) > X1 + X1 / 6 && pl.speed > 0)
         dy -= (int)(frame & 2) >> 1;    /* el traqueteo de la cuneta */
@@ -429,7 +457,7 @@ static void frame_end(void)
     uint32_t us = zxv_time_us() - stats_t0;
     if (us > stats_max)
         stats_max = us;
-    if (frame % 50 == 0) {
+    if (frame % ZXV_FRAME_HZ == 0) {
         stats_us = stats_max;
         stats_max = 0;
     }
@@ -493,24 +521,26 @@ static void race_reset(void)
     cars_init();
 }
 
-/* La cuenta atrás: 3, 2, 1, ¡ya! Devuelve 1 si se pulsó Esc. */
+/* La cuenta atrás: 3, 2, 1, ¡ya!, cada uno 0,8 s. Devuelve 1 si se pulsó Esc. */
+#define COUNT_STEP  (ZXV_FRAME_HZ * 4 / 5)
+
 static int countdown(void)
 {
     static const char *const label[4] = { "3", "2", "1", 0 };
     sound_engine(0, 0, 0);
-    for (int t = 0; t < 4 * 40; t++) {
+    for (int t = 0; t < 4 * COUNT_STEP; t++) {
         read_input();
         if (input_edge & IN_ESC)
             return 1;
-        if (t % 40 == 0)
-            sound_fx(t == 3 * 40 ? FX_GO : FX_BEEP);
+        if (t % COUNT_STEP == 0)
+            sound_fx(t == 3 * COUNT_STEP ? FX_GO : FX_BEEP);
         if (input_edge & IN_SHIFT)      /* se sale en LO, pero se puede elegir */
             pl.gear ^= 1;
         video_begin();
         draw_world();
         hud();
         static const uint8_t col[7] = { 15, 14, 14, 14, 6, 6, 6 };
-        const char *s = label[t / 40];
+        const char *s = label[t / COUNT_STEP];
         if (s)
             text_big(W / 2 - 15, 60, s, 5, col);
         else
@@ -538,9 +568,14 @@ static int race(void)
         if (demo && (input_edge & (IN_START | IN_PAUSE)))
             return 0;
 #ifndef RUTA128_STATS
-        if (demo && frame > 2400)       /* con RUTA128_STATS, el circuito entero */
+        if (demo && frame > 48 * ZXV_FRAME_HZ)  /* con RUTA128_STATS, el circuito entero */
             return 0;
 #endif
+        /* Acabada, al título con una tecla o a los 10 s: aquí, antes de
+         * dibujar el frame, que si no no cabe con el primero del título. */
+        if (over_t > 10 * ZXV_FRAME_HZ ||
+            (over_t > 2 * ZXV_FRAME_HZ && pl.speed == 0 && (input_edge & (IN_START | IN_GAS))))
+            return 0;
         if (input_edge & IN_PAUSE) {    /* la pausa: hasta otra vez Intro (Esc sale) */
             sound_mute(1);
             for (;;) {
@@ -569,7 +604,7 @@ static int race(void)
         if (pl.finished || pl.time <= 0) {
             if (over_t == 0) {
                 if (pl.finished)
-                    pl.score += (uint32_t)((pl.time + 49) / 50) * 1000;    /* lo que sobra */
+                    pl.score += (uint32_t)((pl.time + ZXV_FRAME_HZ - 1) / ZXV_FRAME_HZ) * 1000;  /* lo que sobra */
                 else
                     sound_song(SONG_OVER);
                 if (!demo && pl.score > record) {
@@ -586,10 +621,6 @@ static int race(void)
             }
             if (pl.score >= record && record && !demo)
                 text_center(84, T("¡NUEVO RÉCORD!", "NEW HIGH SCORE!"), 14);
-            if (over_t > 100 && pl.speed == 0 && (input_edge & (IN_START | IN_GAS)))
-                return 0;
-            if (over_t > 500)
-                return 0;
         }
         frame_end();
     }
@@ -612,14 +643,15 @@ static int title(void)
             show_car = 1;
             return -1;
         }
-        if ((t > 20 && (input_edge & IN_START)) || t > 600) {
+        if ((t > ZXV_FRAME_HZ * 2 / 5 && (input_edge & IN_START)) || t > 12 * ZXV_FRAME_HZ) {
             show_car = 1;
-            return t > 600;
+            return t > 12 * ZXV_FRAME_HZ;
         }
-        pl.bg_x = t;                    /* el paisaje se mueve despacio */
+        int t50 = t * 50 / ZXV_FRAME_HZ;    /* en cincuentavos de segundo */
+        pl.bg_x = t50;                  /* el paisaje se mueve despacio */
         video_begin();
         draw_world();
-        int y = 26 + isin(t) / 16;
+        int y = 26 + isin(t50) / 16;
         text_big((W - 9 * 6 * 4 + 4) / 2, y, "ROUTE 128", 4, logo);
         text_center(64, T("CARRERAS PARA ZX-V", "A RACING GAME FOR ZX-V"), 15);
         char buf[16], line[32];
@@ -651,11 +683,11 @@ static int title(void)
 int main(void)
 {
     lang = zxv_lang_get() == ZXV_LANG_ES ? 0 : 1;
-    video_init();
     sound_init();
     art_init();
     track_build();
     load_record();
+    video_init();                       /* después: lo que tarda lo de antes no son frames perdidos */
     input_now = 0x7F;                   /* lo que esté pulsado al empezar no cuenta */
     for (;;) {
         int r = title();

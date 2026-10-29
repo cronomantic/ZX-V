@@ -39,7 +39,7 @@ BOX 4, 100, 20, 20, 20
 
 | Commands | |
 |---|---|
-| `MODE`, `PAGE`, `SCREEN`, `SCROLL`, `REMAP`, `WAIT` | The modes, the page shown and the one drawn on (double buffering), scrolling, colour changes and a steady 50 frames per second |
+| `MODE`, `PAGE`, `SCREEN`, `SCROLL`, `REMAP`, `WAIT` | The modes, the page shown and the one drawn on (double buffering), scrolling, colour changes and a steady 60 frames per second |
 | `GRAB`, `GRABSTR`, `SPRITE`, `HIT` | Sprites, mirrored, recoloured or scaled, and pixel-exact collisions |
 | `BOX`, `DISC`, `POLY`, `CLIP`, `PIXEL` | Filled shapes, clipping and the colour of a pixel |
 | `KEY`, `JOY`, `SOUND`, `TIME` | Keys held down, joysticks, the AY registers and the frame counter |
@@ -103,7 +103,7 @@ decimals, and with a bigger type the counters that reach the limit.
 
 [Stardust](../../examples/zxbasic/stardust/README.md) is a small game made
 with `zxv.bas`: double buffering, sprites from strings, collisions, keyboard
-or joystick and sound, at 50 frames per second.
+or joystick and sound, at 60 frames per second.
 
 ## The licence of your programs
 

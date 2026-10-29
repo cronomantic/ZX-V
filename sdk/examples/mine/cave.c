@@ -1,7 +1,7 @@
 /*
  * cave.c - Las reglas de la mina y el piloto automático.
  *
- * El mundo avanza a pasos (cada cave_t.tick frames): se recorre la cueva de
+ * El mundo avanza a pasos (cada cave_t.tick ms): se recorre la cueva de
  * arriba abajo y de izquierda a derecha, y cada cosa hace lo suyo una vez
  * (lo que se mueve lleva la marca DONE hasta el final del paso).
  *
@@ -57,7 +57,7 @@ void world_load(world_t *w, int n)
     w->h = c->h;
     w->need = c->need;
     w->tick = c->tick;
-    w->moss_slow = (int16_t)(c->moss_slow * 50 / c->tick);
+    w->moss_slow = (int16_t)(c->moss_slow * 1000 / c->tick);  /* en pasos */
     w->rng = 0x51ED0000u + c->seed;
     uint32_t fill = 0x1234u * c->seed + 7;      /* el relleno, siempre igual */
     for (int i = 0; i < CW * CH; i++)
@@ -181,7 +181,7 @@ static void fall(world_t *w, int i, int t)
     if (b == O_SIEVE && w->sieve != SV_DONE) {
         if (w->sieve == SV_IDLE) {
             w->sieve = SV_ACTIVE;
-            w->sieve_t = (int16_t)(caves[w->cave].sieve_time * 50 / w->tick);
+            w->sieve_t = (int16_t)(caves[w->cave].sieve_time * 1000 / w->tick);
         }
         g[i] = O_EMPTY;
         if (g[j + CW] == O_EMPTY) {     /* sale por debajo, cambiado */

@@ -17,7 +17,18 @@
 #define W           256
 #define H           192
 #define HUD_H       18                  /* el marcador, arriba */
-#define FX          16                  /* las posiciones, en 1/16 de píxel */
+#define FX          (16 * 36)           /* las posiciones, en 1/576 de píxel */
+
+/* El juego se ajustó a 50 imágenes por segundo, y sus números siguen en esas
+ * unidades: los tiempos en cincuentavos de segundo, las velocidades en 1/16
+ * de píxel cada cincuentavo y las aceleraciones, por cincuentavo al cuadrado.
+ * Estas los pasan a frames de la máquina (ZXV_FRAME_HZ por segundo). Con
+ * 16 x 36 en FX, las velocidades y las aceleraciones salen exactas a 50 y a
+ * 60 imágenes por segundo. */
+#define F50(n)      (((n) * ZXV_FRAME_HZ + 25) / 50)    /* n cincuentavos, en frames */
+#define S50(f)      ((f) * 50 / ZXV_FRAME_HZ)           /* f frames, en cincuentavos */
+#define VEL(v)      ((v) * (FX / 16) * 50 / ZXV_FRAME_HZ)
+#define ACC(a)      ((a) * (FX / 16) * 2500 / (ZXV_FRAME_HZ * ZXV_FRAME_HZ))
 
 #define SKY_Y       HUD_H               /* el fondo lejano */
 #define SKY_H       64
@@ -130,7 +141,7 @@ typedef struct {
     uint8_t alive, kind, variant, state, face_left, flash, attack, engaged;
     uint8_t kick, combo, buffered, knees;
     int16_t hp, maxhp, t, ai_t, cool, invuln, hits, hits_t, side, grab_t, retreat;
-    int x, y, z, vx, vy, vz;            /* en 1/16 de píxel; y es la profundidad */
+    int x, y, z, vx, vy, vz;            /* en 1/FX de píxel; y es la profundidad */
     uint32_t hitmask;                   /* a quién ha dado ya este golpe */
     int8_t held;                        /* a quién tiene agarrado, o quién le agarra */
 } fighter_t;
@@ -170,6 +181,14 @@ static inline uint32_t rnd(void)
 {
     rng_state = rng_state * 1103515245u + 12345u;
     return rng_state >> 16;
+}
+
+/* Preguntado en cada frame, verdad una vez cada n cincuentavos de segundo, de
+ * media: la tirada de 1 entre n de cuando se iba a 50 imágenes por segundo y,
+ * si van más, otra que la deja en 50 de cada ZXV_FRAME_HZ. */
+static inline int chance(int n)
+{
+    return rnd() % (uint32_t)n == 0 && (ZXV_FRAME_HZ <= 50 || rnd() % ZXV_FRAME_HZ < 50);
 }
 
 extern const int8_t sin64[64];          /* seno x 64, 64 pasos por vuelta */

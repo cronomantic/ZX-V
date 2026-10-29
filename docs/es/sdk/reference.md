@@ -69,7 +69,7 @@ mapa de memoria y los formatos de fichero. Para aprender a usarlo, lee la
 void zxv_wait_vblank(void);
 ```
 
-Espera al siguiente VBLANK, el principio de un frame (50 por segundo).
+Espera al siguiente VBLANK, el principio de un frame (60 por segundo).
 Activa las interrupciones si estaban desactivadas. No la llames desde un
 gancho de frame.
 
@@ -113,7 +113,7 @@ variable del sistema `ZXV_SV_VERSION`.
 
 | Constante | Valor | Significado |
 |---|---|---|
-| `ZXV_FRAME_HZ` | 50 | Frames por segundo |
+| `ZXV_FRAME_HZ` | 60 | Frames por segundo |
 | `ZXV_CPU_HZ_REF` | 144000000 | Velocidad de referencia del procesador (Hz) |
 | `ZXV_SPEC_VERSION` | 1 | Versión de la especificación (0.1) |
 
@@ -780,12 +780,10 @@ Escríbelos cuando quieras; el sistema los aplica en el siguiente VBLANK.
 | `ZXV_V_SCROLL_Y` | 16 bits | Scroll vertical, circular |
 | `ZXV_V_REMAP` | 8 bits | Tabla de remapeo de colores en uso, 0–3 |
 | `ZXV_V_VSIZE` | 8 bits | Tamaño de la página en el modo 0 (ver abajo) |
-| `ZXV_V_OUT_INFO` | 32 bits | Solo lectura: bits 0–3, la salida (`ZXV_OUT_DVI` 1, sin sonido; `ZXV_OUT_HDMI` 2, con sonido); bits 8–15, la frecuencia de refresco (50 o 60 Hz); bits 16–17, el monitor (`ZXV_OUT_SCREEN_ON` conectado, `ZXV_OUT_SCREEN_NONE` desconectado, `ZXV_OUT_SCREEN_UNKNOWN` no se sabe: en una protoboard, o hasta que se conecta uno). La salida la elige el usuario, no los programas |
+| `ZXV_V_OUT_INFO` | 32 bits | Solo lectura: bits 0–3, la salida (`ZXV_OUT_DVI` 1, sin sonido; `ZXV_OUT_HDMI` 2, con sonido); bits 8–15, la frecuencia de refresco (siempre 60 Hz); bits 16–17, el monitor (`ZXV_OUT_SCREEN_ON` conectado, `ZXV_OUT_SCREEN_NONE` desconectado, `ZXV_OUT_SCREEN_UNKNOWN` no se sabe: en una protoboard, o hasta que se conecta uno). La salida la elige el usuario, no los programas |
 
 Con scroll, el píxel (x, y) de la pantalla enseña el píxel
-((x + SCROLL_X) mod ancho, (y + SCROLL_Y) mod alto) de la página. A 60 Hz la
-máquina sigue funcionando a 50 frames por segundo; la pantalla repite uno
-de cada cinco.
+((x + SCROLL_X) mod ancho, (y + SCROLL_Y) mod alto) de la página.
 
 **Tamaños de página** (`ZXV_V_VSIZE`, solo en el modo 0; en el modo 1 se
 ignora):
@@ -803,8 +801,11 @@ se ve para el valor de píxel *v*. Empiezan siendo la identidad.
 
 **Tabla por línea:** en `ZXV_LINE_TABLE`, una entrada de
 `ZXV_LINE_ENTRY_SIZE` (8) bytes por línea del cuadro entero, borde
-incluido: 288 líneas en el modo 0 (la imagen empieza en la línea 48) y 576
-en el modo 1 (la imagen, desde la línea 96).
+incluido: 240 líneas en el modo 0 (la imagen empieza en la línea 24) y 480
+en el modo 1 (la imagen, desde la línea 48): `ZXV_FRAME_LINES(modo)` y
+`ZXV_BORDER_LINES(modo)`. El cuadro es de `ZXV_FRAME_W` × `ZXV_FRAME_H`
+(640 × 480), con un borde de `ZXV_BORDER_X` (64) píxeles a cada lado y
+`ZXV_BORDER_Y` (48) líneas arriba y abajo.
 
 | Desplazamiento | Tamaño | Campo | Valor «como siempre» |
 |---|---|---|---|
@@ -1018,7 +1019,7 @@ RAM, un programa puede cambiar una entrada para interceptar una rutina.
 | `0x2000_0800` | `ZXV_AY_FIFO` | Cola del AY (256 × 2 bytes) |
 | `0x2000_0A00` | `ZXV_BEEP_QUEUE` | Cola con hora (256 × 8 bytes) |
 | `0x2000_1200` | `ZXV_REMAP_TABLES` | Tablas de remapeo de colores (4 × 16 bytes) |
-| `0x2000_1800` | `ZXV_LINE_TABLE` | Tabla por línea (576 × 8 bytes) |
+| `0x2000_1800` | `ZXV_LINE_TABLE` | Tabla por línea (480 × 8 bytes) |
 
 El resto del área de sistema es para uso interno de la ROM.
 

@@ -82,7 +82,7 @@ edges.
 
 ## A steady speed: `WAIT` and `TIME`
 
-The screen is redrawn 50 times a second; each redraw is a **frame**. `WAIT
+The screen is redrawn 60 times a second; each redraw is a **frame**. `WAIT
 n` waits until `n` frames have passed since the last `WAIT`. In the program
 above, `WAIT 3` makes each turn of the loop last exactly three frames, so
 the `@` moves at the same speed whether the loop has a lot or a little to
@@ -99,11 +99,13 @@ to measure time. This game measures your reflexes:
 50 BORDER 4: LET t=TIME
 60 REPEAT: UNTIL KEY 32
 70 LET t=TIME-t
-80 PRINT "Your time: ";t*20;" milliseconds"
+80 PRINT "Your time: ";INT (t*1000/60);" milliseconds"
 90 PAUSE 0
 ```
 
-Each frame lasts 20 milliseconds, hence the `t*20`. Without the `PAUSE 0`
+Each frame lasts a sixtieth of a second, hence the `t*1000/60`. (`PAUSE`
+counts in fiftieths of a second, as on the Spectrum: `PAUSE 50` is one
+second.) Without the `PAUSE 0`
 of line 90, the space you pressed would send you back to the editor before
 you could read your time.
 

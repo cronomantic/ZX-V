@@ -7,7 +7,7 @@ caen sobre seis ciudades y tú los derribas con el ratón, disparando desde tres
 bases. Cada explosión derriba los misiles que toca, y cada misil derribado
 estalla a su vez: en cadena. Para ver el ratón, los gráficos rápidos y las
 estructuras nuevas del BASIC (el IF de bloque, `SELECT CASE` y los
-procedimientos) en un juego que va a 50 imágenes por segundo.
+procedimientos) en un juego que va a 60 imágenes por segundo.
 
 | Fichero | Contenido |
 |---|---|
@@ -97,6 +97,6 @@ hecho:
   empezar.
 - **Los bucles recorren solo los huecos usados** de cada tabla.
 
-Así va a 50 imágenes por segundo hasta la octava oleada; en las siguientes,
+Así va a 60 imágenes por segundo hasta la octava oleada; en las siguientes,
 con nueve misiles y varias explosiones a la vez, el juego se ralentiza un
 poco, como les pasaba a las máquinas recreativas.

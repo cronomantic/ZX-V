@@ -107,22 +107,20 @@ Look at the red **link LED** (`ENLACE` on the board) when you switch on.
   shorten the link wires, add the 33 Ω resistors and more ground wires.
 
 The number of blinks at start-up is the video mode plus one (once for mode 0,
-four times for mode 3).
+twice for mode 1).
 
 **The safe mode.** Hold **MODE** down (`MODO` on the board) while switching on:
-the ULA starts in DVI at 640 × 480 and 60 Hz, which every screen should accept.
-This lasts only until the next restart. To keep a mode, press MODE briefly with
-the machine running: each short press moves to the next mode (0, 1, 2, 3, then
-0 again), saves it and restarts the ULA. If your screen only shows the safe
-mode, press MODE until the link LED blinks **four times** at start-up: that is
-mode 3, the same as the safe mode, and it will be kept.
+the ULA starts in DVI, which every screen should accept. This lasts only until
+the next restart. To keep a mode, press MODE briefly with the machine running:
+each short press switches between HDMI and DVI, saves it and restarts the ULA.
+If your screen only shows the safe mode, press MODE until the link LED blinks
+**twice** at start-up: that is mode 1, the same as the safe mode, and it will
+be kept.
 
 | Mode | Output | Sound on the screen |
 |---|---|---|
-| 0 | HDMI 720 × 576, 50 Hz (default) | Yes |
-| 1 | HDMI 640 × 480, 60 Hz | Yes |
-| 2 | DVI 720 × 576, 50 Hz | No |
-| 3 | DVI 640 × 480, 60 Hz (safe mode) | No |
+| 0 | HDMI 640 × 480, 60 Hz (default) | Yes |
+| 1 | DVI 640 × 480, 60 Hz (safe mode) | No |
 
 **You see moving demos instead of the BASIC** (a scrolling game, coloured
 stripes, circles): the ULA Pico has `zxv_ula.uf2`, the test. Put
@@ -135,8 +133,8 @@ HDMI connector ([On a protoboard](protoboard.md#hdmi)).
 
 ### No sound
 
-- **In modes 2 and 3 (DVI) the screen has no sound.** Switch to mode 0 or 1
-  with MODE, or use the audio jack.
+- **In mode 1 (DVI) the screen has no sound.** Switch to mode 0 with MODE,
+  or use the audio jack.
 - **The audio jack is line level**: it needs powered speakers, an amplifier or
   a TV's audio input. Headphones need an amplifier.
 - **Try a sound from the BASIC:** `BEEP 1,0` or `PLAY "cdefgab"`.
@@ -158,7 +156,7 @@ HDMI connector ([On a protoboard](protoboard.md#hdmi)).
 - **The report says `no back channel`**: the wire
   from GP20 of the ULA (pin 26) to GP18 of the CPU (pin 24) is missing.
   Everything works without it, except that programs are always told the output
-  is HDMI at 50 Hz.
+  is HDMI.
 
 ### The diagnostic page
 
@@ -178,7 +176,7 @@ micro-USB follow it too, once the link is working.
 | File | On | What it does |
 |---|---|---|
 | `zxv_ula.uf2` | One Pico 2 alone | The ULA's picture and sound with some demos, without the CPU Pico. Proves the HDMI output and the audio jack. The MODE button works the same |
-| `zxv_hdmi.uf2` | One Pico 2 alone | Colour bars and a test tone on each side (left, right, centre) over HDMI. `zxv_dvi.uf2`, `zxv_dvi_480p60.uf2` and `zxv_hdmi_480p60.uf2` are the same in other modes |
+| `zxv_hdmi.uf2` | One Pico 2 alone | Colour bars and a test tone on each side (left, right, centre) over HDMI. `zxv_dvi.uf2` is the same in DVI, without sound |
 
 The rest (`zxv_linktx`, `zxv_bench`, `zxv_bench_ram`, `zxv_isatest`) are for
 the firmware's developers. Remember to put the right firmware back afterwards.

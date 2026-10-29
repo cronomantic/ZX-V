@@ -7,6 +7,9 @@
  *   - Segundo AY: el coche. Canales A y B, el motor (dos tonos, uno una
  *     octava más grave, que siguen a las vueltas); C, el ruido del derrape y
  *     de la cuneta, y encima los golpes y los avisos.
+ *
+ * Todo va a pasos de un cincuentavo de segundo (sound_step): el tempo de las
+ * canciones y lo que duran los efectos, en esos pasos.
  */
 #include "route128.h"
 
@@ -278,7 +281,9 @@ void sound_init(void)
     eng_rpm = -1;
 }
 
-void sound_frame(void)
+/* Un paso del sonido: la música y los efectos van a 50 por segundo, como se
+ * escribieron, a cualquier ritmo de la pantalla. */
+static void sound_step(void)
 {
     music_frame();
     if (eng_rpm < 0 && !fx) {           /* sin coche (el título): callado */
@@ -288,6 +293,13 @@ void sound_frame(void)
         return;
     }
     car_frame();
+}
+
+void sound_frame(void)
+{
+    static int acc;
+    for (acc += 50; acc >= ZXV_FRAME_HZ; acc -= ZXV_FRAME_HZ)
+        sound_step();
 }
 
 void sound_mute(int on) { muted = on; }
