@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>ZX-V</title>
+<link rel="stylesheet" href="play.css">
+</head>
+<body>
+<div id="juego">
+  <canvas id="pantalla" width="640" height="480" tabindex="0"></canvas>
+  <textarea id="teclado" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+  <div id="tactil" hidden></div>
+  <div id="botones">
+    <button id="b-sonido" type="button">
+      <svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="onda" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="tachado" d="M16 9l6 6M22 9l-6 6"/></svg>
+    </button>
+    <button id="b-completa" type="button">
+      <svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>
+    </button>
+  </div>
+  <div id="cargando" hidden></div>
+  <div id="portada">
+    <h1 id="titulo"></h1>
+    <button id="jugar" type="button"></button>
+    <p class="hecho"><a href="https://github.com/cronomantic/ZX-V" target="_blank" rel="noopener">ZX-V</a></p>
+  </div>
+  <div id="parado" hidden>
+    <p id="parado-texto"></p>
+    <button id="otra-vez" type="button"></button>
+  </div>
+</div>
+<script src="game.js"></script>
+<script src="engine.js"></script>
+<script src="play.js"></script>
+</body>
+</html>

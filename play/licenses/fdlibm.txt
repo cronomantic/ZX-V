@@ -1,0 +1,11 @@
+Las funciones matemáticas de la ROM de ZX-V (rom/src/basic/bmath.c) siguen
+los métodos de fdlibm, con este aviso:
+The ZX-V ROM's maths functions (rom/src/basic/bmath.c) follow the methods of
+fdlibm, under this notice:
+
+  Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+
+  Developed at SunSoft, a Sun Microsystems, Inc. business.
+  Permission to use, copy, modify, and distribute this
+  software is freely granted, provided that this notice
+  is preserved.

@@ -1,0 +1,196 @@
+/* play.css - La página de un juego (D85): la imagen llena la ventana (o el
+ * iframe de itch.io), con los controles táctiles en los móviles. */
+
+html, body {
+    margin: 0;
+    height: 100%;
+    background: #000;
+    color: #eee;
+    font: 16px/1.4 system-ui, sans-serif;
+    overflow: hidden;
+}
+
+#juego {
+    position: fixed;
+    inset: 0;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+#pantalla {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    outline: none;
+}
+#pantalla.oculto { visibility: hidden; }
+
+/* El campo que recibe el teclado (engine.js): invisible. */
+#teclado {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    border: 0;
+    padding: 0;
+    resize: none;
+    pointer-events: none;
+}
+
+/* Los botones de arriba a la derecha: sonido y pantalla completa. */
+#botones {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 6px;
+    opacity: .35;
+    transition: opacity .2s;
+    z-index: 3;
+}
+#botones:hover, body.tactil #botones { opacity: .7; }
+#botones button {
+    width: 34px;
+    height: 34px;
+    padding: 5px;
+    border: 0;
+    border-radius: 6px;
+    background: rgba(40, 40, 40, .8);
+    cursor: pointer;
+}
+#botones svg { width: 100%; height: 100%; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#botones svg path:first-child { fill: #fff; }
+#b-completa svg path:first-child { fill: none; }
+#b-sonido .tachado { display: none; }
+#b-sonido.mudo .tachado { display: inline; }
+#b-sonido.mudo .onda { display: none; }
+
+/* La portada: el nombre del juego y jugar. */
+#portada, #parado, #cargando {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2em;
+    text-align: center;
+    z-index: 4;
+}
+#portada { background: radial-gradient(circle at 50% 40%, #1d2a4a, #000 70%); }
+#portada[hidden], #parado[hidden], #cargando[hidden] { display: none; }
+#titulo {
+    margin: 0 1em;
+    font-size: clamp(28px, 7vmin, 64px);
+    letter-spacing: .06em;
+    color: #ffd700;
+    text-shadow: 3px 3px 0 #d70000;
+}
+#jugar, #otra-vez {
+    font: inherit;
+    font-size: 1.15em;
+    padding: .6em 1.6em;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    background: #0000d7;
+    color: #fff;
+    cursor: pointer;
+}
+#jugar:hover, #otra-vez:hover { background: #0000ff; }
+.hecho { position: absolute; bottom: 8px; margin: 0; font-size: 12px; opacity: .6; }
+.hecho a { color: #aaa; }
+#cargando { z-index: 2; color: #888; }
+#parado { justify-content: flex-end; padding-bottom: 8%; pointer-events: none; z-index: 2; }
+#parado * { pointer-events: auto; }
+#parado-texto { margin: 0; padding: .3em .8em; background: rgba(0, 0, 0, .75); }
+
+/* --- Los controles táctiles ----------------------------------------------------- */
+
+/* Los tamaños, según la pantalla: en un móvil pequeño, más pequeños. */
+:root { --cruz: min(150px, 38vmin); --boton: min(64px, 16vmin); }
+#tactil { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+#tactil[hidden] { display: none; }
+.cruceta, .boton { position: absolute; pointer-events: auto; touch-action: none; }
+.cruceta {
+    width: var(--cruz, 150px);
+    height: var(--cruz, 150px);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .12);
+    border: 2px solid rgba(255, 255, 255, .25);
+}
+.cruceta::before, .cruceta::after {
+    content: '';
+    position: absolute;
+    background: rgba(255, 255, 255, .28);
+    border-radius: 6px;
+}
+.cruceta::before { left: 33%; right: 33%; top: 10%; bottom: 10%; }
+.cruceta::after { top: 33%; bottom: 33%; left: 10%; right: 10%; }
+.cruceta .marca {
+    position: absolute;
+    width: 34%;
+    height: 34%;
+    left: 33%;
+    top: 33%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .45);
+    transition: transform .05s;
+}
+.boton {
+    width: var(--boton, 64px);
+    height: var(--boton, 64px);
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, .35);
+    background: rgba(255, 255, 255, .14);
+    color: rgba(255, 255, 255, .85);
+    font: 600 18px/1 system-ui, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.boton.pequeno {
+    width: auto;
+    min-width: 44px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 14px;
+    font-size: 12px;
+}
+.cruceta.pulsada, .boton.pulsado { background: rgba(255, 255, 255, .35); }
+
+/* En horizontal, los controles van a los lados de la imagen (que se encaja
+ * entre ellos, sin que nada la tape); en vertical, la imagen arriba y los
+ * controles debajo. */
+body.tactil #tactil .cruceta { left: max(16px, env(safe-area-inset-left)); bottom: 18px; }
+body.tactil #tactil .grupo { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: 18px;
+                             width: calc(var(--boton, 64px) * 2.3); height: calc(var(--boton, 64px) * 2.3); }
+body.tactil #tactil .grupo .boton:nth-child(1) { right: 0; bottom: calc(var(--boton, 64px) * .55); }
+body.tactil #tactil .grupo .boton:nth-child(2) { left: 0; bottom: 0; }
+body.tactil #tactil .grupo .boton:nth-child(3) { right: 0; top: 0; }
+body.tactil #tactil .grupo .boton:nth-child(4) { left: 0; top: calc(var(--boton, 64px) * -.2); }
+body.tactil #tactil .menu { position: absolute; display: flex; gap: 10px; }
+body.tactil #tactil .menu .boton { position: static; }
+
+@media (orientation: landscape) {
+    body.tactil #pantalla {
+        left: calc(var(--cruz, 150px) + 28px + env(safe-area-inset-left));
+        right: calc(var(--boton, 64px) * 2.3 + 28px + env(safe-area-inset-right));
+        width: auto;
+    }
+    body.tactil #tactil .menu { left: max(16px, env(safe-area-inset-left)); top: 12px; flex-direction: column;
+                                align-items: flex-start; }
+    body.tactil #botones { flex-direction: column; }
+}
+@media (orientation: portrait) {
+    body.tactil #pantalla { height: 58%; }
+    body.tactil #tactil .menu { left: 50%; transform: translateX(-50%); top: calc(58% + 10px); }
+    body.tactil #tactil .cruceta { bottom: max(28px, 8vh); }
+    body.tactil #tactil .grupo { bottom: max(28px, 8vh); }
+    body.tactil #cargando, body.tactil #parado { bottom: 42%; }
+}

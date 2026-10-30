@@ -1,0 +1,129 @@
+ZX-V: términos de uso
+=====================
+
+(English below.)
+
+(c) 2026 Cronomantic. https://github.com/cronomantic/ZX-V
+
+Estos términos valen para el emulador de ZX-V (zxv, zxv-sdl, zxv-cli, sdimg y
+la versión web), la ROM de ZX-V (el BASIC y el sistema: rom.bin y la que
+llevan dentro el emulador y el firmware), el disco ROM (romdisk.bin) y el
+firmware de las Pico (los .uf2): "el programa", en lo que sigue.
+
+No valen para:
+- lo que es de otros, que tiene sus propias licencias y dice
+  THIRD_PARTY_NOTICES.txt (Qt, SDL, el SDK de la Pico...); en esas partes
+  mandan sus licencias;
+- el SDK, los programas de ejemplo, los editores de gráficos (zxv-gfx) y de
+  música (zxv-tracker) y la documentación, que tienen las suyas (MIT los
+  primeros, CC BY 4.0 la documentación) y están, con su código, en
+  https://github.com/cronomantic/ZX-V.
+
+1. Uso. El programa es gratuito. Puedes usarlo para lo que quieras, también
+   con fines comerciales: hacer y vender programas para ZX-V, enseñar con él,
+   grabar vídeos o emitir en directo.
+
+2. Lo que hagas es tuyo. Los programas que escribas para ZX-V, y los ficheros
+   que crees con él, son tuyos: puedes distribuirlos y venderlos con la
+   licencia que quieras. Solo tienes que cumplir las licencias de lo que
+   metas dentro (por ejemplo, la MIT del SDK).
+
+3. Redistribución. Puedes copiar el programa y repartirlo, también en otras
+   webs o en recopilaciones, siempre que:
+   a) vaya sin cambios y completo, con este fichero, THIRD_PARTY_NOTICES.txt
+      y la carpeta licenses;
+   b) no cobres por él. Cobrar solo lo que cuesta el soporte físico (una
+      tarjeta, un USB) está bien.
+
+4. La ROM, también para otros emuladores. La ROM y el disco ROM se pueden
+   repartir también con otros emuladores o versiones de ZX-V, en las mismas
+   condiciones: sin cambios, sin quitar el aviso de copyright y sin cobrar
+   por ellos.
+
+5. Con permiso. Para vender el programa o meterlo en algo que se vende (una
+   recopilación de pago, un aparato, un kit con el firmware), o para repartir
+   una versión modificada, pide permiso al autor a través de
+   https://github.com/cronomantic/ZX-V.
+
+6. Cambios e ingeniería inversa. No puedes modificar el programa ni
+   descompilarlo, salvo:
+   a) en lo que la ley te lo permita aunque estos términos digan otra cosa;
+   b) en lo que lo permitan las licencias de las partes de otros. En
+      particular, la LGPL v3 de Qt te deja sustituir las bibliotecas de Qt
+      por otras, y la ingeniería inversa necesaria para depurar esos cambios.
+
+7. El nombre. "ZX-V" no puede usarse para dar nombre a versiones modificadas
+   ni a otros productos de forma que parezcan oficiales.
+
+8. Sin garantía. El programa se da tal cual, sin garantías de ningún tipo.
+   Cargar el firmware en una Pico o en una placa y conectarla a otros
+   aparatos es responsabilidad tuya. En la medida en que la ley lo permita,
+   el autor no responde de los daños que cause su uso.
+
+9. Versiones. Cada versión mantiene los términos con los que se publicó. Las
+   futuras pueden tener otros.
+
+
+ZX-V: terms of use
+==================
+
+(c) 2026 Cronomantic. https://github.com/cronomantic/ZX-V
+
+These terms apply to the ZX-V emulator (zxv, zxv-sdl, zxv-cli, sdimg and the
+web version), the ZX-V ROM (the BASIC and the system: rom.bin and the copy
+built into the emulator and the firmware), the ROM disk (romdisk.bin) and the
+firmware for the Picos (the .uf2 files): "the software" below.
+
+They do not apply to:
+- what belongs to others, which has its own licences and is listed in
+  THIRD_PARTY_NOTICES.txt (Qt, SDL, the Pico SDK...); for those parts, their
+  licences prevail;
+- the SDK, the example programs, the graphics (zxv-gfx) and music
+  (zxv-tracker) editors and the documentation, which have their own licences
+  (MIT for all but the documentation, CC BY 4.0 for the documentation) and
+  are available, with their source, at
+  https://github.com/cronomantic/ZX-V.
+
+1. Use. The software is free of charge. You can use it for any purpose,
+   commercial ones included: making and selling programs for ZX-V, teaching
+   with it, recording videos or streaming.
+
+2. What you make is yours. The programs you write for ZX-V, and the files you
+   create with it, are yours: you can distribute and sell them under any
+   licence you like. You only have to comply with the licences of whatever
+   you put in them (for example, the SDK's MIT licence).
+
+3. Redistribution. You can copy the software and pass it on, on other
+   websites or in compilations too, as long as:
+   a) it goes unchanged and complete, with this file, THIRD_PARTY_NOTICES.txt
+      and the licenses folder;
+   b) you do not charge for it. Charging only the cost of the physical medium
+      (a card, a USB stick) is fine.
+
+4. The ROM, for other emulators too. The ROM and the ROM disk may also be
+   distributed with other emulators or implementations of ZX-V, on the same
+   conditions: unchanged, with the copyright notice intact and free of
+   charge.
+
+5. With permission. To sell the software or include it in something that is
+   sold (a paid compilation, a device, a kit with the firmware), or to
+   distribute a modified version, ask the author for permission through
+   https://github.com/cronomantic/ZX-V.
+
+6. Changes and reverse engineering. You may not modify or decompile the
+   software, except:
+   a) to the extent that the law allows it regardless of these terms;
+   b) to the extent that the licences of the third-party parts allow it. In
+      particular, Qt's LGPL v3 lets you replace the Qt libraries with others,
+      and allows the reverse engineering needed to debug such changes.
+
+7. The name. "ZX-V" may not be used to name modified versions or other
+   products in a way that makes them look official.
+
+8. No warranty. The software is provided as is, without warranty of any
+   kind. Loading the firmware into a Pico or a board and connecting it to
+   other devices is your own responsibility. To the extent permitted by law,
+   the author is not liable for any damage caused by its use.
+
+9. Versions. Each version keeps the terms it was published with. Future
+   versions may have different ones.
