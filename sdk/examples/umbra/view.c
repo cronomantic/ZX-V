@@ -285,7 +285,6 @@ static void surface(uint8_t *page, const zxv_m7tex *t, const zxv_m7line *l, int 
             for (int k = y; k < e; k++)
                 tint_row(page, k, lut[f]);
         }
-        l += e - y;
         y = e;
     }
 }

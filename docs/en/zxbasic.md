@@ -62,8 +62,8 @@ the libraries there are, is in its
 
 ## Installing it
 
-**On Windows:** download `zxbasic-1.19.0-zxv.2-win64.zip` from the
-[release page](https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.2)
+**On Windows:** download `zxbasic-1.19.0-zxv.4-win64.zip` from the
+[release page](https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.4)
 and unzip it anywhere. It has `zxbc.exe`, which does not need Python.
 
 **On Linux and macOS:** download the source code from that same page (or

@@ -326,7 +326,7 @@ lista todas). Estas son las que más vas a usar:
 | `--screenshot F.bmp` | Guarda la pantalla al terminar |
 | `--wav F.wav` | Graba el sonido en un fichero WAV |
 | `--strict` | Modo estricto: avisa de lo que la máquina real no permitiría |
-| `--version` | Escribe la versión de ZX-V (`ZX-V 0.6.1`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
+| `--version` | Escribe la versión de ZX-V (`ZX-V 0.6.2`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
 
 Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--debug`, `--profile`,
 `--panel`, `--test`, `--fail-on-warning`) son para programadores y se explican
@@ -353,6 +353,32 @@ Cargar un juego de la tarjeta, esperar y grabar diez segundos de su música:
 ```sh
 zxv-cli --sd mitarjeta --type 'LOAD "juego"\n' --frames 500 --wav musica.wav
 ```
+
+### `zxv-check`: comprobar listados
+
+`zxv-check` comprueba un listado BASIC (`.bas`) sin la máquina: lee cada
+línea como `LOAD` (el mismo tokenizador y la misma comprobación de la
+sintaxis que el editor al pulsar Intro) y dice cuáles tienen errores, sin
+pararse en el primero. Avisa también de los números de línea repetidos.
+Viene con el emulador; la extensión de ZX-V para VS Code
+usa lo mismo para marcar los errores mientras escribes.
+
+```sh
+zxv-check juego.bas
+```
+
+```
+juego.bas:12:7: error: C Sintaxis incorrecta
+juego.bas:30:1: warning: número de línea repetido: LOAD se queda con la última
+```
+
+Cada problema dice la línea del fichero y la columna (en caracteres), como
+los compiladores, para que los editores lo entiendan. `--lang es` o
+`--lang en` elige el idioma de los informes (si no, el del sistema), y
+`--json` lo da como JSON. Termina con 0 si no hay errores y con 1 si los hay.
+
+Solo mira la sintaxis de cada línea: los errores que salen al ejecutar (una
+variable que no existe, un `NEXT` sin `FOR`...) los da `RUN`.
 
 ## La versión web
 

@@ -2879,6 +2879,7 @@ usuario se escriben con `CHR$`.
 | `MONITOR` | orden | [MONITOR](#monitor) |
 | `MOUSE` | función, orden | [MOUSE](#mouse) |
 | `MOVE` | orden | [MOVE](#move) |
+| `MUSIC` | función, orden; en `LOAD` | [MUSIC](#music), [LOAD](#load) |
 | `NEW` | orden | [NEW](#new) |
 | `NEXT` | orden | [FOR, NEXT](#for-next) |
 | `NOT` | operador | [Verdadero y falso](#verdadero-y-falso) |
@@ -2918,6 +2919,7 @@ usuario se escriben con `CHR$`.
 | `SCREEN$` | función; en `SAVE`, `LOAD` | [SCREEN$, ATTR](#screen-attr), [SAVE](#save) |
 | `SCROLL` | orden | [SCROLL](#scroll) |
 | `SELECT CASE` | orden | [SELECT CASE](#select-case) |
+| `SFX` | función, orden; en `LOAD` | [SFX](#sfx), [LOAD](#load) |
 | `SGN` | función | [ABS, SGN, INT](#abs-sgn-int) |
 | `SIN` | función | [SIN, COS, TAN](#sin-cos-tan) |
 | `SOUND` | orden | [SOUND](#sound) |

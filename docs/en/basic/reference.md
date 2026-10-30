@@ -2825,6 +2825,7 @@ Spanish, but your programs cannot.
 | `MONITOR` | statement | [MONITOR](#monitor) |
 | `MOUSE` | function, statement | [MOUSE](#mouse) |
 | `MOVE` | statement | [MOVE](#move) |
+| `MUSIC` | function, statement; in `LOAD` | [MUSIC](#music), [LOAD](#load) |
 | `NEW` | statement | [NEW](#new) |
 | `NEXT` | statement | [FOR, NEXT](#for-next) |
 | `NOT` | operator | [True and false](#true-and-false) |
@@ -2864,6 +2865,7 @@ Spanish, but your programs cannot.
 | `SCREEN$` | function; in `SAVE`, `LOAD` | [SCREEN$, ATTR](#screen-attr), [SAVE](#save) |
 | `SCROLL` | statement | [SCROLL](#scroll) |
 | `SELECT CASE` | statement | [SELECT CASE](#select-case) |
+| `SFX` | function, statement; in `LOAD` | [SFX](#sfx), [LOAD](#load) |
 | `SGN` | function | [ABS, SGN, INT](#abs-sgn-int) |
 | `SIN` | function | [SIN, COS, TAN](#sin-cos-tan) |
 | `SOUND` | statement | [SOUND](#sound) |

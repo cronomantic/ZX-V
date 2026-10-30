@@ -235,7 +235,7 @@ static void hero_strike(void)
 }
 
 /* Lo que hay delante del héroe parado contra algo: una puerta se abre con
- * una llave. */
+ * una llave; unas zarzas, sin la espada grande, lo dicen. */
 static void hero_push(int dir)
 {
     int fx = hero_feet_x(), fy = hero_feet_y();
@@ -262,6 +262,10 @@ static void hero_push(int dir)
             } else {
                 hint(HINT_BOSS_DOOR);
             }
+            return;
+        }
+        if (t == T_BRAMBLE && !(hero.items & ITEM_SWORD)) {
+            hint(HINT_BRAMBLE);
             return;
         }
     }

@@ -269,7 +269,7 @@ The line just above the bar shows:
 
 | Message | When |
 |---|---|
-| `© 2026 Cronomantic  ZX-V 0.6.1` | When ZX-V starts, and after `NEW`: the copyright and the ROM version |
+| `© 2026 Cronomantic  ZX-V 0.6.2` | When ZX-V starts, and after `NEW`: the copyright and the ROM version |
 | An error in red, such as `C Nonsense in BASIC` | When a line you tried to store or run has a mistake |
 | `Program renumbered`, `Cannot renumber` | After the Renumber option |
 | `Listing sent to the printer` | After the Print option |

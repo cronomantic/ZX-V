@@ -9,7 +9,7 @@
 
 #define ZXV_VERSION_MAJOR   0
 #define ZXV_VERSION_MINOR   6
-#define ZXV_VERSION_PATCH   1
-#define ZXV_VERSION         "0.6.1"
+#define ZXV_VERSION_PATCH   2
+#define ZXV_VERSION         "0.6.2"
 
 #endif
