@@ -57,6 +57,7 @@ const EN = {
     'Términos de uso': 'Terms of use',
     'Avisos de terceros': 'Third-party notices',
     'Cargando...': 'Loading...',
+    'Ejemplos actualizados en la tarjeta: %1': 'Examples updated on the card: %1',
     'Teclado de ZX-V': 'ZX-V keyboard',
     'La tarjeta SD': 'The SD card',
     'La tarjeta se guarda en este navegador. Los ficheros que se suben, o se arrastran a la página, van a la carpeta que se ve.':
@@ -506,23 +507,109 @@ function exists(path) {
     try { FS.stat(path); return true; } catch (e) { return false; }
 }
 
-function copyTree(from, to) {
-    for (const name of FS.readdir(from)) {
-        if (name === '.' || name === '..')
-            continue;
-        const a = from + '/' + name, b = to + '/' + name;
-        if (isDir(a)) {
-            if (!exists(b))
-                FS.mkdir(b);
-            copyTree(a, b);
-        } else if (!exists(b)) {
-            FS.writeFile(b, FS.readFile(a));
-        }
-    }
-}
-
 function emptyCard() {
     return FS.readdir(CARD).filter(n => n !== '.' && n !== '..').length === 0;
+}
+
+/* --- Los ejemplos de la tarjeta -------------------------------------------------
+ *
+ * La página trae los ejemplos (en /examples) y la tarjeta del navegador se
+ * guarda de una visita a otra. Al llegar una versión nueva, los ejemplos de la
+ * tarjeta se cambian por los nuevos, pero solo los que siguen como se
+ * copiaron: lo que el usuario ha cambiado o borrado se queda como está. Lo que
+ * se copió, con su huella, se apunta en localStorage (EXAMPLES_KEY). */
+
+const EXAMPLES_KEY = 'zxv-ejemplos';
+
+/* Las huellas de los ejemplos de la 0.4.0 a la 0.5.0, que no apuntaban lo que
+ * copiaban: lo que hay en la tarjeta igual a uno de estos se puede cambiar. */
+const OLD_EXAMPLES = {
+    'boardtest.zxv': ['b9d01a37453d333b', 'd37a31e331f34777'],
+    'digital.zxv': ['775bdff383bb9b17'],
+    'estela.zxv': ['f7c8840452adbbb0', '5d71bc629beaaeae'],
+    'files.zxv': ['371dcc64d44a5328'],
+    'graphics.zxv': ['28c53cc779f22aa3'],
+    'hello.zxv': ['0fdd5ca306af8ad7'],
+    'mine.zxv': ['4af7e01c4d339b18', '00b5a7897c9ab6f5'],
+    'muncher.bas': ['6db8767ab93a68ee', '472b0c0729d4e39b'],
+    'platformer.gfx': ['eab3ad52eac13efe'],
+    'platformer.tap': ['0f35e335967bcd31', '2843e55e1f9323fa'],
+    'route128.zxv': ['e22b0a11b600b785', 'bc725b33e272228f'],
+    'rps.bas': ['83eaa6d011d1bc5c'],
+    'scroll.zxv': ['f7bb7d99da60da5d', '0f8c6eac540550b8'],
+    'sentry.bas': ['dd2c8b32559f4366', '9c71d058eb93e444'],
+    'street.zxv': ['a5d04098838e5cf4', 'c47da53251ecd06e'],
+};
+
+/* La huella de un fichero: dos FNV-1a de 32 bits con distinta base. */
+function fingerprint(bytes) {
+    let a = 0x811c9dc5, b = 0x2b6d6a09;
+    for (let i = 0; i < bytes.length; i++) {
+        a = Math.imul(a ^ bytes[i], 0x01000193) >>> 0;
+        b = Math.imul(b ^ bytes[i], 0x01000193) >>> 0;
+    }
+    return a.toString(16).padStart(8, '0') + b.toString(16).padStart(8, '0');
+}
+
+/* Los ficheros de una carpeta y sus subcarpetas, relativos a ella. */
+function listTree(dir, rel = '') {
+    const out = [];
+    for (const name of FS.readdir(dir)) {
+        if (name === '.' || name === '..')
+            continue;
+        if (isDir(dir + '/' + name))
+            out.push(...listTree(dir + '/' + name, rel + name + '/'));
+        else
+            out.push(rel + name);
+    }
+    return out;
+}
+
+/* Copia los ejemplos que faltan y pone al día los que siguen como se copiaron.
+ * Da cuántos ha cambiado (los nuevos de la primera vez no cuentan). */
+function updateExamples() {
+    let installed = null;
+    try {
+        installed = JSON.parse(store(EXAMPLES_KEY));
+    } catch (e) { /* estropeado: como si no estuviera */ }
+    const first = emptyCard();
+    if (first)
+        installed = {};
+    const record = {};
+    let updated = 0;
+    for (const rel of listTree('/examples')) {
+        const data = FS.readFile('/examples/' + rel), now = fingerprint(data);
+        const path = CARD + '/' + rel;
+        /* Lo que se sabe que se copió antes: lo apuntado o, en una tarjeta de
+         * antes de apuntarlo, lo que traían las versiones anteriores. */
+        const before = installed ? (rel in installed ? [installed[rel]] : []) : (OLD_EXAMPLES[rel] || []);
+        if (!exists(path)) {
+            if (before.length) {                /* lo borró el usuario */
+                record[rel] = before[0];
+                continue;
+            }
+            for (let d = CARD, parts = rel.split('/').slice(0, -1), i = 0; i < parts.length; i++) {
+                d += '/' + parts[i];
+                if (!exists(d))
+                    FS.mkdir(d);
+            }
+            FS.writeFile(path, data);
+            record[rel] = now;
+            if (!first)
+                updated++;
+            continue;
+        }
+        const card = fingerprint(FS.readFile(path));
+        if (card !== now && before.includes(card)) {
+            FS.writeFile(path, data);           /* el de antes, sin tocar: el nuevo */
+            updated++;
+            record[rel] = now;
+        } else {
+            record[rel] = card === now ? now : (before[0] || card);
+        }
+    }
+    store(EXAMPLES_KEY, JSON.stringify(record));
+    return updated;
 }
 
 /* Abre un fichero de la tarjeta, como zxv: un programa se carga con LOAD
@@ -1015,10 +1102,8 @@ const Module = window.Module = {
         FS.syncfs(true, err => {
             if (err)
                 message(t('Este navegador no puede guardar la tarjeta: se perderá al cerrar la página.'));
-            if (emptyCard() && exists('/examples')) {
-                copyTree('/examples', CARD);
-                syncCard();
-            }
+            const updated = exists('/examples') ? updateExamples() : 0;
+            syncCard();
             const machineLang = store('zxv-maquina') || uiLang;
             core.start(langCode(machineLang), langCode(uiLang));
             document.getElementById('cargando').remove();
@@ -1026,6 +1111,8 @@ const Module = window.Module = {
             updateButtons();
             draw();
             focusKeys();
+            if (updated)
+                message(t('Ejemplos actualizados en la tarjeta: %1', updated));
             window.zxv.resolve();
             requestAnimationFrame(tick);
         });
