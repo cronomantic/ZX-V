@@ -126,6 +126,24 @@ canvas {
 }
 canvas.sin-puntero { cursor: none; }
 
+/* Lo que se teclea va a este campo, invisible: así llega el texto ya
+ * compuesto (teclas muertas, la tecla Compose, los métodos de entrada y los
+ * teclados de las pantallas táctiles), que un canvas no recibe. */
+#teclado {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    resize: none;
+    overflow: hidden;
+    caret-color: transparent;
+    pointer-events: none;
+}
+
 #cargando {
     position: absolute;
     color: var(--tenue);

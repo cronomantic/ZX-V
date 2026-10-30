@@ -57,6 +57,7 @@ const EN = {
     'Términos de uso': 'Terms of use',
     'Avisos de terceros': 'Third-party notices',
     'Cargando...': 'Loading...',
+    'Teclado de ZX-V': 'ZX-V keyboard',
     'La tarjeta SD': 'The SD card',
     'La tarjeta se guarda en este navegador. Los ficheros que se suben, o se arrastran a la página, van a la carpeta que se ve.':
         'The card is stored in this browser. Files you upload, or drag onto the page, go to the folder shown.',
@@ -169,6 +170,7 @@ function translatePage() {
     document.documentElement.lang = uiLang;
     for (const el of document.querySelectorAll('[data-t]'))
         el.textContent = t(el.dataset.t);
+    keysIn.setAttribute('aria-label', t('Teclado de ZX-V'));
     document.getElementById('ayuda-texto').innerHTML = uiLang === 'es' ? ES_HELP : EN.AYUDA;
 }
 
@@ -202,6 +204,7 @@ const HID = (() => {
 /* --- La máquina ------------------------------------------------------------------ */
 
 const canvas = document.getElementById('pantalla');
+const keysIn = document.getElementById('teclado');      /* recibe el teclado (ver onKey) */
 /* Se pinta con WebGL: el cuadro va a una textura y el escalado lo hace la
  * tarjeta gráfica. Con el canvas 2D (si no hay WebGL), escalar costaba en
  * Firefox unos 5 ms por frame, la cuarta parte de los 20 que hay. */
@@ -545,7 +548,7 @@ function openFile(path) {
         return false;
     }
     message(t('Abierto: %1', rel));
-    canvas.focus();
+    focusKeys();
     return true;
 }
 
@@ -649,7 +652,7 @@ function saveProgram() {
         return;
     withStr('{CTRL+END}', p => core.type(p, 0));
     withStr(`SAVE "${name.replace(/"/g, '')}"\n`, p => core.paste(p, 8));
-    canvas.focus();
+    focusKeys();
 }
 
 function setPaused(on) {
@@ -713,6 +716,28 @@ function shortcut(code) {
 
 /* --- Entrada ---------------------------------------------------------------------- */
 
+/* El teclado llega a un campo de texto invisible (#teclado), con el foco
+ * cuando se juega. Las teclas, por su posición (KeyboardEvent.code, el código
+ * HID), van a core.key al pulsarlas y soltarlas; el carácter que dan con la
+ * distribución del PC, a core.text, como el texto de SDL. El carácter no se
+ * saca de keydown sino de lo que escribe el campo (input y compositionend):
+ * así llega ya compuesto, también con las teclas muertas (" y espacio da "),
+ * la tecla Compose de Linux, los métodos de entrada y los teclados táctiles.
+ * Las teclas que no dan texto (Intro, cursores, F1...) y las combinaciones
+ * con Ctrl, Alt o Cmd no llegan al campo: preventDefault. */
+function focusKeys() {
+    keysIn.focus({ preventScroll: true });
+}
+
+/* Si la tecla puede escribir algo en el campo (sola, con Mayús o con AltGr). */
+function writesText(e) {
+    const altGr = e.getModifierState && e.getModifierState('AltGraph');
+    if (!altGr && (e.ctrlKey || e.metaKey || e.altKey))
+        return false;
+    return [...e.key].length === 1 || e.key === 'Dead' || e.key === 'Process' || e.isComposing ||
+        e.keyCode === 229;
+}
+
 function onKey(e, down) {
     if (e.code === 'AltLeft')
         altLeft = down;
@@ -722,16 +747,16 @@ function onKey(e, down) {
         e.preventDefault();
         return;
     }
+    if (!down || !writesText(e))
+        e.preventDefault();
     const hid = HID[e.code];
-    if (hid === undefined)
-        return;
-    e.preventDefault();
-    core.key(hid, down ? 1 : 0);
-    /* Y el carácter que sale con la distribución del PC (como el texto de
-     * SDL): no con Ctrl ni Cmd, salvo AltGr. */
-    const altGr = e.getModifierState && e.getModifierState('AltGraph');
-    if (down && [...e.key].length === 1 && (altGr || (!e.ctrlKey && !e.metaKey && !e.altKey)))
-        core.text(e.key.codePointAt(0));
+    if (hid !== undefined)
+        core.key(hid, down ? 1 : 0);
+}
+
+function sendText(s) {
+    for (const ch of s)
+        core.text(ch.codePointAt(0));
 }
 
 /* El ratón, en píxeles del cuadro de 640 x 480. */
@@ -790,10 +815,25 @@ function closeMenus() {
 }
 
 function bindUi() {
-    canvas.addEventListener('keydown', e => onKey(e, true));
-    canvas.addEventListener('keyup', e => onKey(e, false));
-    canvas.addEventListener('blur', () => { altLeft = false; core.releaseAll(); });
-    canvas.addEventListener('mousedown', e => { startAudio(); canvas.focus(); mouseButtons(e); e.preventDefault(); });
+    keysIn.addEventListener('keydown', e => onKey(e, true));
+    keysIn.addEventListener('keyup', e => onKey(e, false));
+    keysIn.addEventListener('blur', () => { altLeft = false; core.releaseAll(); });
+    /* El texto: lo tecleado (insertText) y, al acabar, lo compuesto (con una
+     * tecla muerta o un método de entrada; Firefox manda después un input de
+     * insertCompositionText, que no cuenta). El campo se vacía cada vez. */
+    keysIn.addEventListener('input', e => {
+        if (e.inputType === 'insertText' && e.data && !e.isComposing)
+            sendText(e.data);
+        if (!e.isComposing)
+            keysIn.value = '';
+    });
+    keysIn.addEventListener('compositionend', e => {
+        if (e.data)
+            sendText(e.data);
+        keysIn.value = '';
+    });
+    canvas.addEventListener('focus', focusKeys);        /* llegar con Tab */
+    canvas.addEventListener('mousedown', e => { startAudio(); focusKeys(); mouseButtons(e); e.preventDefault(); });
     canvas.addEventListener('mouseup', mouseButtons);
     canvas.addEventListener('contextmenu', e => e.preventDefault());
     canvas.addEventListener('mouseenter', () => core.mouseEnter());
@@ -806,7 +846,7 @@ function bindUi() {
         startAudio();
         f();
         if (!document.querySelector('dialog[open]'))
-            canvas.focus();
+            focusKeys();
     });
     /* Los menús: se abren con un clic y se cierran al elegir o al hacer clic
      * fuera. */
@@ -866,7 +906,7 @@ function bindUi() {
     });
     for (const d of ['d-tarjeta', 'd-opciones', 'd-ayuda']) {
         const dlg = document.getElementById(d);
-        dlg.addEventListener('close', () => canvas.focus());
+        dlg.addEventListener('close', focusKeys);
     }
     on('t-cerrar', () => document.getElementById('d-tarjeta').close());
     on('o-cerrar', () => document.getElementById('d-opciones').close());
@@ -985,7 +1025,7 @@ const Module = window.Module = {
             bindUi();
             updateButtons();
             draw();
-            canvas.focus();
+            focusKeys();
             window.zxv.resolve();
             requestAnimationFrame(tick);
         });
