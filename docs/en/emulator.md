@@ -322,7 +322,7 @@ lists them all). These are the ones you are most likely to use:
 | `--screenshot F.bmp` | Save the screen at the end |
 | `--wav F.wav` | Record the sound to a WAV file |
 | `--strict` | Strict mode: warn about anything the real machine would not allow |
-| `--version` | Print the ZX-V version (`ZX-V 0.6.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
+| `--version` | Print the ZX-V version (`ZX-V 0.6.1`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
 
 The rest (`--rom`, `--elf`, `--load`, `--gdb`, `--debug`, `--profile`,
 `--panel`, `--test`, `--fail-on-warning`) are for programmers and are explained
@@ -354,8 +354,9 @@ zxv-cli --sd mycard --type 'LOAD "game"\n' --frames 500 --wav music.wav
 
 The web version is the same machine running in your browser, with the same
 ROM, BASIC and `ROM:` drive. Unzip `zxv-web.zip` and open `index.html`: it
-works straight from the disk, or from any web server. It is four files, 1 MB in
-total (with the examples and the ROM disk).
+works straight from the disk, or from any web server. It takes about 2 MB, with
+the examples and the ROM disk. The `play/` folder is another page, the one for
+[publishing a game](sdk/web.md) on its own.
 
 Click on the picture so that it receives the keyboard. Browsers do not allow
 any sound until you press a key or click, so the machine starts silent.
@@ -406,7 +407,9 @@ The contents of `zxv-web.zip` can be uploaded as they are to any web server, or
 to sites like **itch.io**: create a project of type *HTML*, upload the zip and
 mark it as *This file will be played in the browser*. The page adapts to the
 size it is given (960 × 720, for example), and View > Full screen works if you
-enable itch.io's full-screen button.
+enable itch.io's full-screen button. To publish **a game of yours**, a page of
+its own is better, one that starts it without going through the BASIC:
+[Publishing your game on the web](sdk/web.md).
 
 On sites like itch.io the page runs inside a frame from another domain, and
 some browsers (Safari, and possibly Firefox) do not let such frames store

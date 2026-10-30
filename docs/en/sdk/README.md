@@ -147,6 +147,8 @@ others, leaving out `files`.
 | [`route128`](../../../sdk/examples/route128) | **Route 128**, a racing game: a pseudo-3D road with bends and blind crests, painted line by line, and the scenery and traffic as scaled sprites; three stages against the clock; its graphics (`.gfx`) and music (`.pt3`) can be changed without compiling ([its README](../../../sdk/examples/route128/README.md)) |
 | [`mine`](../../../sdk/examples/mine) | **The Mine**, a digging game: boulders and diamonds that fall and roll, creatures that follow the walls, growing moss and twelve caves bigger than the screen, with smooth scrolling; the rules, kept apart, are also tested on the PC ([its README](../../../sdk/examples/mine/README.md)) |
 | [`street`](../../../sdk/examples/street) | **Street Justice**, a street brawler: fighters drawn with the engine from a skeleton in poses, depth, grabs, thugs that take turns to attack and a boss in each of the three stages ([its README](../../../sdk/examples/street/README.md)) |
+| [`umbra`](../../../sdk/examples/umbra) | **Umbra**, a 3D maze in the dark: raycast walls, mode 7 floor and ceiling, lamp fog and shadows that chase you; its levels are maps in `umbra.gfx` |
+| [`keep`](../../../sdk/examples/keep) | **The Keep**, a top-down dungeon adventure: four floors of rooms, enemies, keys, treasures and a sorcerer; its floors are maps in `keep.gfx`, and the music and effects are editable files |
 | [`player`](../../../sdk/examples/player/player.c) | Music and effects with the `zxv_music.h` library: a player for PT3, TurboSound, PT2, STC, ASC and PSG modules and AYFX effect banks, with the registers of both AY chips on screen |
 | [`gfxedit`](../../../sdk/examples/gfxedit) | **The graphics editor**: sprites, tiles, maps and textures in `.gfx` files, with the mouse ([in the graphics guide](graphics.md#the-graphics-editor-on-the-machine-gfxedit)) |
 
@@ -1345,6 +1347,9 @@ to someone:
 - If a `name.tap` file is in the same folder, `LOAD "name"` loads that one:
   write `LOAD "name.zxv"` to be sure.
 - In the web version, upload the files to its card (File > The SD card).
+- **On a web page of its own**, which starts the game without going through
+  the BASIC, for itch.io or your website: `sdk/tools/mkweb.py` (see
+  [Publishing your game on the web](web.md)).
 
 `elf2zxv.py` has options for the header of the `.zxv`:
 

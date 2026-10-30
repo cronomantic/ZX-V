@@ -41,6 +41,9 @@ Vienen con el emulador, para Windows y Linux:
 - **[El tracker, `zxv-tracker`](sdk/README.md#el-tracker-para-el-pc-zxv-tracker)**:
   música para los dos AY (módulos PT3) y efectos de sonido AYFX para el
   BASIC y los programas en C.
+- **[Publicar tu juego en la web](sdk/web.md)**: `mkweb.py` (en el SDK) hace
+  una página con tu juego solo, en C o en BASIC, para itch.io o tu web, con
+  controles táctiles para los móviles.
 
 ## Compilar BASIC
 
@@ -73,12 +76,21 @@ Vienen con el emulador, para Windows y Linux:
 - [Muncher en BASIC](../../examples/basic/muncher/README.es.md): un
   laberinto con cuatro perseguidores, cada uno con su manera de buscarte, con
   un mapa de tiles y sprites a 60 imágenes por segundo.
+- [Cascade en BASIC](../../examples/basic/cascade/README.es.md): un juego de
+  gemas que caen, con sus gráficos, su música y sus efectos en ficheros que se
+  editan.
 - [The Mine, un juego de cavar en C](../../sdk/examples/mine/README.es.md):
   piedras y diamantes que caen y ruedan, en cuevas más grandes que la
   pantalla.
 - [Street Justice, un juego de peleas en C](../../sdk/examples/street/README.es.md):
   por las calles contra los matones de las bandas, con luchadores dibujados
   por el motor a partir de un esqueleto.
+- [Umbra, un laberinto en 3D en C](../../sdk/examples/umbra/README.es.md):
+  paredes por raycasting, suelo con el modo 7 y una lámpara cuya luz se
+  acorta al gastarse el aceite.
+- [The Keep, una aventura de mazmorras en C](../../sdk/examples/keep/README.es.md):
+  cuatro plantas de salas vistas desde arriba, cuyos mapas puedes redibujar
+  en `zxv-gfx`.
 - [Stardust, un juego en ZX Basic](../../examples/zxbasic/stardust/README.es.md):
   doble buffer, sprites y choques con `zxv.bas`, a 60 imágenes por segundo.
 

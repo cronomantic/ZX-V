@@ -605,6 +605,7 @@ static int race(void)
         hud();
         if (pl.finished || pl.time <= 0) {
             if (over_t == 0) {
+                banner_t = 0;           /* el de ¡TIEMPO EXTRA! iría en el mismo sitio */
                 if (pl.finished)
                     pl.score += (uint32_t)((pl.time + ZXV_FRAME_HZ - 1) / ZXV_FRAME_HZ) * 1000;  /* lo que sobra */
                 else
@@ -666,8 +667,8 @@ static int title(void)
             line[n++] = buf[i];
         line[n] = 0;
         text_center(76, line, 14);
-        rows(96, 148, SOLID(0));        /* una franja para las instrucciones */
-        rows(96, 97, SOLID(15));
+        rows(86, 148, SOLID(0));        /* una franja para las instrucciones; tapa la */
+        rows(86, 87, SOLID(15));        /* pancarta de salida, que asomaría a medias */
         rows(147, 148, SOLID(15));
         text_center(102, T("ARRIBA O ESPACIO: ACELERAR", "UP OR SPACE: ACCELERATE"), 15);
         text_center(111, T("ABAJO: FRENAR", "DOWN: BRAKE"), 15);

@@ -80,10 +80,13 @@ CAT "ROM:"
 ```
 
 Para cargar uno, pon `ROM:` delante de su nombre: `LOAD "ROM:graficos"`. Un
-programa que carga más ficheros, como el juego de plataformas, los busca en
-la carpeta actual, así que es mejor entrar antes en la unidad: `CD "ROM:"` y
-luego `LOAD "platformer"`. `CD "SD:"` te devuelve a la tarjeta. Si intentas
-grabar en la unidad `ROM:`, sale `V Error de disco (no se puede)`.
+programa que carga más ficheros, como el juego de plataformas
+(`LOAD "ROM:platformer"`), los busca primero en la carpeta actual y, si no
+están, en la suya: por eso encuentra sus gráficos en la unidad `ROM:`, y un
+fichero con el mismo nombre en tu carpeta va antes que el suyo (ver
+[LOAD](../reference.md#load)). También puedes entrar en la unidad con
+`CD "ROM:"`; `CD "SD:"` te devuelve a la tarjeta. Si intentas grabar en la
+unidad `ROM:`, sale `V Error de disco (no se puede)`.
 
 ## Ficheros de texto
 

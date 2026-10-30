@@ -17,8 +17,9 @@ that patrol it. If you touch nothing on the title screen, it plays by itself.
 
 ## Try it
 
-It comes on the machine's `ROM:` drive: `CD "ROM:"` and then
-`LOAD "platformer"` (the program loads its graphics from the current folder).
+It comes on the machine's `ROM:` drive: `LOAD "ROM:platformer"` (the program
+loads its graphics from the current folder or, if they are not there, from
+its own; a `platformer.gfx` in your folder comes before the ROM one).
 
 To build it yourself you need Python 3 (for the graphics, with
 `sdk/tools/png2gfx.py`); `run` opens the emulator, `zxv` if it is in your PATH

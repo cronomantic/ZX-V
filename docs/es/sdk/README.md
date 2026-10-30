@@ -149,6 +149,8 @@ Windows, no la tiene), `make` lo dice y compila los demás, sin `files`.
 | [`route128`](../../../sdk/examples/route128) | **Route 128**, un juego de carreras: una carretera en pseudo-3D con curvas y cambios de rasante, pintada línea a línea, y el paisaje y el tráfico con sprites escalados; tres etapas contra el reloj; sus gráficos (`.gfx`) y sus músicas (`.pt3`) se cambian sin compilar ([su README](../../../sdk/examples/route128/README.es.md)) |
 | [`mine`](../../../sdk/examples/mine) | **The Mine**, un juego de cavar: piedras y diamantes que caen y ruedan, bichos que siguen las paredes, musgo que crece y doce cuevas más grandes que la pantalla, con scroll suave; las reglas, aparte, se prueban también en el PC ([su README](../../../sdk/examples/mine/README.es.md)) |
 | [`street`](../../../sdk/examples/street) | **Street Justice**, un juego de peleas por las calles: luchadores dibujados con el motor a partir de un esqueleto en poses, profundidad, agarres, matones que se turnan para atacar y un jefe en cada una de las tres fases ([su README](../../../sdk/examples/street/README.es.md)) |
+| [`umbra`](../../../sdk/examples/umbra) | **Umbra**, un laberinto en 3D a oscuras: paredes por raycasting, suelo y techo con el modo 7, la niebla de la lámpara y sombras que te persiguen; sus niveles son mapas de `umbra.gfx` |
+| [`keep`](../../../sdk/examples/keep) | **The Keep**, una aventura de mazmorras vista desde arriba: cuatro plantas de salas, enemigos, llaves, tesoros y un hechicero; sus plantas son mapas de `keep.gfx`, y la música y los efectos, ficheros que se editan |
 | [`player`](../../../sdk/examples/player/player.c) | Música y efectos con la biblioteca `zxv_music.h`: un reproductor de módulos PT3, TurboSound, PT2, STC, ASC y PSG y de bancos de efectos AYFX, con los registros de los dos AY a la vista |
 | [`gfxedit`](../../../sdk/examples/gfxedit) | **El editor de gráficos**: sprites, tiles, mapas y texturas en ficheros `.gfx`, con el ratón ([en la guía de gráficos](graphics.md#el-editor-de-gráficos-de-la-máquina-gfxedit)) |
 
@@ -1363,6 +1365,9 @@ Para dárselo a alguien:
   escribe `LOAD "nombre.zxv"` para ir sobre seguro.
 - En la versión web, sube los ficheros a su tarjeta (Archivo > La tarjeta
   SD).
+- **En una página web solo para él**, que empieza el juego sin pasar por el
+  BASIC, para itch.io o tu web: `sdk/tools/mkweb.py` (ver [Publicar tu juego
+  en la web](web.md)).
 
 `elf2zxv.py` tiene opciones para la cabecera del `.zxv`:
 

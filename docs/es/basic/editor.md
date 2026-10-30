@@ -278,7 +278,7 @@ La línea que hay justo encima de la barra enseña:
 
 | Mensaje | Cuándo |
 |---|---|
-| `© 2026 Cronomantic  ZX-V 0.6.0` | Al arrancar ZX-V, y después de `NEW`: el copyright y la versión de la ROM |
+| `© 2026 Cronomantic  ZX-V 0.6.1` | Al arrancar ZX-V, y después de `NEW`: el copyright y la versión de la ROM |
 | Un error en rojo, como `C Sintaxis incorrecta` | Cuando una línea que querías guardar o ejecutar tiene un error |
 | `Programa renumerado`, `No se puede renumerar` | Tras la opción Renumerar |
 | `Listado enviado a la impresora` | Tras la opción Imprimir |

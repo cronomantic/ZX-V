@@ -22,7 +22,8 @@ machine's specification as "spec §N": that is [dev/spec.md](../dev/spec.md)
 | `tools/gfx/` | `zxv-gfx`, the graphics editor for the PC (Qt 6): `cmake -S sdk/tools/gfx -B build-gfx` |
 | `tools/tracker/` | `zxv-tracker`, the tracker for the PC (Qt 6 and SDL2): `cmake -S sdk/tools/tracker -B build-tracker` |
 | `tools/png2gfx.py` | Turns PNG images into `.gfx` graphics files for BASIC (`LOAD "x" GRAPHICS`) |
-| `examples/` | `hello`, `graphics`, `scroll`, `digital`, `files`, `boardtest`, `player` (a music and effects player) and `gfxedit` (a graphics editor), and four complete games: `estela` (Estela), `route128` (Route 128), `mine` (The Mine) and `street` (Street Justice), each with its README |
+| `tools/mkweb.py` | Makes a web page with only your game, for itch.io or your website ([docs](../docs/en/sdk/web.md)) |
+| `examples/` | `hello`, `graphics`, `scroll`, `digital`, `files`, `boardtest`, `player` (a music and effects player) and `gfxedit` (a graphics editor), and six complete games: `estela` (Estela), `route128` (Route 128), `mine` (The Mine), `street` (Street Justice), `umbra` (Umbra) and `keep` (The Keep), each with its README |
 
 It needs `riscv64-unknown-elf-gcc`, picolibc for it (only for `files`) and
 Python 3:

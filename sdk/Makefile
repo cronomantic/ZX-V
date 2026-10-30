@@ -22,7 +22,7 @@ LIBC_CFLAGS  := -march=$(MARCH) -mabi=ilp32 -Os -g -Wall -Wextra -std=gnu11 --sp
 LIBC_LDFLAGS := -nostartfiles -static -T zxv.ld -Wl,--gc-sections \
                 -Wl,--no-warn-rwx-segments
 
-EXAMPLES := hello graphics scroll digital estela boardtest route128 mine street player gfxedit
+EXAMPLES := hello graphics scroll digital estela boardtest route128 mine street umbra keep player gfxedit
 # Sin picolibc (MSYS2 no la tiene), sin estos: lo dice y compila los demás.
 LIBC_EXAMPLES := $(if $(filter /% %:/%,$(subst \,/,$(shell $(CC) -print-file-name=picolibc.specs))),files)
 ifeq ($(LIBC_EXAMPLES),)
@@ -60,6 +60,10 @@ build/route128.elf: examples/route128/route128.h examples/route128/route128.gfx 
                     $(wildcard examples/route128/*.pt3) $(MUSIC_SRC) music/music_int.h include/zxv_music.h
 build/mine.elf: examples/mine/mine.h examples/mine/cave.h
 build/street.elf: examples/street/street.h
+build/umbra.elf: examples/umbra/umbra.h examples/umbra/umbra.gfx examples/umbra/umbra.afb gfxfile.c include/zxv_gfxfile.h \
+                 $(wildcard examples/umbra/*.pt3) $(MUSIC_SRC) music/music_int.h include/zxv_music.h
+build/keep.elf: examples/keep/keep.h examples/keep/keep.gfx examples/keep/keep.afb gfxfile.c include/zxv_gfxfile.h \
+                $(wildcard examples/keep/*.pt3) $(MUSIC_SRC) music/music_int.h include/zxv_music.h
 
 build/player.elf: $(MUSIC_SRC) music/music_int.h include/zxv_music.h
 build/gfxedit.elf: examples/gfxedit/gfxedit.h examples/gfxedit/store.h

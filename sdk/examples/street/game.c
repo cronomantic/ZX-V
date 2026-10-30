@@ -261,14 +261,17 @@ static void draw_hud(void)
 #endif
 }
 
-/* La flecha de seguir. */
+/* La flecha de seguir: «GO» (dos letras de 6 píxeles) y, tres píxeles a su
+ * derecha, la flecha, sobre una franja negra como la de los avisos, para que
+ * se lea encima de los letreros de las fachadas. */
 static void draw_go(void)
 {
     if (!(frame & 16))
         return;
-    text(W - 40, 50, "GO", 14);
+    zxv_gfx_rect(W - 50, 43, 40, 18, 0);   /* hasta la línea 60: el aviso empieza en la 61 */
+    text(W - 46, 50, "GO", 14);
     int16_t a[6] = { W - 24, 46, W - 14, 53, W - 24, 60 };
-    zxv_gfx_rect(W - 34, 51, 10, 4, 14);
+    zxv_gfx_rect(W - 32, 51, 8, 4, 14);
     zxv_gfx_tri(a, 14);
 }
 

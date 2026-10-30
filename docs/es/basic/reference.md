@@ -2030,6 +2030,15 @@ Carga de la tarjeta SD (o de la unidad `ROM:`):
 `LOAD ""` (con el nombre vacío) carga el bloque siguiente de la cinta puesta
 (ver [Ficheros de cinta](#ficheros-de-cinta)).
 
+**La carpeta del programa.** ZX-V se acuerda de la carpeta de la que se
+cargó el programa. Un nombre sin unidad ni `/` delante se busca primero en
+la carpeta actual y, si ahí no está, en la del programa. Así, un juego que
+se carga con `LOAD "ROM:juego"` encuentra sus gráficos y su música con
+`LOAD "juego" GRAPHICS`, sin escribir `ROM:`; y uno con el mismo nombre en
+la carpeta actual de la tarjeta va antes, para cambiarlos sin tocar el
+juego. Vale también para `VERIFY`, `MERGE` y `OPEN #` para leer (no para
+grabar: `SAVE` va siempre a la carpeta actual). `NEW` la olvida.
+
 ```
 LOAD "hola"
 LOAD "ROM:graphics"
@@ -2116,8 +2125,8 @@ CD "ROM:": PRINT DIR$: CAT
 ```
 
 Un programa que carga más ficheros (como el juego de plataformas) los busca
-en la carpeta actual, así que primero hay que ir a ella:
-`CD "ROM:": LOAD "platformer"`.
+en la carpeta actual y, si no están, en la suya (ver [LOAD](#load)): con
+`LOAD "ROM:platformer"` encuentra sus gráficos sin cambiar de carpeta.
 
 ### MKDIR, RMDIR
 

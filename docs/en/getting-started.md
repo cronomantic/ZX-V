@@ -159,8 +159,11 @@ CAT "ROM:"
 | `estela.zxv` | *Estela*, a three-level space shooter |
 | `route128.zxv` | *Route 128*, a race against the clock along a road with bends and blind crests |
 | `muncher.bas` | *Muncher*, eat the dots in the maze without being caught by its four chasers, in BASIC |
+| `cascade.bas` | *Cascade*, line up three gems of a colour before the well fills up, in BASIC (with `cascade.gfx`, `cascade.pt3` and `cascade.afb`) |
 | `mine.zxv` | *The Mine*, dig and gather diamonds among falling boulders |
 | `street.zxv` | *Street Justice*, brawling through the streets against the neighbourhood gangs |
+| `umbra.zxv` | *Umbra*, a 3D maze in the dark |
+| `keep.zxv` | *The Keep*, a four-floor dungeon adventure |
 | `graphics.zxv` | A graphics demo: scrolling scenery, bouncing balls, a spinning star and a 3D floor |
 | `scroll.zxv` | Smooth scrolling over a landscape four screens wide, with parallax |
 | `digital.zxv` | Digitised sound played through the music chip |
@@ -181,8 +184,9 @@ Press any key to go back to BASIC. Try `LOAD "ROM:estela"` too: it is a
 complete game (arrow keys or O, P, Q, A to move, Space or M to fire, Esc to
 quit).
 
-The platform game loads its graphics from the folder it is in, so for that one
-you first change to the `ROM:` drive with `CD`, and then load it:
+BASIC games that load more files, like the platform game, find them on the
+`ROM:` drive by themselves: `LOAD "ROM:platformer"`. You can also go into the
+drive and load them from there:
 
 ```
 CD "ROM:"

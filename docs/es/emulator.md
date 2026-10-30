@@ -326,7 +326,7 @@ lista todas). Estas son las que más vas a usar:
 | `--screenshot F.bmp` | Guarda la pantalla al terminar |
 | `--wav F.wav` | Graba el sonido en un fichero WAV |
 | `--strict` | Modo estricto: avisa de lo que la máquina real no permitiría |
-| `--version` | Escribe la versión de ZX-V (`ZX-V 0.6.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
+| `--version` | Escribe la versión de ZX-V (`ZX-V 0.6.1`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
 
 Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--debug`, `--profile`,
 `--panel`, `--test`, `--fail-on-warning`) son para programadores y se explican
@@ -359,7 +359,8 @@ zxv-cli --sd mitarjeta --type 'LOAD "juego"\n' --frames 500 --wav musica.wav
 La versión web es la misma máquina funcionando en el navegador, con la misma
 ROM, el mismo BASIC y la misma unidad `ROM:`. Descomprime `zxv-web.zip` y abre
 `index.html`: funciona directamente desde el disco o desde cualquier servidor
-web. Son cuatro ficheros, 1 MB en total (con los ejemplos y el disco ROM).
+web. Ocupa unos 2 MB, con los ejemplos y el disco ROM. La carpeta `play/` es
+otra página, la de [publicar un juego](sdk/web.md) solo.
 
 Haz clic en la imagen para que reciba el teclado. Los navegadores no dejan
 sonar nada hasta que se pulsa una tecla o se hace clic, así que la máquina
@@ -412,7 +413,9 @@ El contenido de `zxv-web.zip` se puede subir tal cual a cualquier servidor web
 o a sitios como **itch.io**: crea un proyecto de tipo *HTML*, sube el zip y
 márcalo como *This file will be played in the browser*. La página se adapta al
 tamaño que se le dé (960 × 720, por ejemplo), y Ver > Pantalla completa
-funciona si activas el botón de pantalla completa de itch.io.
+funciona si activas el botón de pantalla completa de itch.io. Para publicar
+**un juego tuyo**, mejor una página solo para él, que lo empieza sin pasar
+por el BASIC: [Publicar tu juego en la web](sdk/web.md).
 
 En sitios como itch.io la página va dentro de un marco de otro dominio, y
 algunos navegadores (Safari, y puede que Firefox) no dejan guardar nada a esos

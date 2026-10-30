@@ -17,8 +17,9 @@ pisa a los bichos que patrullan. Si no se toca nada en el título, juega solo.
 
 ## Probarlo
 
-Viene en el disco ROM de la máquina: `CD "ROM:"` y `LOAD "platformer"` (el
-programa carga sus gráficos de la carpeta actual).
+Viene en el disco ROM de la máquina: `LOAD "ROM:platformer"` (el programa
+carga sus gráficos de la carpeta actual o, si no están, de la suya; uno
+`platformer.gfx` en tu carpeta va antes que el de la ROM).
 
 Para hacerlo tú hace falta Python 3 (para los gráficos, con
 `sdk/tools/png2gfx.py`); `run` abre el emulador, el `zxv` del PATH o el que

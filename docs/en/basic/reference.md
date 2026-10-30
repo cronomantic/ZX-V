@@ -1983,6 +1983,16 @@ Loads from the SD card (or the `ROM:` drive):
 `LOAD ""` (an empty name) loads the next block from the inserted tape (see
 [Tape files](#tape-files)).
 
+**The program's folder.** ZX-V remembers the folder the program was loaded
+from. A name with no drive and no leading `/` is looked for in the current
+folder first and, if it is not there, in the program's folder. So a game
+loaded with `LOAD "ROM:game"` finds its graphics and music with
+`LOAD "game" GRAPHICS`, without writing `ROM:`; and a file with the same
+name in the card's current folder comes first, so you can replace them
+without touching the game. It also works for `VERIFY`, `MERGE` and `OPEN #`
+for reading (not for writing: `SAVE` always goes to the current folder).
+`NEW` forgets it.
+
 ```
 LOAD "hello"
 LOAD "ROM:graphics"
@@ -2067,7 +2077,9 @@ CD "ROM:": PRINT DIR$: CAT
 ```
 
 A program that loads more files (like the platform game) looks for them in
-the current folder, so change folder first: `CD "ROM:": LOAD "platformer"`.
+the current folder and, if they are not there, in its own folder (see
+[LOAD](#load)): with `LOAD "ROM:platformer"` it finds its graphics without
+changing folder.
 
 ### MKDIR, RMDIR
 

@@ -370,7 +370,7 @@ static void draw_cave(void)
     zxv_gfx_clip(0, 0, W, H);
 
     draw_hud();
-    if (msg_t && msg) {
+    if (msg_t && msg && !paused) {     /* en la pausa, su letrero va en lugar de este */
         label(70, msg, (frame & 8) ? 15 : 14);
         if (msg2)
             label(84, msg2, 13);

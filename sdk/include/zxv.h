@@ -154,6 +154,7 @@
 #define ZXV_SV_CPU_HZ           (ZXV_SYSVARS + 0x18u)
 #define ZXV_SV_SYSFLAGS         (ZXV_SYSVARS + 0x1Cu)
 #define ZXV_SV_LANG             (ZXV_SYSVARS + 0x20u)   /* u32: ZXV_LANG('e','s') */
+#define ZXV_SV_EDITOR           (ZXV_SYSVARS + 0x24u)   /* u32: 1 = el BASIC espera una orden */
 
 /* El idioma de la máquina: su código ISO 639-1, dos letras minúsculas. */
 #define ZXV_LANG(a, b)          ((uint32_t)(a) | (uint32_t)(b) << 8)

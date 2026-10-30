@@ -41,6 +41,9 @@ They come with the emulator, for Windows and Linux:
 - **[The tracker, `zxv-tracker`](sdk/README.md#the-tracker-for-the-pc-zxv-tracker)** —
   music for the two AY chips (PT3 modules) and AYFX sound effects for
   BASIC and C programs.
+- **[Publishing your game on the web](sdk/web.md)** — `mkweb.py` (in the
+  SDK) makes a page with only your game, in C or in BASIC, for itch.io or
+  your website, with touch controls for phones.
 
 ## Compiling BASIC
 
@@ -72,11 +75,17 @@ They come with the emulator, for Windows and Linux:
 - [Muncher in BASIC](../../examples/basic/muncher) — a maze with four
   chasers, each hunting you in its own way, with a tile map and sprites at 60
   frames per second.
+- [Cascade in BASIC](../../examples/basic/cascade) — a falling-gems puzzle
+  whose graphics, music and effects are editable files.
 - [The Mine, a digging game in C](../../sdk/examples/mine) — boulders and
   diamonds that fall and roll, in caves bigger than the screen.
 - [Street Justice, a brawler in C](../../sdk/examples/street) — through the
   streets against the gangs' thugs, with fighters drawn by the engine from a
   skeleton.
+- [Umbra, a 3D maze in C](../../sdk/examples/umbra) — raycast walls, a
+  mode 7 floor and a lamp whose light shrinks as its oil runs out.
+- [The Keep, a dungeon adventure in C](../../sdk/examples/keep) — four floors
+  of rooms seen from above, whose maps you can redraw in `zxv-gfx`.
 - [Stardust, a game in ZX Basic](../../examples/zxbasic/stardust) — double
   buffering, sprites and collisions with `zxv.bas`, at 60 frames per second.
 

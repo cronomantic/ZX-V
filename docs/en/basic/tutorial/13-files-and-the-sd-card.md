@@ -76,10 +76,13 @@ CAT "ROM:"
 ```
 
 To load one, put `ROM:` in front of its name: `LOAD "ROM:graphics"`. A program
-that loads more files, like the platform game, looks for them in the current
-folder, so it is better to go into the drive first: `CD "ROM:"` and then
-`LOAD "platformer"`. `CD "SD:"` takes you back to the card. Trying to save
-on the `ROM:` drive gives `V Disk error (not allowed)`.
+that loads more files, like the platform game (`LOAD "ROM:platformer"`),
+looks for them in the current folder first and, if they are not there, in
+its own folder: that is how it finds its graphics on the `ROM:` drive, and a
+file with the same name in your folder comes before its own (see
+[LOAD](../reference.md#load)). You can also go into the drive with
+`CD "ROM:"`; `CD "SD:"` takes you back to the card. Trying to save on the
+`ROM:` drive gives `V Disk error (not allowed)`.
 
 ## Text files
 

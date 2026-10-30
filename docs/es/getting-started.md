@@ -161,8 +161,11 @@ CAT "ROM:"
 | `estela.zxv` | *Estela*, un matamarcianos de tres fases |
 | `route128.zxv` | *Route 128*, carreras contra el reloj por una carretera con curvas y cambios de rasante |
 | `muncher.bas` | *Muncher*, cómete los puntos del laberinto sin que te pillen sus cuatro perseguidores, en BASIC |
+| `cascade.bas` | *Cascade*, junta tres gemas del mismo color en línea antes de que se llene el pozo, en BASIC (con `cascade.gfx`, `cascade.pt3` y `cascade.afb`) |
 | `mine.zxv` | *The Mine*, cava y junta diamantes entre piedras que caen |
 | `street.zxv` | *Street Justice*, peleas por las calles contra las bandas del barrio |
+| `umbra.zxv` | *Umbra*, un laberinto en 3D a oscuras |
+| `keep.zxv` | *The Keep*, una aventura de mazmorras de cuatro plantas |
 | `graphics.zxv` | Una demostración gráfica: escenario que se desplaza, pelotas que rebotan, una estrella que gira y un suelo en 3D |
 | `scroll.zxv` | Desplazamiento suave por un paisaje de cuatro pantallas de ancho, con parallax |
 | `digital.zxv` | Sonido digitalizado por el chip de música |
@@ -183,9 +186,9 @@ Pulsa una tecla para volver al BASIC. Prueba también `LOAD "ROM:estela"`: es un
 juego completo (flechas o O, P, Q, A para moverte, espacio o M para disparar y
 Esc para salir).
 
-El juego de plataformas carga sus gráficos de la carpeta en la que está, así
-que para ese primero hay que entrar en la unidad `ROM:` con `CD` y luego
-cargarlo:
+Los juegos en BASIC que cargan más ficheros, como el de plataformas, los
+encuentran en la unidad `ROM:` solos: `LOAD "ROM:platformer"`. También puedes
+entrar en la unidad y cargarlos desde ahí:
 
 ```
 CD "ROM:"

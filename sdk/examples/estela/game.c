@@ -374,6 +374,7 @@ static int stage, wave_i, speed, demo, frame;
 static uint32_t record;
 static int message_t;                   /* el letrero de la fase o del jefe */
 static const char *message, *message2;
+static int paused;                      /* en la pausa, su letrero va en lugar del de la fase */
 
 static void add_boom(int x, int y)
 {
@@ -972,13 +973,13 @@ static void draw_hud(void)
     if (pl.shield)
         zxv_gfx_rect(120, 2, 4, 4, 13);
 #ifdef ESTELA_STATS
-    number(buf, video_frames(), 4);     /* los frames perdidos */
+    number(buf, video_frames(), 4);     /* los frames perdidos, de 126 a 149 */
     text(126, 0, buf, 2);
 #endif
     if (boss.alive && !boss.dying && boss.x <= (W - boss.spr->w - 12) * FX) {
-        text(140, 0, T("JEFE", "BOSS"), 10);
-        zxv_gfx_rect(168, 2, 84, 4, 1);
-        zxv_gfx_rect(168, 2, 84 * boss.hp / boss.maxhp, 4, 10);
+        text(152, 0, T("JEFE", "BOSS"), 10);
+        zxv_gfx_rect(178, 2, 74, 4, 1);
+        zxv_gfx_rect(178, 2, 74 * boss.hp / boss.maxhp, 4, 10);
     } else {
         number(buf, record > pl.score || demo ? record : pl.score, 6);
         text(W - 38, 0, buf, 6);
@@ -1034,7 +1035,7 @@ static void draw_world(void)
             draw_sprite(&s_boom[booms[i].t * 4 / MS(320)], booms[i].x, booms[i].y, 0, 0);
 
     draw_hud();
-    if (message_t && message) {
+    if (message_t && message && !paused) {
         label(80, message, (frame & 8) ? 15 : 14);
         if (message2)
             label(92, message2, 13);
@@ -1077,6 +1078,7 @@ static void save_record(void)
 /* Unos frames con un letrero (fin de partida, fase superada...). Devuelve 1 si se pulsó Esc. */
 static int banner(const char *a, const char *b, int frames)
 {
+    message_t = 0;                      /* el de la fase iría debajo */
     for (int t = 0; t < frames; t++) {
         read_input();
         video_begin();
@@ -1108,6 +1110,7 @@ static int run_stage(void)
             return R_QUIT;
         if (input_edge & IN_PAUSE) {    /* la pausa: hasta otra vez Intro (Esc sale) */
             sound_mute(1);
+            paused = 1;
             for (;;) {
                 read_input();
                 video_begin();
@@ -1118,6 +1121,7 @@ static int run_stage(void)
                 if (input_edge & (IN_PAUSE | IN_ESC))
                     break;
             }
+            paused = 0;
             sound_mute(0);
             if (input_edge & IN_ESC)
                 return R_QUIT;

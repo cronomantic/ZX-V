@@ -680,6 +680,14 @@ entra en el disco ROM y `dir_change("SD:")` vuelve a la raíz de la tarjeta.
 `dir_current` da `/...` en la tarjeta (como siempre) y `ROM:/...` en el disco
 ROM. Si no hay disco ROM, lo que va a `ROM:` da `ZXV_E_NOENT`.
 
+**La carpeta del programa (el BASIC).** El BASIC apunta la carpeta del
+fichero del que cargó el programa (`.tap`, `.tzx` o `.bas`; `NEW` y los
+`.zxv` la borran). `LOAD`, `VERIFY`, `MERGE` y `OPEN #` para leer, con un
+nombre relativo que no está en la carpeta actual (probando las extensiones
+de cada orden), lo buscan ahí. La carpeta actual va antes; lo que se graba
+no cambia. Los programas nativos no la usan: llevan sus ficheros dentro y
+miran la carpeta actual (D82).
+
 **Rutas:**
 - El separador es `/`. Una ruta que empieza por `/` es absoluta; si no, es
   relativa a la carpeta actual.
@@ -1000,6 +1008,7 @@ minúsculas guardado en un u32, la primera letra en el byte bajo:
 | `+0x18` | `CPU_HZ` | u32 | Frecuencia de la CPU |
 | `+0x1C` | `SYSFLAGS` | u32 | Bit 0 `LINK_BUSY` (ver 4.8). Bit 1 `BREAK` (tecla de interrupción pulsada) |
 | `+0x20` | `LANG` | u32 | El idioma de la máquina (§7.10). Solo lectura: se cambia con `lang_set` |
+| `+0x24` | `EDITOR` | u32 | 1 mientras el BASIC espera una orden (en el editor o con un informe en la pantalla); 0 mientras ejecuta algo, también un programa nativo. La escribe la ROM; la página de los juegos para la web (D85) la mira para empezarlos y volver a empezarlos |
 
 ---
 
@@ -1086,7 +1095,7 @@ Ver [sdk/README.md](../sdk/README.md):
 - `tools/elf2zxv.py`: convierte un ELF en `.ZXV`; `tools/png2gfx.py`, los gráficos
   en PNG en sprites, tiles y mapas.
 - Ejemplos en C: `hello`, `graphics`, `scroll`, `digital`, `files`, `boardtest`,
-  `estela`, `route128`, `mine` y `street`.
+  `estela`, `route128`, `mine`, `street`, `umbra` y `keep`.
   Todos devuelven 0 al acabar bien.
 
 Previsto: `zxv.inc` con macros para ensamblador (`ZXV_CALL`, `WAIT_VBLANK`,
