@@ -443,6 +443,18 @@ Si no existe: `X Label not found`. Las etiquetas no cambian al renumerar.
   mezclador (`M`) son los de su AY. Las cadenas séptima y octava (MIDI en el
   128K) se comprueban pero no suenan. `PLAY` espera a que acaben todas; BREAK
   las corta.
+- `LOAD n$ MUSIC`, `MUSIC PLAY | STOP | PAUSE | CONTINUE`, `LOAD n$ SFX`,
+  `SFX n[, canal]`, `SFX STOP` y las funciones `MUSIC` y `SFX`: la música y
+  los efectos de los trackers con la biblioteca del SDK (sdk/music) dentro de
+  la ROM (bmusic.c). Suenan de fondo, desde el gancho de frame, con la cola
+  con marca de tiempo; el estado de music.c va al final de la memoria del
+  BASIC (MUS_STATE_EXTERN: en la de trabajo de la ROM no cabe). El módulo y
+  el banco son dos objetos más del almacén de los gráficos, con su longitud
+  delante; cuando el almacén los mueve, `zxv_music_moved` (con el gancho
+  parado un momento). Con música, `BEEP` y `OUT 254` ponen sus cambios del
+  beeper con el mismo adelanto (35 ms), para que la cola vaya en orden.
+  `MUSIC STOP`, BREAK, `RUN`, `NEW` y `PLAY` paran la música (los efectos,
+  todo eso menos `PLAY`); al acabar el programa sigue.
 
 | En la cadena | Significado |
 |---|---|

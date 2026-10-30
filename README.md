@@ -64,6 +64,7 @@ the [getting started guide](docs/en/getting-started.md).
 | [Learn BASIC](docs/en/basic/README.md) | A course from scratch, step by step |
 | [BASIC reference](docs/en/basic/reference.md) · [The editor](docs/en/basic/editor.md) | Every statement and function |
 | [Native programs (SDK)](docs/en/sdk/README.md) | Programming the machine in C |
+| [Graphics](docs/en/sdk/graphics.md#the-graphics-editor-for-the-pc-zxv-gfx) · [Music](docs/en/sdk/README.md#the-tracker-for-the-pc-zxv-tracker) | The editors for the PC: `zxv-gfx` and `zxv-tracker` |
 | [Compiling BASIC](docs/en/zxbasic.md) | ZX Basic, with a target for ZX-V |
 | [The emulator](docs/en/emulator.md) | The desktop and web versions, options |
 | [The machine](docs/en/machine.md) | Screen, colours, sound, memory and files |

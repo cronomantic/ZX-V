@@ -13,8 +13,10 @@ hardware, y al revés. Viene en varias formas:
 | **`zxv-cli`** | Sin ventana: va tan rápido como puede, para guiones, pruebas y capturas |
 | **La versión web** | La misma máquina en el navegador |
 | **`sdimg`** | Una pequeña herramienta para crear y llenar imágenes de tarjeta SD |
+| **`zxv-gfx`** | El editor de gráficos: sprites, tiles, mapas y texturas en ficheros `.gfx` (ver la [guía de gráficos del SDK](sdk/graphics.md#el-editor-de-gráficos-para-el-pc-zxv-gfx)) |
+| **`zxv-tracker`** | El tracker: música para los dos AY en módulos PT3 y efectos AYFX, los que toca la biblioteca de música del SDK (ver la [guía del SDK](sdk/README.md#el-tracker-para-el-pc-zxv-tracker)) |
 
-Los paquetes de Windows y Linux traen `zxv`, `zxv-sdl`, `zxv-cli` y `sdimg`,
+Los paquetes de Windows y Linux traen `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-gfx` y `zxv-tracker`,
 además de los ejemplos (la carpeta `ejemplos`) y la unidad `ROM:`
 (`romdisk.bin`). Cómo descargarlos se explica en
 [Primeros pasos](getting-started.md#descarga).
@@ -324,7 +326,7 @@ lista todas). Estas son las que más vas a usar:
 | `--screenshot F.bmp` | Guarda la pantalla al terminar |
 | `--wav F.wav` | Graba el sonido en un fichero WAV |
 | `--strict` | Modo estricto: avisa de lo que la máquina real no permitiría |
-| `--version` | Escribe la versión de ZX-V (`ZX-V 0.5.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
+| `--version` | Escribe la versión de ZX-V (`ZX-V 0.6.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
 
 Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--debug`, `--profile`,
 `--panel`, `--test`, `--fail-on-warning`) son para programadores y se explican

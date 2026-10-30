@@ -22,7 +22,7 @@ LIBC_CFLAGS  := -march=$(MARCH) -mabi=ilp32 -Os -g -Wall -Wextra -std=gnu11 --sp
 LIBC_LDFLAGS := -nostartfiles -static -T zxv.ld -Wl,--gc-sections \
                 -Wl,--no-warn-rwx-segments
 
-EXAMPLES := hello graphics scroll digital estela boardtest route128 mine street
+EXAMPLES := hello graphics scroll digital estela boardtest route128 mine street player gfxedit
 # Sin picolibc (MSYS2 no la tiene), sin estos: lo dice y compila los demás.
 LIBC_EXAMPLES := $(if $(filter /% %:/%,$(subst \,/,$(shell $(CC) -print-file-name=picolibc.specs))),files)
 ifeq ($(LIBC_EXAMPLES),)
@@ -51,10 +51,18 @@ build/$(1).elf: $(wildcard examples/$(1)/*.c) crt0.S zxvc.c zxv.ld $(wildcard in
 endef
 $(foreach e,$(LIBC_EXAMPLES),$(eval $(call LIBC_RULE,$(e))))
 
-build/estela.elf: examples/estela/estela.h
-build/route128.elf: examples/route128/route128.h
+# La música y los efectos del AY (include/zxv_music.h).
+MUSIC_SRC := $(wildcard music/*.c)
+
+build/estela.elf: examples/estela/estela.h examples/estela/estela.gfx gfxfile.c include/zxv_gfxfile.h \
+                  $(wildcard examples/estela/*.pt3) $(MUSIC_SRC) music/music_int.h include/zxv_music.h
+build/route128.elf: examples/route128/route128.h examples/route128/route128.gfx gfxfile.c include/zxv_gfxfile.h \
+                    $(wildcard examples/route128/*.pt3) $(MUSIC_SRC) music/music_int.h include/zxv_music.h
 build/mine.elf: examples/mine/mine.h examples/mine/cave.h
 build/street.elf: examples/street/street.h
+
+build/player.elf: $(MUSIC_SRC) music/music_int.h include/zxv_music.h
+build/gfxedit.elf: examples/gfxedit/gfxedit.h examples/gfxedit/store.h
 
 build/%.zxv: build/%.elf tools/elf2zxv.py
 	$(PYTHON) tools/elf2zxv.py $< $@

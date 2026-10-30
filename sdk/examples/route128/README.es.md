@@ -48,7 +48,35 @@ También está en el disco ROM de la máquina: `LOAD "ROM:route128"`.
 | Z | Botón 3 o Select | Cambiar de marcha (LO o HI) |
 | Cursores izquierda y derecha, u O y P | Cruceta | Girar |
 | Intro | Start | Pausa |
+| S | | La música, sí o no |
 | Esc | | Al título; en el título, al BASIC |
+
+## Sus gráficos y su música, a tu gusto
+
+Los gráficos están en [`route128.gfx`](route128.gfx), que se edita con
+`zxv-gfx` en el PC o con `gfxedit` en la propia máquina, y las músicas en
+módulos de Pro Tracker 3 que se editan con `zxv-tracker`:
+[`route128-race.pt3`](route128-race.pt3) (la carrera),
+[`-title`](route128-title.pt3) (el título), [`-goal`](route128-goal.pt3) (la
+meta) y [`-over`](route128-over.pt3) (se acabó el tiempo). El programa los
+lleva dentro, pero si en la carpeta desde la que se carga hay uno con ese
+nombre usa ese: para cambiar un dibujo o una música no hace falta compilar
+nada. Uno que no vale (o no cabe) da un informe y vuelve al BASIC.
+
+Los sprites de `route128.gfx`, por su número:
+
+| Número | |
+|---|---|
+| 0–9 | Junto a la carretera: palmera, arbusto, sombrilla, cactus, roca, pino, árbol, flechas de curva a la izquierda y a la derecha, y el cartel |
+| 10–12 | Los arcos de la salida, los controles y la meta, en español |
+| 13–15 | Los mismos, en inglés |
+| 16–18 | Los rivales: cupé, furgoneta y camión (el 2 y el 3, la carrocería y sus brillos, se cambian por los colores de cada coche) |
+| 20–24 | El coche, del más girado a la izquierda al más girado a la derecha |
+| 30–38 | El paisaje de la costa, el desierto y el bosque: de cada etapa, las montañas, lo de cerca y las nubes; de 256 píxeles de ancho o más, y se repiten |
+
+Los objetos se dibujan más pequeños cuanto más lejos están: su tamaño en el
+fichero es el de cerca, y su ancho en el mundo (lo que ocupan en la
+carretera) está en `art.c`.
 
 ## Cómo está hecho
 
@@ -56,9 +84,9 @@ También está en el disco ROM de la máquina: `LOAD "ROM:route128"`.
 |---|---|
 | `route128.h` | Lo que comparten las partes: tamaños, los rellenos, los sprites, el circuito y el sonido |
 | `video.c` | La pantalla: doble buffer, los tramos de color de la carretera, la fuente de 5 × 7 y los sprites |
-| `art.c` | Los gráficos, dibujados con el motor al empezar, y el paisaje de cada etapa |
+| `art.c` | Los gráficos de `route128.gfx` (con `zxv_gfxfile.h`), y el paisaje de cada etapa |
 | `road.c` | El circuito y su proyección: la carretera, el paisaje, los objetos y los coches |
-| `sound.c` | La música (primer AY) y el coche (segundo AY) |
+| `sound.c` | La música (primer AY, con `zxv_music.h`) y el coche (segundo AY) |
 | `game.c` | La conducción, el tráfico, los choques, el marcador, el título y la demostración |
 
 - **La carretera** es una tira de segmentos, cada uno con su curva y su
@@ -82,24 +110,29 @@ También está en el disco ROM de la máquina: `LOAD "ROM:route128"`.
   coches del tráfico son tres dibujos (cupé, furgoneta y camión) que se
   recolorean al dibujarlos con la tabla de colores. El coche del jugador va a
   su tamaño, en cinco posturas según gire.
-- **Los gráficos** se dibujan al arrancar con polígonos, rectángulos y
-  círculos del motor en un lienzo (`zxv_gfx_target`), más grandes de lo que
-  se ven de lejos para que aguanten de cerca.
+- **Los gráficos** son los de `route128.gfx`, más grandes de lo que se ven
+  de lejos para que aguanten de cerca. Al empezar se preparan para el motor
+  (`zxv_spr_prepare`).
+- **La memoria de vídeo que no se ve:** el fichero de gráficos ocupa 110 KB,
+  y con los sprites preparados no cabe en la RAM de usuario. Pero en el modo
+  0 la pantalla solo usa 24 KB de cada página de vídeo de 96: el resto es
+  memoria como la otra, y ahí van los sprites preparados, las músicas de la
+  tarjeta y el paisaje de la etapa.
 - **El paisaje:** nubes, montañas y el mar, las dunas o las lomas, en tres
   capas de 512 píxeles que se repiten y se desplazan a distinta velocidad
-  con las curvas. Las de la etapa que viene se dibujan en otro juego, un
-  trozo por frame (cerca de un milisegundo) al acercarse a ella, y al llegar
-  se cambian por las otras: dibujarlas de una vez no cabe en un frame junto
-  con la carretera.
+  con las curvas. Al llegar a una etapa se copian las suyas del fichero.
 - **El sonido:** el motor son dos tonos del segundo AY, uno una octava más
   grave, que siguen a las vueltas de la marcha; el derrape y la cuneta, su
-  ruido; y la música, el primer AY.
+  ruido; y la música, en el primer AY, la biblioteca de música del SDK. La
+  de la carrera dura minuto y medio antes de repetirse: una entrada, el
+  tema, una parte en mi menor, un respiro con acordes, una subida y el tema
+  otra vez, un tono más arriba.
 - **Sin coma flotante:** las posiciones y la proyección van con enteros (la
   curva en 1/16, el lateral en 1/1024 de media carretera).
 - **A 60 imágenes por segundo:** las velocidades, las aceleraciones y los
   tiempos van por segundo (`ZXV_FRAME_HZ`), y lo que sobra de lo que toca en
   cada frame pasa al siguiente: nada se mueve a tirones. La música y los
-  efectos van a pasos de un cincuentavo de segundo, como se escribieron.
+  efectos van a pasos de un cincuentavo de segundo, como se escriben.
 
 ## Rendimiento
 

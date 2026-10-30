@@ -24,6 +24,8 @@ To get started with C on ZX-V, read the [SDK guide](README.md) first.
 - [Raster effects and colour remapping](#raster-effects-and-colour-remapping)
 - [Mode 7](#mode-7)
 - [Images from PNG files: `png2gfx.py`](#images-from-png-files-png2gfxpy)
+- [The graphics editor for the PC: `zxv-gfx`](#the-graphics-editor-for-the-pc-zxv-gfx)
+- [The graphics editor on the machine: `gfxedit`](#the-graphics-editor-on-the-machine-gfxedit)
 - [How fast is it?](#how-fast-is-it)
 
 ## How the engine draws
@@ -629,90 +631,58 @@ by its data:
 | 3 | Map | width, height (16 bits each), tile size, repeat (bytes), 0 (16 bits), then the cells (16 bits each) |
 | 4 | Texture | log2 of the side, repeat, colour outside, 0 (bytes), then the texels (one byte each) |
 
-All numbers are little-endian. This program loads `art.gfx` from the
-current folder, prepares the two sprites and the map, and scrolls them. The
-loader copies the data to aligned buffers, because the objects inside the
-file are not necessarily aligned to 4 bytes; for that copy to make a valid
-bitmap, give your sprites a width that is a multiple of 8.
+All numbers are little-endian. To read them, the SDK has a small
+library, **`zxv_gfxfile.h`** (with `gfxfile.c`). The file can be anywhere:
+loaded from the card with `zxv_file_load` or inside the program. As the
+objects inside the file are not aligned, each function copies its object to
+a buffer of the program, aligned the way the engine wants it, and returns
+the bytes that buffer needs (0 if the object is not there; with a `NULL`
+buffer, it only tells):
+
+| Function | What it does |
+|---|---|
+| `zxv_gfxf_open(&f, data, size)` | 1 if it is a well-formed `.gfx` (it checks every object); `f` is then ready |
+| `zxv_gfxf_sprite(&f, n, &bitmap, buf, room)` | Sprite `n` as a bitmap, for `zxv_spr_prepare`, `zxv_gfx_blit` or `zxv_gfx_target` |
+| `zxv_gfxf_tiles(&f, side, buf, room, &count)` | The 8 or 16 pixel tiles |
+| `zxv_gfxf_map(&f, n, &map, tiles, buf, room)` | Map `n`: its cells in `buf` and, in the `zxv_tilemap`, the tiles given |
+| `zxv_gfxf_texture(&f, n, &texture, buf, room)` | Mode 7 texture `n` |
+| `zxv_gfxf_find(&f, kind, n, &length)` | An object's data as it is in the file |
+
+This program loads `art.gfx` from the current folder, prepares the two
+sprites and the map (with 8 pixel tiles), and scrolls them:
 
 ```c
-#include <stddef.h>
-#include <string.h>
-#include "zxv_gfx.h"
-
-/* --- Reading a .gfx file made by png2gfx.py --------------------------------- */
-
-enum { GFX_SPRITE = 1, GFX_TILES = 2, GFX_MAP = 3, GFX_TEXTURE = 4 };
+#include "zxv_gfxfile.h"
 
 static uint8_t file[16 * 1024];                 /* the whole .gfx file */
-
-static uint16_t rd16(const uint8_t *p) { return (uint16_t)(p[0] | p[1] << 8); }
-static uint32_t rd32(const uint8_t *p) { return rd16(p) | (uint32_t)rd16(p + 2) << 16; }
-
-/* The data of object 'num' of type 'kind', or NULL if it is not there. */
-static const uint8_t *gfx_find(int kind, int num)
-{
-    if (memcmp(file, "ZXVG", 4) != 0 || file[4] != 1)
-        return NULL;
-    const uint8_t *p = file + 8;
-    for (int i = rd16(file + 6); i > 0; i--) {
-        if (p[0] == kind && rd16(p + 2) == num)
-            return p + 8;
-        p += 8 + rd32(p + 4);
-    }
-    return NULL;
-}
-
-/* A sprite (its width a multiple of 8), prepared into 'out'. */
-static int load_sprite(int num, void *out, uint32_t room)
-{
-    static uint32_t pix[4096];                  /* aligned copy of the pixels */
-    const uint8_t *d = gfx_find(GFX_SPRITE, num);
-    if (!d)
-        return 0;
-    int w = rd16(d), h = rd16(d + 2);
-    if (w % 8 || (uint32_t)(w / 2 * h) > sizeof(pix))
-        return 0;
-    memcpy(pix, d + 4, (size_t)(w / 2) * h);
-    zxv_bitmap b = { (uint8_t *)pix, (uint16_t)(w / 2), (uint16_t)w, (uint16_t)h, 0 };
-    if (zxv_spr_prepare(&b, 0, 0, w, h, NULL) > room)
-        return 0;
-    zxv_spr_prepare(&b, 0, 0, w, h, out);
-    return 1;
-}
-
-/* Map 'num' and the tiles of its size, copied into aligned buffers. */
-static uint32_t tiles[64 * 32 / 4];             /* up to 64 tiles of 8x8 */
+static uint32_t pix[4096];                      /* a sprite, aligned, to prepare it */
+static uint32_t face[1024], ball[1024];         /* the prepared sprites */
+static uint32_t tiles[64 * 32 / 4];             /* up to 64 8x8 tiles */
 static uint16_t cells[1024];
 
-static int load_map(int num, zxv_tilemap *m)
+/* Sprite num of the file, prepared in out. */
+static int load_sprite(const zxv_gfxfile *f, int num, void *out, uint32_t room)
 {
-    const uint8_t *d = gfx_find(GFX_MAP, num);
-    if (!d)
+    zxv_bitmap b;
+    uint32_t n = zxv_gfxf_sprite(f, num, &b, pix, sizeof(pix));
+    if (!n || n > sizeof(pix) || zxv_spr_prepare(&b, 0, 0, b.w, b.h, NULL) > room)
         return 0;
-    int w = rd16(d), h = rd16(d + 2), size = d[4];
-    const uint8_t *t = gfx_find(GFX_TILES, size);
-    uint32_t tbytes = t ? rd16(t) * (uint32_t)size * size / 2 : 0;
-    if (!t || tbytes > sizeof(tiles) || (uint32_t)(w * h) > 1024)
-        return 0;
-    memcpy(tiles, t + 4, tbytes);
-    memcpy(cells, d + 8, (size_t)w * h * 2);
-    *m = (zxv_tilemap){ cells, (uint16_t)w, (uint16_t)h, (const uint8_t *)tiles,
-                        (uint8_t)size, d[5] ? ZXV_MAP_WRAP : 0 };
+    zxv_spr_prepare(&b, 0, 0, b.w, b.h, out);
     return 1;
 }
-
-/* --- The demo ----------------------------------------------------------------- */
-
-static uint32_t face[(8 + 16 * 2 * 8) / 4], ball[(8 + 16 * 2 * 8) / 4];
 
 int main(void)
 {
+    zxv_gfxfile f;
     zxv_tilemap level;
-    if (zxv_file_load("art.gfx", file, sizeof(file)) < 0 ||   /* if it fits in 'file' */
-        !load_sprite(0, face, sizeof(face)) || !load_sprite(1, ball, sizeof(ball)) ||
-        !load_map(0, &level))
-        zxv_report_error(0, "Cannot load art.gfx");    /* back to BASIC with this report */
+    int n = zxv_file_load("art.gfx", file, sizeof(file));     /* if it fits in 'file' */
+    if (n < 0 || !zxv_gfxf_open(&f, file, (uint32_t)n) ||
+        !load_sprite(&f, 0, face, sizeof(face)) || !load_sprite(&f, 1, ball, sizeof(ball)))
+        zxv_report_error(0, "Cannot load art.gfx");      /* back to BASIC with this report */
+    uint32_t t = zxv_gfxf_tiles(&f, 8, tiles, sizeof(tiles), NULL);
+    uint32_t c = zxv_gfxf_map(&f, 0, &level, tiles, cells, sizeof(cells));
+    if (!t || t > sizeof(tiles) || !c || c > sizeof(cells))
+        zxv_report_error(0, "The map of art.gfx does not fit");
     int visible = 0;
     for (int frame = 0; zxv_key_get() < 0; frame++) {
         int hidden = 1 - visible;
@@ -730,9 +700,80 @@ int main(void)
 }
 ```
 
-Put `art.gfx` in the same folder of the SD card as the program. A texture
-(type 4) can be used as it is: its texels are exactly what `zxv_m7tex`
-expects.
+To build it, add `$(SDK)/gfxfile.c` to the program's files (in the Makefile
+above, `SOURCES := hello.c $(SDK)/gfxfile.c`), and put `art.gfx` in the
+same folder of the SD card as the program. The
+[Route 128](../../../sdk/examples/route128/art.c) and
+[Estela](../../../sdk/examples/estela/draw.c) games of the examples read
+their graphics like this: they carry their `.gfx` inside the program and,
+if there is another one on the card, they use that one.
+
+## The graphics editor for the PC: `zxv-gfx`
+
+To draw on the PC, the emulator packages come with **`zxv-gfx`**, an editor
+for the same `.gfx` files for Windows and Linux (in the AppImage,
+`./ZX-V-x86_64.AppImage zxv-gfx`). It is free software under the MIT
+licence: its code is in [`sdk/tools/gfx`](../../../sdk/tools/gfx), and it
+builds on its own with Qt 6 (`cmake -S sdk/tools/gfx -B build-gfx`). It
+speaks Spanish or English, the system's language (or the one you ask for:
+`zxv-gfx --lang es`).
+
+![zxv-gfx with the level of the platform game in the examples](../../images/sdk-gfx-editor-en.png)
+
+- **A tab for each kind of object** (sprites, 8 and 16 pixel tiles, maps and
+  textures) and, on the left, their thumbnails; double clicking an empty
+  slot creates it. On the right, the palette, the properties (size,
+  wrapping, the colour outside…) and a preview: sprites animated with the
+  next ones, tiles repeated 3 × 3 to see whether they match, and textures
+  also as a mode 7 floor (View > The texture in mode 7).
+- **Drawing:** pen, line, box, ellipse (empty or filled), flood fill, picking
+  a colour and selecting. The selection moves by dragging it, and can be
+  mirrored, turned and shifted; Enter drops it and Esc puts it back. The
+  left button paints with one colour and the right one with another (X
+  swaps them).
+- **Maps** are painted with the tile chosen in the *Tiles to paint with*
+  panel and its attributes (both mirrors, transparent and in front); the
+  right button puts tile 0. Double clicking a tile in the panel opens it for
+  editing.
+- **Copy and paste** with the system clipboard: what you copy pastes into
+  other programs as an image, and an image from another program pastes with
+  ZX-V colours (the nearest one to each pixel).
+- **Import an image** (File > Import, or by dragging it onto the window): a
+  sprite, a sprite sheet, tiles, a whole level (the tiles, reusing the
+  repeated ones and, if you want, the mirrored ones, and the map) or a
+  texture. It gives the same as `png2gfx.py` with the same commands.
+  **Export as PNG** saves the object, the tile set or the drawn map.
+- **Unlimited undo and redo**, zoom with Ctrl and the wheel, and the middle
+  button to drag the view. The status bar tells how much it would all take
+  on the machine.
+
+## The graphics editor on the machine: `gfxedit`
+
+Without leaving the machine: `LOAD "ROM:gfxedit"` (or `gfxedit.zxv` from
+`sdk/build`) opens an editor for the same `.gfx` files, used with the mouse.
+At the top there is a tab for each kind of graphic:
+
+| Tab | What it edits |
+|---|---|
+| Sprites | The 256 sprites, from 1 × 1 to 1024 × 1024 pixels (colour 8 is the transparent one) |
+| Tiles 8, Tiles 16 | The two tile sets: the tile enlarged, the same tile repeated 3 × 3 to see whether it matches its neighbours, and below the whole set, to pick from |
+| Maps | The 16 maps: painted with the chosen tile and its attributes (both mirrors, 8 transparent and in front), as with `MAP POKE` |
+| Textures | The 4 mode 7 textures: their side, whether they wrap and the colour outside |
+
+- **Drawing:** pen, line, box, filled box, flood fill and picking a colour
+  from the image. The left button paints with one colour of the palette and
+  the right button with another.
+- **The whole image:** both mirrors, turning it, shifting it (what leaves on
+  one side comes back on the other), clearing, copying and pasting it.
+- **Sprites animate:** the panel shows the sprite and the following ones,
+  one after another, to see an animation made of consecutive sprites.
+- **Undo** with U (or Ctrl+Z); zoom with the wheel or + and -; Page Up and
+  Page Down, the previous and next object; Tab, the next tab.
+- **Load** and **Save** use the card. Started from `ROM:`, it saves to `SD:`.
+
+About 112 KB of graphics fit at once. Its code is in
+[`sdk/examples/gfxedit`](../../../sdk/examples/gfxedit): `store.c` reads and
+writes `.gfx` files, and your program can use it as it is.
 
 ## How fast is it?
 

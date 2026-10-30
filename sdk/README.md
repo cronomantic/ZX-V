@@ -13,12 +13,16 @@ machine's specification as "spec §N": that is [dev/spec.md](../dev/spec.md)
 | `include/zxv.h` | Addresses, registers, constants and the numbers of the system routines |
 | `include/zxv_api.h` | The system routines (the ROM API) as `static inline` C functions |
 | `include/zxv_gfx.h` | The graphics engine for games: bitmaps, sprites, tile maps, mode 7 and vectors |
+| `include/zxv_gfxfile.h`, `gfxfile.c` | Reads `.gfx` graphics files: sprites, tiles, maps and textures |
+| `include/zxv_music.h`, `music/` | Music and sound effects for the two AY chips: PT3, TurboSound, PT2, STC, ASC and PSG modules and AYFX effects, at their tempo of 50 steps per second |
 | `zxvlib.c` | `memcpy`, `memset`, `memmove` and `memcmp`, for programs without a C library |
 | `zxvc.c`, `include/sys/dirent.h` | The standard C library (picolibc) on top of the system routines: files, folders, console, heap and time |
 | `zxv.ld`, `crt0.S` | The linker script and the entry point |
 | `tools/elf2zxv.py` | Turns the ELF into a `.zxv` |
+| `tools/gfx/` | `zxv-gfx`, the graphics editor for the PC (Qt 6): `cmake -S sdk/tools/gfx -B build-gfx` |
+| `tools/tracker/` | `zxv-tracker`, the tracker for the PC (Qt 6 and SDL2): `cmake -S sdk/tools/tracker -B build-tracker` |
 | `tools/png2gfx.py` | Turns PNG images into `.gfx` graphics files for BASIC (`LOAD "x" GRAPHICS`) |
-| `examples/` | `hello`, `graphics`, `scroll`, `digital`, `files` and `boardtest`, and four complete games: `estela` (Estela), `route128` (Route 128), `mine` (The Mine) and `street` (Street Justice), each with its README |
+| `examples/` | `hello`, `graphics`, `scroll`, `digital`, `files`, `boardtest`, `player` (a music and effects player) and `gfxedit` (a graphics editor), and four complete games: `estela` (Estela), `route128` (Route 128), `mine` (The Mine) and `street` (Street Justice), each with its README |
 
 It needs `riscv64-unknown-elf-gcc`, picolibc for it (only for `files`) and
 Python 3:

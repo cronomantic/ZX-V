@@ -1,15 +1,17 @@
 /*
  * estela.h - Estela, un matamarcianos para ZX-V: lo que comparten sus partes.
  *
- *   draw.c   la pantalla: doble buffer, texto, sprites, estrellas
- *   sound.c  la música (primer AY), los efectos (segundo AY) y las muestras
- *            digitalizadas (con zxv_ay_event, spec §5.4)
+ *   draw.c   la pantalla: doble buffer, texto, sprites (los de estela.gfx),
+ *            estrellas
+ *   sound.c  la música (primer AY, módulos PT3), los efectos (segundo AY) y
+ *            las muestras digitalizadas (con zxv_ay_event, spec §5.4)
  *   game.c   las fases, los enemigos, los jefes, el título y la demostración
  */
 #ifndef ESTELA_H
 #define ESTELA_H
 
 #include "zxv_gfx.h"
+#include "zxv_gfxfile.h"
 
 #define W           256
 #define H           192
@@ -47,12 +49,12 @@ void label(int y, const char *s, int c);   /* centrado, sobre una franja negra *
 void text_big(int x, int y, const char *s, int s_, const uint8_t *row_colours);
 void number(char *out, uint32_t v, int digits);
 
-/* Un sprite dibujado con caracteres: '.' transparente, '0'-'9' y 'a'-'f' colores. */
-sprite_t sprite_ascii(const char *const *rows, int w, int h);
-/* Un sprite dibujado con el motor: canvas() deja un lienzo transparente de
- * w x h como destino y canvas_sprite() lo prepara. */
-void canvas(int w, int h);
-sprite_t canvas_sprite(void);
+/* Los gráficos de estela.gfx: el de dentro del programa o, si en la carpeta
+ * desde la que se carga hay otro, ese. art_sprite prepara uno de sus sprites
+ * (si no está, no se dibuja). */
+void art_open(void);
+const zxv_gfxfile *art_file(void);
+sprite_t art_sprite(int num);
 
 void draw_sprite(const sprite_t *s, int x, int y, int flags, const uint8_t *colours);
 int sprites_touch(const sprite_t *a, int ax, int ay, const sprite_t *b, int bx, int by);
@@ -63,7 +65,7 @@ void stars_draw(int speed);             /* speed en FX por frame, la de la capa 
 
 /* --- sound.c ------------------------------------------------------------------ */
 
-enum { SONG_NONE, SONG_TITLE, SONG_STAGE, SONG_BOSS, SONG_OVER, SONG_CLEAR };
+enum { SONG_NONE, SONG_TITLE, SONG_STAGE, SONG_STAGE_2, SONG_STAGE_3, SONG_BOSS, SONG_OVER, SONG_CLEAR, SONGS };
 enum { FX_SHOT, FX_HIT, FX_BOOM, FX_BIG, FX_POWER, FX_DEATH, FX_ALARM };
 
 void sound_init(void);
@@ -71,6 +73,8 @@ void sound_frame(void);                 /* una vez por frame: música, efectos y
 void sound_song(int song);
 void sound_fx(int fx);
 void sound_mute(int on);                /* la pausa */
+void sound_music(int on);               /* la música sí o no (la tecla S) */
+int sound_music_on(void);
 void sound_off(void);                   /* al salir */
 
 /* --- game.c ---------------------------------------------------------------------- */

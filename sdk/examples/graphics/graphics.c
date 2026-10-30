@@ -206,7 +206,12 @@ static void draw_star(int frame)
  * la textura (que se repite). Se proyectan con la misma cámara que el suelo:
  * la última línea calculada da la derecha de la cámara (du, dv) multiplicada
  * por lo que mide un píxel allí, height / dy; de ella sale la profundidad z
- * de cada cono, y con z su línea, su x y su tamaño (focal / z). */
+ * de cada cono, y con z su línea, su x y su tamaño (focal / z).
+ *
+ * El escenario de arriba es el fondo: un muro que está sobre el suelo, en la
+ * línea MAP_H, y tapa lo que hay más allá. Un cono con la base por delante
+ * del muro se ve entero, aunque suba por encima de él; uno con la base
+ * detrás, no se ve. */
 #define CONES_MAX   81
 #define CONE_SIZE   10                                  /* de alto, en texels */
 
@@ -234,16 +239,16 @@ static void draw_cones(const zxv_m7cam *cam)
             c[k].z = z;
             c[k].lat = (int32_t)((fl << 16) / step);
         }
-    zxv_gfx_clip(0, MAP_H, W, 192);                     /* solo sobre el suelo */
     for (int k = 0; k < n; k++) {
         int64_t z = c[k].z;
         int y = cam->horizon + (int)((cam->height * (int64_t)focal) / z);
+        if (y <= MAP_H)                                 /* detrás del muro */
+            continue;
         int x = W / 2 + (int)(((int64_t)c[k].lat * focal) / z);
         int h = (int)(((int64_t)CONE_SIZE * 65536 * focal) / z), w = h * 15 / 24;
         if (h > 0 && w > 0)
             zxv_spr_draw_scaled(cone_spr, x - w / 2, y - h, w, h, 0, 0);
     }
-    zxv_gfx_clip(0, 0, W, 192);
 }
 
 static void draw_frame(int frame)
@@ -257,13 +262,14 @@ static void draw_frame(int frame)
         zxv_spr_draw(ball_spr, balls[i].x >> 4, balls[i].y >> 4, i & 1 ? ZXV_FLIP_H : 0,
                      balls[i].hit ? hit_colours : 0);
 
-    /* Suelo en modo 7 que gira, con el horizonte en el borde del escenario. */
+    /* Suelo en modo 7 que gira, con el horizonte un poco más arriba del borde
+     * del escenario: el muro tapa lo más lejano. */
     zxv_m7tex tex = { floor_tex, 6, 1, 0, 0 };
     zxv_m7cam cam = { frame << 14, frame << 13, 12 << 16, frame * 90, 140 << 16, MAP_H - 8, 0 };
     zxv_m7_camera(floor_lines, 192, &cam);
     zxv_m7_draw(&tex, floor_lines + MAP_H, MAP_H, 192 - MAP_H);
-    draw_cones(&cam);
     zxv_gfx_line(0, MAP_H, W - 1, MAP_H, 0);
+    draw_cones(&cam);
 }
 
 int main(void)

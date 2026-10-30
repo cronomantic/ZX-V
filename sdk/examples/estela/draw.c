@@ -215,54 +215,47 @@ void number(char *out, uint32_t v, int digits)
 
 /* --- Los sprites --------------------------------------------------------------- */
 
+/* El fichero, dentro del programa. */
+__asm__(".section .rodata.estela_gfx, \"a\"\n.balign 4\nestela_gfx:\n"
+        ".incbin \"examples/estela/estela.gfx\"\nestela_gfx_end:\n.previous\n");
+extern const uint8_t estela_gfx[], estela_gfx_end[];
+
+static uint8_t card[24 * 1024];         /* el de la tarjeta */
+static zxv_gfxfile gfx;
 static uint32_t pool[12288];            /* los sprites preparados (48 KB) */
 static uint32_t pool_used;
-static uint32_t canvas_mem[64 * 64 / 8];
-static zxv_bitmap canvas_bmp;
+static uint32_t bitmap[128 * 128 / 8];  /* cada sprite, alineado, para prepararlo */
 
-static sprite_t prepare(int w, int h)
+void art_open(void)
 {
-    sprite_t s = { 0, (uint8_t)w, (uint8_t)h };
-    uint32_t bytes = zxv_spr_prepare(&canvas_bmp, 0, 0, w, h, 0);
+    const uint8_t *data = estela_gfx;
+    uint32_t size = (uint32_t)(estela_gfx_end - estela_gfx);
+    int n = zxv_file_load("estela.gfx", card, sizeof(card));
+    if (n == ZXV_E_RANGE)
+        zxv_report_error(0, T("estela.gfx es demasiado grande", "estela.gfx is too big"));
+    if (n >= 0) {
+        data = card;
+        size = (uint32_t)n;
+    }
+    if (!zxv_gfxf_open(&gfx, data, size))
+        zxv_report_error(0, T("estela.gfx no vale", "estela.gfx is not valid"));
+}
+
+const zxv_gfxfile *art_file(void) { return &gfx; }
+
+sprite_t art_sprite(int num)
+{
+    sprite_t s = { 0, 0, 0 };
+    zxv_bitmap b;
+    if (zxv_gfxf_sprite(&gfx, num, &b, bitmap, sizeof(bitmap)) - 1 >= sizeof(bitmap) || b.w > 255 || b.h > 255)
+        return s;                       /* no está, o es muy grande */
+    uint32_t bytes = zxv_spr_prepare(&b, 0, 0, b.w, b.h, 0);
     if (pool_used + (bytes + 3) / 4 > sizeof(pool) / 4)
         return s;                       /* no cabe: no se dibuja */
-    zxv_spr_prepare(&canvas_bmp, 0, 0, w, h, &pool[pool_used]);
-    s.spr = &pool[pool_used];
+    zxv_spr_prepare(&b, 0, 0, b.w, b.h, &pool[pool_used]);
+    s = (sprite_t){ &pool[pool_used], (uint8_t)b.w, (uint8_t)b.h };
     pool_used += (bytes + 3) / 4;
     return s;
-}
-
-void canvas(int w, int h)
-{
-    canvas_bmp.pix = (uint8_t *)canvas_mem;
-    canvas_bmp.stride = (uint16_t)((w + 7) / 8 * 4);
-    canvas_bmp.w = (uint16_t)w;
-    canvas_bmp.h = (uint16_t)h;
-    uint8_t *p = canvas_bmp.pix;
-    for (int i = 0; i < canvas_bmp.stride * h; i++)
-        p[i] = 0x88;                    /* todo transparente */
-    zxv_gfx_target(&canvas_bmp);
-    zxv_gfx_clip(0, 0, w, h);
-}
-
-sprite_t canvas_sprite(void)
-{
-    zxv_gfx_target(0);
-    zxv_gfx_clip(0, 0, W, H);
-    return prepare(canvas_bmp.w, canvas_bmp.h);
-}
-
-sprite_t sprite_ascii(const char *const *rows, int w, int h)
-{
-    canvas(w, h);
-    for (int y = 0; y < h; y++)
-        for (int x = 0; x < w; x++) {
-            char ch = rows[y][x];
-            int c = ch >= '0' && ch <= '9' ? ch - '0' : ch >= 'a' && ch <= 'f' ? ch - 'a' + 10 : ZXV_TRANSPARENT;
-            uint8_t *p = canvas_bmp.pix + y * canvas_bmp.stride + (x >> 1);
-            *p = x & 1 ? (uint8_t)((*p & 0x0F) | c << 4) : (uint8_t)((*p & 0xF0) | c);
-        }
-    return canvas_sprite();
 }
 
 void draw_sprite(const sprite_t *s, int x, int y, int flags, const uint8_t *colours)

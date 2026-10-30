@@ -136,6 +136,25 @@ mientras toca el chip. Eso es justo lo que necesita un juego. El sonido sigue
 hasta que lo cambies, así que acuérdate de callarlo con `SOUND 8,0`. Los
 registros del 16 al 31 son los mismos del segundo chip.
 
+## Música de verdad: `MUSIC` y `SFX`
+
+Para la música de un juego se usa un *tracker*, un programa para componer
+como los que usaban los músicos del Spectrum. ZX-V trae uno para el PC,
+[`zxv-tracker`](../../sdk/README.md#el-tracker-para-el-pc-zxv-tracker),
+que guarda la canción en un fichero `.pt3` y los efectos de sonido en un
+`.afb`. El BASIC los toca **de fondo**, mientras el programa sigue:
+
+```
+10 LOAD "tema" MUSIC: MUSIC PLAY
+20 LOAD "efectos" SFX
+30 IF INKEY$=" " THEN SFX 0
+40 GO TO 30
+```
+
+`MUSIC STOP` para la música y `SFX n` toca el efecto número `n` sin
+callarla. Todo lo demás está en la referencia: [`MUSIC`](../reference.md#music)
+y [`SFX`](../reference.md#sfx).
+
 ## Pruébalo
 
 1. Toca con `PLAY` el principio de una canción que conozcas.
@@ -166,7 +185,8 @@ más aguda) como 40, espera otra vez y baja el volumen con `SOUND 8,0`.
 ---
 
 **Referencia:** [`BEEP`](../reference.md#beep), [`PLAY`](../reference.md#play),
-[`SOUND`](../reference.md#sound), [`WAIT`](../reference.md#wait).
+[`SOUND`](../reference.md#sound), [`WAIT`](../reference.md#wait),
+[`MUSIC`](../reference.md#music), [`SFX`](../reference.md#sfx).
 
 **Siguiente:** [11. Teclado y mando](11-keyboard-and-joystick.md) ·
 **Anterior:** [9. Dibujar](09-drawing.md)

@@ -46,7 +46,36 @@ It is also on the machine's ROM disk: `LOAD "ROM:route128"`.
 | Z | Button 3 or Select | Change gear (LO or HI) |
 | Cursor left and right, or O and P | D-pad | Steer |
 | Enter | Start | Pause |
+| S | | Music on or off |
 | Esc | | To the title; on the title, to BASIC |
+
+## Its graphics and music, your way
+
+The graphics are in [`route128.gfx`](route128.gfx), edited with `zxv-gfx`
+on the PC or with `gfxedit` on the machine itself, and the music in Pro
+Tracker 3 modules edited with `zxv-tracker`:
+[`route128-race.pt3`](route128-race.pt3) (the race),
+[`-title`](route128-title.pt3) (the title), [`-goal`](route128-goal.pt3)
+(the finish) and [`-over`](route128-over.pt3) (time up). The program
+carries them inside, but if there is one with that name in the folder it
+is loaded from, it uses that one: changing a drawing or a tune needs no
+compiling. One that is not valid (or does not fit) gives a report and goes
+back to BASIC.
+
+The sprites of `route128.gfx`, by number:
+
+| Number | |
+|---|---|
+| 0–9 | By the road: palm, bush, sunshade, cactus, rock, pine, tree, left and right bend arrows, and the billboard |
+| 10–12 | The start, checkpoint and finish arches, in Spanish |
+| 13–15 | The same, in English |
+| 16–18 | The rivals: coupé, van and lorry (colours 2 and 3, the body and its highlights, become each car's colours) |
+| 20–24 | The car, from the hardest turn to the left to the hardest to the right |
+| 30–38 | The scenery of the coast, the desert and the forest: for each stage, the mountains, the near layer and the clouds; 256 pixels wide or more, and they repeat |
+
+Objects are drawn smaller the further away they are: their size in the
+file is the close-up one, and their width in the world (how much of the
+road they take) is in `art.c`.
 
 ## How it works
 
@@ -54,9 +83,9 @@ It is also on the machine's ROM disk: `LOAD "ROM:route128"`.
 |---|---|
 | `route128.h` | What the parts share: sizes, fills, sprites, the track and the sound |
 | `video.c` | The screen: double buffer, the colour spans of the road, the 5 × 7 font and the sprites |
-| `art.c` | The graphics, drawn with the engine at start-up, and each stage's scenery |
+| `art.c` | The graphics of `route128.gfx` (with `zxv_gfxfile.h`), and each stage's scenery |
 | `road.c` | The track and its projection: the road, the scenery, the objects and the cars |
-| `sound.c` | The music (first AY) and the car (second AY) |
+| `sound.c` | The music (first AY, with `zxv_music.h`) and the car (second AY) |
 | `game.c` | Driving, traffic, crashes, the HUD, the title and the demo |
 
 - **The road** is a strip of segments, each with its curve and height, built
@@ -79,23 +108,29 @@ It is also on the machine's ROM disk: `LOAD "ROM:route128"`.
   drawings (coupé, van and lorry) recoloured with the colour table as they
   are drawn. The player's car is drawn at its own size, in five poses
   depending on how it turns.
-- **The graphics** are drawn at start-up with the engine's polygons,
-  rectangles and circles on a canvas (`zxv_gfx_target`), larger than they are
-  seen from afar so that they hold up close by.
+- **The graphics** are those of `route128.gfx`, larger than they are seen
+  from afar so that they hold up close by. At start-up they are prepared for
+  the engine (`zxv_spr_prepare`).
+- **The video memory nobody sees:** the graphics file takes 110 KB, and with
+  the prepared sprites it does not fit in user RAM. But in mode 0 the screen
+  only uses 24 KB of each 96 KB video page: the rest is memory like any
+  other, and the prepared sprites, the music from the card and the stage's
+  scenery go there.
 - **The scenery:** clouds, mountains and the sea, the dunes or the hills, in
   three 512-pixel layers that repeat and move at different speeds with the
-  bends. The next stage's are drawn in a second set, a piece each frame
-  (about a millisecond) as it approaches, and swapped in on reaching it:
-  drawing them all at once does not fit in a frame along with the road.
+  bends. On reaching a stage its layers are copied from the file.
 - **The sound:** the engine is two tones of the second AY, one an octave
   lower, that follow the gear's revs; skidding and the verge, its noise; and
-  the music, the first AY.
+  the music, on the first AY, the SDK's music library. The race tune lasts a
+  minute and a half before it repeats: an intro, the theme, a part in E
+  minor, a breather with chords, a build-up and the theme again, a tone
+  higher.
 - **No floating point:** positions and projection use integers (the curve in
   1/16, the lateral position in 1/1024 of half the road).
 - **At 60 frames per second:** speeds, accelerations and times are written
   per second (`ZXV_FRAME_HZ`), and what is left over from each frame's share
   carries on to the next, so nothing moves in jerks. The music and the sound
-  effects go in steps of a fiftieth of a second, as they were written.
+  effects go in steps of a fiftieth of a second, as they are written.
 
 ## Performance
 

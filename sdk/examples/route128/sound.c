@@ -1,16 +1,20 @@
 /*
  * sound.c - El sonido de Route 128, con los dos AY (TurboSound, spec §5):
  *
- *   - Primer AY: la música. Canal A la melodía, B el bajo y C la batería
- *     (bombo con un barrido de tono, caja con ruido). Una nota por fila:
- *     1 sigue la anterior, 0 calla.
+ *   - Primer AY: la música, con la biblioteca del SDK (zxv_music.h). Son
+ *     módulos de Pro Tracker 3 que se editan con zxv-tracker:
+ *     route128-race.pt3 (la carrera), -title (el título), -goal (la meta) y
+ *     -over (se acabó el tiempo). El programa los lleva dentro y, si en la
+ *     carpeta desde la que se carga hay alguno, usa ese.
  *   - Segundo AY: el coche. Canales A y B, el motor (dos tonos, uno una
  *     octava más grave, que siguen a las vueltas); C, el ruido del derrape y
  *     de la cuneta, y encima los golpes y los avisos.
  *
- * Todo va a pasos de un cincuentavo de segundo (sound_step): el tempo de las
- * canciones y lo que duran los efectos, en esos pasos.
+ * El coche va a pasos de un cincuentavo de segundo (sound_step): lo que duran
+ * los efectos, en esos pasos. La música lleva su propio reloj.
  */
+#include "zxv_music.h"
+
 #include "route128.h"
 
 #define AY2         ZXV_AY2
@@ -23,14 +27,14 @@ static const uint16_t period[61] = {
     79, 75, 71, 67, 63, 59, 56, 53,
 };
 
-/* --- Los registros, sin repetir escrituras ------------------------------------- */
+/* --- Los registros del segundo AY, sin repetir escrituras -------------------- */
 
 static uint8_t cache[32];
 static int muted;
 
 static void ay(int r, int v)
 {
-    if (cache[r] != (uint8_t)v || r == 13 || r == AY2 + 13) {   /* R13 reinicia la envolvente */
+    if (cache[r] != (uint8_t)v || r == AY2 + 13) {     /* R13 reinicia la envolvente */
         cache[r] = (uint8_t)v;
         zxv_ay_write(r, v);
     }
@@ -42,140 +46,85 @@ static void tone(int base, int ch, int per)
     ay(base + ch * 2 + 1, (per >> 8) & 0x0F);
 }
 
-static void note(int ch, int n)
+/* --- La música --------------------------------------------------------------- */
+
+/* Los módulos de dentro del programa. */
+#define EMBED(sym, file)                                                        \
+    __asm__(".section .rodata." #sym ", \"a\"\n.balign 4\n" #sym ":\n"           \
+            ".incbin \"examples/route128/" file "\"\n" #sym "_end:\n.previous\n"); \
+    extern const uint8_t sym[], sym##_end[]
+EMBED(race_pt3, "route128-race.pt3");
+EMBED(title_pt3, "route128-title.pt3");
+EMBED(goal_pt3, "route128-goal.pt3");
+EMBED(over_pt3, "route128-over.pt3");
+
+static struct {
+    const char *file;
+    const uint8_t *data;
+    uint32_t size;
+} songs[] = {
+    [SONG_RACE] = { "route128-race.pt3", race_pt3, 0 },
+    [SONG_TITLE] = { "route128-title.pt3", title_pt3, 0 },
+    [SONG_GOAL] = { "route128-goal.pt3", goal_pt3, 0 },
+    [SONG_OVER] = { "route128-over.pt3", over_pt3, 0 },
+};
+
+static int music_on = 1;
+
+/* El informe de un módulo de la tarjeta que no vale; vuelve al BASIC. */
+static void bad_song(const char *file)
 {
-    if (n < 36)
-        n = 36;
-    if (n > 96)
-        n = 96;
-    tone(0, ch, period[n - 36]);
+    static char msg[48];
+    int n = 0;
+    while (*file)
+        msg[n++] = *file++;
+    for (const char *s = T(" no vale", " is not valid"); *s;)
+        msg[n++] = *s++;
+    msg[n] = 0;
+    zxv_report_error(0, msg);
 }
 
-/* --- La música ----------------------------------------------------------------- */
-
-typedef struct {
-    uint8_t tempo, rows, loop;
-    const uint8_t *melody, *bass, *drums;
-} song_t;
-
-/* La carrera: do, la menor, fa y sol, en corcheas. */
-static const uint8_t race_m[64] = {
-    76, 1, 79, 81, 1, 79, 76, 1, 74, 1, 76, 79, 1, 0, 0, 0,
-    72, 1, 74, 76, 1, 79, 81, 1, 79, 1, 76, 74, 1, 0, 0, 0,
-    76, 1, 79, 81, 1, 84, 83, 81, 79, 1, 76, 79, 1, 81, 1, 0,
-    84, 1, 83, 81, 79, 1, 76, 74, 72, 1, 1, 1, 1, 0, 74, 76,
-};
-static const uint8_t race_b[64] = {
-    48, 0, 55, 0, 60, 0, 55, 0, 45, 0, 52, 0, 57, 0, 52, 0,
-    41, 0, 48, 0, 53, 0, 48, 0, 43, 0, 50, 0, 55, 0, 50, 0,
-    48, 0, 55, 0, 60, 0, 55, 0, 45, 0, 52, 0, 57, 0, 52, 0,
-    41, 0, 48, 0, 53, 0, 48, 0, 43, 0, 50, 0, 43, 47, 50, 55,
-};
-static const uint8_t race_d[16] = { 1, 0, 3, 0, 2, 0, 3, 1, 1, 0, 3, 0, 2, 0, 3, 3 };
-
-static const uint8_t title_m[32] = {
-    72, 1, 76, 1, 79, 1, 84, 1, 83, 1, 79, 1, 76, 1, 1, 0,
-    74, 1, 77, 1, 81, 1, 79, 1, 77, 1, 76, 1, 74, 1, 1, 0,
-};
-static const uint8_t title_b[32] = {
-    48, 0, 1, 0, 55, 0, 1, 0, 45, 0, 1, 0, 52, 0, 1, 0,
-    41, 0, 1, 0, 48, 0, 1, 0, 43, 0, 1, 0, 50, 0, 1, 0,
-};
-static const uint8_t title_d[16] = { 1, 0, 0, 0, 2, 0, 0, 0, 1, 0, 1, 0, 2, 0, 0, 0 };
-
-static const uint8_t goal_m[24] = { 72, 76, 79, 84, 1, 0, 79, 84, 1, 1, 1, 0, 81, 84, 88, 1, 1, 1, 91, 1, 1, 1, 1, 0 };
-static const uint8_t goal_b[24] = { 48, 0, 0, 52, 0, 0, 55, 0, 0, 60, 0, 0, 53, 0, 0, 57, 0, 0, 55, 0, 0, 1, 1, 0 };
-static const uint8_t goal_d[8] = { 1, 0, 2, 0, 1, 1, 2, 0 };
-
-static const uint8_t over_m[16] = { 72, 1, 71, 1, 70, 1, 69, 1, 1, 1, 1, 1, 1, 1, 1, 0 };
-static const uint8_t over_b[16] = { 48, 1, 47, 1, 46, 1, 45, 1, 1, 1, 1, 1, 1, 1, 1, 0 };
-static const uint8_t over_d[8] = { 0 };
-
-static const song_t songs[] = {
-    [SONG_RACE] = { 7, 64, 1, race_m, race_b, race_d },
-    [SONG_TITLE] = { 8, 32, 1, title_m, title_b, title_d },
-    [SONG_GOAL] = { 6, 24, 0, goal_m, goal_b, goal_d },
-    [SONG_OVER] = { 10, 16, 0, over_m, over_b, over_d },
-};
-
-static const song_t *song;
-static int row, tick, drum_len;
-static int mel_vol, bass_vol, drum_t, drum_kind;
+/* Los de la tarjeta, uno detrás de otro en MUSIC_MEM; si no hay, los de
+ * dentro. Uno que no cabe o no es música da un informe y vuelve al BASIC. */
+static void load_songs(void)
+{
+    static const uint8_t *const ends[] = {
+        [SONG_RACE] = race_pt3_end, [SONG_TITLE] = title_pt3_end,
+        [SONG_GOAL] = goal_pt3_end, [SONG_OVER] = over_pt3_end,
+    };
+    uint8_t *at = MUSIC_MEM;
+    for (int s = SONG_RACE; s <= SONG_OVER; s++) {
+        songs[s].size = (uint32_t)(ends[s] - songs[s].data);
+        int n = zxv_file_load(songs[s].file, at, (uint32_t)(MUSIC_MEM + MUSIC_ROOM - at));
+        zxv_music_info_t info;
+        if (n == ZXV_E_RANGE || (n >= 0 && zxv_music_info(at, (uint32_t)n, &info) != ZXV_MUSIC_PT3))
+            bad_song(songs[s].file);
+        if (n >= 0) {
+            songs[s].data = at;
+            songs[s].size = (uint32_t)n;
+            at += (n + 3) & ~3;
+        }
+    }
+}
 
 void sound_song(int s)
 {
-    song = s == SONG_NONE ? 0 : &songs[s];
-    row = 0;
-    tick = 0;
-    mel_vol = bass_vol = 0;
-    drum_len = song == &songs[SONG_RACE] ? 16 : song == &songs[SONG_TITLE] ? 16 : 8;
+    if (s == SONG_NONE)
+        zxv_music_stop();
+    else
+        zxv_music_play(songs[s].data, songs[s].size, s == SONG_RACE || s == SONG_TITLE ? ZXV_MUSIC_LOOP : 0);
+    zxv_music_pause(muted || !music_on);
 }
 
-static void music_frame(void)
+void sound_music(int on)
 {
-    if (!song) {
-        ay(8, 0);
-        ay(9, 0);
-        ay(10, 0);
-        return;
-    }
-    if (tick == 0) {
-        int m = song->melody[row], b = song->bass[row], d = song->drums[row % drum_len];
-        if (m > 1) {
-            note(0, m);
-            mel_vol = 13;
-        } else if (m == 0) {
-            mel_vol = 0;
-        }
-        if (b > 1) {
-            note(1, b);
-            bass_vol = 12;
-        } else if (b == 0) {
-            bass_vol = bass_vol > 8 ? 8 : bass_vol;
-        }
-        if (d) {
-            drum_kind = d;
-            drum_t = 0;
-        }
-        if (++row >= song->rows) {
-            if (song->loop)
-                row = 0;
-            else {
-                song = 0;
-                return;
-            }
-        }
-    }
-    if (++tick >= song->tempo)
-        tick = 0;
-    if (mel_vol > 9 && (tick & 1))
-        mel_vol--;                      /* la nota se apaga un poco */
-    /* La batería, en el canal C: el bombo baja de tono; la caja y el charles son ruido. */
-    int mixer = 0x38;                   /* tonos A y B, sin ruido */
-    int dv = 0;
-    if (drum_kind == 1 && drum_t < 6) {
-        tone(0, 2, 600 + drum_t * 300);
-        dv = 15 - drum_t * 2;
-        mixer = 0x38 & ~0x00;           /* el tono de C */
-    } else if (drum_kind == 2 && drum_t < 7) {
-        ay(6, 8);
-        dv = 13 - drum_t * 2;
-        mixer = 0x18 | 0x04;            /* ruido en C, sin su tono */
-    } else if (drum_kind == 3 && drum_t < 2) {
-        ay(6, 2);
-        dv = 8;
-        mixer = 0x18 | 0x04;
-    } else {
-        mixer = 0x3C;
-    }
-    drum_t++;
-    ay(7, mixer);
-    ay(8, muted ? 0 : mel_vol);
-    ay(9, muted ? 0 : bass_vol);
-    ay(10, muted ? 0 : dv);
+    music_on = on;
+    zxv_music_pause(muted || !music_on);
 }
 
-/* --- El coche -------------------------------------------------------------------- */
+int sound_music_on(void) { return music_on; }
+
+/* --- El coche ------------------------------------------------------------------ */
 
 static int eng_rpm, eng_skid, eng_off;
 static int fx, fx_t;
@@ -272,20 +221,17 @@ void sound_init(void)
     *(volatile uint8_t *)(uintptr_t)ZXV_S_AY_STEREO = ZXV_AY_STEREO_ACB;
     for (int r = 0; r < 32; r++)
         cache[r] = 0xFF;
-    for (int r = 0; r < 14; r++) {
-        ay(r, r == 7 ? 0x3F : 0);
+    for (int r = 0; r < 14; r++)
         ay(AY2 + r, r == 7 ? 0x3F : 0);
-    }
-    song = 0;
+    load_songs();
     fx = 0;
     eng_rpm = -1;
 }
 
-/* Un paso del sonido: la música y los efectos van a 50 por segundo, como se
- * escribieron, a cualquier ritmo de la pantalla. */
+/* Un paso del coche: los efectos van a 50 por segundo, como se escribieron,
+ * a cualquier ritmo de la pantalla. */
 static void sound_step(void)
 {
-    music_frame();
     if (eng_rpm < 0 && !fx) {           /* sin coche (el título): callado */
         ay(AY2 + 8, 0);
         ay(AY2 + 9, 0);
@@ -300,16 +246,28 @@ void sound_frame(void)
     static int acc;
     for (acc += 50; acc >= ZXV_FRAME_HZ; acc -= ZXV_FRAME_HZ)
         sound_step();
+    zxv_music_update();
 }
 
-void sound_mute(int on) { muted = on; }
+void sound_mute(int on)
+{
+    muted = on;
+    zxv_music_pause(muted || !music_on);
+}
 
+/* Todo callado, para volver al BASIC: la música sale por delante (hasta
+ * ZXV_MUSIC_AHEAD_US), así que se espera a que salga su silencio. */
 void sound_off(void)
 {
+    zxv_music_stop();
+    for (int i = 0; i < 4; i++) {
+        zxv_music_update();
+        zxv_wait_vblank();
+    }
     for (int r = 8; r < 11; r++) {
-        ay(r, 0);
+        zxv_ay_write(r, 0);
         ay(AY2 + r, 0);
     }
-    ay(7, 0x3F);
+    zxv_ay_write(7, 0x3F);
     ay(AY2 + 7, 0x3F);
 }

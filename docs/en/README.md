@@ -32,6 +32,16 @@ BASIC or in C, and how to build the real machine.
   memory, sprites, tile maps, scrolling, mode 7 and converting images.
 - **[API reference](sdk/reference.md)** — every function of the SDK.
 
+## Tools for the PC
+
+They come with the emulator, for Windows and Linux:
+
+- **[The graphics editor, `zxv-gfx`](sdk/graphics.md#the-graphics-editor-for-the-pc-zxv-gfx)** —
+  sprites, tiles, maps and textures for BASIC and C programs.
+- **[The tracker, `zxv-tracker`](sdk/README.md#the-tracker-for-the-pc-zxv-tracker)** —
+  music for the two AY chips (PT3 modules) and AYFX sound effects for
+  BASIC and C programs.
+
 ## Compiling BASIC
 
 - **[ZX Basic](zxbasic.md)** — Boriel's BASIC compiler, with a ZX-V target:

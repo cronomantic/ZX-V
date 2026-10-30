@@ -42,8 +42,11 @@ read the [SDK guide](README.md) and [Graphics](graphics.md).
 | `crt0.S` | Start-up code: sets the `tp` register (thread variables, used by picolibc's `errno`) and jumps to `main` |
 | `zxv.ld` | Linker script: everything at the start of the user RAM, contiguous; heap for picolibc |
 | `zxvlib.c` | `memcpy`, `memmove`, `memset`, `memcmp`, for programs without the C library |
+| `include/zxv_gfxfile.h`, `gfxfile.c` | Reads `.gfx` graphics files (from `zxv-gfx`, `gfxedit` and `png2gfx.py`): sprites, tiles, maps and textures, in the `zxv_gfx.h` formats |
 | `zxvc.c` | The glue between picolibc and the API (files, folders, console, heap, time, exit) |
 | `tools/elf2zxv.py` | Converts the linked `.elf` into a `.zxv` |
+| `tools/gfx/` | `zxv-gfx`, the graphics editor for the PC |
+| `tools/tracker/` | `zxv-tracker`, the tracker for the PC: PT3 music and AYFX effects |
 | `tools/png2gfx.py` | Converts PNG images into a `.gfx` graphics file |
 | `Makefile` | Builds the examples (`make`, `make run SD=folder`, `make debug SD=folder`) |
 
@@ -329,6 +332,17 @@ increasing order: an event waits for the ones before it. If `t_us` is
 already past, it sounds at once. If the queue is full, the function waits.
 It is meant for digitised sound: see the
 [`digital`](../../../sdk/examples/digital/digital.c) example.
+
+### `zxv_beeper_event_at`
+
+```c
+void zxv_beeper_event_at(uint32_t t_us, int level);
+```
+
+Like `zxv_beeper_event`, but at time `t_us` (plus 2 ms), with the same rules
+as `zxv_ay_event`: times in increasing order. With the music of
+`zxv_music.h` playing, which goes 35 ms ahead, the beeper has to do the
+same: `zxv_beeper_event_at(zxv_time_us() + ZXV_MUSIC_AHEAD_US, level)`.
 
 ### Constants
 
@@ -970,6 +984,7 @@ entry and casts it to a function pointer type. In assembly:
 | 52 | `ZXV_API_SPR_DRAW_SCALED` | `zxv_spr_draw_scaled` |
 | 53 | `ZXV_API_TEXT_COLORS` | `zxv_text_colors` |
 | 54 | `ZXV_API_TEXT_AT` | `zxv_text_at` |
+| 55 | `ZXV_API_BEEPER_EVENT_AT` | `zxv_beeper_event_at` |
 
 `zxv_lang_get` and the mouse functions read memory directly and have no
 number. Unused entries return −1. Because the table is in RAM, a program

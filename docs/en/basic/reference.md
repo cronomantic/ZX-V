@@ -62,7 +62,8 @@ program line (with a line number, to be run later) or as a **direct command**
   `PAGE`, `SCREEN`, `SCROLL`, `REMAP`, `RASTER`
 - [Sprites, tile maps and fast graphics](#sprites-tile-maps-and-fast-graphics):
   `GRAB`, `SPRITE`, `TILE`, `MAP`, `FLOOR`, `BOX`, `DISC`, `POLY`...
-- [Sound and music](#sound-and-music): `BEEP`, `PLAY`, `SOUND`
+- [Sound and music](#sound-and-music): `BEEP`, `PLAY`, `SOUND`, `MUSIC`,
+  `SFX`
 - [Keyboard, joystick and mouse](#keyboard-joystick-and-mouse): `INPUT`,
   `INKEY$`, `KEY`, `JOY`, `MOUSE`
 - [Files and the SD card](#files-and-the-sd-card): `SAVE`, `LOAD`, `CAT`,
@@ -1311,8 +1312,11 @@ in memory. They survive `RUN`, `CLEAR` and `LOAD` (so a loader can prepare
 the graphics and then load the game), and `NEW` deletes them. Defining a
 number again replaces it. `SAVE "name" GRAPHICS` saves the whole store in a
 `.gfx` file, and `LOAD "name" GRAPHICS` loads one (see [SAVE](#save) and
-[LOAD](#load)). You can also make `.gfx` files from PNG images on a computer
-with the SDK tool `png2gfx` (see the [SDK guide](../sdk/README.md)).
+[LOAD](#load)). You can also draw them on the PC with the graphics editor
+`zxv-gfx`, which comes with the emulator, or on the machine itself with
+`LOAD "ROM:gfxedit"`, or make `.gfx` files from PNG images with the SDK tool
+`png2gfx` (see the [SDK graphics
+guide](../sdk/graphics.md#the-graphics-editor-for-the-pc-zxv-gfx)).
 
 A sprite, tile set, map or texture that does not exist gives
 `A Invalid argument`; numbers out of range give `B Integer out of range`; and
@@ -1561,7 +1565,7 @@ from the top left, whatever drew it; -1 outside the page. It ignores
 ## Sound and music
 
 ZX-V has a beeper (a simple speaker, used by `BEEP`) and two AY sound chips
-with three channels each (used by `PLAY` and `SOUND`).
+with three channels each (used by `PLAY`, `SOUND`, `MUSIC` and `SFX`).
 
 ### BEEP
 
@@ -1649,6 +1653,83 @@ higher); values are 0 to 255. A register above 31 gives
 plays a tone on channel A for half a second.
 
 **See also:** [`IN` and `OUT`](#in-out) for the 128K ports.
+
+### MUSIC
+
+```
+LOAD name$ MUSIC
+MUSIC PLAY
+MUSIC STOP
+MUSIC PAUSE
+MUSIC CONTINUE
+MUSIC                          (function)
+```
+
+Plays music made with a tracker, in the background: the program carries on
+while it plays, as in games. `LOAD name$ MUSIC` loads a module (without an
+extension, `name.pt3`): Pro Tracker 3 or Vortex Tracker II (`.pt3`, the one
+the ZX-V tracker,
+[`zxv-tracker`](../sdk/README.md#the-tracker-for-the-pc-zxv-tracker), saves),
+a TurboSound (two modules, one on each AY chip: six voices), Pro Tracker 2,
+Sound Tracker, ASC Sound Master or a PSG dump. A file that is none of those
+gives `R Tape loading error`.
+
+- `MUSIC PLAY` plays it from the start and, at the end, goes back to the
+  module's loop position, for ever. Without a module loaded, `A Invalid
+  argument`.
+- `MUSIC STOP` stops it; `MUSIC PAUSE` silences it and `MUSIC CONTINUE`
+  carries on where it was.
+- The `MUSIC` function is 1 while it plays and 0 if not.
+
+It plays on the first AY chip (a TurboSound, on both), with the same code
+as the tracker and C programs. It stops with `MUSIC STOP`, BREAK, `RUN`,
+`NEW`, `PLAY` (which uses the chips its own way) and when a native program
+is loaded; if the program ends or gives an error, it keeps playing. What
+`SOUND` writes on the music's chip lasts until the music writes that
+register again.
+
+The module takes the size of its file (2 to 15 KB for a normal one) and goes
+with the graphics: `RUN` and `CLEAR` keep it and `NEW` deletes it.
+
+```
+10 LOAD "tune" MUSIC: MUSIC PLAY
+20 PRINT "Playing..."
+30 IF INKEY$="" THEN GO TO 30
+40 MUSIC STOP
+```
+
+### SFX
+
+```
+LOAD name$ SFX
+SFX n [, channel]
+SFX STOP
+SFX                            (function)
+```
+
+Sound effects as in games: an AYFX effect bank (`.afb`, the one the effects
+tab of `zxv-tracker` or the AY Sound FX Editor saves; without an extension,
+`name.afb`) or a single effect (`.afx`). A file that is not a bank gives
+`R Tape loading error`.
+
+- `SFX n` plays effect `n` of the bank (the first is 0) without waiting, on
+  a free channel of the chip the music does not use (if there is none, on
+  the one that has been playing longest). With `channel`, on that one: 0 to
+  2 are A, B and C of the first chip, and 3 to 5 those of the second; an
+  effect on a music channel covers it while it plays. An effect that is not
+  in the bank gives `B Integer out of range`, and without a bank, `A Invalid
+  argument`.
+- `SFX STOP` stops all the effects.
+- The `SFX` function is 1 while any effect plays.
+
+They play at the same time as the music, `BEEP` and everything else.
+BREAK, `RUN` and `NEW` stop them; the bank is kept like the module.
+
+```
+10 LOAD "effects" SFX
+20 IF INKEY$=" " THEN SFX 0
+30 GO TO 20
+```
 
 ## Keyboard, joystick and mouse
 
@@ -1876,6 +1957,8 @@ LOAD name$ SCREEN$
 LOAD name$ DATA letter()
 LOAD name$ DATA letter$()
 LOAD name$ GRAPHICS
+LOAD name$ MUSIC
+LOAD name$ SFX
 ```
 
 Loads from the SD card (or the `ROM:` drive):
@@ -1894,6 +1977,8 @@ Loads from the SD card (or the `ROM:` drive):
 - `GRAPHICS`: the objects of a `.gfx` file replace those with the same number;
   the others stay, so you can load sprites from one file and a level from
   another. A file that is not valid gives `R Tape loading error`.
+- `MUSIC` and `SFX`: a music module or an effect bank (see
+  [`MUSIC`](#music) and [`SFX`](#sfx)).
 
 `LOAD ""` (an empty name) loads the next block from the inserted tape (see
 [Tape files](#tape-files)).

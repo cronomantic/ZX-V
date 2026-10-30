@@ -1,15 +1,21 @@
 /*
  * sound.c - El sonido de Estela, con los dos AY (TurboSound, spec §5):
  *
- *   - Primer AY: la música. Canal A la melodía, B el bajo y C la batería
- *     (bombo con tono, caja con ruido). Un pequeño reproductor de filas: una
- *     nota por fila, 1 = sigue la anterior, 0 = silencio.
+ *   - Primer AY: la música, con la biblioteca del SDK (zxv_music.h). Son
+ *     módulos de Pro Tracker 3 que se editan con zxv-tracker: estela-title,
+ *     -stage1, -stage2 y -stage3 (las fases), -boss (los jefes), -over (el
+ *     final de la partida) y -clear (fase superada), con .pt3. El programa
+ *     los lleva dentro y, si en la carpeta desde la que se carga hay alguno,
+ *     usa ese.
  *   - Segundo AY: los efectos. Canal A los disparos y avisos (barridos de
  *     tono), B las explosiones (ruido con envolvente).
  *   - Segundo AY, canal C: muestras digitalizadas a 8 kHz por su volumen,
- *     cada una a su hora con zxv_ay_event (spec §5.4). Se mandan unos 30 ms
- *     por delante, solo las que caben en la cola, así el juego no espera nunca.
+ *     cada una a su hora con zxv_ay_event (spec §5.4). Van por la misma cola
+ *     que la música, que tiene que ir en orden de hora: se mandan por delante,
+ *     detrás de lo que ya tiene la música, y la música solo hasta la última.
  */
+#include "zxv_music.h"
+
 #include "estela.h"
 
 #define AY2         ZXV_AY2
@@ -22,14 +28,14 @@ static const uint16_t period[61] = {
     79, 75, 71, 67, 63, 59, 56, 53,
 };
 
-/* --- Los registros, sin repetir escrituras ------------------------------------- */
+/* --- Los registros del segundo AY, sin repetir escrituras --------------------- */
 
 static uint8_t cache[32];
 static int muted;
 
 static void ay(int r, int v)
 {
-    if (cache[r] != (uint8_t)v || r == 13 || r == AY2 + 13) {   /* R13 reinicia la envolvente */
+    if (cache[r] != (uint8_t)v || r == AY2 + 13) {     /* R13 reinicia la envolvente */
         cache[r] = (uint8_t)v;
         zxv_ay_write(r, v);
     }
@@ -41,121 +47,84 @@ static void tone(int base, int ch, int per)
     ay(base + ch * 2 + 1, (per >> 8) & 0x0F);
 }
 
-static void note(int ch, int n)
-{
-    if (n < 36)
-        n = 36;
-    if (n > 96)
-        n = 96;
-    tone(0, ch, period[n - 36]);
-}
+/* --- La música ------------------------------------------------------------------- */
 
-/* --- La música ----------------------------------------------------------------- */
+/* Los módulos de dentro del programa. */
+#define EMBED(sym, file)                                                        \
+    __asm__(".section .rodata." #sym ", \"a\"\n.balign 4\n" #sym ":\n"           \
+            ".incbin \"examples/estela/" file "\"\n" #sym "_end:\n.previous\n");  \
+    extern const uint8_t sym[], sym##_end[]
+EMBED(title_pt3, "estela-title.pt3");
+EMBED(stage1_pt3, "estela-stage1.pt3");
+EMBED(stage2_pt3, "estela-stage2.pt3");
+EMBED(stage3_pt3, "estela-stage3.pt3");
+EMBED(boss_pt3, "estela-boss.pt3");
+EMBED(over_pt3, "estela-over.pt3");
+EMBED(clear_pt3, "estela-clear.pt3");
 
-typedef struct {
-    uint8_t tempo, rows, loop;          /* tempo: pasos (de 1/50 s) por fila */
-    const uint8_t *melody, *bass, *drums;
-} song_t;
-
-static const uint8_t title_m[32] = { 69, 1, 72, 76, 81, 1, 79, 76, 77, 1, 76, 74, 76, 1, 1, 0,
-                                     72, 1, 74, 76, 79, 1, 77, 76, 74, 1, 72, 71, 72, 1, 1, 0 };
-static const uint8_t title_b[32] = { 45, 0, 57, 0, 45, 0, 57, 0, 41, 0, 53, 0, 40, 0, 52, 0,
-                                     48, 0, 60, 0, 43, 0, 55, 0, 38, 0, 50, 0, 40, 0, 52, 0 };
-static const uint8_t title_d[32] = { 1, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0,
-                                     1, 0, 0, 0, 2, 0, 0, 0, 1, 0, 1, 0, 2, 0, 2, 2 };
-
-static const uint8_t stage_m[32] = { 76, 1, 0, 76, 79, 1, 76, 0, 74, 1, 72, 1, 74, 1, 0, 0,
-                                     76, 1, 0, 76, 79, 1, 81, 1, 83, 1, 81, 79, 76, 1, 1, 0 };
-static const uint8_t stage_b[32] = { 40, 52, 40, 52, 40, 52, 40, 52, 36, 48, 36, 48, 38, 50, 38, 50,
-                                     40, 52, 40, 52, 43, 55, 43, 55, 45, 57, 45, 57, 40, 52, 40, 52 };
-static const uint8_t stage_d[32] = { 1, 0, 2, 0, 1, 1, 2, 0, 1, 0, 2, 0, 1, 1, 2, 0,
-                                     1, 0, 2, 0, 1, 1, 2, 0, 1, 0, 2, 0, 1, 2, 2, 2 };
-
-static const uint8_t boss_m[16] = { 69, 0, 70, 0, 69, 0, 68, 0, 69, 1, 72, 1, 71, 1, 70, 1 };
-static const uint8_t boss_b[16] = { 45, 45, 57, 45, 45, 45, 56, 45, 45, 45, 57, 45, 44, 44, 56, 44 };
-static const uint8_t boss_d[16] = { 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 2, 2 };
-
-static const uint8_t over_m[12] = { 72, 1, 71, 1, 70, 1, 69, 1, 1, 1, 0, 0 };
-static const uint8_t over_b[12] = { 48, 1, 47, 1, 46, 1, 45, 1, 1, 1, 0, 0 };
-
-static const uint8_t clear_m[16] = { 72, 76, 79, 84, 1, 0, 79, 84, 88, 1, 1, 1, 1, 0, 0, 0 };
-static const uint8_t clear_b[16] = { 48, 0, 55, 0, 60, 0, 55, 0, 60, 1, 1, 1, 1, 0, 0, 0 };
-
-static const song_t songs[] = {
-    [SONG_TITLE] = { 7, 32, 1, title_m, title_b, title_d },
-    [SONG_STAGE] = { 6, 32, 1, stage_m, stage_b, stage_d },
-    [SONG_BOSS] = { 5, 16, 1, boss_m, boss_b, boss_d },
-    [SONG_OVER] = { 10, 12, 0, over_m, over_b, 0 },
-    [SONG_CLEAR] = { 6, 16, 0, clear_m, clear_b, 0 },
+static struct {
+    const char *file;
+    const uint8_t *data, *end;
+    uint8_t loop;
+} songs[SONGS] = {
+    [SONG_TITLE] = { "estela-title.pt3", title_pt3, title_pt3_end, 1 },
+    [SONG_STAGE] = { "estela-stage1.pt3", stage1_pt3, stage1_pt3_end, 1 },
+    [SONG_STAGE_2] = { "estela-stage2.pt3", stage2_pt3, stage2_pt3_end, 1 },
+    [SONG_STAGE_3] = { "estela-stage3.pt3", stage3_pt3, stage3_pt3_end, 1 },
+    [SONG_BOSS] = { "estela-boss.pt3", boss_pt3, boss_pt3_end, 1 },
+    [SONG_OVER] = { "estela-over.pt3", over_pt3, over_pt3_end, 0 },
+    [SONG_CLEAR] = { "estela-clear.pt3", clear_pt3, clear_pt3_end, 0 },
 };
 
-static const song_t *song;
-static int row, tick, mel_age, mel_on, bass_on, drum, drum_age;
+static uint8_t card[24 * 1024];         /* los de la tarjeta, uno detrás de otro */
+
+/* El informe de un módulo de la tarjeta que no vale; vuelve al BASIC. */
+static void bad_song(const char *file)
+{
+    static char msg[48];
+    int n = 0;
+    while (*file)
+        msg[n++] = *file++;
+    for (const char *s = T(" no vale", " is not valid"); *s;)
+        msg[n++] = *s++;
+    msg[n] = 0;
+    zxv_report_error(0, msg);
+}
+static int music_on = 1;
+
+/* Uno de la tarjeta que no cabe o no es música da un informe y vuelve al BASIC. */
+static void load_songs(void)
+{
+    uint8_t *at = card;
+    for (int s = SONG_TITLE; s < SONGS; s++) {
+        int n = zxv_file_load(songs[s].file, at, (uint32_t)(card + sizeof(card) - at));
+        zxv_music_info_t info;
+        if (n == ZXV_E_RANGE || (n >= 0 && zxv_music_info(at, (uint32_t)n, &info) != ZXV_MUSIC_PT3))
+            bad_song(songs[s].file);
+        if (n >= 0) {
+            songs[s].data = at;
+            songs[s].end = at + n;
+            at += (n + 3) & ~3;
+        }
+    }
+}
 
 void sound_song(int s)
 {
-    song = s == SONG_NONE ? 0 : &songs[s];
-    row = 0;
-    tick = 0;
-    mel_on = bass_on = 0;
-    drum = 0;
+    if (s == SONG_NONE)
+        zxv_music_stop();
+    else
+        zxv_music_play(songs[s].data, (uint32_t)(songs[s].end - songs[s].data), songs[s].loop ? ZXV_MUSIC_LOOP : 0);
+    zxv_music_pause(muted || !music_on);
 }
 
-static void music_tick(void)
+void sound_music(int on)
 {
-    if (song && tick == 0) {
-        int m = song->melody[row], b = song->bass[row];
-        if (m > 1) {
-            note(0, m);
-            mel_on = 1;
-            mel_age = 0;
-        } else if (m == 0) {
-            mel_on = 0;
-        }
-        if (b > 1) {
-            note(1, b);
-            bass_on = 1;
-        } else if (b == 0) {
-            bass_on = 0;
-        }
-        if (song->drums && song->drums[row]) {
-            drum = song->drums[row];
-            drum_age = 0;
-        }
-    }
-    /* Los volúmenes: la melodía cae un poco, el bajo es fijo. */
-    ay(8, mel_on ? 13 - (mel_age / 3 > 4 ? 4 : mel_age / 3) : 0);
-    ay(9, bass_on ? 11 : 0);
-    mel_age++;
-
-    /* La batería en el canal C: bombo (un tono que baja) o caja (ruido). */
-    int mixer = 0x38;                   /* los tres tonos, sin ruido */
-    if (drum == 1 && drum_age < 4) {
-        tone(0, 2, 300 + drum_age * 250);
-        ay(10, 13 - drum_age * 3);
-    } else if (drum == 2 && drum_age < 4) {
-        mixer = 0x1C;                   /* tono A y B; C solo ruido */
-        ay(6, 6);
-        ay(10, 12 - drum_age * 3);
-    } else {
-        ay(10, 0);
-        drum = 0;
-    }
-    ay(7, mixer);
-    drum_age++;
-
-    if (song && ++tick >= song->tempo) {
-        tick = 0;
-        if (++row >= song->rows) {
-            if (song->loop) {
-                row = 0;
-            } else {
-                song = 0;
-                mel_on = bass_on = 0;
-            }
-        }
-    }
+    music_on = on;
+    zxv_music_pause(muted || !music_on);
 }
+
+int sound_music_on(void) { return music_on; }
 
 /* --- Los efectos -------------------------------------------------------------- */
 
@@ -246,21 +215,26 @@ static void make_samples(void)
     }
 }
 
+/* Las muestras que caben en la cola, hasta ZXV_MUSIC_AHEAD_US por delante, y
+ * la música en medio, en orden de hora: hasta cada muestra, la música que
+ * va antes. Mientras suenan, la música no va más allá de la última. */
 static void digital_frame(void)
 {
-    if (!dig)
+    if (!dig) {
+        zxv_music_update();
         return;
+    }
     uint32_t now = zxv_time_us();
-    if (dig_pos == 0)
-        dig_t = now + 4000;
-    if ((int32_t)(dig_t - now) < 0)
-        dig_t = now + 2000;             /* se ha quedado atrás (un frame perdido) */
-    while (dig_pos < dig_n && (int32_t)(dig_t - (now + 30000)) < 0 && queue_room() > 8) {
+    if (dig_pos == 0 || (int32_t)(dig_t - now) < 0)
+        dig_t = now + ZXV_MUSIC_AHEAD_US;  /* detrás de lo que ya tiene la música */
+    while (dig_pos < dig_n && (int32_t)(dig_t - (now + ZXV_MUSIC_AHEAD_US)) <= 0 && queue_room() > 32) {
+        zxv_music_update_until(dig_t);
         zxv_ay_event(dig_t, AY2 + 10, muted ? 0 : dig[dig_pos]);
         dig_pos++;
         dig_t += DIG_STEP;
     }
-    if (dig_pos >= dig_n && queue_room() > 8) {
+    zxv_music_update_until(dig_t);
+    if (dig_pos >= dig_n && queue_room() > 32) {
         zxv_ay_event(dig_t, AY2 + 10, 0);
         dig = 0;
     }
@@ -277,16 +251,15 @@ static void digital_play(const uint8_t *s, int n)
 
 void sound_init(void)
 {
-    for (int r = 0; r < 32; r++) {
+    for (int r = 0; r < 32; r++)
         cache[r] = 0xFF;
-        if ((r & 15) < 14 && (r & 15) != 13)
-            ay(r, 0);
-    }
-    ay(7, 0x38);
+    for (int r = 0; r < 13; r++)
+        ay(AY2 + r, 0);
     ay(AY2 + 7, 0x2E);                  /* tono A, ruido B; el C, solo su volumen */
     *(volatile uint8_t *)(uintptr_t)ZXV_S_AY_STEREO = ZXV_AY_STEREO_ABC;
     fx_a = -1;
     make_samples();
+    load_songs();
 }
 
 void sound_fx(int fx)
@@ -316,10 +289,8 @@ void sound_fx(int fx)
 void sound_mute(int on)
 {
     muted = on;
+    zxv_music_pause(muted || !music_on);
     if (on) {
-        ay(8, 0);
-        ay(9, 0);
-        ay(10, 0);
         ay(AY2 + 8, 0);
         ay(AY2 + 9, 0);
     }
@@ -328,26 +299,29 @@ void sound_mute(int on)
 void sound_frame(void)
 {
     static int acc;
-    if (muted)
-        return;
-    /* La música y los efectos, a 50 pasos por segundo (se compusieron así,
-     * cuando el juego iba a 50 imágenes por segundo): a 60, uno de cada seis
-     * frames no da ningún paso. */
-    for (acc += 50; acc >= ZXV_FRAME_HZ; acc -= ZXV_FRAME_HZ) {
-        music_tick();
-        effects_tick();
-    }
+    /* Los efectos, a 50 pasos por segundo (se hicieron así, cuando el juego
+     * iba a 50 imágenes por segundo): a 60, uno de cada seis frames no da
+     * ningún paso. La música lleva su propio reloj. */
+    if (!muted)
+        for (acc += 50; acc >= ZXV_FRAME_HZ; acc -= ZXV_FRAME_HZ)
+            effects_tick();
     digital_frame();
 }
 
+/* Todo callado, para volver al BASIC: la música y las muestras salen por
+ * delante (hasta ZXV_MUSIC_AHEAD_US), así que se espera a que salgan. */
 void sound_off(void)
 {
-    song = 0;
+    zxv_music_stop();
     dig = 0;
+    for (int i = 0; i < 4; i++) {
+        zxv_music_update();
+        zxv_wait_vblank();
+    }
     for (int r = 8; r <= 10; r++) {
-        ay(r, 0);
+        zxv_ay_write(r, 0);
         ay(AY2 + r, 0);
     }
-    ay(7, 0x3F);
+    zxv_ay_write(7, 0x3F);
     ay(AY2 + 7, 0x3F);
 }

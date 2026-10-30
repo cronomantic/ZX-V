@@ -43,11 +43,16 @@ BOX 4, 100, 20, 20, 20
 | `GRAB`, `GRABSTR`, `SPRITE`, `HIT` | Sprites, mirrored, recoloured or scaled, and pixel-exact collisions |
 | `BOX`, `DISC`, `POLY`, `CLIP`, `PIXEL` | Filled shapes, clipping and the colour of a pixel |
 | `KEY`, `JOY`, `SOUND`, `TIME` | Keys held down, joysticks, the AY registers and the frame counter |
+| `MUSICLOAD`, `MUSICPLAY`, `MUSICSTOP`, `MUSICPAUSE`, `MUSICCONTINUE`, `MUSIC` | Music from a tracker (a `.pt3` from [`zxv-tracker`](sdk/README.md#the-tracker-for-the-pc-zxv-tracker)...), in the background while the program goes on |
+| `SFXLOAD`, `SFX`, `SFXSTOP`, `SFXPLAYING` | Sound effects from an AYFX bank |
 
 Where it differs from ZX-V's BASIC: the sprite of a string is `GRABSTR`
 (`GRAB n, width, a$` in ZX-V's); `KEY`, `JOY`, `HIT` and `PIXEL` take
-parentheses (`KEY(9)`); `REMAP` and `SOUND` take one pair at a time; and `POLY`
-takes up to 8 points.
+parentheses (`KEY(9)`); `REMAP` and `SOUND` take one pair at a time; `POLY`
+takes up to 8 points; and music and effects are loaded with `MUSICLOAD f$` and
+`SFXLOAD f$` (`LOAD f$ MUSIC` and `SFX` in ZX-V's), played with `MUSICPLAY`,
+`MUSICSTOP`... and the function that says whether an effect plays is
+`SFXPLAYING`.
 
 `SAVE`, `LOAD` and `VERIFY` use the SD card as ZX-V's BASIC does: without an
 extension, a `.tap` that the machine's BASIC loads too. Compiled with

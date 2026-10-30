@@ -143,10 +143,12 @@ others, leaving out `files`.
 | [`digital`](../../../sdk/examples/digital/digital.c) | Digitised sound: 8 kHz samples played through the volume of a sound chip channel |
 | [`files`](../../../sdk/examples/files/files.c) | The standard C library with the SD card: `fopen`, `fprintf`, `fgets`, `opendir`, `malloc`... (needs picolibc) |
 | [`boardtest`](../../../sdk/examples/boardtest/boardtest.c) | The board test: `OUT_INFO` (output and screen), the clock, a file written and read back, the keyboard, gamepads and mouse live, and the sound chip's two stereo channels |
-| [`estela`](../../../sdk/examples/estela) | **Estela**, a complete shoot'em up: three stages, bosses, music and effects on both sound chips, keyboard and joystick, a high score on the card ([its README](../../../sdk/examples/estela/README.md)) |
-| [`route128`](../../../sdk/examples/route128) | **Route 128**, a racing game: a pseudo-3D road with bends and blind crests, painted line by line, and the scenery and traffic as scaled sprites; three stages against the clock ([its README](../../../sdk/examples/route128/README.md)) |
+| [`estela`](../../../sdk/examples/estela) | **Estela**, a complete shoot'em up: three stages, bosses, music and effects on both sound chips, keyboard and joystick, a high score on the card; its graphics (`.gfx`) and music (`.pt3`) can be changed without compiling ([its README](../../../sdk/examples/estela/README.md)) |
+| [`route128`](../../../sdk/examples/route128) | **Route 128**, a racing game: a pseudo-3D road with bends and blind crests, painted line by line, and the scenery and traffic as scaled sprites; three stages against the clock; its graphics (`.gfx`) and music (`.pt3`) can be changed without compiling ([its README](../../../sdk/examples/route128/README.md)) |
 | [`mine`](../../../sdk/examples/mine) | **The Mine**, a digging game: boulders and diamonds that fall and roll, creatures that follow the walls, growing moss and twelve caves bigger than the screen, with smooth scrolling; the rules, kept apart, are also tested on the PC ([its README](../../../sdk/examples/mine/README.md)) |
 | [`street`](../../../sdk/examples/street) | **Street Justice**, a street brawler: fighters drawn with the engine from a skeleton in poses, depth, grabs, thugs that take turns to attack and a boss in each of the three stages ([its README](../../../sdk/examples/street/README.md)) |
+| [`player`](../../../sdk/examples/player/player.c) | Music and effects with the `zxv_music.h` library: a player for PT3, TurboSound, PT2, STC, ASC and PSG modules and AYFX effect banks, with the registers of both AY chips on screen |
+| [`gfxedit`](../../../sdk/examples/gfxedit) | **The graphics editor**: sprites, tiles, maps and textures in `.gfx` files, with the mouse ([in the graphics guide](graphics.md#the-graphics-editor-on-the-machine-gfxedit)) |
 
 To run one, the `.zxv` file has to be on the machine's SD card:
 
@@ -647,6 +649,147 @@ queue holds 256 writes: 32 ms of sound at 8 kHz.
 
 Six channels at full volume at once can distort: lower `ZXV_S_VOLUME` or
 the channel volumes.
+
+### Tracker music and sound effects
+
+The SDK music library ([`zxv_music.h`](../../../sdk/include/zxv_music.h),
+in `sdk/music`) plays the modules of the Spectrum trackers and the effects
+of the AY Sound FX Editor:
+
+| Format | What it is |
+|---|---|
+| **PT3** | Pro Tracker 3.x and Vortex Tracker II, the most used format for AY music |
+| **TurboSound** | Two PT3 in one file, one per AY: six voices |
+| **PT2** | Pro Tracker 2 |
+| **STC** | Sound Tracker 1.x (compiled modules) |
+| **ASC** | ASC Sound Master 0.x and 1.x |
+| **PSG** | A dump of the AY registers, step by step (the one many emulators record) |
+| **AYFX** (`.afb`, `.afx`) | The effects of Shiru's [AY Sound FX Editor](https://shiru.untergrund.net/software.shtml): a bank or a single effect |
+
+Modules play at their tempo of 50 steps per second, as on the Spectrum,
+even though the machine runs at 60 frames: each step reaches the AY at its
+own time through the timestamped queue, so the music neither speeds up nor
+stutters. The registers it gives are the same as
+[ZXTune](https://zxtune.bitbucket.io/)'s, step by step.
+
+```c
+#include "zxv_api.h"
+#include "zxv_music.h"
+
+static uint8_t song[0x10000], sfx[0x4000];
+
+int main(void)
+{
+    int n = zxv_file_load("tune.pt3", song, sizeof song);
+    zxv_music_play(song, n, ZXV_MUSIC_LOOP);
+    n = zxv_file_load("effects.afb", sfx, sizeof sfx);
+    zxv_sfx_bank(sfx, n);
+    for (int k = 0; k != 0x1B; k = zxv_key_get()) {     /* until Esc */
+        if (k == ' ')
+            zxv_sfx_play(0, ZXV_SFX_AUTO);      /* effect 0 of the bank */
+        zxv_music_update();
+        zxv_wait_vblank();
+    }
+    zxv_music_stop();
+    return 0;
+}
+```
+
+- **`zxv_music_update()`** prepares the steps of the next 35 ms
+  (`ZXV_MUSIC_AHEAD_US`): call it every frame, or at least that often.
+  From the frame hook it also plays while the program is busy (loading a
+  file, for example).
+- **With other `zxv_ay_event`s** (digitised sound, for example), everything
+  goes through the same queue, which must be in time order: a change with
+  a time earlier than what is already in the queue waits for it to play.
+  To mix them, `zxv_music_update_until(t)` prepares only the steps before
+  `t`: call it before each of your changes, with its time, and start yours
+  after what the music already has (`ZXV_MUSIC_AHEAD_US` ahead). While
+  yours play, the music must not go past the last one:
+  `zxv_music_update_until` instead of `zxv_music_update`. That is what
+  [Estela](../../../sdk/examples/estela/sound.c) does with its explosions.
+- **The AY chips:** a one-AY module plays on the first one (with
+  `ZXV_MUSIC_AY2`, on the second); a TurboSound one, on both. By default
+  effects go to the AY the music does not use, so they do not cut it.
+  `zxv_sfx_channels` picks other channels, and an effect on a music channel
+  covers it while it plays. The library only writes to the AY chips it
+  uses: you can play on the other one yourself.
+- **Memory:** the module and the bank have to stay where they are while
+  they play (they are not copied); if the program moves them, it says so
+  with `zxv_music_moved(module, bank)` and they keep playing. A PT3 fits in 64 KB; a TurboSound one,
+  in 128.
+- `zxv_music_info` gives the format, title and author of a module without
+  playing it; `zxv_music_pause`, `zxv_music_playing` and `zxv_music_steps`
+  (the 1/50 s steps played) complete the API.
+
+To use it, build your program with the files in `sdk/music`: in the
+Makefile above, `SOURCES := hello.c $(wildcard $(SDK)/music/*.c)`. The
+[`player`](../../../sdk/examples/player/player.c) example is a full player:
+it walks the card, plays modules and effect banks and shows the registers
+of both AY chips.
+
+#### The tracker for the PC: `zxv-tracker`
+
+To make the music, the emulator packages come with **`zxv-tracker`**, a
+tracker for Windows and Linux (in the AppImage,
+`./ZX-V-x86_64.AppImage zxv-tracker`) that saves **PT3** modules and
+**AYFX** effect banks: the ones this library plays, and Vortex Tracker and
+the Spectrum players too. It sounds with the same code as the machine (this
+library and the ULA's AY), so what you hear is what will play. It is free
+software under the MIT licence: its code is in
+[`sdk/tools/tracker`](../../../sdk/tools/tracker), and it builds on its own
+with Qt 6 and SDL2 (`cmake -S sdk/tools/tracker -B build-tracker`). It
+speaks Spanish or English, the system's language (or the one you ask for:
+`zxv-tracker --lang es`).
+
+![zxv-tracker with a demo module](../../images/sdk-tracker-en.png)
+
+- **Patterns**, as in Vortex Tracker: per row, the envelope period, the
+  noise and, in each channel, the note, sample, envelope shape, ornament,
+  volume and an effect (1 and 2 the tone slides down and up, 3 portamento,
+  4 and 5 the position in the sample and in the ornament, 6 vibrato, 9 and A
+  the envelope, B the tempo). Notes are typed with the keyboard as a piano
+  (Z S X D C... and Q 2 W 3 E...) and play as you type them; the rest, in
+  hexadecimal. Select with Shift, copy, paste and transpose; undo has no
+  practical limit.
+- **The header and positions:** the title, author, tempo, note table and Pro
+  Tracker version; the order of the patterns and the position it loops
+  back to. **TurboSound** puts a second module on the second AY: six voices.
+- **Samples** (tone, noise and envelope at each step, their offsets and the
+  volume, which you paint with the mouse) and **ornaments**, with a piano to
+  hear them.
+- **AYFX effects**, in their own tab: a bank with names, the frames of each
+  effect (tone, noise, their periods and the volume), importing and
+  exporting `.afx`.
+- **Play** the song (F5), the pattern (F6) or from the cursor (F7), with the
+  cursor following what plays and any channels muted; and **export** the
+  song to WAV.
+
+It opens Vortex Tracker and Pro Tracker 3 PT3 files: read and saved again
+they sound the same. If a module has commands the editor does not have (two
+effects in the same row, for example), it warns when opening it. The
+modules and effects are played by C programs, with this library, and by
+BASIC, with [`MUSIC` and `SFX`](../basic/reference.md#music).
+
+The pattern keys (in the program, Help > Keys):
+
+| Keys | What they do |
+|---|---|
+| Z S X D C V G B H N J M · Q 2 W 3 E R 5 T 6 Y 7 U | Notes, in the note column: two octaves from the chosen one |
+| 1 or A | A note off (`R--`) |
+| 0-9 and A-F | The rest, in hexadecimal (the sample, 1 to 9 and A to V) |
+| \* and / on the numeric keypad | One octave higher or lower |
+| Arrows, Page Up, Page Down, Home and End · Tab | Move · to the next channel |
+| Shift and the arrows · Ctrl+C, Ctrl+X, Ctrl+V | Select · copy, cut and paste |
+| Ctrl+↑ and Ctrl+↓ (with Shift, an octave) | Transpose the selection, or the channel |
+| Delete · Insert · Backspace | Clear · insert a row · remove it |
+| F5 · F6 · F7 · F8 or Esc | Play the song · the pattern · from the cursor · stop |
+| Scroll Lock | Follow what plays |
+| Ctrl+Z · Ctrl+Y | Undo · redo |
+
+In samples, ornaments and effects, space or a click flips the switches
+(T, N, E), Insert and Delete add and remove lines, and the volume is
+painted by dragging the mouse along its bar; Enter plays the effect.
 
 ## Keyboard, joystick and mouse
 

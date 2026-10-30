@@ -15,6 +15,7 @@ static uint32_t frames_now(void) { return *(volatile uint32_t *)(uintptr_t)ZXV_S
 
 void video_init(void)
 {
+    *(volatile uint8_t *)(uintptr_t)ZXV_V_VSIZE = ZXV_VSIZE_SCREEN;    /* páginas de 24 KB a la vista */
     zxv_set_mode(0);
     visible = 0;
     zxv_set_page(0);
@@ -265,39 +266,6 @@ void number(char *out, uint32_t v, int digits)
 }
 
 /* --- Los sprites --------------------------------------------------------------- */
-
-static uint32_t pool[19200];            /* los sprites preparados (75 KB; usan unos 71) */
-static uint32_t pool_used;
-static uint32_t canvas_mem[160 * 128 / 8];
-static zxv_bitmap canvas_bmp;
-
-void canvas(int w, int h)
-{
-    canvas_bmp.pix = (uint8_t *)canvas_mem;
-    canvas_bmp.stride = (uint16_t)((w + 7) / 8 * 4);
-    canvas_bmp.w = (uint16_t)w;
-    canvas_bmp.h = (uint16_t)h;
-    uint8_t *p = canvas_bmp.pix;
-    for (int i = 0; i < canvas_bmp.stride * h; i++)
-        p[i] = 0x88;                    /* todo transparente */
-    zxv_gfx_target(&canvas_bmp);
-    zxv_gfx_clip(0, 0, w, h);
-}
-
-sprite_t canvas_sprite(void)
-{
-    int w = canvas_bmp.w, h = canvas_bmp.h;
-    sprite_t s = { 0, (uint16_t)w, (uint16_t)h };
-    zxv_gfx_target(0);
-    zxv_gfx_clip(0, 0, W, H);
-    uint32_t bytes = zxv_spr_prepare(&canvas_bmp, 0, 0, w, h, 0);
-    if (pool_used + (bytes + 3) / 4 > sizeof(pool) / 4)
-        return s;                       /* no cabe: no se dibuja */
-    zxv_spr_prepare(&canvas_bmp, 0, 0, w, h, &pool[pool_used]);
-    s.spr = &pool[pool_used];
-    pool_used += (bytes + 3) / 4;
-    return s;
-}
 
 void draw_sprite(const sprite_t *s, int x, int y, int flags, const uint8_t *colours)
 {

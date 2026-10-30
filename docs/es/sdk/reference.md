@@ -42,8 +42,11 @@ mapa de memoria y los formatos de fichero. Para aprender a usarlo, lee la
 | `crt0.S` | Código de arranque: pone el registro `tp` (las variables de hilo, que usa el `errno` de picolibc) y salta a `main` |
 | `zxv.ld` | Script de enlazado: todo seguido al principio de la RAM de usuario; el montón para picolibc |
 | `zxvlib.c` | `memcpy`, `memmove`, `memset`, `memcmp`, para los programas sin la biblioteca de C |
+| `include/zxv_gfxfile.h`, `gfxfile.c` | Lee los ficheros de gráficos `.gfx` (de `zxv-gfx`, `gfxedit` y `png2gfx.py`): sprites, tiles, mapas y texturas, en los formatos de `zxv_gfx.h` |
 | `zxvc.c` | La unión entre picolibc y la API (ficheros, carpetas, consola, montón, hora, salida) |
 | `tools/elf2zxv.py` | Convierte el `.elf` enlazado en un `.zxv` |
+| `tools/gfx/` | `zxv-gfx`, el editor de gráficos para el PC |
+| `tools/tracker/` | `zxv-tracker`, el tracker para el PC: música PT3 y efectos AYFX |
 | `tools/png2gfx.py` | Convierte imágenes PNG en un fichero de gráficos `.gfx` |
 | `Makefile` | Compila los ejemplos (`make`, `make run SD=carpeta`, `make debug SD=carpeta`) |
 
@@ -336,6 +339,17 @@ ir de menor a mayor: un cambio espera a los que tiene delante. Si `t_us` ya
 ha pasado, suena enseguida. Si la cola está llena, la función espera. Está
 pensada para el sonido digitalizado: ver el ejemplo
 [`digital`](../../../sdk/examples/digital/digital.c).
+
+### `zxv_beeper_event_at`
+
+```c
+void zxv_beeper_event_at(uint32_t t_us, int level);
+```
+
+Como `zxv_beeper_event`, pero a la hora `t_us` (más 2 ms), con las mismas
+reglas que `zxv_ay_event`: las horas de menor a mayor. Con la música de
+`zxv_music.h` sonando, que va 35 ms por delante, el beeper tiene que ir
+igual: `zxv_beeper_event_at(zxv_time_us() + ZXV_MUSIC_AHEAD_US, nivel)`.
 
 ### Constantes
 
@@ -989,6 +1003,7 @@ ensamblador:
 | 52 | `ZXV_API_SPR_DRAW_SCALED` | `zxv_spr_draw_scaled` |
 | 53 | `ZXV_API_TEXT_COLORS` | `zxv_text_colors` |
 | 54 | `ZXV_API_TEXT_AT` | `zxv_text_at` |
+| 55 | `ZXV_API_BEEPER_EVENT_AT` | `zxv_beeper_event_at` |
 
 `zxv_lang_get` y las funciones del ratón leen la memoria directamente y no
 tienen número. Las entradas sin usar devuelven −1. Como la tabla está en la

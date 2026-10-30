@@ -10,7 +10,14 @@
  * que lo que hay detrás de un cambio de rasante no se ve hasta coronarlo.
  * Encima, el paisaje (cielo y montañas en dos capas, que se mueven con las
  * curvas) y, de lejos a cerca, los objetos y los coches, escalados según la
- * distancia y recortados por la cresta que tengan delante.
+ * distancia y recortados por la cresta que tengan delante. El coche del
+ * jugador va entre ellos, en su sitio: lo que hay entre él y la cámara (el
+ * arco de la salida al pasar por debajo) lo tapa.
+ *
+ * La carretera entre la cámara y el coche se pinta a la altura del coche,
+ * plana, como en los juegos de este tipo: la cámara va detrás y más baja que
+ * una cima que el coche ya ha pasado, y con la carretera de verdad la cima
+ * taparía la carretera bajo el coche (que se vería flotando al coronar).
  */
 #include "route128.h"
 
@@ -290,12 +297,13 @@ static void draw_segment(const point_t *n, const point_t *f, int top, int band, 
  * las curvas, hasta la línea `bottom` (lo de debajo es carretera). */
 static void layer(const zxv_bitmap *b, int x, int y)
 {
+    if (!b->w)
+        return;                         /* no está en route128.gfx */
     x %= b->w;
     if (x < 0)
         x += b->w;
-    zxv_gfx_blit(b, x, 0, b->w - x, b->h, 0, y, ZXV_BLIT_TRANSPARENT);
-    if (b->w - x < W)
-        zxv_gfx_blit(b, 0, 0, W - (b->w - x), b->h, b->w - x, y, ZXV_BLIT_TRANSPARENT);
+    for (int dx = 0; dx < W; dx += b->w - x, x = 0)  /* repetida hasta llenar la línea */
+        zxv_gfx_blit(b, x, 0, b->w - x, b->h, dx, y, ZXV_BLIT_TRANSPARENT);
 }
 
 static void draw_background(int bottom, int theme, int bg_x)
@@ -342,8 +350,9 @@ static void draw_thing(const sprite_t *s, int x, int y, int32_t sw, int world_w,
 
 static const int16_t car_world_w[CAR_TYPES] = { 700, 760, 820 };
 
-void road_draw(int32_t z, int px, int32_t cam_y, int theme, int bg_x)
+void road_draw(int32_t z, int px, int32_t cam_y, int theme, int bg_x, void (*player)(void))
 {
+    int32_t player_h = cam_y - CAM_H;
     int base = (int)(z / SEG_LEN), frac = (int)(z % SEG_LEN);
     int32_t cam_x = (int32_t)px * ROAD_HW / X1;
     int32_t x = 0, dx = -(int32_t)curves[base % track_segs] * frac / SEG_LEN;
@@ -353,7 +362,8 @@ void road_draw(int32_t z, int px, int32_t cam_y, int theme, int bg_x)
         if (cz < 1)
             cz = 1;
         pts[k].sx = (int16_t)clamp16(W / 2 + ((x >> 4) - cam_x) * DEPTH / cz);
-        pts[k].sy = (int16_t)clamp16(HORIZON - (heights[seg] - cam_y) * DEPTH / cz);
+        int32_t h = cz < PLAYER_Z ? player_h : heights[seg];    /* hasta el coche, plana */
+        pts[k].sy = (int16_t)clamp16(HORIZON - (h - cam_y) * DEPTH / cz);
         pts[k].sw = (int32_t)ROAD_HW * DEPTH * 16 / cz;
         x += dx;
         dx += curves[seg];
@@ -390,12 +400,16 @@ void road_draw(int32_t z, int px, int32_t cam_y, int theme, int bg_x)
         vis_k[j] = (uint8_t)k;
     }
 
-    /* Los objetos y los coches, de lejos a cerca. */
-    int cv = 0;
+    /* Los objetos y los coches, de lejos a cerca, y el del jugador en su sitio. */
+    int cv = 0, drawn = 0;
     for (int k = DRAW_SEGS - 2; k >= 1; k--) {
         const point_t *n = &pts[k];
         int clip = clip_y[k];
         int seg = (base + k) % track_segs;
+        if (!drawn && (int32_t)k * SEG_LEN - frac < PLAYER_Z) {
+            player();
+            drawn = 1;
+        }
         for (int i = first_obj[seg]; clip > 0 && i < first_obj[seg + 1]; i++) {
             const object_art_t *a = &obj_art[objs[i].type];
             int sx = n->sx + (int)((int64_t)objs[i].x * n->sw / (X1 * 16));
@@ -414,4 +428,6 @@ void road_draw(int32_t z, int px, int32_t cam_y, int theme, int bg_x)
             draw_thing(&car_art[c->type], sx, sy, sw, car_world_w[c->type], clip, 0, car_colours[c->colour]);
         }
     }
+    if (!drawn)
+        player();
 }

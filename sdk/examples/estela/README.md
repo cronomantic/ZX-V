@@ -41,15 +41,45 @@ It is also on the machine's built-in `ROM:` drive: `LOAD "ROM:estela"`.
 | Cursor keys or OPQA | D-pad | Move |
 | Space or M | Button 1 or 2 | Fire (hold it down for rapid fire) |
 | Enter | Start | Pause |
+| S | | Music on or off |
 | Esc | | To the title; on the title, to BASIC |
+
+## Its graphics and music, your way
+
+The graphics are in [`estela.gfx`](estela.gfx), edited with `zxv-gfx` on
+the PC or with `gfxedit` on the machine itself, and the music in Pro
+Tracker 3 modules edited with `zxv-tracker`:
+[`estela-title.pt3`](estela-title.pt3) (the title),
+[`-stage1`](estela-stage1.pt3), [`-stage2`](estela-stage2.pt3) and
+[`-stage3`](estela-stage3.pt3) (one for each stage),
+[`-boss`](estela-boss.pt3) (the bosses), [`-over`](estela-over.pt3) (game
+over) and [`-clear`](estela-clear.pt3) (stage clear). The program carries
+them inside, but if there is one with that name in the folder it is loaded
+from, it uses that one: changing a drawing or a tune needs no compiling.
+One that is not valid (or does not fit) gives a report and goes back to
+BASIC.
+
+| Sprite | |
+|---|---|
+| 0 and 1 | The ship and its shield |
+| 2, 3 and 4 | The dart and the wheel (in two positions) |
+| 5 and 6 | The big rock and the small one |
+| 7, 8 and 9 | The turret, the mine and the power-up carrier |
+| 10 | The enemy bullets |
+| 11 and 12 | The power-ups: the weapon and the shield |
+| 13–16 | The explosion, in four steps |
+| 17–19 | The bosses of the three stages |
+
+And the 8 × 8 tiles of the terrain: empty, rock, the top and bottom edges
+of the rock, metal, its two edges and a light.
 
 ## How it is made
 
 | File | |
 |---|---|
 | `estela.h` | What the parts share: sizes, sprites, sound, the random number generator and the sine table |
-| `draw.c` | The screen: double buffering, the 5 × 7 font (with accents and Ñ), sprites drawn with characters or with the engine, collisions and the stars in three layers |
-| `sound.c` | The music (first AY), the effects (second AY) and the digitised samples |
+| `draw.c` | The screen: double buffering, the 5 × 7 font (with accents and Ñ), the sprites of `estela.gfx` (with `zxv_gfxfile.h`), collisions and the stars in three layers |
+| `sound.c` | The music (first AY, with `zxv_music.h`), the effects (second AY) and the digitised samples |
 | `game.c` | The stages, the terrain, the enemies, the bosses, the title, the demo and the high score |
 
 The source code and its comments are in Spanish.
@@ -66,11 +96,8 @@ The source code and its comments are in Spanish.
   stages are measured in fiftieths of a second (their pixels at 50 Hz) and
   `PX()` turns that into today's pixels: at 60 the stages are 20% longer,
   and the waves, the turrets and the boss come at the same seconds.
-- **Sprites without files:** the ship, the darts and the turrets are
-  drawings made of characters in the code (`sprite_ascii`); the rocks, the
-  mine, the explosions and the bosses are drawn with the engine's circles,
-  rectangles and polygons on a canvas (`zxv_gfx_target`) and prepared as
-  sprites. All of it at start-up, in a 48 KB store.
+- **The sprites** are those of `estela.gfx`, prepared for the engine
+  (`zxv_spr_prepare`) at start-up, in a 48 KB store.
 - **The terrain** is a tile map of 512 × 24 cells made when the stage
   starts (a random path with a minimum gap and a flat area for the boss).
   Only the bands at the top and bottom where there is wall are drawn, and
@@ -78,12 +105,15 @@ The source code and its comments are in Spanish.
 - **Positions** are in 1/96 of a pixel (so that `V()` is exact at 50 and
   60 Hz), and angles in 64 steps per turn with a sine table: no floating
   point at all.
-- **The sound:** the music goes on the first AY (melody, bass and drums
-  with the noise); the effects, on the second (shots and power-ups on
-  channel A, explosions with noise and envelope on B). Big explosions also
-  have a 0.6 s sample at 8 kHz through the volume of channel C, sent a
-  little at a time, about 30 ms ahead, with `zxv_ay_event`. Music and
-  effects move on 50 steps per second, as when they were composed.
+- **The sound:** the music goes on the first AY, with the SDK's music
+  library; the effects, on the second (shots and power-ups on channel A,
+  explosions with noise and envelope on B), at 50 steps per second, as when
+  they were made. Big explosions also have a 0.6 s sample at 8 kHz through
+  the volume of channel C, sent a little at a time, ahead, with
+  `zxv_ay_event`. It goes through the same queue as the music, which must
+  be in time order: the sample starts after what the music already has
+  and, while it plays, the music goes up to each sample and no further
+  (`zxv_music_update_until`).
 - **The keyboard:** the map of keys held down (`ZXV_I_KEYMAP`) is read to
   move and fire at the same time, and the key queue is emptied every frame
   so that what was typed does not reach BASIC on the way back.

@@ -352,7 +352,8 @@ Hay dos formas de usar el beeper:
    una latencia fija de **2 ms** (`ZXV_BEEP_LATENCY_US`). Los eventos con una
    marca de tiempo ya pasada se aplican de inmediato. Está pensada para motores
    de beeper multicanal. La función de la API `beeper_event` añade la marca de
-   tiempo automáticamente.
+   tiempo automáticamente, la hora actual; `beeper_event_at` (55), la que se le
+   da: para ir por delante, como la música que va con `ay_event`.
 
 Si se usan las dos formas a la vez, se suman.
 
@@ -602,6 +603,7 @@ interceptar una rutina del sistema, igual que se hacía con los ganchos del Spec
 | 52 | Gráficos | Ver §7.8 |
 | 53 | `void text_colors(int tinta, int papel)` | Colores (0–15) del texto de `print_char` y `print_str`. Al arrancar, 0 y 7. `set_mode` borra con el papel |
 | 54 | `void text_at(int col, int fila)` | Lleva el cursor del texto a esa celda (desde 0, arriba a la izquierda) |
+| 55 | `void beeper_event_at(u32 tiempo_us, int nivel)` | Cambio del beeper a esa hora, por la cola con marca de tiempo (§5.4); con la cola llena, espera |
 
 Las funciones de ficheros devuelven un valor ≥ 0 si todo va bien o un código
 de error negativo (§7.7).

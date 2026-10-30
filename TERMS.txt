@@ -14,8 +14,9 @@ No valen para:
 - lo que es de otros, que tiene sus propias licencias y dice
   THIRD_PARTY_NOTICES.txt (Qt, SDL, el SDK de la Pico...); en esas partes
   mandan sus licencias;
-- el SDK, los programas de ejemplo y la documentación, que tienen las suyas
-  (MIT los primeros, CC BY 4.0 la documentación) y están, con su código, en
+- el SDK, los programas de ejemplo, los editores de gráficos (zxv-gfx) y de
+  música (zxv-tracker) y la documentación, que tienen las suyas (MIT los
+  primeros, CC BY 4.0 la documentación) y están, con su código, en
   https://github.com/cronomantic/ZX-V.
 
 1. Uso. El programa es gratuito. Puedes usarlo para lo que quieras, también
@@ -77,9 +78,11 @@ They do not apply to:
 - what belongs to others, which has its own licences and is listed in
   THIRD_PARTY_NOTICES.txt (Qt, SDL, the Pico SDK...); for those parts, their
   licences prevail;
-- the SDK, the example programs and the documentation, which have their own
-  licences (MIT for the first two, CC BY 4.0 for the documentation) and are
-  available, with their source, at https://github.com/cronomantic/ZX-V.
+- the SDK, the example programs, the graphics (zxv-gfx) and music
+  (zxv-tracker) editors and the documentation, which have their own licences
+  (MIT for all but the documentation, CC BY 4.0 for the documentation) and
+  are available, with their source, at
+  https://github.com/cronomantic/ZX-V.
 
 1. Use. The software is free of charge. You can use it for any purpose,
    commercial ones included: making and selling programs for ZX-V, teaching

@@ -53,7 +53,7 @@ static int per_frame(int *rest, int per_second)
 /* --- La entrada -------------------------------------------------------------------- */
 
 enum { IN_GAS = 1, IN_BRAKE = 2, IN_LEFT = 4, IN_RIGHT = 8, IN_START = 16, IN_PAUSE = 32, IN_ESC = 64,
-       IN_SHIFT = 128 };
+       IN_SHIFT = 128, IN_MUSIC = 256 };
 
 static int key(unsigned hid)
 {
@@ -82,6 +82,8 @@ static void read_input(void)
         in |= IN_PAUSE;                 /* Intro */
     if (key(0x29))
         in |= IN_ESC;
+    if (key(0x16))
+        in |= IN_MUSIC;                 /* S */
     uint16_t joy = *(volatile uint16_t *)(uintptr_t)ZXV_I_JOY0;
     if (joy & ZXV_JOY_CONNECTED) {
         if (joy & (ZXV_JOY_UP | ZXV_JOY_FIRE1)) in |= IN_GAS;
@@ -94,6 +96,8 @@ static void read_input(void)
     }
     input_edge = in & ~input_now;
     input_now = in;
+    if (input_edge & IN_MUSIC)          /* la música, sí o no, en cualquier momento */
+        sound_music(!sound_music_on());
     /* Lo tecleado no le sirve al juego: que no le llegue al BASIC al volver. */
     while (zxv_key_get() >= 0)
         ;
@@ -112,7 +116,6 @@ static void read_input(void)
 #define BUMP_FRAMES (ZXV_FRAME_HZ / 4)  /* y el golpe con otro coche */
 #define LANE_SPEED  600                 /* el tráfico al cambiar de carril, en 1/X1 por segundo */
 #define CAR_HW      330                 /* la mitad del ancho del coche, en 1/X1 */
-#define BG_AHEAD    40                  /* el paisaje de la etapa que viene, desde tantos segmentos antes */
 #define START_Z     ((int32_t)8 * SEG_LEN)
 #define TIME_START  (50 * ZXV_FRAME_HZ)
 #define TIME_EXTEND (42 * ZXV_FRAME_HZ)
@@ -368,15 +371,11 @@ static void race_update(int in)
         if (pl.time > 0 && pl.time <= 5 * ZXV_FRAME_HZ && pl.time % ZXV_FRAME_HZ == 0)
             sound_fx(FX_BEEP);
     }
-    /* El paisaje: el de la etapa que viene se va dibujando antes, un trozo
-     * por frame, y al llegar solo hay que cambiarlo; acabada la carrera, el
-     * de la salida, para la siguiente. */
+    /* El paisaje, el de la etapa. */
     int t = seg_theme(ps);
     if (t != pl.theme) {
         pl.theme = t;
         art_background(t);
-    } else {
-        art_prepare(pl.finished || pl.time <= 0 ? THEME_COAST : seg_theme(ps + BG_AHEAD));
     }
 
     /* El sonido del coche. */
@@ -421,13 +420,10 @@ static void hud(void)
 
 static int show_car = 1;
 
-static void draw_world(void)
+/* El coche: el de la postura según el giro y la curva; dando vueltas si ha
+ * chocado; botando en la cuneta. road_draw lo dibuja en su sitio. */
+static void draw_player(void)
 {
-    int32_t pz = player_z();
-    int32_t cam_y = height_at(pz) + CAM_H;
-    road_draw(pl.z, pl.x, cam_y, pl.theme, pl.bg_x);
-    /* El coche: el de la postura según el giro y la curva; dando vueltas si
-     * ha chocado; botando en la cuneta. */
     int pose = 2 + pl.steer;
     int curve = seg_curve(player_seg());
     if (pl.steer && abs_i(curve) > 40 && (curve > 0) == (pl.steer > 0))
@@ -449,6 +445,12 @@ static void draw_world(void)
         return;
     const sprite_t *s = &player_art[pose];
     draw_sprite(s, W / 2 - s->w / 2 + dx, PLAYER_Y - s->h + 3 + dy, flags, 0);
+}
+
+static void draw_world(void)
+{
+    int32_t cam_y = height_at(player_z()) + CAM_H;
+    road_draw(pl.z, pl.x, cam_y, pl.theme, pl.bg_x, draw_player);
 }
 
 static void frame_end(void)
@@ -671,7 +673,7 @@ static int title(void)
         text_center(111, T("ABAJO: FRENAR", "DOWN: BRAKE"), 15);
         text_center(120, T("IZQUIERDA Y DERECHA: GIRAR", "LEFT AND RIGHT: STEER"), 15);
         text_center(129, T("Z: MARCHA, LO O HI", "Z: GEAR, LO OR HI"), 15);
-        text_center(138, T("INTRO: PAUSA   ESC: SALIR", "ENTER: PAUSE   ESC: QUIT"), 13);
+        text_center(138, T("INTRO: PAUSA  S: MÚSICA  ESC: SALIR", "ENTER: PAUSE  S: MUSIC  ESC: QUIT"), 13);
         if (t & 32)
             text_center(160, T("PULSA ESPACIO O FUEGO", "PRESS SPACE OR FIRE"), 14);
         sound_frame();
@@ -683,11 +685,12 @@ static int title(void)
 int main(void)
 {
     lang = zxv_lang_get() == ZXV_LANG_ES ? 0 : 1;
+    video_init();                       /* antes: lo de abajo usa la memoria de vídeo que no se ve */
     sound_init();
     art_init();
     track_build();
     load_record();
-    video_init();                       /* después: lo que tarda lo de antes no son frames perdidos */
+    video_init();                       /* otra vez: lo que tarda lo de antes no son frames perdidos */
     input_now = 0x7F;                   /* lo que esté pulsado al empezar no cuenta */
     for (;;) {
         int r = title();

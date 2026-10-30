@@ -66,7 +66,8 @@ directa** (sin número, que se ejecuta en cuanto pulsas Enter).
   `SCREEN`, `SCROLL`, `REMAP`, `RASTER`
 - [Sprites, mapas de tiles y gráficos rápidos](#sprites-mapas-de-tiles-y-gráficos-rápidos):
   `GRAB`, `SPRITE`, `TILE`, `MAP`, `FLOOR`, `BOX`, `DISC`, `POLY`...
-- [Sonido y música](#sonido-y-música): `BEEP`, `PLAY`, `SOUND`
+- [Sonido y música](#sonido-y-música): `BEEP`, `PLAY`, `SOUND`, `MUSIC`,
+  `SFX`
 - [Teclado, mando y ratón](#teclado-mando-y-ratón): `INPUT`, `INKEY$`,
   `KEY`, `JOY`, `MOUSE`
 - [Ficheros y la tarjeta SD](#ficheros-y-la-tarjeta-sd): `SAVE`, `LOAD`,
@@ -1339,9 +1340,11 @@ Los sprites, los tiles, los mapas y las texturas se guardan por número en un
 juego), y `NEW` los borra. Definir otra vez un número lo sustituye.
 `SAVE "nombre" GRAPHICS` graba el almacén entero en un fichero `.gfx`, y
 `LOAD "nombre" GRAPHICS` lo carga (ver [SAVE](#save) y [LOAD](#load)).
-También puedes crear ficheros `.gfx` a partir de imágenes PNG en el
-ordenador, con la herramienta `png2gfx` del SDK (ver la [guía del
-SDK](../sdk/README.md)).
+También puedes dibujarlos en el PC con el editor de gráficos `zxv-gfx`,
+que viene con el emulador, o en la propia máquina con `LOAD "ROM:gfxedit"`,
+o crear ficheros `.gfx` a partir de imágenes PNG con la herramienta
+`png2gfx` del SDK (ver la [guía de gráficos del
+SDK](../sdk/graphics.md#el-editor-de-gráficos-para-el-pc-zxv-gfx)).
 
 Un sprite, juego de tiles, mapa o textura que no existe da `A Argumento no
 válido`; los números fuera de rango, `B Entero fuera de rango`, y si los
@@ -1598,7 +1601,8 @@ cualquier cosa dibujada en la pantalla.
 ## Sonido y música
 
 ZX-V tiene un *beeper* (un altavoz sencillo, el que usa `BEEP`) y dos chips
-de sonido AY de tres canales cada uno (los que usan `PLAY` y `SOUND`).
+de sonido AY de tres canales cada uno (los que usan `PLAY`, `SOUND`, `MUSIC`
+y `SFX`).
 
 ### BEEP
 
@@ -1687,6 +1691,81 @@ del segundo (con el mismo significado, 16 más arriba); los valores van de 0 a
 toca un tono en el canal A durante medio segundo.
 
 **Ver también:** [`IN` y `OUT`](#in-out), para los puertos del 128K.
+
+### MUSIC
+
+```
+LOAD nombre$ MUSIC
+MUSIC PLAY
+MUSIC STOP
+MUSIC PAUSE
+MUSIC CONTINUE
+MUSIC                          (función)
+```
+
+Toca música hecha con un tracker, de fondo: el programa sigue mientras
+suena, como en los juegos. `LOAD nombre$ MUSIC` carga un módulo (sin
+extensión, `nombre.pt3`): de Pro Tracker 3 o Vortex Tracker II (`.pt3`, el
+que guarda el tracker de ZX-V, [`zxv-tracker`](../sdk/README.md#el-tracker-para-el-pc-zxv-tracker)),
+un TurboSound (dos módulos, uno en cada chip AY: seis voces), de Pro
+Tracker 2, Sound Tracker, ASC Sound Master o un volcado PSG. Un fichero que
+no es ninguno de esos da `R Error al cargar`.
+
+- `MUSIC PLAY` lo toca desde el principio, y al acabar vuelve a la
+  posición de vuelta del módulo, sin fin. Sin un módulo cargado, `A
+  Argumento no válido`.
+- `MUSIC STOP` lo para; `MUSIC PAUSE` lo deja en silencio y `MUSIC
+  CONTINUE` sigue donde estaba.
+- La función `MUSIC` vale 1 mientras suena y 0 si no.
+
+Suena en el primer chip AY (un TurboSound, en los dos), con el mismo código
+que el tracker y que los programas en C. Se para con `MUSIC STOP`, BREAK,
+`RUN`, `NEW`, `PLAY` (que usa los chips a su manera) y al cargar un
+programa nativo; si el programa acaba o da un error, sigue sonando. Lo que
+escriba `SOUND` en el chip de la música dura hasta que la música vuelve a
+escribir ese registro.
+
+El módulo ocupa lo que pesa su fichero (de 2 a 15 KB uno normal) y va con
+los gráficos: se conserva con `RUN` y `CLEAR` y `NEW` lo borra.
+
+```
+10 LOAD "tema" MUSIC: MUSIC PLAY
+20 PRINT "Suena..."
+30 IF INKEY$="" THEN GO TO 30
+40 MUSIC STOP
+```
+
+### SFX
+
+```
+LOAD nombre$ SFX
+SFX n [, canal]
+SFX STOP
+SFX                            (función)
+```
+
+Efectos de sonido como los de los juegos: un banco de efectos AYFX (`.afb`,
+el que guarda la pestaña de efectos de `zxv-tracker` o el AY Sound FX Editor;
+sin extensión, `nombre.afb`) o un efecto suelto (`.afx`). Un fichero que no
+es un banco da `R Error al cargar`.
+
+- `SFX n` toca el efecto `n` del banco (el primero es el 0) sin esperar,
+  en un canal libre del chip que no usa la música (si no hay ninguno, en el
+  que lleva más tiempo sonando). Con `canal`, en ese: del 0 al 2, los A, B y
+  C del primer chip, y del 3 al 5, los del segundo; un efecto en un canal de
+  la música lo tapa mientras suena. Un efecto que no está en el banco da `B
+  Entero fuera de rango`, y sin banco, `A Argumento no válido`.
+- `SFX STOP` para todos los efectos.
+- La función `SFX` vale 1 mientras suena algún efecto.
+
+Suenan a la vez que la música, `BEEP` y lo demás. BREAK, `RUN` y `NEW` los
+paran; el banco se conserva como el módulo.
+
+```
+10 LOAD "efectos" SFX
+20 IF INKEY$=" " THEN SFX 0
+30 GO TO 20
+```
 
 ## Teclado, mando y ratón
 
@@ -1922,6 +2001,8 @@ LOAD nombre$ SCREEN$
 LOAD nombre$ DATA letra()
 LOAD nombre$ DATA letra$()
 LOAD nombre$ GRAPHICS
+LOAD nombre$ MUSIC
+LOAD nombre$ SFX
 ```
 
 Carga de la tarjeta SD (o de la unidad `ROM:`):
@@ -1943,6 +2024,8 @@ Carga de la tarjeta SD (o de la unidad `ROM:`):
   mismo número; los demás se quedan, así que puedes cargar los sprites de un
   fichero y un nivel de otro. Un fichero que no es válido da `R Error al
   cargar`.
+- `MUSIC` y `SFX`: un módulo de música o un banco de efectos (ver
+  [`MUSIC`](#music) y [`SFX`](#sfx)).
 
 `LOAD ""` (con el nombre vacío) carga el bloque siguiente de la cinta puesta
 (ver [Ficheros de cinta](#ficheros-de-cinta)).

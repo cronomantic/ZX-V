@@ -134,6 +134,25 @@ the chip plays. That is what games need. The sound keeps playing until you
 change it, so remember to silence it with `SOUND 8,0`. Registers 16 to 31
 are the same ones for the second chip.
 
+## Real music: `MUSIC` and `SFX`
+
+The music for a game is made with a *tracker*, a program for composing like
+the ones Spectrum musicians used. ZX-V comes with one for the PC,
+[`zxv-tracker`](../../sdk/README.md#the-tracker-for-the-pc-zxv-tracker),
+which saves the song in a `.pt3` file and the sound effects in an `.afb`.
+BASIC plays them **in the background**, while the program goes on:
+
+```
+10 LOAD "tune" MUSIC: MUSIC PLAY
+20 LOAD "effects" SFX
+30 IF INKEY$=" " THEN SFX 0
+40 GO TO 30
+```
+
+`MUSIC STOP` stops the music and `SFX n` plays effect number `n` without
+silencing it. Everything else is in the reference: [`MUSIC`](../reference.md#music)
+and [`SFX`](../reference.md#sfx).
+
 ## Try it
 
 1. Play the beginning of a tune you know with `PLAY`.
@@ -164,7 +183,8 @@ wait a few frames with `WAIT 4`, set a smaller period (a higher note) such as
 ---
 
 **Reference:** [`BEEP`](../reference.md#beep), [`PLAY`](../reference.md#play),
-[`SOUND`](../reference.md#sound), [`WAIT`](../reference.md#wait).
+[`SOUND`](../reference.md#sound), [`WAIT`](../reference.md#wait),
+[`MUSIC`](../reference.md#music), [`SFX`](../reference.md#sfx).
 
 **Next:** [11. Keyboard and joystick](11-keyboard-and-joystick.md) ·
 **Previous:** [9. Drawing](09-drawing.md)

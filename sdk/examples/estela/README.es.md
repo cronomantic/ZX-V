@@ -40,15 +40,44 @@ También está en el disco ROM de la máquina: `LOAD "ROM:estela"`.
 | Cursores o OPQA | Cruceta | Mover |
 | Espacio o M | Botón 1 o 2 | Disparar (manteniéndolo, en ráfaga) |
 | Intro | Start | Pausa |
+| S | | La música, sí o no |
 | Esc | | Al título; en el título, al BASIC |
+
+## Sus gráficos y su música, a tu gusto
+
+Los gráficos están en [`estela.gfx`](estela.gfx), que se edita con
+`zxv-gfx` en el PC o con `gfxedit` en la propia máquina, y las músicas en
+módulos de Pro Tracker 3 que se editan con `zxv-tracker`:
+[`estela-title.pt3`](estela-title.pt3) (el título),
+[`-stage1`](estela-stage1.pt3), [`-stage2`](estela-stage2.pt3) y
+[`-stage3`](estela-stage3.pt3) (una para cada fase),
+[`-boss`](estela-boss.pt3) (los jefes), [`-over`](estela-over.pt3) (el final
+de la partida) y [`-clear`](estela-clear.pt3) (fase superada). El programa
+los lleva dentro, pero si en la carpeta desde la que se carga hay uno con
+ese nombre usa ese: para cambiar un dibujo o una música no hace falta
+compilar nada. Uno que no vale (o no cabe) da un informe y vuelve al BASIC.
+
+| Sprite | |
+|---|---|
+| 0 y 1 | La nave y su escudo |
+| 2, 3 y 4 | El dardo y la rueda (en dos posiciones) |
+| 5 y 6 | La roca grande y la pequeña |
+| 7, 8 y 9 | La torreta, la mina y el portador de mejoras |
+| 10 | Las balas enemigas |
+| 11 y 12 | Las mejoras: el arma y el escudo |
+| 13–16 | La explosión, en cuatro pasos |
+| 17–19 | Los jefes de las tres fases |
+
+Y los tiles de 8 × 8 del terreno: vacío, roca, el borde de arriba y el de
+abajo de la roca, metal, sus dos bordes y una luz.
 
 ## Cómo está hecho
 
 | Fichero | |
 |---|---|
 | `estela.h` | Lo que comparten las partes: tamaños, sprites, sonido, el generador aleatorio y la tabla del seno |
-| `draw.c` | La pantalla: doble buffer, la fuente de 5 × 7 (con los acentos y la Ñ), sprites dibujados con caracteres o con el motor, colisiones y las estrellas en tres capas |
-| `sound.c` | La música (primer AY), los efectos (segundo AY) y las muestras digitalizadas |
+| `draw.c` | La pantalla: doble buffer, la fuente de 5 × 7 (con los acentos y la Ñ), los sprites de `estela.gfx` (con `zxv_gfxfile.h`), colisiones y las estrellas en tres capas |
+| `sound.c` | La música (primer AY, con `zxv_music.h`), los efectos (segundo AY) y las muestras digitalizadas |
 | `game.c` | Las fases, el terreno, los enemigos, los jefes, el título, la demostración y el récord |
 
 - **Doble buffer:** cada frame se dibuja entero en la página oculta
@@ -63,11 +92,8 @@ También está en el disco ROM de la máquina: `LOAD "ROM:estela"`.
   cincuentavos de segundo (sus píxeles a 50 Hz) y `PX()` los pasa a los
   píxeles de ahora: a 60, las fases son un 20 % más largas, y las oleadas,
   las torretas y el jefe salen a los mismos segundos.
-- **Sprites sin ficheros:** la nave, los dardos y las torretas son dibujos
-  con caracteres en el código (`sprite_ascii`); las rocas, la mina, las
-  explosiones y los jefes se dibujan con círculos, rectángulos y polígonos
-  del motor en un lienzo (`zxv_gfx_target`) y se preparan como sprites. Todo
-  al arrancar, en un depósito de 48 KB.
+- **Los sprites** son los de `estela.gfx`, preparados para el motor
+  (`zxv_spr_prepare`) al arrancar, en un depósito de 48 KB.
 - **El terreno** es un mapa de tiles de 512 × 24 celdas hecho al empezar la
   fase (un camino aleatorio con un hueco mínimo y una zona llana para el
   jefe). Se dibujan solo las franjas de arriba y de abajo donde hay pared, y
@@ -75,12 +101,15 @@ También está en el disco ROM de la máquina: `LOAD "ROM:estela"`.
 - **Las posiciones** van en 1/96 de píxel (así `V()` es exacta a 50 y a
   60 Hz), y los ángulos en 64 pasos por vuelta con una tabla del seno: nada
   de coma flotante.
-- **El sonido:** la música va por el primer AY (melodía, bajo y batería con
-  el ruido); los efectos, por el segundo (disparos y mejoras en el canal A,
-  explosiones con ruido y envolvente en el B), los dos a 50 pasos por
-  segundo, como cuando se compusieron. Las explosiones grandes llevan
-  además una muestra de 0,6 s a 8 kHz por el volumen del canal C, mandada
-  poco a poco, unos 30 ms por delante, con `zxv_ay_event` (spec §5.4).
+- **El sonido:** la música va por el primer AY, con la biblioteca de
+  música del SDK; los efectos, por el segundo (disparos y mejoras en el
+  canal A, explosiones con ruido y envolvente en el B), a 50 pasos por
+  segundo, como cuando se hicieron. Las explosiones grandes llevan además
+  una muestra de 0,6 s a 8 kHz por el volumen del canal C, mandada poco a
+  poco, por delante, con `zxv_ay_event` (spec §5.4). Va por la misma cola
+  que la música, que tiene que ir en orden de hora: la muestra empieza
+  detrás de lo que ya tiene la música y, mientras suena, la música va hasta
+  cada muestra y no más allá (`zxv_music_update_until`).
 - **El teclado:** se lee el mapa de teclas pulsadas (`ZXV_I_KEYMAP`) para
   mover y disparar a la vez, y se vacía la cola de teclas cada frame para que
   lo tecleado no le llegue al BASIC al volver.

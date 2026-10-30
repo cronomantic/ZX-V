@@ -43,11 +43,15 @@ BOX 4, 100, 20, 20, 20
 | `GRAB`, `GRABSTR`, `SPRITE`, `HIT` | Los sprites, con espejo, otros colores o escalados, y los choques al píxel |
 | `BOX`, `DISC`, `POLY`, `CLIP`, `PIXEL` | Figuras rellenas, el recorte y el color de un píxel |
 | `KEY`, `JOY`, `SOUND`, `TIME` | Las teclas pulsadas, los mandos, los registros de los AY y el contador de frames |
+| `MUSICLOAD`, `MUSICPLAY`, `MUSICSTOP`, `MUSICPAUSE`, `MUSICCONTINUE`, `MUSIC` | La música de un tracker (un `.pt3` de [`zxv-tracker`](sdk/README.md#el-tracker-para-el-pc-zxv-tracker)...), de fondo mientras el programa sigue |
+| `SFXLOAD`, `SFX`, `SFXSTOP`, `SFXPLAYING` | Los efectos de sonido de un banco AYFX |
 
 Las diferencias con el BASIC de ZX-V: el sprite de una cadena es `GRABSTR`
 (`GRAB n, ancho, a$` en el de ZX-V); `KEY`, `JOY`, `HIT` y `PIXEL` llevan
-paréntesis (`KEY(9)`); `REMAP` y `SOUND` van de par en par; y `POLY` admite
-hasta 8 puntos.
+paréntesis (`KEY(9)`); `REMAP` y `SOUND` van de par en par; `POLY` admite
+hasta 8 puntos; y la música y los efectos se cargan con `MUSICLOAD f$` y
+`SFXLOAD f$` (`LOAD f$ MUSIC` y `SFX` en el de ZX-V), se tocan con `MUSICPLAY`,
+`MUSICSTOP`... y la función que dice si suena un efecto es `SFXPLAYING`.
 
 `SAVE`, `LOAD` y `VERIFY` usan la tarjeta SD como el BASIC de ZX-V: sin
 extensión, un `.tap` que también carga el BASIC de la máquina. Compilado con

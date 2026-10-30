@@ -4,9 +4,14 @@
  *
  *   video.c  la pantalla: doble buffer, los tramos de color de la carretera
  *            (con tramado), el texto y los sprites
- *   art.c    los gráficos, dibujados con el motor al empezar
+ *   art.c    los gráficos, los de route128.gfx
  *   road.c   el circuito (curvas y cambios de rasante) y su proyección
  *   sound.c  el motor, el derrape y los golpes (segundo AY) y la música (primero)
+ *
+ * La memoria de vídeo que no se ve también se usa: en el modo 0, de cada
+ * página de 96 KB la pantalla solo enseña los primeros 24; el resto es memoria
+ * como la otra. Ahí van los sprites preparados (art.c), las músicas de la
+ * tarjeta (sound.c) y el paisaje de la etapa (art.c).
  *   game.c   la carrera, el tráfico, el marcador, el título y la demostración
  */
 #ifndef RUTA128_H
@@ -17,6 +22,14 @@
 #define W           256
 #define H           192
 #define HORIZON     96                  /* la línea a la altura de la cámara */
+
+#define SPARE_SIZE  (ZXV_VRAM_PAGE_SIZE - W * H / 2)
+#define SPARE0      ((uint8_t *)(uintptr_t)(ZXV_VRAM0_BASE + W * H / 2))
+#define SPARE1      ((uint8_t *)(uintptr_t)(ZXV_VRAM1_BASE + W * H / 2))
+#define BG_ROOM     (24 * 1024)         /* el paisaje: tres capas de 512 x 96 en total */
+#define BG_MEM      (SPARE1 + SPARE_SIZE - BG_ROOM)
+#define MUSIC_ROOM  (24 * 1024)
+#define MUSIC_MEM   (BG_MEM - MUSIC_ROOM)
 
 /* --- video.c ------------------------------------------------------------------ */
 
@@ -51,9 +64,6 @@ int text_width(const char *s);
 void text_big(int x, int y, const char *s, int size, const uint8_t *row_colours);
 void number(char *out, uint32_t v, int digits);
 
-/* Los sprites se dibujan con el motor sobre un lienzo transparente de w x h. */
-void canvas(int w, int h);
-sprite_t canvas_sprite(void);
 void draw_sprite(const sprite_t *s, int x, int y, int flags, const uint8_t *colours);
 void draw_scaled(const sprite_t *s, int x, int y, int w, int h, int flags, const uint8_t *colours);
 
@@ -78,8 +88,7 @@ extern const uint8_t car_colours[6][16];
 extern zxv_bitmap bg_far, bg_near, bg_clouds;   /* el paisaje de la etapa (art_background) */
 
 void art_init(void);
-void art_background(int theme);         /* las montañas de una etapa, ya */
-void art_prepare(int theme);            /* las de la que viene, un trozo (en cada frame) */
+void art_background(int theme);         /* el paisaje de una etapa */
 
 /* --- road.c ------------------------------------------------------------------- */
 
@@ -121,10 +130,12 @@ int seg_objects(int seg, int *first);
 int obj_type(int i);
 int obj_x(int i);
 
-/* Dibuja la carretera vista desde (z, x en 1/X1, altura de la cámara), el
- * paisaje de la etapa theme desplazado bg_x y lo que hay en la carretera, de
- * lejos a cerca. */
-void road_draw(int32_t z, int x, int32_t cam_y, int theme, int bg_x);
+/* Dibuja la carretera vista desde la cámara (z, x en 1/X1; cam_y, su altura:
+ * la de la carretera bajo el coche más CAM_H), el paisaje de la etapa theme
+ * desplazado bg_x y lo que hay en la carretera, de lejos a cerca. player
+ * dibuja el coche: road_draw lo llama en su sitio, delante de lo que queda
+ * detrás de él y detrás de lo que hay entre él y la cámara. */
+void road_draw(int32_t z, int x, int32_t cam_y, int theme, int bg_x, void (*player)(void));
 
 /* --- sound.c ------------------------------------------------------------------ */
 
@@ -136,7 +147,9 @@ void sound_frame(void);                 /* una vez por frame (la música va a 50
 void sound_song(int song);
 void sound_fx(int fx);
 void sound_engine(int rpm, int skid, int offroad);  /* rpm 0-1000; skid y offroad 0-15 */
-void sound_mute(int on);
+void sound_mute(int on);                /* la pausa */
+void sound_music(int on);               /* la música sí o no (la tecla S) */
+int sound_music_on(void);
 void sound_off(void);
 
 /* --- game.c ------------------------------------------------------------------- */

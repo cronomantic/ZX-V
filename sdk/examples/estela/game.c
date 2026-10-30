@@ -95,7 +95,8 @@ static int isqrt(int v)
 
 /* --- La entrada -------------------------------------------------------------------- */
 
-enum { IN_UP = 1, IN_DOWN = 2, IN_LEFT = 4, IN_RIGHT = 8, IN_FIRE = 16, IN_PAUSE = 32, IN_ESC = 64 };
+enum { IN_UP = 1, IN_DOWN = 2, IN_LEFT = 4, IN_RIGHT = 8, IN_FIRE = 16, IN_PAUSE = 32, IN_ESC = 64,
+       IN_MUSIC = 128 };
 
 static int key(unsigned hid)
 {
@@ -122,6 +123,8 @@ static void read_input(void)
         in |= IN_PAUSE;                 /* Intro */
     if (key(0x29))
         in |= IN_ESC;
+    if (key(0x16))
+        in |= IN_MUSIC;                 /* S */
     uint16_t joy = *(volatile uint16_t *)(uintptr_t)ZXV_I_JOY0;
     if (joy & ZXV_JOY_CONNECTED) {
         if (joy & ZXV_JOY_UP) in |= IN_UP;
@@ -133,6 +136,8 @@ static void read_input(void)
     }
     input_edge = in & ~input_now;
     input_now = in;
+    if (input_edge & IN_MUSIC)          /* la música, sí o no, en cualquier momento */
+        sound_music(!sound_music_on());
     /* Lo tecleado no le sirve al juego: que no le llegue al BASIC al volver. */
     while (zxv_key_get() >= 0)
         ;
@@ -140,180 +145,35 @@ static void read_input(void)
 
 /* --- Los gráficos ------------------------------------------------------------------- */
 
-static const char *const ship_art[10] = {
-    "...77...........",
-    "...777..........",
-    "a..77777........",
-    "aa.777755777....",
-    "aaa77775555777f.",
-    "aaa77777777777ff",
-    "aa.1111111111...",
-    "a..11111........",
-    "...111..........",
-    "...11...........",
-};
-
-static const char *const dart_art[8] = {
-    "......bb....",
-    "....bbbb3...",
-    "..bbbbbb33..",
-    "eebbbbbb333.",
-    "eebbbbbb333.",
-    "..bbbbbb33..",
-    "....bbbb3...",
-    "......bb....",
-};
-
-static const char *const turret_art[8] = {
-    ".......77.......",
-    ".......77.......",
-    "......7777......",
-    "....11777711....",
-    "...1177aa77711..",
-    "..117777777711..",
-    ".11111111111111.",
-    "1111111111111111",
-};
-
 enum { E_DART, E_WHEEL, E_ROCK, E_PEBBLE, E_TURRET, E_MINE, E_CARRIER };
 
 static sprite_t s_ship, s_shield, s_dart, s_wheel[2], s_rock, s_pebble, s_turret, s_mine, s_carrier;
 static sprite_t s_ebullet, s_power[2], s_boom[4], s_boss[3];
 
+/* Los sprites de estela.gfx, por su número: 0 la nave, 1 su escudo, 2 el
+ * dardo, 3 y 4 la rueda (en dos posiciones), 5 la roca grande, 6 la
+ * pequeña, 7 la torreta, 8 la mina, 9 el portador de mejoras, 10 las balas
+ * enemigas, 11 y 12 las mejoras (arma y escudo), 13 a 16 la explosión (en
+ * cuatro pasos) y 17 a 19 los jefes de las tres fases. */
 static void make_sprites(void)
 {
-    s_ship = sprite_ascii(ship_art, 16, 10);
-    s_dart = sprite_ascii(dart_art, 12, 8);
-    s_turret = sprite_ascii(turret_art, 16, 8);
-
-    canvas(24, 18);                                     /* el escudo, alrededor de la nave */
-    zxv_gfx_circle(11, 8, 11, 13, 0);
-    zxv_gfx_circle(11, 8, 10, 5, 0);
-    s_shield = canvas_sprite();
-
-    for (int f = 0; f < 2; f++) {                       /* la rueda, en dos posiciones */
-        canvas(14, 14);
-        zxv_gfx_circle(6, 6, 6, 13, 0);
-        zxv_gfx_circle(6, 6, 5, 5, 0);
-        if (f) {
-            zxv_gfx_line(2, 2, 10, 10, 15);
-            zxv_gfx_line(2, 10, 10, 2, 15);
-        } else {
-            zxv_gfx_line(6, 0, 6, 12, 15);
-            zxv_gfx_line(0, 6, 12, 6, 15);
-        }
-        zxv_gfx_circle(6, 6, 2, 10, 1);
-        s_wheel[f] = canvas_sprite();
-    }
-
-    canvas(24, 24);                                     /* la roca grande */
-    zxv_gfx_circle(11, 12, 11, 1, 1);
-    zxv_gfx_circle(12, 11, 9, 7, 1);
-    zxv_gfx_circle(8, 8, 3, 1, 1);
-    zxv_gfx_circle(15, 15, 2, 1, 1);
-    zxv_gfx_circle(16, 7, 2, 15, 1);
-    s_rock = canvas_sprite();
-
-    canvas(12, 12);                                     /* la pequeña */
-    zxv_gfx_circle(5, 6, 5, 1, 1);
-    zxv_gfx_circle(6, 5, 4, 7, 1);
-    zxv_gfx_rect(4, 4, 2, 2, 1);
-    s_pebble = canvas_sprite();
-
-    canvas(15, 15);                                     /* la mina, con pinchos */
-    zxv_gfx_line(7, 0, 7, 14, 6);
-    zxv_gfx_line(0, 7, 14, 7, 6);
-    zxv_gfx_line(2, 2, 12, 12, 6);
-    zxv_gfx_line(2, 12, 12, 2, 6);
-    zxv_gfx_circle(7, 7, 4, 2, 1);
-    zxv_gfx_circle(7, 7, 1, 14, 1);
-    s_mine = canvas_sprite();
-
-    canvas(22, 12);                                     /* el portador de mejoras */
-    zxv_gfx_rect(4, 3, 14, 7, 6);
-    zxv_gfx_circle(4, 6, 3, 6, 1);
-    zxv_gfx_circle(17, 6, 3, 6, 1);
-    zxv_gfx_rect(7, 0, 8, 3, 14);
-    zxv_gfx_rect(8, 5, 2, 2, 2);
-    zxv_gfx_rect(12, 5, 2, 2, 2);
-    zxv_gfx_line(0, 6, 3, 6, 14);
-    s_carrier = canvas_sprite();
-
-    canvas(5, 5);                                       /* las balas enemigas */
-    zxv_gfx_circle(2, 2, 2, 10, 1);
-    zxv_gfx_rect(2, 2, 1, 1, 15);
-    s_ebullet = canvas_sprite();
-
-    for (int k = 0; k < 2; k++) {                       /* las mejoras: arma y escudo */
-        canvas(11, 11);
-        zxv_gfx_circle(5, 5, 5, k ? 5 : 2, 1);
-        zxv_gfx_circle(5, 5, 4, k ? 13 : 10, 0);
-        if (k) {
-            zxv_gfx_circle(5, 5, 2, 15, 0);
-        } else {
-            zxv_gfx_rect(2, 5, 7, 1, 15);
-            zxv_gfx_rect(6, 3, 1, 5, 15);
-        }
-        s_power[k] = canvas_sprite();
-    }
-
-    for (int f = 0; f < 4; f++) {                       /* la explosión, en cuatro pasos */
-        canvas(16, 16);
-        static const uint8_t col[4][3] = { { 15, 14, 14 }, { 14, 10, 15 }, { 10, 2, 14 }, { 2, 0, 10 } };
-        zxv_gfx_circle(8, 8, 3 + f * 2, col[f][0], 1);
-        zxv_gfx_circle(8, 8, 1 + f * 2, col[f][1], 1);
-        for (int i = 0; i < 6; i++) {
-            int a = i * 11 + f * 5;
-            zxv_gfx_rect(8 + icos(a) * (2 + f * 2) / 64, 8 + isin(a) * (2 + f * 2) / 64, 2, 2, col[f][2]);
-        }
-        if (f == 3)
-            zxv_gfx_circle(8, 8, 3, ZXV_TRANSPARENT, 1);
-        s_boom[f] = canvas_sprite();
-    }
-
-    /* Los jefes. */
-    canvas(48, 48);                                     /* 1: la roca madre */
-    zxv_gfx_circle(23, 24, 23, 1, 1);
-    zxv_gfx_circle(24, 23, 21, 7, 1);
-    zxv_gfx_circle(13, 12, 5, 1, 1);
-    zxv_gfx_circle(34, 33, 4, 1, 1);
-    zxv_gfx_circle(33, 12, 3, 1, 1);
-    zxv_gfx_circle(12, 34, 3, 1, 1);
-    zxv_gfx_circle(23, 23, 8, 0, 1);
-    zxv_gfx_circle(23, 23, 6, 10, 1);
-    zxv_gfx_circle(21, 22, 2, 15, 1);
-    s_boss[0] = canvas_sprite();
-
-    canvas(56, 36);                                     /* 2: el guardián */
-    {
-        static const int16_t hull[] = { 0, 18, 18, 4, 50, 2, 55, 18, 50, 33, 18, 31 };
-        zxv_gfx_poly(hull, 6, 4);
-        static const int16_t deck[] = { 6, 18, 20, 9, 44, 8, 47, 18, 44, 27, 20, 26 };
-        zxv_gfx_poly(deck, 6, 12);
-        zxv_gfx_rect(0, 16, 14, 5, 7);
-        zxv_gfx_rect(0, 17, 4, 3, 10);
-        zxv_gfx_circle(30, 17, 5, 1, 1);
-        zxv_gfx_circle(30, 17, 3, 13, 1);
-        zxv_gfx_rect(48, 6, 7, 4, 10);
-        zxv_gfx_rect(48, 26, 7, 4, 10);
-    }
-    s_boss[1] = canvas_sprite();
-
-    canvas(56, 56);                                     /* 3: el núcleo */
-    zxv_gfx_rect(4, 4, 48, 48, 1);
-    zxv_gfx_rect(6, 6, 44, 44, 9);
-    zxv_gfx_rect(8, 8, 40, 40, 7);
-    for (int i = 0; i < 4; i++) {
-        zxv_gfx_rect(10 + i * 10, 10, 6, 4, 0);
-        zxv_gfx_rect(10 + i * 10, 42, 6, 4, 0);
-    }
-    zxv_gfx_rect(0, 12, 4, 8, 7);
-    zxv_gfx_rect(0, 36, 4, 8, 7);
-    zxv_gfx_circle(27, 27, 12, 0, 1);
-    zxv_gfx_circle(27, 27, 10, 10, 1);
-    zxv_gfx_circle(27, 27, 6, 14, 1);
-    zxv_gfx_circle(25, 25, 2, 15, 1);
-    s_boss[2] = canvas_sprite();
+    s_ship = art_sprite(0);
+    s_shield = art_sprite(1);
+    s_dart = art_sprite(2);
+    for (int f = 0; f < 2; f++)
+        s_wheel[f] = art_sprite(3 + f);
+    s_rock = art_sprite(5);
+    s_pebble = art_sprite(6);
+    s_turret = art_sprite(7);
+    s_mine = art_sprite(8);
+    s_carrier = art_sprite(9);
+    s_ebullet = art_sprite(10);
+    for (int k = 0; k < 2; k++)
+        s_power[k] = art_sprite(11 + k);
+    for (int f = 0; f < 4; f++)
+        s_boom[f] = art_sprite(13 + f);
+    for (int b = 0; b < 3; b++)
+        s_boss[b] = art_sprite(17 + b);
 }
 
 /* Recolorear: todo blanco (al recibir un disparo) o el núcleo cerrado. */
@@ -332,46 +192,17 @@ static uint8_t ceil_rows[MAP_COLS], ground_row[MAP_COLS];    /* filas sólidas: 
 static int band_top, band_bottom;
 static const zxv_tilemap terrain = { cells, MAP_COLS, MAP_ROWS, (const uint8_t *)tile_mem, 8, 0 };
 
-static void tile_px(int t, int x, int y, int c)
-{
-    uint8_t *p = (uint8_t *)tile_mem + t * 32 + y * 4 + (x >> 1);
-    *p = x & 1 ? (uint8_t)((*p & 0x0F) | c << 4) : (uint8_t)((*p & 0xF0) | c);
-}
-
+/* Los tiles de 8 x 8 de estela.gfx, en el orden de T_EMPTY a T_LIGHT; los
+ * que falten, transparentes. */
 static void make_tiles(void)
 {
-    for (int t = 0; t < TILES; t++)
-        for (int y = 0; y < 8; y++)
-            for (int x = 0; x < 8; x++) {
-                int c = ZXV_TRANSPARENT;
-                uint32_t r = rnd() & 15;
-                switch (t) {
-                case T_ROCK:
-                    c = r < 3 ? 9 : r < 5 ? 0 : 1;
-                    break;
-                case T_ROCK_TOP:                /* el borde de arriba, con picos */
-                    c = y < ((x * 5 + 3) % 4) ? ZXV_TRANSPARENT : y < ((x * 5 + 3) % 4) + 2 ? 13 : r < 3 ? 9 : 1;
-                    break;
-                case T_ROCK_BOTTOM:             /* el de abajo (el techo) */
-                    c = 7 - y < ((x * 3 + 1) % 4) ? ZXV_TRANSPARENT : 7 - y < ((x * 3 + 1) % 4) + 2 ? 13 : r < 3 ? 9 : 1;
-                    break;
-                case T_METAL:
-                    c = x == 0 || y == 0 ? 15 : x == 7 || y == 7 ? 1 : 7;
-                    break;
-                case T_METAL_TOP:
-                    c = y < 2 ? ZXV_TRANSPARENT : y == 2 ? 15 : y == 3 ? 14 : x == 7 ? 1 : 7;
-                    break;
-                case T_METAL_BOTTOM:
-                    c = y > 5 ? ZXV_TRANSPARENT : y == 5 ? 15 : y == 4 ? 14 : x == 7 ? 1 : 7;
-                    break;
-                case T_LIGHT:
-                    c = (x - 3) * (x - 3) + (y - 3) * (y - 3) < 5 ? 10 : x == 0 || y == 0 ? 15 : 1;
-                    break;
-                default:
-                    break;
-                }
-                tile_px(t, x, y, c);
-            }
+    uint8_t *t = (uint8_t *)tile_mem;
+    for (uint32_t i = 0; i < sizeof(tile_mem); i++)
+        t[i] = ZXV_TRANSPARENT * 0x11;
+    uint32_t len;
+    const uint8_t *d = zxv_gfxf_find(art_file(), ZXV_GFXF_TILES, 8, &len);
+    for (uint32_t i = 0; d && i + 4 < len && i < sizeof(tile_mem); i++)
+        t[i] = d[4 + i];
 }
 
 /* El terreno avanza un píxel por frame. Lo que mide el recorrido de una fase
@@ -949,7 +780,7 @@ static void stage_start(void)
     *p = 0;
     message = title;
     message2 = T(stages[stage].name_es, stages[stage].name_en);
-    sound_song(SONG_STAGE);
+    sound_song(SONG_STAGE + stage);
 }
 
 static void update(void)
@@ -1425,7 +1256,7 @@ static int title(void)
         text_center(110, line, 14);
         text_center(130, T("CURSORES O OPQA: MOVER", "ARROWS OR OPQA: MOVE"), 7);
         text_center(140, T("ESPACIO O M: DISPARAR", "SPACE OR M: FIRE"), 7);
-        text_center(150, T("INTRO: PAUSA   ESC: SALIR", "ENTER: PAUSE   ESC: QUIT"), 7);
+        text_center(150, T("INTRO: PAUSA  S: MÚSICA  ESC: SALIR", "ENTER: PAUSE  S: MUSIC  ESC: QUIT"), 7);
         if (t & 32)
             text_center(172, T("PULSA ESPACIO O FUEGO", "PRESS SPACE OR FIRE"), 15);
         sound_frame();
@@ -1438,6 +1269,7 @@ int main(void)
     lang = zxv_lang_get() == ZXV_LANG_ES ? 0 : 1;
     video_init();
     sound_init();
+    art_open();
     make_sprites();
     make_tiles();
     stars_init();
