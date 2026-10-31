@@ -204,9 +204,11 @@ Sprites, tiles and maps stay in memory after the program ends, and also
 after `RUN`; `NEW` deletes them. To save them all in a file on the SD card,
 use `SAVE "name" GRAPHICS`, and `LOAD "name" GRAPHICS` brings them back.
 
-Drawing big sprites with strings is slow work. You can draw them on your PC
-with any paint program and convert the pictures with the `png2gfx` tool:
-the [SDK guide](../../sdk/README.md) explains how.
+Drawing big sprites with strings is slow work. It is easier to draw them on
+your PC with [`zxv-gfx`](../../sdk/graphics.md#the-graphics-editor-for-the-pc-zxv-gfx),
+the graphics editor that comes with the emulator, which saves `.gfx` files
+directly. You can also use any paint program and convert the pictures with
+the `png2gfx` tool: the [SDK guide](../../sdk/README.md) explains how.
 
 ## Try it
 

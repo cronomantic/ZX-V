@@ -464,6 +464,20 @@ color como él mismo). Cambiar una tabla cambia los colores de toda la
 pantalla de golpe, sin tocar la memoria de vídeo: fundidos, destellos,
 ciclos de color.
 
+Cada tabla tiene además su **paleta**: los 16 colores RGB565 que se ven para
+cada índice, en `ZXV_PALETTE(t)`. Al empezar son los de siempre; cambiar uno
+da cualquier color (`ZXV_RGB(r, g, b)`, de 0 a 255 por componente) a todo lo
+que está dibujado con él. Con la tabla por línea, cada franja de la pantalla
+puede tener sus 16 colores:
+
+```c
+volatile uint16_t *pal1 = (volatile uint16_t *)(uintptr_t)ZXV_PALETTE(1);
+pal1[2] = ZXV_RGB(255, 128, 0);                 /* el rojo de la tabla 1, naranja */
+```
+
+El índice 8 sigue siendo transparente para los sprites y los tiles aunque la
+paleta le dé otro color.
+
 Este programa enseña las dos cosas: rayas en el borde con la tabla por
 línea, y seis franjas cuyos colores giran a través de la tabla 1:
 
@@ -618,12 +632,15 @@ sistema está en español, y si no, en inglés.
 | `--map M S FICHERO.csv` | El mapa M a partir de un CSV con el valor de cada celda |
 | `--texture N IMAGEN [C]` | La textura N (un cuadrado de lado potencia de 2, de 2 a 256); se repite o, con C, fuera es del color C |
 | `--wrap M` | El mapa M se repite |
+| `--screen N IMAGEN [B]` | La pantalla N (como las de `SAVE "x" SCREEN$` y las pantallas de carga): de 256 × 192 (modo 0) o 512 × 384 (modo 1), o el cuadro entero (320 × 240 o 640 × 480) con el borde del color de su esquina; B, el color del borde. Con colores que no son los de siempre (16 como mucho), lleva su paleta |
 | `--flip` | `--level` aprovecha también los tiles espejados |
 | `--key RRGGBB` | Ese color es transparente (además de los píxeles con alfa menor que 128) |
 
 Cada píxel toma el color de ZX-V más cercano, con un aviso si no era
 exacto. Dibuja con los 15 colores exactos: cada componente a 00, D7 o FF
-(por ejemplo, `D70000` es el rojo y `FF0000` el rojo brillante).
+(por ejemplo, `D70000` es el rojo y `FF0000` el rojo brillante). Las
+pantallas conservan sus colores: con colores que no son los de siempre (16
+como mucho), la pantalla lleva su paleta.
 
 ### Leer un fichero `.gfx` en C
 
@@ -638,6 +655,7 @@ cabecera de 8 bytes (tipo, 0, número en 16 bits y longitud de sus datos en
 | 2 | Tiles de S × S (S es el número del objeto) | cuántos (16 bits), 0 (16 bits) y los tiles (32 o 128 bytes cada uno) |
 | 3 | Mapa | ancho y alto (16 bits cada uno), lado del tile y repetición (bytes), 0 (16 bits) y las celdas (16 bits cada una) |
 | 4 | Textura | log2 del lado, repetición, color de fuera, 0 (bytes) y los texels (un byte cada uno) |
+| 5 | Pantalla | modo (0 o 1), color del borde, marcas (bit 0: lleva paleta) y 0 (bytes); si lleva paleta, sus 16 colores RGB565 (32 bytes); y los píxeles de la página, como en la VRAM (24.576 bytes en modo 0, 98.304 en modo 1) |
 
 Todos los números van con el byte bajo primero. Para leerlos, el SDK trae
 una pequeña biblioteca, **`zxv_gfxfile.h`** (con `gfxfile.c`). El fichero
@@ -654,7 +672,9 @@ con el buffer a `NULL`, solo lo dice):
 | `zxv_gfxf_tiles(&f, lado, buf, sitio, &cuántos)` | Los tiles de 8 o de 16 |
 | `zxv_gfxf_map(&f, n, &mapa, tiles, buf, sitio)` | El mapa `n`: sus celdas en `buf` y, en el `zxv_tilemap`, los tiles que se le den |
 | `zxv_gfxf_texture(&f, n, &textura, buf, sitio)` | La textura `n` de modo 7 |
-| `zxv_gfxf_find(&f, clase, n, &longitud)` | Los datos de un objeto tal cual están en el fichero |
+| `zxv_gfxf_screen(&f, n, &modo, &borde, buf, sitio)` | La pantalla `n`: sus píxeles en `buf`, como una página de la VRAM (por ejemplo, la que no se ve, para cambiar de página en el VBLANK) |
+| `zxv_gfxf_screen_palette(&f, n, pal)` | Los 16 colores RGB565 con que se veía la pantalla `n`, para ponerlos en una paleta (`ZXV_PALETTE(t)`): 1 si los lleva; si no, 0 y los de siempre |
+| `zxv_gfxf_find(&f, clase, n, &longitud)` | Los datos de un objeto tal cual están en el fichero (`clase`: `ZXV_GFXF_SPRITE` 1, `ZXV_GFXF_TILES` 2, `ZXV_GFXF_MAP` 3, `ZXV_GFXF_TEXTURE` 4, `ZXV_GFXF_SCREEN` 5) |
 
 Este programa carga `art.gfx` de la carpeta actual, prepara los dos sprites
 y el mapa (con tiles de 8), y los desplaza:
@@ -727,8 +747,8 @@ el del sistema (o el que se le pida: `zxv-gfx --lang en`).
 
 ![zxv-gfx con el nivel del juego de plataformas de los ejemplos](../../images/sdk-gfx-editor-es.png)
 
-- **Una pestaña por clase de objeto** (sprites, tiles de 8 y de 16, mapas y
-  texturas) y, a la izquierda, sus miniaturas; doble clic en un hueco vacío
+- **Una pestaña por clase de objeto** (sprites, tiles de 8 y de 16, mapas,
+  texturas y pantallas) y, a la izquierda, sus miniaturas; doble clic en un hueco vacío
   lo crea. A la derecha, la paleta, las propiedades (el tamaño, la
   repetición, el color de fuera…) y una vista previa: los sprites animados
   con los siguientes, los tiles repetidos 3 × 3 para ver si casan, y las
@@ -740,13 +760,17 @@ el del sistema (o el que se le pida: `zxv-gfx --lang en`).
 - **Los mapas** se pintan con el tile elegido en el panel *Tiles para pintar*
   y sus atributos (los dos espejos, transparente y delante); el botón
   derecho pone el 0. Doble clic en un tile del panel lo abre para editarlo.
+- **Las pantallas** pueden tener sus propios colores: doble clic en un color
+  de la paleta lo cambia por cualquier otro, y la pantalla pasa a llevar su
+  paleta.
 - **Copiar y pegar** con el portapapeles del sistema: lo copiado se pega en
   otros programas como imagen, y una imagen de otro programa se pega con los
   colores de ZX-V (el más cercano a cada píxel).
 - **Importar una imagen** (Archivo > Importar, o arrastrándola a la ventana):
   un sprite, una hoja de sprites, tiles, un nivel entero (los tiles,
-  aprovechando los repetidos y, si se quiere, los espejados, y el mapa) o
-  una textura. Da lo mismo que `png2gfx.py` con las mismas órdenes.
+  aprovechando los repetidos y, si se quiere, los espejados, y el mapa), una
+  textura o una pantalla. Da lo mismo que `png2gfx.py` con las mismas
+  órdenes.
   **Exportar como PNG** guarda el objeto, el juego de tiles o el mapa
   dibujado.
 - **Deshacer y rehacer** sin límite, zoom con Ctrl y la rueda, y el botón
@@ -765,6 +789,10 @@ el ratón. Arriba hay una pestaña por cada clase de gráfico:
 | Tiles 8, Tiles 16 | Los dos juegos de tiles: el tile ampliado, el mismo repetido 3 × 3 para ver si casa con sus vecinos y debajo todo el juego, para elegir |
 | Mapas | Los 16 mapas: se pintan con el tile elegido y sus atributos (los dos espejos, el 8 transparente y delante), como con `MAP POKE` |
 | Texturas | Las 4 texturas del modo 7: su lado, si se repiten y el color de fuera |
+
+Las pantallas (las de `SAVE "x" SCREEN$` y las pantallas de carga) no se
+editan aquí, sino en `zxv-gfx`: al cargar un fichero se las salta, y al
+grabarlo no las lleva.
 
 - **Para dibujar:** lápiz, línea, caja, caja llena, rellenar y coger un
   color de la imagen. El botón izquierdo pinta con un color de la paleta y

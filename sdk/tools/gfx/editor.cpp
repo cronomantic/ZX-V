@@ -18,6 +18,7 @@ int Editor::count(Section s) const
     case Section::Tiles16: return int(doc_.tiles16.size());
     case Section::Maps: return gfx::MAPS;
     case Section::Textures: return gfx::TEXTURES;
+    case Section::Screens: return gfx::SCREENS;
     }
     return 0;
 }
@@ -46,6 +47,8 @@ gfx::Image *Editor::image()
     }
     case Section::Textures:
         return doc_.textures[i].empty() ? nullptr : &doc_.textures[i].img;
+    case Section::Screens:
+        return doc_.screens[i].empty() ? nullptr : &doc_.screens[i].img;
     case Section::Maps:
         break;
     }
@@ -57,6 +60,13 @@ gfx::Map *Editor::map()
     if (section_ != Section::Maps || doc_.maps[index()].empty())
         return nullptr;
     return &doc_.maps[index()];
+}
+
+gfx::Screen *Editor::screen()
+{
+    if (section_ != Section::Screens || doc_.screens[index()].empty())
+        return nullptr;
+    return &doc_.screens[index()];
 }
 
 void Editor::setColor(int button, int c)
@@ -142,7 +152,7 @@ void Editor::setDocument(const gfx::Document &doc, const QString &path)
     redo_.clear();
     path_ = path;
     modified_ = false;
-    for (int s = 0; s < 5; s++)
+    for (int s = 0; s < SECTIONS; s++)
         index_[s] = 0;
     emit documentChanged();
     emit selectionChanged();

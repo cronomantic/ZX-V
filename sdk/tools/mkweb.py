@@ -9,7 +9,7 @@ Uso: mkweb.py SALIDA JUEGO [FICHERO...] --kit KIT [opciones]
      mkweb.py SALIDA --config game.json [--kit KIT] [opciones]
 
   SALIDA        la carpeta de la página (se crea; lo que hubiera se cambia)
-  JUEGO         el programa que arranca: .zxv, .tap, .tzx o un listado .bas
+  JUEGO         el programa que arranca: .zvb, .zxv, .tap, .tzx o un listado .bas
   FICHERO...    los que necesita el juego (.gfx, .pt3, .afb...): van con él
                 en la unidad ROM:, donde el BASIC los encuentra solo (D84)
   --kit KIT     la carpeta play/ de la versión web (zxv-web.zip, o
@@ -83,7 +83,7 @@ Usage: mkweb.py OUTPUT GAME [FILE...] --kit KIT [options]
        mkweb.py OUTPUT --config game.json [--kit KIT] [options]
 
   OUTPUT        the page's folder (created; whatever was there is replaced)
-  GAME          the program that starts: .zxv, .tap, .tzx or a .bas listing
+  GAME          the program that starts: .zvb, .zxv, .tap, .tzx or a .bas listing
   FILE...       the files the game needs (.gfx, .pt3, .afb...): they go with
                 it on the ROM: drive, where the BASIC finds them by itself (D84)
   --kit KIT     the play/ folder of the web version (zxv-web.zip, or
@@ -111,7 +111,7 @@ game.json takes the same: "start", "files", "title", "id", "lang", "border",
 over its own.
 """
 
-PROGRAMS = (".zxv", ".tap", ".tzx", ".bas", ".txt")
+PROGRAMS = (".zvb", ".zxv", ".tap", ".tzx", ".bas", ".txt")
 KIT = ("index.html", "play.js", "play.css", "engine.js", "zxv-core.js")
 KIT_EXTRA = ("LICENSE.txt", "THIRD_PARTY_NOTICES.txt", "licenses")
 FITS = {"proporcion": "proporcion", "entera": "entera", "llenar": "llenar",
@@ -241,6 +241,25 @@ def parse(argv):
     return base
 
 
+def loading_screen(name, data):
+    """La pantalla de carga de un .zxv o un .zvb (D89): sus datos (modo, borde,
+    marcas, 0, la paleta si la lleva y los píxeles), o None."""
+    ext = os.path.splitext(name)[1].lower()
+    if ext == ".zxv" and len(data) >= 72 and data[:4] == b"ZXV1":
+        at, n = struct.unpack_from("<H", data, 4)[0], struct.unpack_from("<I", data, 0x40)[0]
+    elif ext == ".zvb" and len(data) >= 24 and data[:4] == b"ZXVB" and data[5] == 0:
+        at, n = 24, struct.unpack_from("<I", data, 20)[0]
+    else:
+        return None
+    block = data[at:at + n]
+    if n < 4 or len(block) != n or block[0] > 1 or block[1] > 15 or block[2] & ~1:
+        return None
+    # Con la marca 1, la paleta (16 colores RGB565, D90) antes de los píxeles.
+    if len(block) != 4 + (32 if block[2] & 1 else 0) + (98304 if block[0] else 24576):
+        return None
+    return block
+
+
 def build(cfg):
     start = cfg.get("start")
     if not start:
@@ -254,7 +273,8 @@ def build(cfg):
             raise Error(tr(f"{kit}: {f} is missing (is it the play/ folder of the web version?)",
                            f"{kit}: falta {f} (¿es la carpeta play/ de la versión web?)"))
     if os.path.splitext(start)[1].lower() not in PROGRAMS:
-        raise Error(tr(f"{start}: the game is a .zxv, .tap, .tzx or .bas", f"{start}: el juego es un .zxv, .tap, .tzx o .bas"))
+        raise Error(tr(f"{start}: the game is a .zvb, .zxv, .tap, .tzx or .bas",
+                       f"{start}: el juego es un .zvb, .zxv, .tap, .tzx o .bas"))
 
     # Los ficheros del juego, en la raíz de ROM:.
     entries, seen = [], {}
@@ -298,6 +318,9 @@ def build(cfg):
         "touch": touch_config(cfg.get("touch", "joystick")),
         "romdisk": base64.b64encode(image).decode("ascii"),
     }
+    screen = loading_screen(entries[0][0], entries[0][1])
+    if screen:
+        game["screen"] = base64.b64encode(screen).decode("ascii")
 
     out = cfg["out"]
     if os.path.isdir(out):

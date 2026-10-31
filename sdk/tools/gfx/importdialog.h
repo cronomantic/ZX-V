@@ -1,6 +1,7 @@
 /*
  * importdialog.h - Qué hacer con una imagen que se importa: un sprite, una
- * hoja de sprites, tiles, un nivel (tiles y mapa) o una textura.
+ * hoja de sprites, tiles, un nivel (tiles y mapa), una textura o una
+ * pantalla.
  */
 #ifndef ZXV_GFX_IMPORTDIALOG_H
 #define ZXV_GFX_IMPORTDIALOG_H
@@ -30,9 +31,9 @@ private:
     Editor *ed_;
     QImage img_;
     QLabel *info_;
-    QRadioButton *sprite_, *sheet_, *tiles_, *level_, *texture_;
-    QSpinBox *spriteN_, *sheetN_, *sheetW_, *sheetH_, *tilesN_, *levelM_, *textureN_;
-    QComboBox *tilesSide_, *levelSide_, *textureOut_;
+    QRadioButton *sprite_, *sheet_, *tiles_, *level_, *texture_, *screen_;
+    QSpinBox *spriteN_, *sheetN_, *sheetW_, *sheetH_, *tilesN_, *levelM_, *textureN_, *screenN_;
+    QComboBox *tilesSide_, *levelSide_, *textureOut_, *screenBorder_;
     QCheckBox *levelFlip_, *cornerKey_;
 };
 

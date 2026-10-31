@@ -19,6 +19,9 @@ and each one has a brighter version:
 | 2 | red | 6 | yellow |
 | 3 | magenta | 7 | white |
 
+These are the standard colours. With [`PALETTE`](../reference.md#palette),
+each number can be any colour you like; the reference shows how.
+
 Every character on the screen has two colours: the **ink** (the colour of
 the letter) and the **paper** (the background behind it). Around the screen
 there is a frame, the **border**.

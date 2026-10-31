@@ -259,7 +259,7 @@ PCF8563, and uses the one it finds.
    step that has not been tested yet: if it fails, the report on the serial
    port is the place to start.)
 3. **The SD card, the USB-A and the clock**, one at a time, checking each in
-   the report (`tarjeta`, `USB`, `reloj`) and from the BASIC: `CAT` for the
+   the report (`card`, `USB`, `clock`) and from the BASIC: `CAT` for the
    card, typing for the keyboard, and `CLOCK 2026,10,20,18,30` then
    `PRINT CLOCK 3;":";CLOCK 4` for the clock.
 

@@ -40,6 +40,7 @@ BOX 4, 100, 20, 20, 20
 | Commands | |
 |---|---|
 | `MODE`, `PAGE`, `SCREEN`, `SCROLL`, `REMAP`, `WAIT` | The modes, the page shown and the one drawn on (double buffering), scrolling, colour changes and a steady 60 frames per second |
+| `PALETTE`, `PALETTERESET` | The palette: any colour (red, green and blue from 0 to 255) for each of the 16, and the standard ones again |
 | `GRAB`, `GRABSTR`, `SPRITE`, `HIT` | Sprites, mirrored, recoloured or scaled, and pixel-exact collisions |
 | `BOX`, `DISC`, `POLY`, `CLIP`, `PIXEL` | Filled shapes, clipping and the colour of a pixel |
 | `KEY`, `JOY`, `SOUND`, `TIME` | Keys held down, joysticks, the AY registers and the frame counter |
@@ -48,22 +49,24 @@ BOX 4, 100, 20, 20, 20
 
 Where it differs from ZX-V's BASIC: the sprite of a string is `GRABSTR`
 (`GRAB n, width, a$` in ZX-V's); `KEY`, `JOY`, `HIT` and `PIXEL` take
-parentheses (`KEY(9)`); `REMAP` and `SOUND` take one pair at a time; `POLY`
-takes up to 8 points; and music and effects are loaded with `MUSICLOAD f$` and
+parentheses (`KEY(9)`); `REMAP` and `SOUND` take one pair at a time and
+`PALETTE` one colour, only in table 0 (no `#t`); `REMAP` and `PALETTE` alone
+are `REMAPRESET` and `PALETTERESET`; `POLY` takes up to 8 points; and music and effects are loaded with `MUSICLOAD f$` and
 `SFXLOAD f$` (`LOAD f$ MUSIC` and `SFX` in ZX-V's), played with `MUSICPLAY`,
 `MUSICSTOP`... and the function that says whether an effect plays is
 `SFXPLAYING`.
 
 `SAVE`, `LOAD` and `VERIFY` use the SD card as ZX-V's BASIC does: without an
-extension, a `.tap` that the machine's BASIC loads too. Compiled with
+extension, the screen goes in a `.gfx` (the ZX-V one, with its colours if they
+are not the standard ones) and `CODE` and `DATA` in a `.bin`, just the bytes; with the extension `.tap`, in a Spectrum tape. Compiled with
 `--enable-break`, Esc stops the program and errors say the line. The rest, and
 the libraries there are, is in its
 [target documentation](https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md).
 
 ## Installing it
 
-**On Windows:** download `zxbasic-1.19.0-zxv.4-win64.zip` from the
-[release page](https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.4)
+**On Windows:** download `zxbasic-1.19.0-zxv.5-win64.zip` from the
+[release page](https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.5)
 and unzip it anywhere. It has `zxbc.exe`, which does not need Python.
 
 **On Linux and macOS:** download the source code from that same page (or
@@ -96,6 +99,10 @@ zxbc --arch=zxv hello.bas
 `hello.zxv`: copy it to the SD card (in the emulator, to the folder that acts
 as the card) and load it with `LOAD "hello"`. When it ends, its report (`0 OK`
 or the error) stays at the bottom until you press a key, as on the Spectrum.
+
+With `--loading-screen title.png` (or a `.gfx` with a screen), the `.zxv`
+carries a loading screen, as `elf2zxv.py --screen` does. The machine shows it
+while it loads the program.
 
 **Mind the types.** Without `DIM`, a variable takes the smallest type that fits
 it: here, without the first line, `x` would be a `UByte` (0 to 255). And

@@ -15,10 +15,12 @@ mapa de memoria y los formatos de fichero. Para aprender a usarlo, lee la
 - [Pantalla y texto](#pantalla-y-texto)
 - [Teclado, mando y ratón](#teclado-mando-y-ratón)
 - [Sonido](#sonido)
+- [Música y efectos](#música-y-efectos)
 - [Ficheros y carpetas](#ficheros-y-carpetas)
 - [Reloj e idioma](#reloj-e-idioma)
 - [Terminar un programa y ejecutar otros](#terminar-un-programa-y-ejecutar-otros)
 - [Motor gráfico](#motor-gráfico)
+- [Ficheros de gráficos `.gfx`](#ficheros-de-gráficos-gfx)
 - [Registros de vídeo](#registros-de-vídeo)
 - [Registros de entrada](#registros-de-entrada)
 - [Registros de sonido](#registros-de-sonido)
@@ -42,12 +44,15 @@ mapa de memoria y los formatos de fichero. Para aprender a usarlo, lee la
 | `crt0.S` | Código de arranque: pone el registro `tp` (las variables de hilo, que usa el `errno` de picolibc) y salta a `main` |
 | `zxv.ld` | Script de enlazado: todo seguido al principio de la RAM de usuario; el montón para picolibc |
 | `zxvlib.c` | `memcpy`, `memmove`, `memset`, `memcmp`, para los programas sin la biblioteca de C |
-| `include/zxv_gfxfile.h`, `gfxfile.c` | Lee los ficheros de gráficos `.gfx` (de `zxv-gfx`, `gfxedit` y `png2gfx.py`): sprites, tiles, mapas y texturas, en los formatos de `zxv_gfx.h` |
+| `include/zxv_gfxfile.h`, `gfxfile.c` | Lee los ficheros de gráficos `.gfx` (de `zxv-gfx`, `gfxedit` y `png2gfx.py`): sprites, tiles, mapas y texturas, en los formatos de `zxv_gfx.h`, y pantallas |
+| `include/zxv_music.h`, `music/` | Música y efectos para los dos AY: módulos PT3, TurboSound, PT2, STC, ASC y PSG y efectos AYFX |
+| `include/zxv_version.h` | La versión de ZX-V (`ZXV_VERSION`, por ejemplo `"0.7.0"`) |
 | `zxvc.c` | La unión entre picolibc y la API (ficheros, carpetas, consola, montón, hora, salida) |
 | `tools/elf2zxv.py` | Convierte el `.elf` enlazado en un `.zxv` |
 | `tools/gfx/` | `zxv-gfx`, el editor de gráficos para el PC |
 | `tools/tracker/` | `zxv-tracker`, el tracker para el PC: música PT3 y efectos AYFX |
 | `tools/png2gfx.py` | Convierte imágenes PNG en un fichero de gráficos `.gfx` |
+| `tools/mkweb.py` | La página web de un juego solo (ver [Publicar tu juego en la web](web.md)) |
 | `Makefile` | Compila los ejemplos (`make`, `make run SD=carpeta`, `make debug SD=carpeta`) |
 
 ## Convenciones
@@ -223,6 +228,13 @@ zxv_print_str("¡Hola, señor Núñez!");
 
 Los bits del número son brillo, verde, rojo y azul (del bit 3 al 0).
 
+Son los colores de las paletas al empezar. Cada tabla de remapeo tiene su
+paleta, de 16 colores RGB565 (u16: rojo en los bits 15–11, verde en los 10–5
+y azul en los 4–0) en `ZXV_PALETTE(t)`, que se puede cambiar: ver [Registros
+de vídeo](#registros-de-vídeo). `ZXV_RGB(r, g, b)` da el RGB565 de un color de
+0 a 255 por componente (215, `D7`, es el nivel normal: `ZXV_RGB(215, 0, 0)`
+es el rojo) y `ZXV_STD_RGB565(i)`, el color de siempre del índice `i`.
+
 ## Teclado, mando y ratón
 
 ### `zxv_key_get`
@@ -361,6 +373,88 @@ igual: `zxv_beeper_event_at(zxv_time_us() + ZXV_MUSIC_AHEAD_US, nivel)`.
 | `ZXV_BEEP_LATENCY_US` | 2000 | Retraso fijo de la cola con hora, en µs |
 | `ZXV_AY_STEREO_MONO`, `_ABC`, `_ACB` | 0, 1, 2 | Valores de `ZXV_S_AY_STEREO` |
 | `ZXV_EV_AY`, `ZXV_EV_AY_WRITE(reg, val)` | | El dato de una escritura en el AY en la cola con hora (con el bit 31); solo hace falta si llenas la cola tú mismo |
+
+## Música y efectos
+
+Declarado en `zxv_music.h`. Se compila con los ficheros de `sdk/music`. Las
+explicaciones y un ejemplo están en la
+[guía](README.md#música-y-efectos-de-los-trackers).
+
+### Módulos
+
+```c
+int zxv_music_info(const void *data, uint32_t size, zxv_music_info_t *info);
+int zxv_music_play(const void *data, uint32_t size, int flags);
+void zxv_music_stop(void);
+void zxv_music_pause(int on);
+int zxv_music_playing(void);
+uint32_t zxv_music_steps(void);
+void zxv_music_moved(const void *song, const void *bank);
+void zxv_music_update(void);
+void zxv_music_update_until(uint32_t t_us);
+```
+
+- `zxv_music_play` empieza a tocar un módulo y da su formato. Si no lo
+  reconoce, da `ZXV_MUSIC_NONE` y no toca nada. `flags`: `ZXV_MUSIC_LOOP`
+  (al acabar, sigue por su posición de vuelta) y `ZXV_MUSIC_AY2` (un módulo
+  de un AY suena en el segundo).
+- `zxv_music_info` da el formato, el título y el autor de un módulo, sin
+  tocarlo.
+- `zxv_music_pause(1)` para la música y `zxv_music_pause(0)` la sigue.
+  `zxv_music_playing` da 1 mientras suena; `zxv_music_steps`, los pasos de
+  1/50 s que lleva.
+- `zxv_music_update` prepara los pasos de los próximos `ZXV_MUSIC_AHEAD_US`
+  (35 ms): llámala en cada frame, o desde el gancho de frame.
+  `zxv_music_update_until(t)` prepara solo los de antes de `t`, para mezclar
+  la música con tus `zxv_ay_event`.
+- El módulo y el banco tienen que seguir en la memoria mientras suenan. Si
+  el programa los mueve, se lo dice con `zxv_music_moved(módulo, banco)`
+  (`NULL` en el que no se ha movido).
+
+```c
+typedef struct {
+    int format;                 /* ZXV_MUSIC_... */
+    int chips;                  /* los AY que usa: 1 o 2 */
+    char title[33];
+    char author[33];
+} zxv_music_info_t;
+```
+
+### Efectos AYFX
+
+```c
+int zxv_sfx_bank(const void *data, uint32_t size);
+int zxv_sfx_play(int n, int channel);
+int zxv_sfx_play_data(const void *data, uint32_t size, int channel);
+void zxv_sfx_stop(int channel);
+void zxv_sfx_channels(int mask);
+int zxv_sfx_playing(int channel);
+```
+
+Los canales son del 0 al 2 (A, B y C del primer AY) y del 3 al 5 (los del
+segundo).
+
+- `zxv_sfx_bank` elige el banco de efectos (`.afb`) y da cuántos tiene.
+- `zxv_sfx_play` toca el efecto `n` del banco en un canal. Con
+  `ZXV_SFX_AUTO`, en uno libre (si no hay, en el que lleva más tiempo
+  sonando). Da el canal, o −1 si el efecto no existe. `zxv_sfx_play_data`
+  hace lo mismo con un efecto suelto (`.afx`).
+- `zxv_sfx_stop` para el efecto de un canal, o todos con `ZXV_SFX_AUTO`.
+  `zxv_sfx_playing` da 1 si suena un efecto en el canal (o en alguno, con
+  `ZXV_SFX_AUTO`).
+- `zxv_sfx_channels` elige los canales de `ZXV_SFX_AUTO` (el bit *n*, el
+  canal *n*). Por defecto son los del AY que no usa la música.
+
+### Constantes
+
+| Constante | Valor | Significado |
+|---|---|---|
+| `ZXV_MUSIC_NONE` | 0 | No es un módulo conocido |
+| `ZXV_MUSIC_PT3`, `_TS`, `_PSG` | 1, 2, 3 | Pro Tracker 3 (y Vortex Tracker II), TurboSound, volcado de los registros del AY |
+| `ZXV_MUSIC_PT2`, `_STC`, `_ASC` | 4, 5, 6 | Pro Tracker 2, Sound Tracker 1.x, ASC Sound Master |
+| `ZXV_MUSIC_LOOP`, `ZXV_MUSIC_AY2` | 1, 2 | Opciones de `zxv_music_play` |
+| `ZXV_MUSIC_AHEAD_US` | 35000 | Lo que la música va por delante, en µs |
+| `ZXV_SFX_AUTO` | −1 | Un canal libre (o todos) |
 
 ## Ficheros y carpetas
 
@@ -780,6 +874,58 @@ void zxv_m7_camera(zxv_m7line *l, int n, const zxv_m7cam *c);
   cámara. Las líneas del horizonte para arriba quedan a cero. Se dibuja con
   `zxv_m7_draw(t, l + y0, y0, n)`.
 
+## Ficheros de gráficos `.gfx`
+
+Declarado en `zxv_gfxfile.h`. Se compila con `gfxfile.c`. Las explicaciones,
+un ejemplo y el formato están en [Gráficos](graphics.md#leer-un-fichero-gfx-en-c).
+
+```c
+typedef struct {
+    const uint8_t *data;
+    uint32_t size;
+} zxv_gfxfile;
+
+int zxv_gfxf_open(zxv_gfxfile *f, const void *data, uint32_t size);
+const uint8_t *zxv_gfxf_find(const zxv_gfxfile *f, int kind, int num, uint32_t *len);
+uint32_t zxv_gfxf_sprite(const zxv_gfxfile *f, int num, zxv_bitmap *b, void *buf, uint32_t room);
+uint32_t zxv_gfxf_tiles(const zxv_gfxfile *f, int size, void *buf, uint32_t room, int *count);
+uint32_t zxv_gfxf_map(const zxv_gfxfile *f, int num, zxv_tilemap *m, const void *tiles,
+                      void *buf, uint32_t room);
+uint32_t zxv_gfxf_texture(const zxv_gfxfile *f, int num, zxv_m7tex *t, void *buf, uint32_t room);
+uint32_t zxv_gfxf_screen(const zxv_gfxfile *f, int num, int *mode, int *border, void *buf, uint32_t room);
+int zxv_gfxf_screen_palette(const zxv_gfxfile *f, int num, uint16_t pal[16]);
+```
+
+- `zxv_gfxf_open` da 1 si `data` es un `.gfx` entero y bien formado, y deja
+  `f` listo; si no, 0. El fichero puede estar donde sea: leído con
+  `zxv_file_load` o dentro del programa.
+- Los objetos del fichero no van alineados, así que cada función copia el
+  suyo en `buf`, alineado a 4. Da los bytes que necesita `buf`, o 0 si el
+  objeto no está o no vale. Si `buf` es `NULL` o `room` es menor, no copia
+  nada: así se pregunta el tamaño.
+- `zxv_gfxf_sprite`: el sprite `num` como bitmap (`b` apunta a `buf`).
+- `zxv_gfxf_tiles`: los tiles de lado `size` (8 o 16), seguidos. En `*count`,
+  cuántos son (`count` puede ser `NULL`).
+- `zxv_gfxf_map`: las celdas del mapa `num`, en `buf`. `m` queda con ellas y
+  con `tiles`, los tiles de su lado (de `zxv_gfxf_tiles`).
+- `zxv_gfxf_texture`: los texels de la textura `num` del modo 7.
+- `zxv_gfxf_screen`: los píxeles de la pantalla `num`, como los de una página
+  de la VRAM (24.576 bytes en el modo 0, 98.304 en el 1), y su modo y su
+  borde en `*mode` y `*border`. `buf` puede ser la página que no se ve.
+- `zxv_gfxf_screen_palette`: los 16 colores RGB565 de la pantalla `num`, para
+  ponerlos en `ZXV_PALETTE(t)`. Da 1 si la pantalla lleva paleta; si no, 0 y
+  los colores de siempre.
+- `zxv_gfxf_find`: los datos de un objeto tal como están en el fichero (sin
+  alinear) y su longitud en `*len`, o `NULL` si no está.
+
+| Constante | Valor | Clase de objeto (`kind`) |
+|---|---|---|
+| `ZXV_GFXF_SPRITE` | 1 | Sprite |
+| `ZXV_GFXF_TILES` | 2 | Tiles (su número es el lado: 8 o 16) |
+| `ZXV_GFXF_MAP` | 3 | Mapa |
+| `ZXV_GFXF_TEXTURE` | 4 | Textura |
+| `ZXV_GFXF_SCREEN` | 5 | Pantalla |
+
 ## Registros de vídeo
 
 Escríbelos cuando quieras; el sistema los aplica en el siguiente VBLANK.
@@ -788,7 +934,7 @@ Escríbelos cuando quieras; el sistema los aplica en el siguiente VBLANK.
 |---|---|---|
 | `ZXV_V_MODE` | 8 bits | Modo de vídeo, 0 o 1 (usa `zxv_set_mode`) |
 | `ZXV_V_PAGE` | 8 bits | Página visible, 0 o 1 (usa `zxv_set_page`) |
-| `ZXV_V_BORDER` | 8 bits | Color del borde, 0–15 |
+| `ZXV_V_BORDER` | 8 bits | Color del borde, 0–15 (sin remapeo; con la paleta de la tabla de `ZXV_V_REMAP`) |
 | `ZXV_V_FLAGS` | 8 bits | `ZXV_VFLAG_LINETAB` (0x01): usar la tabla por línea; `ZXV_VFLAG_BLANK` (0x02): enseñar solo el borde |
 | `ZXV_V_SCROLL_X` | 16 bits | Scroll horizontal de la imagen, circular |
 | `ZXV_V_SCROLL_Y` | 16 bits | Scroll vertical, circular |
@@ -812,6 +958,13 @@ ignora):
 **Tablas de remapeo:** cuatro tablas de 16 bytes desde `ZXV_REMAP_TABLES`
 (la tabla *t* en `ZXV_REMAP_TABLES + 16·t`). La entrada *v* es el color que
 se ve para el valor de píxel *v*. Empiezan siendo la identidad.
+
+**Paletas:** cada tabla tiene la suya, 16 colores RGB565 (u16) desde
+`ZXV_PALETTE(t)` (`ZXV_PALETTES + 32·t`, en `0x2000_0480`). Un píxel de valor
+*v* en una línea que usa la tabla *t* se ve con el color
+`paleta[t][tabla[t][v]]`. Empiezan con los colores de siempre
+(`ZXV_STD_RGB565`), y la ROM los vuelve a poner al empezar cada programa. Como
+las tablas, se leen justo después de cada VBLANK.
 
 **Tabla por línea:** en `ZXV_LINE_TABLE`, una entrada de
 `ZXV_LINE_ENTRY_SIZE` (8) bytes por línea del cuadro entero, borde
@@ -913,6 +1066,7 @@ En `ZXV_SYSVARS` (`0x2000_0700`), de 32 bits cada una:
 | `ZXV_SV_CPU_HZ` | Frecuencia del procesador |
 | `ZXV_SV_SYSFLAGS` | `ZXV_SYSF_LINK_BUSY` (bit 0): se está enviando la página visible; `ZXV_SYSF_BREAK` (bit 1): la tecla BREAK está pulsada |
 | `ZXV_SV_LANG` | El idioma de la máquina (solo lectura: usa `zxv_lang_set`) |
+| `ZXV_SV_EDITOR` | 1 mientras el BASIC espera una orden (en el editor o con un informe); 0 mientras ejecuta algo, también un programa nativo. La escribe la ROM |
 
 ## Códigos de error
 
@@ -1028,6 +1182,7 @@ RAM, un programa puede cambiar una entrada para interceptar una rutina.
 |---|---|---|
 | `0x2000_0000` | `ZXV_API_TABLE` | Tabla de la API (256 direcciones) |
 | `0x2000_0400` | `ZXV_VIDEO_REGS` | [Registros de vídeo](#registros-de-vídeo) |
+| `0x2000_0480` | `ZXV_PALETTES` | Paletas de las tablas de remapeo (4 × 16 colores RGB565) |
 | `0x2000_0500` | `ZXV_INPUT_REGS` | [Registros de entrada](#registros-de-entrada) |
 | `0x2000_0600` | `ZXV_SOUND_REGS` | [Registros de sonido](#registros-de-sonido) |
 | `0x2000_0700` | `ZXV_SYSVARS` | [Variables del sistema](#variables-del-sistema) |
@@ -1035,6 +1190,7 @@ RAM, un programa puede cambiar una entrada para interceptar una rutina.
 | `0x2000_0A00` | `ZXV_BEEP_QUEUE` | Cola con hora (256 × 8 bytes) |
 | `0x2000_1200` | `ZXV_REMAP_TABLES` | Tablas de remapeo de colores (4 × 16 bytes) |
 | `0x2000_1800` | `ZXV_LINE_TABLE` | Tabla por línea (480 × 8 bytes) |
+| `0x2000_2700` | `ZXV_DBG_BOX` | Buzón del depurador del BASIC (lo usan la ROM y el emulador) |
 
 El resto del área de sistema es para uso interno de la ROM.
 
@@ -1063,13 +1219,14 @@ abajo.
 
 ## El formato `.zxv`
 
-Una cabecera de 64 bytes seguida de la imagen del programa, que se copia
-en la dirección de carga. Todos los números van con el byte bajo primero.
+Una cabecera de 72 bytes, seguida de la pantalla de carga, si la hay, y de
+la imagen del programa, que se copia en la dirección de carga. Todos los
+números van con el byte bajo primero.
 
 | Desplazamiento | Constante | Tamaño | Campo |
 |---|---|---|---|
 | 0x00 | `ZXV_H_MAGIC` | 4 bytes | `ZXV1` (`ZXV_HDR_MAGIC`) |
-| 0x04 | `ZXV_H_HDR_SIZE` | 16 bits | Tamaño de la cabecera: 64 (`ZXV_HDR_SIZE`) |
+| 0x04 | `ZXV_H_HDR_SIZE` | 16 bits | Tamaño de la cabecera: 72 (`ZXV_HDR_SIZE`) |
 | 0x06 | `ZXV_H_PROFILE` | 16 bits | Perfil de la especificación: 1 (`ZXV_HDR_PROFILE`) |
 | 0x08 | `ZXV_H_LOAD` | 32 bits | Dirección de carga |
 | 0x0C | `ZXV_H_ENTRY` | 32 bits | Punto de entrada |
@@ -1081,21 +1238,42 @@ en la dirección de carga. Todos los números van con el byte bajo primero.
 | 0x1E | | 16 bits | Reservado |
 | 0x20 | `ZXV_H_CRC` | 32 bits | CRC-32 de la imagen (el de zlib) |
 | 0x24 | `ZXV_H_NAME` | 28 bytes | Nombre (ASCII, terminado en cero) |
+| 0x40 | `ZXV_H_SCREEN` | 32 bits | Tamaño de la pantalla de carga, que va detrás de la cabecera (0 = no hay) |
+| 0x44 | | 32 bits | Reservado (0) |
 
 Al cargarlo, el sistema comprueba la firma, el tamaño de la cabecera, el
 perfil, que la dirección de carga esté alineada a 4 y el punto de entrada
 dentro de la imagen, que la imagen y el BSS quepan en la RAM de usuario
 dejando 4 KB por debajo de la pila del sistema, y el CRC. Después borra el
-BSS, pone el modo de vídeo y llama al punto de entrada como
-`int entry(void)`. Un tope de pila distinto de 0 tiene que estar alineado a
-16 y quedar entre el final del BSS y `ZXV_URAM_END`.
+BSS, pone el modo de vídeo (si la pantalla de carga no es ya de ese modo) y
+llama al punto de entrada como `int entry(void)`. Un tope de pila distinto
+de 0 tiene que estar alineado a 16 y quedar entre el final del BSS y
+`ZXV_URAM_END`. Un `.zxv` con la cabecera de 64 bytes de antes no carga
+(`ZXV_E_FORMAT`): hay que volver a pasarlo por `elf2zxv.py`.
+
+**La pantalla de carga** son los datos de un objeto pantalla de un `.gfx`:
+
+| Desplazamiento | Tamaño | Campo |
+|---|---|---|
+| 0 | 8 bits | Modo, 0 o 1 |
+| 1 | 8 bits | Color del borde, 0–15 |
+| 2 | 8 bits | Marcas: `ZXV_SCREEN_F_PALETTE` (0x01), lleva paleta |
+| 3 | 8 bits | 0 |
+| 4 | 32 bytes | Si lleva paleta, sus 16 colores RGB565 (`ZXV_SCREEN_PALETTE`) |
+| 4 o 36 | 24.576 o 98.304 bytes | Los píxeles de la página, como en la VRAM (`ZXV_SCREEN_PIXELS(modo)`) |
+
+`ZXV_SCREEN_HEAD` (4) es el tamaño de la cabecera de la pantalla y
+`ZXV_SCREEN_SIZE_F(modo, marcas)`, el de la pantalla entera. La ROM la pone
+antes de cargar la imagen, con su modo, su borde y, si la trae, su paleta en
+la tabla 0. Si es del modo del programa, el programa empieza con ella en la
+página 0; si no, en su modo y con la pantalla borrada.
 
 ## Herramientas
 
 ### `elf2zxv.py`
 
 ```sh
-python3 sdk/tools/elf2zxv.py ENTRADA.elf SALIDA.zxv [--name NOMBRE] [--mode 0|1] [--stack DIRECCIÓN]
+python3 sdk/tools/elf2zxv.py ENTRADA.elf SALIDA.zxv [--name NOMBRE] [--mode 0|1] [--stack DIRECCIÓN] [--screen PANTALLA]
 ```
 
 | Opción | Efecto |
@@ -1103,6 +1281,7 @@ python3 sdk/tools/elf2zxv.py ENTRADA.elf SALIDA.zxv [--name NOMBRE] [--mode 0|1]
 | `--name NOMBRE` | Nombre en la cabecera (hasta 27 caracteres; por defecto, el del fichero de salida sin extensión) |
 | `--mode 0\|1` | Modo de vídeo inicial (el 0 por defecto) |
 | `--stack DIRECCIÓN` | Tope de la pila (en decimal o `0x...`; por defecto 0, la del sistema) |
+| `--screen PANTALLA` | La pantalla de carga (D89): un PNG (de 256 × 192, 512 × 384 o el cuadro entero con el borde, 320 × 240 o 640 × 480) o un `.gfx` con una pantalla. La ROM la pone antes de cargar el programa, que empieza con ella si es de su modo |
 
 Comprueba que el programa está dentro de la RAM de usuario y escribe la
 dirección de carga, el punto de entrada y los tamaños. Como `png2gfx.py`,
@@ -1118,7 +1297,7 @@ python3 sdk/tools/png2gfx.py --list FICHERO.gfx
 Las órdenes están en [Gráficos](graphics.md#imágenes-desde-ficheros-png-png2gfxpy),
 junto con el formato `.gfx`. Los números de sprite van del 0 al 255, los de
 tile del 0 al 4095, los de mapa del 0 al 15 y los de textura del 0 al 3,
-como en el BASIC. Lee cualquier PNG menos los entrelazados, sin otros
+como en el BASIC, y los de pantalla del 0 al 255. Lee cualquier PNG menos los entrelazados, sin otros
 paquetes de Python.
 
 ## La biblioteca estándar de C (picolibc)
@@ -1153,7 +1332,8 @@ Los programas compilados con picolibc y `zxvc.c` (ver la
 
 `zxv.h` es compartido con la ROM y el emulador, así que define también
 cosas que los programas no deben usar: la interfaz de la plataforma
-(`ZXV_PLATFORM_IF` y todas las `ZXV_PIF_...`), el espacio de trabajo de la
+(`ZXV_PLATFORM_IF` y todas las `ZXV_PIF_...`), el buzón del depurador del
+BASIC (`ZXV_DBG_BOX` y todas las `ZXV_DBG...`), el espacio de trabajo de la
 ROM (`ZXV_ROM_WORKSPACE`, `ZXV_ROM_WORKSPACE_END`), las direcciones de la
 flash (`ZXV_FLASH_BASE`, `ZXV_FLASH_SIZE`, `ZXV_PLATFORM_BASE`,
 `ZXV_ROM_SIZE`) y las de la SRAM (`ZXV_SRAM_BASE`, `ZXV_SRAM_SIZE`,

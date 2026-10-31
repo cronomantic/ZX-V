@@ -25,8 +25,8 @@ Teclea un programa corto y grábalo con `SAVE` y un nombre:
 SAVE "hola"
 ```
 
-El programa está ahora en el fichero `hola.tap` de la tarjeta: ZX-V añade
-solo la terminación `.tap`. `CAT` lista los ficheros de la tarjeta:
+El programa está ahora en el fichero `hola.zvb` de la tarjeta: ZX-V añade
+solo la terminación `.zvb`, la de sus programas. `CAT` lista los ficheros de la tarjeta:
 
 ```
 NEW
@@ -48,10 +48,14 @@ desde esa línea, cada vez que se cargue:
 SAVE "hola" LINE 10
 ```
 
-**Si conoces el Spectrum:** los ficheros `.tap` son los mismos ficheros de
-cinta del Spectrum, así que puedes abrir tus programas de ZX-V en un
-emulador del Spectrum, y cargar programas en BASIC de los `.tap` y `.tzx`
-del Spectrum.
+El fichero también lleva las variables que había al grabarlo, como en el
+Spectrum: con `LINE`, el programa las encuentra al arrancar (`RUN` las
+borra).
+
+**Si conoces el Spectrum:** ZX-V carga los programas en BASIC de los
+ficheros de cinta del Spectrum, `.tap` y `.tzx`, con `LOAD` como los suyos. Y
+si quieres llevar un programa a un emulador del Spectrum, grábalo como cinta:
+`SAVE "hola.tap"`.
 
 ## Carpetas
 
@@ -64,8 +68,8 @@ Cuando tengas más programas, puedes meterlos en **carpetas**:
 | `CD ".."` | Vuelve a la carpeta de arriba |
 | `CD "/"` | Vuelve a la carpeta principal de la tarjeta |
 | `PRINT DIR$` | Enseña la carpeta actual |
-| `CAT "*.tap"` | Lista solo los ficheros cuyo nombre acaba en `.tap` (`*` quiere decir "cualquier cosa") |
-| `ERASE "viejo.tap"` | Borra un fichero. Cuidado: no se puede deshacer |
+| `CAT "*.zvb"` | Lista solo los ficheros cuyo nombre acaba en `.zvb` (`*` quiere decir "cualquier cosa") |
+| `ERASE "viejo.zvb"` | Borra un fichero. Cuidado: no se puede deshacer |
 
 También puedes poner la carpeta en el nombre: `LOAD "juegos/hola"`.
 
@@ -79,7 +83,7 @@ máquina:
 CAT "ROM:"
 ```
 
-Para cargar uno, pon `ROM:` delante de su nombre: `LOAD "ROM:graficos"`. Un
+Para cargar uno, pon `ROM:` delante de su nombre: `LOAD "ROM:graphics"`. Un
 programa que carga más ficheros, como el juego de plataformas
 (`LOAD "ROM:platformer"`), los busca primero en la carpeta actual y, si no
 están, en la suya: por eso encuentra sus gráficos en la unidad `ROM:`, y un

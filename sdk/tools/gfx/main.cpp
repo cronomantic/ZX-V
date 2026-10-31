@@ -1,6 +1,7 @@
 /*
  * main.cpp - zxv-gfx, el editor de gráficos de ZX-V para el PC: sprites,
- * tiles, mapas y texturas en ficheros .gfx (los de LOAD "x" GRAPHICS).
+ * tiles, mapas, texturas y pantallas en ficheros .gfx (los de LOAD "x"
+ * GRAPHICS y SAVE "x" SCREEN$).
  *
  *   zxv-gfx [FICHERO.gfx]
  *   zxv-gfx --screenshot CAPTURA.png [--section N] [FICHERO.gfx]
@@ -48,7 +49,7 @@ int main(int argc, char **argv)
     args.addHelpOption();
     args.addVersionOption();
     QCommandLineOption shot("screenshot", "Guarda la ventana en una imagen y acaba.", "fichero");
-    QCommandLineOption section("section", "La pestaña (0-4) que se enseña.", "n");
+    QCommandLineOption section("section", "La pestaña (0-5) que se enseña.", "n");
     QCommandLineOption lang("lang", "El idioma: es o en.", "idioma");
     args.addOptions({ shot, section, lang });
     args.addPositionalArgument("fichero", "Un fichero .gfx.");
@@ -66,7 +67,7 @@ int main(int argc, char **argv)
     if (!args.positionalArguments().isEmpty() && !w.open(args.positionalArguments().first()))
         return 1;
     if (args.isSet(section))
-        w.showSection(Section(std::clamp(args.value(section).toInt(), 0, 4)));
+        w.showSection(Section(std::clamp(args.value(section).toInt(), 0, SECTIONS - 1)));
     if (args.isSet(shot)) {
         QString path = args.value(shot);
         QTimer::singleShot(300, &w, [&w, path] {

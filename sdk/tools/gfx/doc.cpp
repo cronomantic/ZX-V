@@ -15,6 +15,90 @@ uint32_t paletteRgb(int i)
     return (i & 2 ? lvl << 16 : 0) | (i & 4 ? lvl << 8 : 0) | (i & 1 ? lvl : 0);
 }
 
+/* --- RGB565 (spec §4.1) ------------------------------------------------------ */
+
+uint16_t stdRgb565(int i)
+{
+    uint32_t c5 = i & 8 ? 31 : 27, c6 = i & 8 ? 63 : 54;
+    return uint16_t((i & 2 ? c5 << 11 : 0) | (i & 4 ? c6 << 5 : 0) | (i & 1 ? c5 : 0));
+}
+
+/* Como ZXV_TO5 y ZXV_TO6 de zxv.h: 215 (D7) es el nivel normal. */
+static uint32_t to5(uint32_t v) { return v <= 215 ? (v * 27 + 107) / 215 : 27 + ((v - 215) * 4 + 20) / 40; }
+static uint32_t to6(uint32_t v) { return v <= 215 ? (v * 54 + 107) / 215 : 54 + ((v - 215) * 9 + 20) / 40; }
+
+uint16_t toRgb565(int r, int g, int b)
+{
+    return uint16_t(to5(uint32_t(r) & 255) << 11 | to6(uint32_t(g) & 255) << 5 | to5(uint32_t(b) & 255));
+}
+
+uint32_t rgb565ToRgb(uint16_t c)
+{
+    auto ch5 = [](uint32_t v) { return v <= 27 ? (v * 215 + 13) / 27 : 215 + (v - 27) * 10; };
+    uint32_t g = c >> 5 & 63;
+    g = g <= 54 ? (g * 215 + 27) / 54 : 215 + ((g - 54) * 40 + 4) / 9;
+    return ch5(c >> 11) << 16 | g << 8 | ch5(c & 31);
+}
+
+Palette standardPalette()
+{
+    Palette p;
+    for (int i = 0; i < 16; i++)
+        p[size_t(i)] = stdRgb565(i);
+    return p;
+}
+
+/* El índice de cada color de siempre (el negro, el 0), o -1. */
+static int stdIndex(uint16_t c)
+{
+    for (int i = 0; i < 16; i++)
+        if (stdRgb565(i) == c)
+            return i;
+    return -1;
+}
+
+int screenPalette(const std::vector<uint16_t> &colors, Palette &pal)
+{
+    pal = standardPalette();
+    bool used[16] = {}, all = true;
+    for (uint16_t c : colors) {
+        int i = stdIndex(c);
+        if (i < 0)
+            all = false;
+        else
+            used[i] = true;
+    }
+    if (all)
+        return 0;
+    if (colors.size() > 16)
+        return -1;
+    std::vector<int> free;
+    for (int i = 0; i < 16; i++)
+        if (!used[i] && i != TRANSP)
+            free.push_back(i);
+    if (!used[TRANSP])
+        free.push_back(TRANSP);
+    size_t k = 0;
+    for (uint16_t c : colors)
+        if (stdIndex(c) < 0)
+            pal[size_t(free[k++])] = c;
+    return 1;
+}
+
+std::array<uint32_t, 16> Screen::rgbs() const
+{
+    std::array<uint32_t, 16> out;
+    for (int i = 0; i < 16; i++)
+        out[size_t(i)] = rgb(i);
+    return out;
+}
+
+void Screen::removePalette()
+{
+    hasPalette = false;
+    palette = standardPalette();
+}
+
 /* --- Imágenes --------------------------------------------------------------- */
 
 Image resized(const Image &im, int w, int h, int fill)
@@ -210,6 +294,14 @@ Map resizedMap(const Map &m, int w, int h)
     return out;
 }
 
+Screen newScreen(int mode, int border)
+{
+    Screen s;
+    s.img = Image(Screen::width(mode), Screen::height(mode), 0);
+    s.border = border;
+    return s;
+}
+
 /* --- El fichero .gfx ------------------------------------------------------------
  *
  * "ZXVG", versión (1), 0, número de objetos (u16); cada objeto: tipo (u8), 0,
@@ -219,6 +311,9 @@ Map resizedMap(const Map &m, int w, int h)
  *   2 tiles    (el número es el lado) cuántos (u16), 0 (u16) y los tiles
  *   3 mapa     ancho, alto (u16), lado, repetición (u8), 0 (u16), las celdas
  *   4 textura  log2 del lado, repetición, color de fuera, 0 y los texels
+ *   5 pantalla modo (0 o 1), color del borde, marcas (bit 0: con paleta),
+ *              0, la paleta si la lleva (16 colores RGB565, u16, D90) y la
+ *              página como en la VRAM: 192 líneas de 128 bytes o 384 de 256
  * Es el formato de rom/src/basic/bgfx.c y de sdk/tools/png2gfx.py.
  */
 
@@ -327,6 +422,23 @@ int Document::load(const std::vector<uint8_t> &data)
             doc.textures[num] = t;
             break;
         }
+        case 5: {
+            uint32_t mode = len >= 4 ? o[0] : 2, flags = len >= 4 ? o[2] : 0;
+            uint32_t pal = flags & 1 ? 32 : 0;
+            if (num >= SCREENS || mode > 1 || o[1] > 15 || (flags & ~1u) ||
+                len != 4 + pal + uint32_t(Screen::width(int(mode)) / 2 * Screen::height(int(mode))))
+                return LOAD_DAMAGED;
+            Screen s;
+            s.hasPalette = pal != 0;
+            if (pal)
+                for (int k = 0; k < 16; k++)
+                    s.palette[size_t(k)] = uint16_t(get16(o + 4 + 2 * k));
+            s.img = unpack(o + 4 + pal, Screen::width(int(mode)), Screen::height(int(mode)),
+                           Screen::width(int(mode)) / 2);
+            s.border = o[1];
+            doc.screens[num] = s;
+            break;
+        }
         default:
             return LOAD_UNKNOWN;
         }
@@ -346,7 +458,8 @@ std::vector<uint8_t> Document::save() const
         put32(o, uint32_t(len));
         count++;
     };
-    /* En el orden de png2gfx.py: sprites, tiles de 8 y de 16, mapas y texturas. */
+    /* En el orden de png2gfx.py: sprites, tiles de 8 y de 16, mapas, texturas
+     * y pantallas. */
     for (int n = 0; n < SPRITES; n++) {
         const Image &s = sprites[n];
         if (s.empty())
@@ -393,6 +506,20 @@ std::vector<uint8_t> Document::save() const
         o.push_back(0);
         o.insert(o.end(), t.img.px.begin(), t.img.px.end());
     }
+    for (int n = 0; n < SCREENS; n++) {
+        const Screen &s = screens[n];
+        if (s.empty())
+            continue;
+        record(5, n, 4 + (s.hasPalette ? 32 : 0) + s.img.px.size() / 2);
+        o.push_back(uint8_t(s.mode()));
+        o.push_back(uint8_t(s.border));
+        o.push_back(s.hasPalette ? 1 : 0);
+        o.push_back(0);
+        if (s.hasPalette)
+            for (uint16_t c : s.palette)
+                put16(o, c);
+        pack(o, s.img);
+    }
     o[6] = uint8_t(count);
     o[7] = uint8_t(count >> 8);
     return o;
@@ -411,6 +538,7 @@ size_t Document::machineBytes() const
     for (const Texture &t : textures)
         if (!t.empty())
             total += 8 + t.img.px.size();
+    /* Las pantallas no: LOAD GRAPHICS se las salta. */
     return total;
 }
 

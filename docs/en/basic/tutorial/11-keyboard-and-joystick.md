@@ -35,13 +35,11 @@ UNTIL INKEY$=""` repeats nothing, it just waits.
 
 ### Why the programs end with `PAUSE 0`
 
-The machine remembers the keys you press while a program runs, to type them
-into the editor afterwards; `INKEY$` and `KEY` look at the keyboard but do
-not take them out of that memory. Without line 70, the keys you pressed
-would arrive at the editor as soon as the program ended, as if you had just
-typed them. `PAUSE` forgets the keys pressed before it and waits for a new
-one, so ending with `PAUSE 0` ("press a key to finish") solves it. All the
-programs in this chapter that read the keyboard end like that.
+When a program ends, it leaves its report (`0 OK...`) at the bottom until
+you press a key. If it ends with `PAUSE 0` ("press a key to finish"), the
+screen stays clean, without the report. `PAUSE` forgets the keys pressed
+before it and waits for a new one. All the programs in this chapter that
+read the keyboard end like that.
 
 ## `KEY`: several keys at once
 
@@ -105,9 +103,8 @@ to measure time. This game measures your reflexes:
 
 Each frame lasts a sixtieth of a second, hence the `t*1000/60`. (`PAUSE`
 counts in fiftieths of a second, as on the Spectrum: `PAUSE 50` is one
-second.) Without the `PAUSE 0`
-of line 90, the space you pressed would send you back to the editor before
-you could read your time.
+second.) Thanks to the `PAUSE 0` in line 90, your time stays on the screen
+until you press another key.
 
 ## The joystick: `JOY`
 

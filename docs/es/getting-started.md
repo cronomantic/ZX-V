@@ -11,9 +11,9 @@ programación.
 ZX-V es un pequeño ordenador doméstico de 32 bits, nuevo pero con el espíritu
 del ZX Spectrum de los años 80. Como los ordenadores de entonces, lo enciendes
 y está listo para que escribas: arranca directamente en el **BASIC**, un
-lenguaje de programación sencillo. Tiene 15 colores vivos, dos chips de música,
-una tarjeta SD para tus ficheros, y también ejecuta programas rápidos escritos
-en C.
+lenguaje de programación sencillo. Tiene 15 colores vivos de serie (y paletas
+para elegir otros), dos chips de música, una tarjeta SD para tus ficheros, y
+también ejecuta programas rápidos escritos en C.
 
 ZX-V es a la vez una máquina real, hecha con dos placas Raspberry Pi Pico 2, y
 un emulador que ejecuta exactamente el mismo software en tu PC o en el
@@ -75,7 +75,7 @@ Abre el emulador. Al momento verás esto:
 
 Eso es todo: una pantalla gris clara, una línea de copyright y una barra negra
 abajo. La barra es el **editor** del BASIC: *ZX-V BASIC* a la izquierda y, a la
-derecha, cuánta memoria queda libre para tu programa (unos 96.000 bytes). Las
+derecha, cuánta memoria queda libre para tu programa (unos 94.000 bytes). Las
 franjas de colores son un homenaje al Spectrum 128.
 
 La primera vez que abres `zxv`, además, crea una carpeta llamada **ZX-V** en tu
@@ -155,7 +155,7 @@ CAT "ROM:"
 
 | Fichero | Qué es |
 |---|---|
-| `platformer.tap` y `platformer.gfx` | Un juego de plataformas escrito en BASIC, y sus gráficos |
+| `platformer.zvb` y `platformer.gfx` | Un juego de plataformas escrito en BASIC, y sus gráficos |
 | `rps.bas` | Rock, Paper, Scissors en BASIC, en texto: `LOAD "rps"` lo carga y `LIST` lo enseña |
 | `sentry.bas` | *Sentry*, defiende las ciudades de los misiles con el ratón, el teclado o un mando, en BASIC |
 | `estela.zxv` | *Estela*, un matamarcianos de tres fases |
@@ -172,6 +172,8 @@ CAT "ROM:"
 | `hello.zxv` | El ejemplo más pequeño de programa nativo |
 | `boardtest.zxv` | La prueba de la placa: monitor, reloj, tarjeta, teclado, mandos, ratón y sonido, uno a uno |
 | `files.zxv` | Un programa nativo que crea, lee y lista ficheros en la tarjeta SD |
+| `gfxedit.zxv` | Un editor de sprites, tiles y mapas en la propia máquina |
+| `player.zxv` | Un reproductor de la música (PT3...) y los efectos de sonido (AYFX) de la tarjeta |
 
 Los ficheros que acaban en `.zxv` son **programas nativos**, escritos en C. Se
 cargan con `LOAD`:
@@ -180,7 +182,7 @@ cargan con `LOAD`:
 LOAD "ROM:graphics"
 ```
 
-![El ejemplo graficos](../images/start-graphics.png)
+![El ejemplo graphics](../images/start-graphics.png)
 
 Pulsa una tecla para volver al BASIC. Prueba también `LOAD "ROM:estela"`: es un
 juego completo (flechas o O, P, Q, A para moverte, espacio o M para disparar y
@@ -213,15 +215,16 @@ un nombre:
 SAVE "circulos"
 ```
 
-Esto crea el fichero `circulos.tap` en la tarjeta. Para ver lo que hay en la
+Esto crea el fichero `circulos.zvb` en la tarjeta. Para ver lo que hay en la
 tarjeta, escribe `CAT`. Para volver a cargar el programa más tarde:
 
 ```
 LOAD "circulos"
 ```
 
-No hace falta escribir la extensión: `LOAD` busca `circulos.tap`, después
-`circulos.zxv` y por último un fichero llamado solo `circulos`. Los ejemplos
+No hace falta escribir la extensión: `LOAD` busca `circulos.zvb`, después
+`circulos.tap`, `circulos.zxv` y `circulos.bas`, y por último un fichero
+llamado solo `circulos`. Los ejemplos
 que se copiaron a la tarjeta la primera vez se cargan igual, sin `ROM:`:
 `LOAD "estela"`.
 
@@ -239,13 +242,15 @@ una en **Archivo > Tarjeta SD**.
 
 Puedes abrir ficheros de cualquier sitio de tu ordenador con
 **Archivo > Abrir...** (Alt+O), arrastrándolos a la ventana del emulador o
-dándolos al arrancarlo (`zxv juego.tap`):
+dándolos al arrancarlo (`zxv juego.zvb`):
 
 | Fichero | Qué pasa |
 |---|---|
+| `.zvb` | Un programa BASIC de ZX-V, el formato en el que los graba `SAVE`: se carga con `LOAD`, como en la máquina |
 | `.zxv` | Un programa nativo de ZX-V: se carga y se ejecuta |
-| `.tap`, `.tzx` | Un fichero de cinta: se carga con `LOAD`, como en la máquina. Es el formato en el que ZX-V graba los programas BASIC, y también carga los programas BASIC hechos para el ZX Spectrum |
-| `.bas`, `.txt` | Un listado BASIC en texto: se teclea solo en el editor |
+| `.tap`, `.tzx` | Un fichero de cinta del Spectrum: se carga con `LOAD`, como en la máquina, para los programas BASIC hechos para el ZX Spectrum |
+| `.bas` | Un listado BASIC en texto: se carga con `LOAD`, como en la máquina |
+| `.txt` | Un listado en texto: se teclea solo en el editor |
 | `.zxvs` | Una instantánea: la máquina entera, tal como estaba al guardarla |
 | `.img`, una carpeta | Pasa a ser la tarjeta SD |
 

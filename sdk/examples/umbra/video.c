@@ -1,8 +1,64 @@
 /*
  * video.c - La pantalla de Umbra: modo 0 (256 x 192) con doble buffer, una
  * fuente de 5 x 7 con las letras del español y los sprites.
+ *
+ * Los colores (spec §4.6 y §4.7, D90): con la tabla por línea, cada línea
+ * toma la paleta de una tabla. La 0 tiene los colores de siempre: el
+ * marcador, los letreros y los mapas. La vista en 3D usa la 1 en las líneas
+ * del techo y la 2 en las del suelo, con los colores del nivel que pone
+ * view.c (video_pal) y que se cambian en cada frame, con la lámpara.
  */
 #include "umbra.h"
+
+uint16_t video_pal[PALETTES][16];
+static uint8_t row_pal[H];
+static uint8_t saved_flags, saved_remap;
+
+#define REG8(a)     (*(volatile uint8_t *)(uintptr_t)(a))
+
+/* Las tablas y la tabla por línea se escriben cuando el último frame ya se ha
+ * enviado (spec §4.8). */
+static void wait_link(void)
+{
+    while (*(volatile uint32_t *)(uintptr_t)ZXV_SV_SYSFLAGS & ZXV_SYSF_LINK_BUSY)
+        ;
+}
+
+static void std_palette(uint16_t *p)
+{
+    for (int i = 0; i < 16; i++)
+        p[i] = ZXV_STD_RGB565(i);
+}
+
+void video_colours_init(void)
+{
+    wait_link();
+    saved_flags = REG8(ZXV_V_FLAGS);
+    saved_remap = REG8(ZXV_V_REMAP);
+    REG8(ZXV_V_REMAP) = 0;                  /* el borde, con la tabla 0 */
+    for (int t = 0; t < PALETTES; t++) {
+        std_palette(video_pal[t]);
+        volatile uint16_t *p = (volatile uint16_t *)(uintptr_t)ZXV_PALETTE(t);
+        volatile uint8_t *r = (volatile uint8_t *)(uintptr_t)(ZXV_REMAP_TABLES + 16u * (uint32_t)t);
+        for (int i = 0; i < 16; i++) {
+            p[i] = video_pal[t][i];
+            r[i] = (uint8_t)i;
+        }
+    }
+    for (int y = 0; y < ZXV_FRAME_LINES(0); y++) {
+        volatile uint8_t *e = (volatile uint8_t *)(uintptr_t)(ZXV_LINE_TABLE + (uint32_t)y * ZXV_LINE_ENTRY_SIZE);
+        for (int i = 0; i < 6; i++)     /* todo como sin la tabla */
+            e[i] = 0xFF;
+        e[6] = e[7] = 0;
+    }
+    REG8(ZXV_V_FLAGS) = (uint8_t)(saved_flags | ZXV_VFLAG_LINETAB);
+}
+
+void video_ui(int y0, int y1)
+{
+    for (int y = y0 < 0 ? 0 : y0; y < y1 && y < H; y++)
+        row_pal[y] = PAL_UI;
+}
 
 /* --- El doble buffer --------------------------------------------------------- */
 
@@ -30,11 +86,23 @@ void video_begin(void)
     zxv_gfx_target(0);
     zxv_gfx_clip(0, 0, W, H);
     page = (uint8_t *)(uintptr_t)(draw ? ZXV_VRAM1_BASE : ZXV_VRAM0_BASE);
+    for (int y = 0; y < H; y++)
+        row_pal[y] = y < HORIZON ? PAL_CEILING : y < VIEW_H ? PAL_FLOOR : PAL_UI;
 }
 
 void video_end(void)
 {
     int draw = 1 - visible;
+    /* Los colores de este frame, con él (en el VBLANK, como la página). */
+    wait_link();
+    for (int t = 1; t < PALETTES; t++) {
+        volatile uint16_t *p = (volatile uint16_t *)(uintptr_t)ZXV_PALETTE(t);
+        for (int i = 0; i < 16; i++)
+            p[i] = video_pal[t][i];
+    }
+    volatile uint8_t *e = (volatile uint8_t *)(uintptr_t)(ZXV_LINE_TABLE + ZXV_BORDER_LINES(0) * ZXV_LINE_ENTRY_SIZE);
+    for (int y = 0; y < H; y++)
+        e[y * ZXV_LINE_ENTRY_SIZE + ZXV_LT_REMAP] = row_pal[y];
     zxv_set_page(draw);                 /* se ve desde el VBLANK */
     zxv_wait_vblank();
     visible = draw;
@@ -49,6 +117,19 @@ void video_done(void)
     zxv_set_page(0);
     zxv_gfx_draw_page(0);
     zxv_gfx_target(0);
+    /* Los colores de siempre en las tablas que se han usado, y sin la tabla
+     * por línea, en el VBLANK. */
+    for (int t = 0; t < PALETTES; t++)
+        std_palette(video_pal[t]);
+    wait_link();
+    for (int t = 0; t < PALETTES; t++) {
+        volatile uint16_t *p = (volatile uint16_t *)(uintptr_t)ZXV_PALETTE(t);
+        for (int i = 0; i < 16; i++)
+            p[i] = video_pal[t][i];
+    }
+    REG8(ZXV_V_FLAGS) = saved_flags;
+    REG8(ZXV_V_REMAP) = saved_remap;
+    zxv_wait_vblank();
 }
 
 uint32_t video_lost(void) { return lost; }

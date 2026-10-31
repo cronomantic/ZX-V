@@ -11,8 +11,9 @@ about programming.
 ZX-V is a small 32-bit home computer, new but in the spirit of the 1980s
 ZX Spectrum. Like the computers of that time, you switch it on and it is ready
 for you to type: it starts straight into **BASIC**, a simple programming
-language. It has 15 bright colours, two music chips, an SD card for your files,
-and it can also run fast programs written in C.
+language. It has 15 bright colours as standard (and palettes to pick
+others), two music chips, an SD card for your files, and it can also run fast
+programs written in C.
 
 ZX-V is both a real machine, built from two Raspberry Pi Pico 2 boards, and an
 emulator that runs the very same software on your PC or in your browser.
@@ -74,7 +75,7 @@ Open the emulator. After a moment you see this:
 
 That is all: a light grey screen, a copyright line, and a black bar at the
 bottom. The bar is the BASIC **editor**: *ZX-V BASIC* on the left, and on the
-right how much memory is free for your program (about 96,000 bytes). The
+right how much memory is free for your program (about 94,000 bytes). The
 coloured stripes are a tribute to the Spectrum 128.
 
 The first time you open `zxv`, it also creates a folder called **ZX-V** in your
@@ -153,7 +154,7 @@ CAT "ROM:"
 
 | File | What it is |
 |---|---|
-| `platformer.tap` and `platformer.gfx` | A platform game written in BASIC, and its graphics |
+| `platformer.zvb` and `platformer.gfx` | A platform game written in BASIC, and its graphics |
 | `rps.bas` | Rock, Paper, Scissors in BASIC, as text: `LOAD "rps"` loads it and `LIST` shows it |
 | `sentry.bas` | *Sentry*, defend the cities from the missiles with the mouse, the keyboard or a joystick, in BASIC |
 | `estela.zxv` | *Estela*, a three-level space shooter |
@@ -170,6 +171,8 @@ CAT "ROM:"
 | `hello.zxv` | The smallest example of a native program |
 | `boardtest.zxv` | The board test: screen, clock, SD card, keyboard, gamepads, mouse and sound, one by one |
 | `files.zxv` | A native program that creates, reads and lists files on the SD card |
+| `gfxedit.zxv` | An editor for sprites, tiles and maps on the machine itself |
+| `player.zxv` | A player for the music (PT3...) and sound effects (AYFX) on the card |
 
 The files ending in `.zxv` are **native programs**, written in C. Load one with
 `LOAD`:
@@ -178,7 +181,7 @@ The files ending in `.zxv` are **native programs**, written in C. Load one with
 LOAD "ROM:graphics"
 ```
 
-![The graficos example](../images/start-graphics.png)
+![The graphics example](../images/start-graphics.png)
 
 Press any key to go back to BASIC. Try `LOAD "ROM:estela"` too: it is a
 complete game (arrow keys or O, P, Q, A to move, Space or M to fire, Esc to
@@ -210,15 +213,16 @@ Your programs are saved on the **SD card**. In the desktop emulator this is the
 SAVE "circles"
 ```
 
-This creates the file `circles.tap` on the card. To see what is on the card,
+This creates the file `circles.zvb` on the card. To see what is on the card,
 type `CAT`. To load the program again later:
 
 ```
 LOAD "circles"
 ```
 
-You do not need to type the extension: `LOAD` looks for `circles.tap`, then for
-`circles.zxv`, then for a file called just `circles`. The examples copied to the
+You do not need to type the extension: `LOAD` looks for `circles.zvb`, then for
+`circles.tap`, `circles.zxv` and `circles.bas`, then for a file called just
+`circles`. The examples copied to the
 card the first time can be loaded the same way, without `ROM:`:
 `LOAD "estela"`.
 
@@ -235,13 +239,15 @@ in **File > SD card**.
 
 You can open files from anywhere on your computer with **File > Open...**
 (Alt+O), by dragging them onto the emulator window, or by naming them when you
-start it (`zxv game.tap`):
+start it (`zxv game.zvb`):
 
 | File | What happens |
 |---|---|
+| `.zvb` | A ZX-V BASIC program, the format `SAVE` uses: it is loaded with `LOAD`, as on the machine |
 | `.zxv` | A native program for ZX-V: it is loaded and run |
-| `.tap`, `.tzx` | A tape file: it is loaded with `LOAD`, as on the machine. This is the format ZX-V uses for BASIC programs, and it also loads BASIC programs made for the ZX Spectrum |
-| `.bas`, `.txt` | A BASIC listing as plain text: it is typed into the editor for you |
+| `.tap`, `.tzx` | A Spectrum tape file: it is loaded with `LOAD`, as on the machine, for BASIC programs made for the ZX Spectrum |
+| `.bas` | A BASIC listing as plain text: it is loaded with `LOAD`, as on the machine |
+| `.txt` | A text listing: it is typed into the editor for you |
 | `.zxvs` | A snapshot: the whole machine, exactly as it was when the snapshot was saved |
 | `.img`, a folder | It becomes the SD card |
 

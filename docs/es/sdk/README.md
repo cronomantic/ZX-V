@@ -144,7 +144,7 @@ Windows, no la tiene), `make` lo dice y compila los demás, sin `files`.
 | [`scroll`](../../../sdk/examples/scroll/scroll.c) | Scroll por hardware sobre un campo de 1024 píxeles de ancho, dibujando solo la columna que entra, y parallax con la tabla por línea |
 | [`digital`](../../../sdk/examples/digital/digital.c) | Sonido digitalizado: muestras a 8 kHz por el volumen de un canal del chip de sonido |
 | [`files`](../../../sdk/examples/files/files.c) | La biblioteca estándar de C con la tarjeta SD: `fopen`, `fprintf`, `fgets`, `opendir`, `malloc`... (necesita picolibc) |
-| [`boardtest`](../../../sdk/examples/boardtest/boardtest.c) | La prueba de la placa: `OUT_INFO` (la salida y el monitor), el reloj, un fichero escrito y leído, el teclado, los mandos y el ratón en vivo, y los canales del AY en estéreo |
+| [`boardtest`](../../../sdk/examples/boardtest/boardtest.c) | La prueba de la placa: `OUT_INFO` (la salida y el monitor), el reloj, un fichero escrito y leído, el teclado, los mandos y el ratón en vivo, los canales del AY en estéreo y, con P, las paletas con la tabla por línea |
 | [`estela`](../../../sdk/examples/estela) | **Estela**, un matamarcianos completo: tres fases, jefes, música y efectos con los dos chips de sonido, teclado y mando, récord en la tarjeta; sus gráficos (`.gfx`) y sus músicas (`.pt3`) se cambian sin compilar ([su README](../../../sdk/examples/estela/README.es.md)) |
 | [`route128`](../../../sdk/examples/route128) | **Route 128**, un juego de carreras: una carretera en pseudo-3D con curvas y cambios de rasante, pintada línea a línea, y el paisaje y el tráfico con sprites escalados; tres etapas contra el reloj; sus gráficos (`.gfx`) y sus músicas (`.pt3`) se cambian sin compilar ([su README](../../../sdk/examples/route128/README.es.md)) |
 | [`mine`](../../../sdk/examples/mine) | **The Mine**, un juego de cavar: piedras y diamantes que caen y ruedan, bichos que siguen las paredes, musgo que crece y doce cuevas más grandes que la pantalla, con scroll suave; las reglas, aparte, se prueban también en el PC ([su README](../../../sdk/examples/mine/README.es.md)) |
@@ -270,7 +270,8 @@ Cuando escribes `LOAD "hello"`, la máquina:
 2. copia el programa al principio de la **RAM de usuario** (la dirección
    `0x2003_4000`) y pone a cero sus variables sin valor inicial;
 3. pone el modo de vídeo que diga el fichero (el 0, salvo que elijas otro:
-   ver [Distribuir](#distribuir-tu-programa)) y borra la pantalla;
+   ver [Distribuir](#distribuir-tu-programa)) y borra la pantalla (o deja la
+   pantalla de carga, si el programa trae una de su modo);
 4. salta a `crt0.S`, el trocito de código de arranque que añade el SDK, que
    llama a tu `main`.
 
@@ -364,7 +365,9 @@ estructuras). Tienes las cabeceras que vienen con el compilador
 |---|---|
 | `zxv_api.h` | Las rutinas del sistema como funciones de C: pantalla, texto, teclas, mando, sonido, ficheros, reloj, ratón |
 | `zxv_gfx.h` | El motor gráfico: bitmaps, sprites, mapas de tiles, modo 7 y figuras (incluye `zxv_api.h`) |
-| `zxv.h` | Direcciones, registros y constantes (la incluyen las otras dos) |
+| `zxv_gfxfile.h` | Leer los ficheros de gráficos `.gfx` (con `gfxfile.c`; ver [Gráficos](graphics.md#leer-un-fichero-gfx-en-c)) |
+| `zxv_music.h` | La música y los efectos de los trackers (con `sdk/music`; ver [Sonido](#música-y-efectos-de-los-trackers)) |
+| `zxv.h` | Direcciones, registros y constantes (la incluyen `zxv_api.h` y `zxv_gfx.h`) |
 
 No hay `printf` ni `malloc`: escribes con `zxv_print_str` y guardas tus
 datos en vectores globales o estáticos. `float`, `double` y los enteros de
@@ -417,6 +420,11 @@ ocho más brillantes (suma 8):
 
 El color 8 es el mismo negro que el 0, pero el motor gráfico lo usa como
 **transparente** en los sprites y los tiles.
+
+Estos son los colores al empezar. Cada número puede ser cualquier otro
+color: cada tabla de remapeo tiene una paleta de 16 colores RGB565 que se
+puede cambiar (`ZXV_PALETTE(t)`, `ZXV_RGB(r, g, b)`). Así hay 16 colores por
+línea y hasta 64 en la pantalla; ver [Gráficos](graphics.md#el-remapeo-de-colores).
 
 Este programa dibuja los 16 y cambia el color del **borde**, el marco que
 rodea la imagen:
@@ -734,6 +742,10 @@ int main(void)
 - `zxv_music_info` da el formato, el título y el autor de un módulo sin
   tocarlo; `zxv_music_pause`, `zxv_music_playing` y `zxv_music_steps`
   (los pasos de 1/50 s que lleva) completan la API.
+- Para los efectos, `zxv_sfx_play_data(efecto, tamaño, canal)` toca un
+  efecto suelto (`.afx`) sin banco, `zxv_sfx_stop(canal)` para uno (todos,
+  con `ZXV_SFX_AUTO`) y `zxv_sfx_playing(canal)` dice si suena alguno. Los
+  detalles, en la [referencia](reference.md#música-y-efectos).
 
 Para usarla, compila tu programa con los ficheros de `sdk/music`: en el
 Makefile de arriba, `SOURCES := hello.c $(wildcard $(SDK)/music/*.c)`. El
@@ -1361,7 +1373,7 @@ Para dárselo a alguien:
   `LOAD "nombre"`. Si el programa carga más ficheros sin unidad en el
   nombre, déjalos en la misma carpeta y entra antes en ella con `CD`, o
   abre el programa en `zxv`, que lo hace por ti.
-- Si en la misma carpeta hay un `nombre.tap`, `LOAD "nombre"` carga ese:
+- Si en la misma carpeta hay un `nombre.zvb` o un `nombre.tap`, `LOAD "nombre"` carga ese:
   escribe `LOAD "nombre.zxv"` para ir sobre seguro.
 - En la versión web, sube los ficheros a su tarjeta (Archivo > La tarjeta
   SD).
@@ -1376,6 +1388,7 @@ Para dárselo a alguien:
 | `--name NOMBRE` | El nombre del programa, hasta 27 caracteres (por defecto, el del fichero) |
 | `--mode 1` | Empezar en el modo 1 (512 × 384) en vez del 0 |
 | `--stack DIRECCIÓN` | Usar una pila propia que empieza en esa dirección (alineada a 16, por encima del programa) |
+| `--screen PANTALLA` | Una pantalla de carga: un PNG o un `.gfx` con una pantalla (de `zxv-gfx` o `png2gfx.py --screen`). Se ve mientras se carga el programa, y en la página web del juego mientras arranca |
 
 Algunos consejos:
 

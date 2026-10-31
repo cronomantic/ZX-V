@@ -31,10 +31,15 @@ Canvas::Canvas(Editor *ed, QWidget *parent) : QWidget(parent), ed_(ed)
     });
 }
 
+int Canvas::marginAt(int) const
+{
+    return MARGIN;
+}
+
 QRect Canvas::contentRect() const
 {
     QSize s = contentSize() * zoom_;
-    return QRect(MARGIN, MARGIN, s.width(), s.height());
+    return QRect(margin(), margin(), s.width(), s.height());
 }
 
 QScrollArea *Canvas::scrollArea() const
@@ -51,7 +56,7 @@ void Canvas::updateSize()
     if (s.isEmpty())
         setFixedSize(460, 120);         /* el sitio para decir que está vacío */
     else
-        setFixedSize(s.width() + 2 * MARGIN, s.height() + 2 * MARGIN);
+        setFixedSize(s.width() + 2 * margin(), s.height() + 2 * margin());
 }
 
 void Canvas::paintEmpty(QPainter &p)
@@ -69,12 +74,12 @@ void Canvas::setZoom(int zoom, QPoint at)
     if (at.x() < 0 && area)
         at = mapFrom(area->viewport(), area->viewport()->rect().center());
     /* El punto de la imagen bajo at, y dónde está en la vista. */
-    QPointF img = QPointF(at - QPoint(MARGIN, MARGIN)) / zoom_;
+    QPointF img = QPointF(at - QPoint(margin(), margin())) / zoom_;
     QPoint inView = area ? mapTo(area->viewport(), at) : QPoint();
     zoom_ = zoom;
     updateSize();
     if (area) {
-        QPoint now = QPoint(MARGIN, MARGIN) + (img * zoom_).toPoint();
+        QPoint now = QPoint(margin(), margin()) + (img * zoom_).toPoint();
         area->horizontalScrollBar()->setValue(now.x() - inView.x());
         area->verticalScrollBar()->setValue(now.y() - inView.y());
     }
@@ -98,9 +103,13 @@ void Canvas::fit()
     QSize c = contentSize();
     if (!area || c.isEmpty())
         return;
-    QSize v = area->viewport()->size() - QSize(2 * MARGIN, 2 * MARGIN);
-    int z = std::min(v.width() / c.width(), v.height() / c.height());
-    setZoom(std::clamp(z, minZoom(), std::min(maxZoom(), 32)));
+    QSize v = area->viewport()->size();
+    int z = std::min(maxZoom(), 32);
+    /* El mayor con el que cabe con lo de alrededor (que cambia con el zoom). */
+    while (z > minZoom() &&
+           (c.width() * z + 2 * marginAt(z) > v.width() || c.height() * z + 2 * marginAt(z) > v.height()))
+        z--;
+    setZoom(z);
 }
 
 void Canvas::setGrid(bool on)
@@ -171,6 +180,9 @@ QString PixelCanvas::emptyText() const
         return tr("Aún no hay tiles de %1 x %1: añade uno en Propiedades, o importa una imagen.").arg(ed_->tileSide());
     if (ed_->section() == Section::Textures)
         return tr("La textura %1 está vacía: créala en Propiedades, o importa una imagen.").arg(ed_->index());
+    if (ed_->section() == Section::Screens)
+        return tr("La pantalla %1 está vacía: créala en Propiedades (de modo 0 o 1), o importa una imagen de 256 x 192 "
+                  "o 512 x 384.").arg(ed_->index());
     return tr("El sprite %1 está vacío: créalo en Propiedades (o con doble clic en la lista), pega una imagen o "
               "importa una.").arg(ed_->index());
 }
@@ -181,9 +193,17 @@ QSize PixelCanvas::contentSize() const
     return im ? QSize(im->w, im->h) : QSize(0, 0);
 }
 
+int PixelCanvas::marginAt(int zoom) const
+{
+    /* El borde, de 16 píxeles de la imagen (como mucho 64 del PC). */
+    if (ed_->section() == Section::Screens && const_cast<Editor *>(ed_)->screen())
+        return MARGIN + std::clamp(zoom * 16, 16, 64);
+    return MARGIN;
+}
+
 QPoint PixelCanvas::pixelAt(QPoint p) const
 {
-    QPoint q = p - QPoint(MARGIN, MARGIN);
+    QPoint q = p - QPoint(margin(), margin());
     return QPoint(q.x() >= 0 ? q.x() / zoom_ : -1 - (-q.x() - 1) / zoom_,
                   q.y() >= 0 ? q.y() / zoom_ : -1 - (-q.y() - 1) / zoom_);
 }
@@ -199,13 +219,22 @@ void PixelCanvas::paintEvent(QPaintEvent *)
     }
     const gfx::Image &show = preview_.empty() ? *im : preview_;
     QRect r = contentRect();
+    /* Una pantalla, con sus colores (los de su paleta, si la lleva). */
+    std::array<uint32_t, 16> colors;
+    const uint32_t *pal = nullptr;
+    if (gfx::Screen *scr = ed_->screen()) {
+        colors = scr->rgbs();
+        pal = colors.data();
+        int b = margin() - MARGIN;
+        p.fillRect(r.adjusted(-b, -b, b, b), QColor(scr->rgb(scr->border)));
+    }
     bool transp = ed_->transparentImage();
     if (transp)
         checker(p, r);
-    p.drawImage(r, gfx::toQImage(show, transp));
+    p.drawImage(r, gfx::toQImage(show, transp, pal));
     if (floating_) {
         QRect fr(r.topLeft() + floatPos_ * zoom_, QSize(float_.w, float_.h) * zoom_);
-        p.drawImage(fr, gfx::toQImage(float_, transp));
+        p.drawImage(fr, gfx::toQImage(float_, transp, pal));
     }
     if (grid_ && zoom_ >= 6) {
         p.setPen(QColor(0, 0, 0, 80));
@@ -550,7 +579,7 @@ QPoint MapCanvas::cellAt(QPoint p) const
 {
     gfx::Map *m = const_cast<Editor *>(ed_)->map();
     int s = (m ? m->tile : 8) * zoom_;
-    QPoint q = p - QPoint(MARGIN, MARGIN);
+    QPoint q = p - QPoint(margin(), margin());
     return QPoint(q.x() >= 0 ? q.x() / s : -1, q.y() >= 0 ? q.y() / s : -1);
 }
 

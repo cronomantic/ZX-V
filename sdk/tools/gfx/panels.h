@@ -17,12 +17,14 @@ class QPushButton;
 class QSpinBox;
 class QStackedWidget;
 class QTimer;
+class QToolButton;
 
 /* Un cuadro con el damero de los transparentes. */
 QPixmap thumbnail(const QImage &img, int size, bool checker);
 
 /* Los 16 colores: el botón izquierdo elige el color izquierdo y el derecho,
- * el derecho. */
+ * el derecho. En una pantalla, sus colores; con doble clic, se cambia uno
+ * (y la pantalla tiene paleta). */
 class PalettePanel : public QWidget
 {
     Q_OBJECT
@@ -30,13 +32,18 @@ class PalettePanel : public QWidget
 public:
     explicit PalettePanel(Editor *ed, QWidget *parent = nullptr);
     QSize sizeHint() const override;
+    /* Cambia el color c de la pantalla elegida con el diálogo de colores
+     * (con deshacer); la pantalla pasa a tener paleta. */
+    static void editScreenColor(QWidget *parent, Editor *ed, int c);
 
 protected:
     void paintEvent(QPaintEvent *e) override;
     void mousePressEvent(QMouseEvent *e) override;
+    void mouseDoubleClickEvent(QMouseEvent *e) override;
 
 private:
     QRect swatch(int c) const;
+    void updateTip();
     Editor *ed_;
 };
 
@@ -78,8 +85,11 @@ private:
     QLabel *title_;
     QStackedWidget *pages_;
     QSpinBox *spriteW_, *spriteH_, *tilesN_, *mapW_, *mapH_;
-    QComboBox *mapTile_, *texSide_, *texOut_;
+    QComboBox *mapTile_, *texSide_, *texOut_, *scrMode_, *scrBorder_;
     QCheckBox *mapWrap_, *texWrap_;
+    QLabel *scrPalette_;
+    QToolButton *scrColor_[16];
+    QPushButton *scrStandard_;
     QPushButton *create_, *delete_;
     bool updating_ = false;
 };

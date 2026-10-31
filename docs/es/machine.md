@@ -13,7 +13,7 @@ emulador y en el hardware real.
 | Procesador | RISC-V de 32 bits a 144 MHz |
 | Memoria | 520 KB de RAM en total; unos 94 KB libres para un programa BASIC y hasta 248 KB para un programa nativo |
 | Pantalla | 256 × 192 o 512 × 384 píxeles, con borde |
-| Colores | 15, cualquier color en cualquier píxel |
+| Colores | 15 de serie; con paletas, 16 por línea de entre 65.536 (hasta 64 en la pantalla), cualquiera en cualquier píxel |
 | Páginas de vídeo | Dos, para dibujar en una mientras se ve la otra |
 | Sonido | Dos chips de música AY-3-8912 (6 voces) y un beeper, en estéreo |
 | Almacenamiento | Tarjeta SD, y la unidad `ROM:` de serie con los ejemplos |
@@ -36,7 +36,7 @@ La pantalla tiene dos **modos**. Cada uno enseña un rectángulo de píxeles (el
 | Modo | Píxeles | Texto (caracteres de 8 × 8) | Para qué |
 |---|---|---|---|
 | 0 | 256 × 192 | 32 columnas × 24 filas | Programas y juegos: la resolución clásica, de píxeles grandes |
-| 1 | 512 × 384 | 64 columnas × 48 filas | Gráficos detallados y mucho texto. Es el que usa el editor del BASIC |
+| 1 | 512 × 384 | 64 columnas × 48 filas | Gráficos detallados y mucho texto. Es el que usa el editor del BASIC (que también puede ir en modo 0) |
 
 Los dos ocupan la misma superficie de la tele: un píxel del modo 1 mide la
 mitad de ancho y la mitad de alto que uno del modo 0. En el BASIC, `MODE 0` y
@@ -80,6 +80,11 @@ qué color se enseña. Los programas lo usan para fundidos, destellos y ciclos d
 color (en el BASIC, `REMAP`). Hay cuatro tablas, y cada parte de la pantalla
 puede usar una distinta.
 
+**Paletas.** Los 15 colores son los de siempre, pero no los únicos: cada
+tabla tiene su **paleta**, que dice qué color es cada uno de los 16 números,
+de entre 65.536 (en el BASIC, `PALETTE`). Así, cada línea de la pantalla
+puede tener 16 colores a tu gusto, y la pantalla entera hasta 64.
+
 ### Dos páginas
 
 La máquina tiene **dos páginas de vídeo**, dos pantallas completas en memoria.
@@ -89,9 +94,10 @@ enseñarla después de golpe, sin parpadeos (en el BASIC, `SCREEN` elige la
 página en la que se dibuja y `PAGE`, la que se ve).
 
 El BASIC usa las dos páginas a su manera: la página 0, en modo 0, es la
-pantalla de tu programa, y la página 1, en modo 1, es el editor. Por eso lo que
-saca un programa y tu listado no se mezclan: al ejecutar un programa ves su
-pantalla, y al terminar, una tecla te devuelve al editor.
+pantalla de tu programa, y la página 1 es el editor (en modo 1, o en modo 0
+si lo eliges en su menú). Por eso lo que saca un programa y tu listado no
+se mezclan: al ejecutar un programa ves su pantalla, y al terminar, una
+tecla te devuelve al editor.
 
 ### Sprites, mapas de tiles y capas
 
@@ -220,7 +226,7 @@ El procesador tiene 520 KB de RAM. La mayor parte se reparte así:
 | Sistema | 80 KB | Las variables y los buffers de la propia máquina |
 
 **Desde el BASIC** quedan unos 94 KB libres para tu programa, sus variables y
-sus gráficos (sprites, tiles y mapas): el editor dice la cifra exacta, 94.400
+sus gráficos (sprites, tiles y mapas): el editor dice la cifra exacta, 93.856
 bytes al arrancar. El resto de la memoria de usuario es el espacio de trabajo
 del propio BASIC.
 
@@ -248,7 +254,7 @@ La máquina tiene dos **unidades**:
 Se usan con las órdenes de siempre del BASIC: `CAT` lista una carpeta, `CD`
 cambia de carpeta, `MKDIR` y `RMDIR` crean y borran carpetas, y `COPY`, `MOVE`
 y `ERASE` copian, mueven y borran ficheros (también con comodines como
-`*.tap`). Una ruta puede empezar por la unidad: `LOAD "ROM:graphics"`,
+`*.zvb`). Una ruta puede empezar por la unidad: `LOAD "ROM:graphics"`,
 `CAT "SD:/juegos"`. `CD "ROM:"` entra en la unidad `ROM:` y `CD "SD:"` vuelve a
 la tarjeta.
 
@@ -260,19 +266,24 @@ nombre. Las carpetas se separan con `/`.
 
 | Extensión | Qué guarda | Cómo se usa |
 |---|---|---|
-| `.tap` | Fichero de cinta: programas BASIC, bloques de memoria (`CODE`), pantallas y matrices. Es el formato normal de ZX-V para los programas BASIC, el mismo que el del Spectrum | `SAVE "nombre"`, `LOAD "nombre"` |
+| `.zvb` | Un programa BASIC de ZX-V con sus variables, tal como están en la memoria. Es el formato de los programas. Puede llevar una pantalla de carga | `SAVE "nombre"`, `LOAD "nombre"`; con pantalla de carga, `SAVE "nombre" LINE n SCREEN$` |
+| `.zvd` | Una matriz del BASIC (números o caracteres), tal como está en la memoria | `SAVE "nombre" DATA a()`, `LOAD "nombre" DATA a()` |
+| `.bin` | Bytes de la memoria, sin más | `SAVE "nombre" CODE inicio, longitud`, `LOAD "nombre" CODE inicio` |
+| `.tap` | Fichero de cinta del Spectrum: programas BASIC, bloques de memoria (`CODE`), pantallas y matrices. Para el código hecho para el Spectrum, y para llevar algo a sus emuladores | `LOAD "nombre"`, `SAVE "nombre.tap"` |
 | `.tzx` | Fichero de cinta del Spectrum (otro formato); se cargan sus programas BASIC, código, pantallas y matrices | `LOAD "nombre.tzx"` |
-| `.bas` | Un listado BASIC en texto, para escribir o compartir programas con un editor de textos | Se abre en el emulador, que lo teclea |
-| `.zxv` | Un programa nativo, compilado desde C o ensamblador | `LOAD "nombre"` |
+| `.bas` | Un listado BASIC en texto, para escribir o compartir programas con un editor de textos | `LOAD "nombre.bas"`, `SAVE "nombre.bas"`, `MERGE`; también se abre en el emulador |
+| `.zxv` | Un programa nativo, compilado desde C o ensamblador. Puede llevar una pantalla de carga, que se ve mientras se carga | `LOAD "nombre"` |
 | `.zxvs` | Una instantánea: el estado completo de la máquina, para seguir más tarde (solo en el emulador) | Archivo > Abrir en el emulador |
-| `.gfx` | Gráficos para el BASIC: sprites, tiles, mapas y texturas | `SAVE "nombre" GRAPHICS`, `LOAD "nombre" GRAPHICS`. También se pueden hacer a partir de imágenes PNG en el PC (ver el [SDK](sdk/README.md)) |
-| `.scr` | Una pantalla del Spectrum (6.912 bytes), que se ve como era, limitaciones de color incluidas | `LOAD "nombre.scr" SCREEN$`, `SAVE "nombre.scr" SCREEN$` (sin extensión, `SAVE` mete la pantalla en un `.tap`) |
-| cualquiera | Datos en bruto y ficheros de texto | `LOAD "nombre" CODE dirección`; los de texto, con `OPEN #`, `PRINT #` e `INPUT #` |
+| `.gfx` | Gráficos: sprites, tiles, mapas, texturas y pantallas (las de `SCREEN$`) | `SAVE "nombre" GRAPHICS`, `LOAD "nombre" GRAPHICS`; las pantallas, `SAVE "nombre" SCREEN$`, `LOAD "nombre" SCREEN$`. También se pueden hacer a partir de imágenes PNG en el PC (ver el [SDK](sdk/README.md)) |
+| `.pt3` | Música hecha con un tracker (también Pro Tracker 2, Sound Tracker, ASC, PSG y TurboSound) | `LOAD "nombre" MUSIC` |
+| `.afb`, `.afx` | Efectos de sonido AYFX: un banco o un efecto suelto | `LOAD "nombre" SFX` |
+| `.scr` | Una pantalla del Spectrum (6.912 bytes), que se ve como era, limitaciones de color incluidas | `LOAD "nombre.scr" SCREEN$`, `SAVE "nombre.scr" SCREEN$` |
+| cualquiera | Datos en bruto y ficheros de texto | `LOAD "nombre.dat" CODE dirección`; los de texto, con `OPEN #`, `PRINT #` e `INPUT #` |
 
 `LPRINT`, `LLIST` y `COPY` (las órdenes de la impresora) escriben en el
 fichero de texto `printer.txt`, en la raíz de la tarjeta.
 
-**Las cintas.** Un `.tap` o un `.tzx` que se carga se queda «en la casetera»:
+**Las cintas del Spectrum.** Un `.tap` o un `.tzx` que se carga se queda «en la casetera»:
 los siguientes `LOAD ""` leen de él los bloques que siguen, como con una cinta
 de verdad. Así se cargan los programas de varias partes (un cargador, una
 pantalla de presentación, el juego) igual que en el Spectrum.
@@ -317,10 +328,10 @@ curiosidad.
 | RAM | 48 KB / 128 KB | 520 KB |
 | Libre para el BASIC | Unos 41 KB | Unos 94 KB |
 | Pantalla | 256 × 192 | 256 × 192 o 512 × 384 |
-| Color | 2 colores por celda de 8 × 8 (*color clash*) | Cualquiera de los 15 colores en cualquier píxel |
+| Color | 2 colores por celda de 8 × 8 (*color clash*) | Cualquiera de 16 colores en cualquier píxel, de una paleta de 65.536 |
 | Páginas de vídeo | 1 (2 en el 128K) | 2, más scroll por hardware y campo virtual |
 | Sonido | Beeper / beeper y un AY | Beeper y dos AY, en estéreo |
-| Almacenamiento | Cinta de casete | Tarjeta SD y unidad `ROM:`; ficheros `.tap` y `.tzx` |
+| Almacenamiento | Cinta de casete | Tarjeta SD y unidad `ROM:`; lee los `.tap` y `.tzx` del Spectrum |
 | BASIC | Sinclair BASIC, palabras clave con una tecla | Sinclair BASIC compatible, tecleado letra a letra, con un editor a pantalla completa como el del 128 y muchas extensiones |
 | Código máquina | Z80 | RISC-V (programas nativos en C o ensamblador) |
 
@@ -329,9 +340,10 @@ Lo que se aprovecha del Spectrum:
 - **Los programas BASIC.** El BASIC sigue muy de cerca al Sinclair BASIC: los
   mismos números, las mismas secuencias aleatorias, los mismos mensajes de
   error y los mismos algoritmos de dibujo. Los programas BASIC del Spectrum en
-  ficheros `.tap` o `.tzx` se cargan y funcionan, y los programas que graba
-  ZX-V se cargan en un Spectrum de verdad. `PEEK` y `POKE` sobre la pantalla,
-  los atributos y las variables del sistema del Spectrum funcionan, y
+  ficheros `.tap` o `.tzx` se cargan y funcionan, y un programa grabado como
+  cinta (`SAVE "nombre.tap"`) se carga en un Spectrum de verdad. `PEEK` y
+  `POKE` sobre la pantalla, los atributos y las variables del sistema del
+  Spectrum funcionan, y
   `SPEED 0` hace que el BASIC vaya a la velocidad de un 48K para los programas
   que dependen de ella.
 - **Las pantallas** (`.scr` y los bloques `SCREEN$`) se cargan y se ven como

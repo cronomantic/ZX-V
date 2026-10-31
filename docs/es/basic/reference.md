@@ -63,7 +63,7 @@ directa** (sin número, que se ejecuta en cuanto pulsas Enter).
 - [Dibujo con PLOT y DRAW](#dibujo-con-plot-y-draw): `PLOT`, `DRAW`,
   `CIRCLE`, `POINT`
 - [Modos de vídeo y efectos](#modos-de-vídeo-y-efectos): `MODE`, `PAGE`,
-  `SCREEN`, `SCROLL`, `REMAP`, `RASTER`
+  `SCREEN`, `SCROLL`, `REMAP`, `PALETTE`, `RASTER`
 - [Sprites, mapas de tiles y gráficos rápidos](#sprites-mapas-de-tiles-y-gráficos-rápidos):
   `GRAB`, `SPRITE`, `TILE`, `MAP`, `FLOOR`, `BOX`, `DISC`, `POLY`...
 - [Sonido y música](#sonido-y-música): `BEEP`, `PLAY`, `SOUND`, `MUSIC`,
@@ -72,7 +72,7 @@ directa** (sin número, que se ejecuta en cuanto pulsas Enter).
   `KEY`, `JOY`, `MOUSE`
 - [Ficheros y la tarjeta SD](#ficheros-y-la-tarjeta-sd): `SAVE`, `LOAD`,
   `CAT`, `CD`, `COPY`, `ERASE`...
-- [Ficheros de cinta](#ficheros-de-cinta): `.tap` y `.tzx`
+- [Ficheros de cinta](#ficheros-de-cinta): `.tap` y `.tzx`, los del Spectrum
 - [Streams y canales](#streams-y-canales): `OPEN #`, `CLOSE #`, ficheros de
   texto
 - [Memoria y sistema](#memoria-y-sistema): `PEEK`, `POKE`, `USR`, `IN`,
@@ -614,6 +614,9 @@ stream que no está abierto, `O Canal no válido`.
 TRACE ON: RUN
 ```
 
+**Ver también:** el [depurador del BASIC](../emulator.md#depuración), para
+parar un programa en una línea y mirar sus variables desde VS Code.
+
 ### REM
 
 ```
@@ -1037,7 +1040,8 @@ rápidos](#sprites-mapas-de-tiles-y-gráficos-rápidos), [`RASTER
 BORDER`](#raster) y [`REMAP`](#remap) usan directamente los 16 colores, del
 0 al 15: del 0 al 7 son los de la tabla y del 8 al 15, sus versiones
 brillantes (el 10 es el rojo brillante). El 8 también es negro, y en los
-sprites se usa como «transparente».
+sprites se usa como «transparente». Con [`PALETTE`](#palette), cada uno de
+los 16 puede ser el color que quieras.
 
 En ZX-V cada píxel tiene su propio color: dibujar un píxel solo cambia el
 color de ese píxel, nunca el de sus vecinos.
@@ -1206,7 +1210,7 @@ Elige el modo de la pantalla y la borra:
 | 1 | 512 × 384 | 64 columnas × 48 filas |
 
 `MODE` borra las dos páginas, enseña la 0 y quita el scroll, `REMAP`,
-`RASTER` y `CLIP`. En el modo 0, la página puede ser además más grande que la
+`PALETTE`, `RASTER` y `CLIP`. En el modo 0, la página puede ser además más grande que la
 pantalla, que es entonces una ventana que se mueve por ella con
 [`SCROLL`](#scroll): `MODE 0, 512, 384`, `MODE 0, 1024, 192` o
 `MODE 0, 256, 768`. Así, `PRINT AT`, `PLOT` y las demás cubren toda la página
@@ -1282,6 +1286,43 @@ vuelve a la 0.
 ```
 10 PRINT INK 1; "parpadeo"
 20 REMAP 1,10: PAUSE 25: REMAP 1,1: PAUSE 25: GO TO 20
+```
+
+`REMAP` cambia un color por otro de los 16; qué color es cada uno lo dice
+[`PALETTE`](#palette).
+
+### PALETTE
+
+```
+PALETTE color, r, g, b [; color, r, g, b]...
+PALETTE #tabla; color, r, g, b [; color, r, g, b]...
+PALETTE #tabla
+PALETTE
+```
+
+Cambia cómo se ve uno de los 16 colores: `r`, `g` y `b` son su rojo, su
+verde y su azul, de 0 a 255. Todo lo que está dibujado con ese color cambia
+al instante. Tras `PALETTE 1, 255, 128, 0`, el azul se ve naranja. El color
+va del 0 al 15 (si no, `K Color no válido`), y `r`, `g` y `b`, de 0 a 255
+(si no, `B Entero fuera de rango`).
+
+Los colores de siempre tienen 215 de cada componente (255 los brillantes):
+el rojo es `PALETTE 2, 215, 0, 0`. La pantalla tiene 65.536 colores
+posibles, y se toma el más cercano.
+
+Cada tabla de [`REMAP`](#remap) tiene su paleta. Sin `#`, `PALETTE` cambia
+la de la tabla 0, la que se usa normalmente; `PALETTE #t; ...`, la de la
+tabla `t` (de 0 a 2). Así, con [`RASTER REMAP`](#raster), cada franja de la
+pantalla puede tener sus 16 colores. `PALETTE #t` sin más devuelve sus
+colores de siempre a la tabla `t`, y `PALETTE` sin nada, a las tres.
+[`MODE`](#mode) también los devuelve.
+
+El color 8 sigue siendo transparente en los sprites y los tiles (no se
+dibuja), aunque tenga otro color en la paleta.
+
+```
+10 FOR i=0 TO 15: BOX i, i*16, 0, 16, 176: NEXT i
+20 FOR v=0 TO 255 STEP 5: PALETTE 7, v, v, 255-v: WAIT: NEXT v
 ```
 
 ### RASTER
@@ -1508,7 +1549,7 @@ TEXTURE n, x, y, lado [, c]
 
 Define la textura `n` (de la 0 a la 3) para [`FLOOR`](#floor): el cuadrado de
 `lado` × `lado` píxeles (una potencia de 2 de 2 a 256: 2, 4, 8... 256; otro
-tamaño da `A Invalid argument`) de la página de dibujo con su esquina
+tamaño da `A Argumento no válido`) de la página de dibujo con su esquina
 superior izquierda en `x`, `y`. La textura se repite sin fin; si se da el
 color `c`, todo lo que queda fuera de ella es de ese color.
 
@@ -1948,7 +1989,7 @@ de solo lectura, `ROM:`, con los ejemplos que trae la máquina.
   disco (no se puede)`.
 - **Comodines** en `CAT`, `ERASE`, `MOVE` y `COPY`: `*` vale por cualquier
   grupo de caracteres (también ninguno) y `?` por uno, solo en la última parte
-  de la ruta: `"*.tap"`, `"juegos/nivel?.dat"`. Si no encaja nada,
+  de la ruta: `"*.zvb"`, `"juegos/nivel?.dat"`. Si no encaja nada,
   `T Fichero no encontrado`.
 
 Los errores de ficheros más corrientes son `F Nombre de fichero no válido`,
@@ -1960,7 +2001,7 @@ añade el motivo cuando se sabe: `(ya existe)`, `(la carpeta no está vacía)`,
 ### SAVE
 
 ```
-SAVE nombre$ [LINE línea]
+SAVE nombre$ [LINE línea [SCREEN$] [PROTECT]]
 SAVE nombre$ CODE inicio, longitud
 SAVE nombre$ SCREEN$
 SAVE nombre$ DATA letra()
@@ -1970,22 +2011,45 @@ SAVE nombre$ GRAPHICS
 
 Graba en la tarjeta SD:
 
-- El **programa** (sin más palabras): como un fichero `.tap`, el formato de
-  cinta del Spectrum, así que se puede abrir en los emuladores del Spectrum.
-  Con `LINE`, el programa arranca solo desde esa línea al cargarlo.
-- `CODE`: `longitud` bytes de la memoria desde la dirección `inicio`.
-- `SCREEN$`: la pantalla, como una pantalla del Spectrum (`CODE 16384,6912`).
-- `DATA`: una matriz (de números o de caracteres), con su nombre.
+- El **programa** (sin más palabras) y sus variables, en un fichero `.zvb`,
+  el formato de los programas de ZX-V: los dos tal como están en la memoria,
+  sin más límite que la memoria. Con `LINE`, el programa arranca solo desde
+  esa línea al cargarlo, con sus variables. Con `LINE` y `SCREEN$`, lleva
+  además la pantalla que se ve como **pantalla de carga**: `LOAD` la pone
+  antes que nada, y el programa empieza con ella. Con `PROTECT` al final, se
+  graba **protegido** (ver abajo).
+- `CODE`: `longitud` bytes de la memoria desde la dirección `inicio`, en un
+  fichero `.bin` (los bytes sin más).
+- `SCREEN$`: la pantalla del programa, tal como se ve (su modo, su borde y el
+  color de cada píxel; si no son los colores de siempre, también los colores
+  con que se ve, ver [`PALETTE`](#palette)), en un fichero `.gfx` con una
+  pantalla (que se edita en `zxv-gfx`). Con la extensión `.scr`, la del Spectrum (`CODE 16384,6912`: la
+  sombra de tinta y papel de cada celda, sin lo que se dibuja con los colores
+  de ZX-V), en el formato de sus herramientas.
+- `DATA`: una matriz (de números o de caracteres), en un fichero `.zvd`, el
+  formato de los datos de ZX-V: como está en la memoria, sin más límite que
+  la memoria.
 - `GRAPHICS`: el almacén de gráficos (sprites, tiles, mapas, texturas) en un
   fichero `.gfx`.
 
-Si el nombre no tiene extensión, se le añade `.tap` (`.gfx` con `GRAPHICS`).
-Con otra extensión, `CODE` y `SCREEN$` se graban como bytes sin más, sin la
-cabecera de cinta; `DATA` se graba siempre como `.tap`. Si el fichero ya
-existe, se sustituye.
+Si el nombre no tiene extensión, se le añade la de cada cosa: `.zvb`,
+`.bin`, `.zvd` o `.gfx` (`GRAPHICS` y `SCREEN$`). Con otra extensión, `CODE`
+se graba igual, como bytes sin más, y un programa, una matriz o una pantalla
+en su formato.
+Si el fichero ya existe, se sustituye.
+
+Con la extensión `.tap`, se graba como **cinta del Spectrum**, para llevarlo a
+un emulador del Spectrum: el programa y sus variables, el bloque `CODE` (con
+su dirección, para que `LOAD` lo devuelva a su sitio), la pantalla (la del
+Spectrum, como con `.scr`) o la matriz, en el formato del Spectrum. La
+pantalla de carga solo va en un `.zvb`. Las palabras clave propias de ZX-V salen
+allí como caracteres raros, y un bloque no pasa de 64 KB, ni una cadena de
+65535 caracteres (`B Entero fuera de rango`). Un `.tzx` no se graba.
 
 Con la extensión `.bas`, el programa se graba como **listado en texto** (ver
-[Listados en texto](#listados-en-texto)): `SAVE "juego.bas"`.
+[Listados en texto](#listados-en-texto)): `SAVE "juego.bas"`. Un listado no
+lleva las variables ni la línea de arranque: `SAVE "juego.bas" LINE 10` da
+`C Sintaxis incorrecta`.
 
 ```
 10 PRINT "Me grabaron"
@@ -2007,19 +2071,30 @@ LOAD nombre$ SFX
 
 Carga de la tarjeta SD (o de la unidad `ROM:`):
 
-- Un **programa**: sustituye al que hay en la memoria (las variables no se
-  conservan). Si se grabó con `LINE`, se ejecuta. Sin extensión, ZX-V prueba
+- Un **programa**: sustituye al que hay en la memoria, y sus variables a las
+  que había. Si se grabó con `LINE`, se ejecuta desde esa línea sin borrarlas,
+  como con `GO TO`. Sin extensión, ZX-V prueba `nombre.zvb`, después
   `nombre.tap`, después `nombre.zxv` (un [programa
   nativo](#programas-nativos), que se ejecuta), después `nombre.bas` (un
-  [listado en texto](#listados-en-texto)) y por último el nombre tal cual. Los `.tap` y `.tzx` del Spectrum con programas en BASIC se cargan
-  directamente.
-- `CODE`: un bloque de bytes, en la dirección desde la que se grabó o en
-  `inicio`, y como mucho `longitud` bytes. Un fichero que no es `.tap` se lee
-  como bytes sin más, y entonces hace falta `inicio`.
-- `SCREEN$`: una pantalla del Spectrum (un fichero `.scr` o un bloque de un
-  `.tap`).
-- `DATA`: una matriz, que sustituye a la que tenga ese nombre. El tipo tiene
-  que coincidir.
+  [listado en texto](#listados-en-texto)) y por último el nombre tal cual. Los
+  `.tap` y `.tzx` del Spectrum con programas en BASIC se cargan directamente,
+  con sus variables (ver [Ficheros de cinta](#ficheros-de-cinta)); los `.tap`
+  de ZX-V de antes de la 0.7 no llevan variables.
+- `CODE`: un fichero de bytes (sin extensión, `nombre.bin` y luego
+  `nombre.tap`), en `inicio` y como mucho `longitud` bytes. Un fichero que no
+  es `.tap` no sabe dónde va, así que hace falta `inicio`: `LOAD "datos"
+  CODE 40000`; el bloque `CODE` de un `.tap` vuelve sin ella a la dirección
+  desde la que se grabó.
+- `SCREEN$`: una pantalla (sin extensión, `nombre.gfx` y luego un bloque de
+  `nombre.tap`). La de un `.gfx` se pone tal cual, con su modo (si no es el
+  de ahora, cambia como con `MODE`) y su borde; si trae sus colores, se
+  ponen en la paleta de la tabla 0, sin cambios de `REMAP`, y esa tabla pasa
+  a ser la que se usa (como con `REMAP #0`). `SCREEN$()` no reconoce el texto
+  que lleve. Un `.scr` o un `.tap` es una pantalla del Spectrum, que se ve
+  como era.
+- `DATA`: una matriz (sin extensión, `nombre.zvd` y luego `nombre.tap`), que
+  sustituye a la que tenga ese nombre, como `DIM`. El tipo tiene que
+  coincidir.
 - `GRAPHICS`: los objetos de un fichero `.gfx` sustituyen a los que tienen el
   mismo número; los demás se quedan, así que puedes cargar los sprites de un
   fichero y un nivel de otro. Un fichero que no es válido da `R Error al
@@ -2061,8 +2136,36 @@ MERGE nombre$
 ```
 
 Añade las líneas de un programa grabado al que hay en la memoria; las líneas
-con el mismo número se sustituyen. Las variables se borran. También vale con
-un [listado en texto](#listados-en-texto) (`.bas`).
+con el mismo número se sustituyen. Con las variables pasa lo mismo, como en
+el Spectrum: las del fichero sustituyen a las que tienen el mismo nombre y las
+demás se quedan. También vale con un [listado en texto](#listados-en-texto)
+(`.bas`), que no lleva variables. Un programa protegido no se puede mezclar
+(`R Error al cargar`).
+
+### Programas protegidos
+
+```
+SAVE nombre$ LINE línea [SCREEN$] PROTECT
+```
+
+Si no quieres que quien juegue a tu programa vea cómo está hecho, grábalo
+con `PROTECT`. El programa que tienes en la memoria no cambia: puedes seguir
+con él y grabarlo también sin proteger, para ti.
+
+- Un programa protegido arranca solo al cargarlo, por eso necesita `LINE`.
+  Solo se graba en un `.zvb` (en un `.tap` o un `.bas`, `C Sintaxis
+  incorrecta`).
+- Mientras funciona, es como cualquier otro: `ON ERROR` atrapa los errores y
+  BREAK.
+- Cuando se para, por lo que sea (un error, BREAK, `STOP` o porque acaba),
+  sale su informe y **se borra**, con sus variables, como con `NEW`. No se
+  puede listar, ni deshacer el borrado, ni mirar con el depurador.
+- `MERGE` no lo admite, y si él mismo graba el programa, se graba
+  protegido.
+
+Es una protección como las del Spectrum: frena a los curiosos, pero el
+formato de los ficheros es abierto, y quien sepa puede leerlo en un PC. Las
+herramientas de ZX-V tampoco enseñan su listado.
 
 ### Listados en texto
 
@@ -2080,7 +2183,7 @@ copiarlo a la tarjeta y cargarlo con `LOAD "juego.bas"` (o `MERGE`);
 - Cada línea se lee como si la tecleases en el editor: las palabras clave en
   mayúsculas o no, y la misma comprobación de sintaxis. Una línea con un error
   para la carga con su informe y su número de línea
-  (`C Nonsense in BASIC, 20:1`); las de antes se quedan en la memoria.
+  (`C Sintaxis incorrecta, 20:1`); las de antes se quedan en la memoria.
 - Una línea con solo el número borra esa línea, y las líneas en blanco no
   cuentan. Una línea sin número da un error en la de antes: un `.bas` es un
   programa, no una lista de órdenes (no pongas `RUN`).
@@ -2105,7 +2208,7 @@ actual. Con comodines o con el nombre de un fichero, solo lo que encaja.
 
 ```
 CAT "ROM:"
-CAT "*.tap"
+CAT "*.zvb"
 ```
 
 ### CD, DIR$
@@ -2158,8 +2261,8 @@ si `a$` es una carpeta, va dentro con el mismo nombre. Con comodines, `a$`
 tiene que ser una carpeta y se mueven todos los ficheros que encajan.
 
 ```
-MOVE "juego.tap" TO "juego viejo.tap"
-MOVE "*.tap" TO "juegos"
+MOVE "juego.zvb" TO "juego viejo.zvb"
+MOVE "*.zvb" TO "juegos"
 ```
 
 ### COPY
@@ -2205,8 +2308,10 @@ los casos.
 
 ZX-V lee los ficheros de cinta de los emuladores del Spectrum, `.tap` y
 `.tzx` (sus bloques de velocidad normal: programas, `CODE`, pantallas y
-matrices). El código máquina del Spectrum que contengan no se puede
-ejecutar.
+matrices), para usar el código BASIC hecho para el Spectrum. El código
+máquina del Spectrum que contengan no se puede ejecutar. Los programas de ZX-V
+se graban en su propio formato, `.zvb` (ver [SAVE](#save)); un `.tap` solo se
+graba si se pide, para llevar un programa a un emulador del Spectrum.
 
 Un fichero de cinta que se ha cargado se queda **puesto**, como una cinta en
 la casetera, así que funcionan los programas de varias partes:
@@ -2782,7 +2887,7 @@ usuario se escriben con `CHR$`.
 | IF de bloque y `SELECT CASE` uno dentro de otro | sin límite |
 | Parámetros de un procedimiento | 16 |
 | Paréntesis anidados en una expresión | unos 150 (unas 25 `FN` una dentro de otra) |
-| Memoria para el programa y las variables | unos 96 KB (se ve en la barra del editor) |
+| Memoria para el programa y las variables | unos 94 KB (se ve en la barra del editor) |
 | Ficheros abiertos | 8, en los streams 4 a 15 |
 | Sprites | 256 (0–255), cada uno de hasta 1024 × 1024 píxeles |
 | Tiles | 4096 de 8 × 8 y 4096 de 16 × 16 |
@@ -2889,6 +2994,7 @@ usuario se escriben con `CHR$`.
 | `OUT` | orden; en `OPEN #` | [IN, OUT](#in-out), [OPEN, CLOSE](#open-close) |
 | `OVER` | orden, elemento | [INVERSE, OVER](#inverse-over) |
 | `PAGE` | orden | [PAGE, SCREEN](#page-screen) |
+| `PALETTE` | orden | [PALETTE](#palette) |
 | `PAPER` | orden, elemento | [INK, PAPER](#ink-paper) |
 | `PAUSE` | orden | [PAUSE](#pause) |
 | `PEEK` | función | [PEEK, POKE](#peek-poke) |
@@ -2901,6 +3007,7 @@ usuario se escriben con `CHR$`.
 | `POLY` | orden | [POLY](#poly) |
 | `PRINT` | orden | [PRINT](#print) |
 | `PROC` | orden | [DEF PROC, PROC, END PROC](#def-proc-proc-end-proc) |
+| `PROTECT` | en `SAVE` | [Programas protegidos](#programas-protegidos) |
 | `RANDOMIZE` | orden | [RND, RANDOMIZE](#rnd-randomize) |
 | `RASTER` | orden | [RASTER](#raster) |
 | `READ` | orden | [READ, DATA, RESTORE](#read-data-restore) |

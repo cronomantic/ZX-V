@@ -163,7 +163,8 @@ HDMI connector ([On a protoboard](protoboard.md#hdmi)).
 **A long press of MODE** (between 1 and 5 seconds) or **Ctrl+Alt+F12** on the
 keyboard shows a blue band across the middle of the screen with the state of
 both Picos, updated every second: at the top the ULA (its mode, the images per
-second, link errors, the sound); at the bottom the CPU (link, sound, SD card,
+second, link errors, the CRC of the palettes it receives, the sound); at the
+bottom the CPU (link, sound, SD card,
 USB, clock). If the CPU's part does not arrive within 2.5 seconds, the page
 says so. Do the same again to hide it. It is in the machine's language: the
 CPU sends it to the ULA with every frame. The ULA Pico's own messages on its

@@ -10,12 +10,17 @@
  *     zxv_m7_draw), con la misma cámara: el techo usa las líneas del suelo
  *     del otro lado del horizonte. Solo se dibujan las líneas que alguna
  *     pared deja ver.
+ *   - Los colores (D90): cada nivel tiene su paleta, hecha con los colores
+ *     de sus dibujos a cada distancia de la lámpara (view_level). La vista
+ *     usa dos tablas, la del techo y la del suelo, con los mismos colores
+ *     para las paredes y los objetos y cuatro propios cada una; en cada
+ *     frame se ponen con la luz que da la lámpara (view_colours).
  *   - La niebla: lo que alumbra la lámpara se ve con sus colores; más lejos,
- *     sin brillo, luego con un tramado de negro y al final negro. Las
- *     paredes y los objetos cambian de color al dibujarse (tablas de 16);
- *     el suelo y el techo, una línea entera de una vez, con una tabla de
- *     256 por byte (sus dos píxeles), que además le pone los colores del
- *     nivel.
+ *     cada vez más oscuro, con colores de verdad de la paleta (mezclados de
+ *     dos en dos con un tramado de Bayer), y al final negro. Las paredes y
+ *     los objetos cambian de color al dibujarse (tablas de 16); el suelo y el
+ *     techo, una línea entera de una vez, con una tabla de 256 por byte (sus
+ *     dos píxeles), que además le pone los colores del nivel.
  *   - Los objetos y las sombras, sprites escalados de lejos a cerca, cortados
  *     columna a columna por las paredes que tienen delante (zxv_gfx_clip con
  *     los tramos en los que la pared está más lejos que el objeto).
@@ -61,43 +66,278 @@ int32_t isin(int a)
     return q & 2 ? -v : v;
 }
 
-/* --- La niebla ------------------------------------------------------------------- */
+/* --- Los colores y la niebla ----------------------------------------------------- */
 
-enum { FOG_LEVELS = 5 };               /* 0 los colores, 4 negro */
+/* La niebla: a cada distancia, según el alcance de la lámpara, un nivel. El
+ * 0 tiene los colores de los dibujos; el 1, sin brillo (también las caras de
+ * un lado, de cerca); del 2 al 5 cada vez más oscuros, y más rojizos, que es
+ * la luz de una llama; el 6, negro. */
+enum { FOG_LEVELS = 7, FOG_BLACK = FOG_LEVELS - 1 };
 
-/* Un píxel de color c en (x, y) con la niebla f: sin brillo (1); con la
- * mitad de los píxeles en negro, en tablero (2); con tres de cada cuatro en
- * negro (3). */
-static int fog(int f, int x, int y, int c)
-{
-    if (c == ZXV_TRANSPARENT)
-        c = 0;
-    switch (f) {
-    case 0: return c;
-    case 1: return c & 7;
-    case 2: return ((x + y) & 1) ? 0 : c & 7;
-    case 3: return ((x + 2 * y) & 3) ? 0 : c & 7;
-    default: return 0;
-    }
-}
-
-/* El nivel de niebla a la distancia z (16.16, en celdas) con la lámpara de
- * alcance light. */
 static int fog_level(int32_t z, int32_t light)
 {
     if (z >= light)
-        return 4;
+        return FOG_BLACK;
     int32_t r = (z << 8) / light;       /* de 0 a 256; light no llega a 128 celdas */
-    return r < 120 ? 0 : r < 170 ? 1 : r < 212 ? 2 : 3;
+    return r < 110 ? 0 : r < 140 ? 1 : r < 166 ? 2 : r < 190 ? 3 : r < 214 ? 4 : 5;
+}
+
+typedef struct {
+    uint8_t r, g, b;
+} rgb_t;
+
+/* Lo que queda del rojo, el verde y el azul en cada nivel oscuro, x 256. */
+static const uint8_t dim[FOG_BLACK][3] = {
+    { 0, 0, 0 }, { 0, 0, 0 }, { 206, 198, 186 }, { 156, 146, 132 }, { 104, 96, 84 }, { 58, 52, 44 },
+};
+
+/* El color c de un dibujo con la niebla f, de 0 a 255 por canal (la escala
+ * de ZXV_RGB: 215 es el nivel normal). */
+static rgb_t fog_rgb(int c, int f)
+{
+    rgb_t o = { 0, 0, 0 };
+    if (c == ZXV_TRANSPARENT || f >= FOG_BLACK)
+        return o;
+    if (f > 0)
+        c &= 7;
+    int v = c & 8 ? 255 : 215;
+    o = (rgb_t){ (uint8_t)(c & 2 ? v : 0), (uint8_t)(c & 4 ? v : 0), (uint8_t)(c & 1 ? v : 0) };
+    if (f >= 2)
+        o = (rgb_t){ (uint8_t)(o.r * dim[f][0] >> 8), (uint8_t)(o.g * dim[f][1] >> 8),
+                     (uint8_t)(o.b * dim[f][2] >> 8) };
+    return o;
+}
+
+/* Lo lejos que están dos colores, más o menos como se ven. */
+static uint32_t rgb_dist(rgb_t a, rgb_t b)
+{
+    int dr = a.r - b.r, dg = a.g - b.g, db = a.b - b.b;
+    return (uint32_t)(3 * dr * dr + 4 * dg * dg + 2 * db * db);
+}
+
+static int nearest(rgb_t c, const rgb_t *pal, int n, uint32_t *d)
+{
+    int best = 0;
+    uint32_t bd = 0xFFFFFFFFu;
+    for (int i = 0; i < n; i++) {
+        uint32_t e = rgb_dist(c, pal[i]);
+        if (e < bd) {
+            bd = e;
+            best = i;
+        }
+    }
+    if (d)
+        *d = bd;
+    return best;
+}
+
+/* Un color, como sale por la pantalla: en RGB565 y de vuelta. */
+static uint16_t rgb565(rgb_t c) { return ZXV_RGB(c.r, c.g, c.b); }
+
+static rgb_t shown(rgb_t c)
+{
+    uint32_t v = rgb565(c), r = v >> 11, g = (v >> 5) & 63, b = v & 31;
+    return (rgb_t){ (uint8_t)(r <= 27 ? (r * 215 + 13) / 27 : 215 + (r - 27) * 10),
+                    (uint8_t)(g <= 54 ? (g * 215 + 27) / 54 : 215 + ((g - 54) * 40 + 4) / 9),
+                    (uint8_t)(b <= 27 ? (b * 215 + 13) / 27 : 215 + (b - 27) * 10) };
+}
+
+/* Los colores de cada nivel (D90): los 16 de la tabla del techo (la 1) y los
+ * de la del suelo (la 2). Los 12 primeros son los mismos en las dos: los de
+ * las paredes y los objetos, que pasan por las dos mitades de la vista. El
+ * 0 es el negro y el 1, el rojo de los ojos de las sombras, que no se apaga
+ * con la lámpara. Los 4 últimos, solo para el techo o solo para el suelo. Se
+ * eligen con los colores que usan sus dibujos, en todos los niveles de
+ * niebla: lo que más se ve, más exacto. */
+enum { EYES = 1, COMMON = 12, FIXED = 5 };  /* FIXED: los de cerca más vistos, tal cual */
+static rgb_t pal_ceiling[16], pal_floor[16];
+
+typedef struct {
+    rgb_t c;
+    uint32_t w;                         /* cuánto se ve */
+} target_t;
+
+#define TARGETS 160
+static target_t targets[TARGETS];
+static int ntargets;
+
+static void add_target(rgb_t c, uint32_t w)
+{
+    if (!w)
+        return;
+    for (int i = 0; i < ntargets; i++)
+        if (targets[i].c.r == c.r && targets[i].c.g == c.g && targets[i].c.b == c.b) {
+            targets[i].w += w;
+            return;
+        }
+    if (ntargets < TARGETS)
+        targets[ntargets++] = (target_t){ c, w };
+}
+
+/* Lo que pesa cada nivel de niebla: de cerca se ve más grande. */
+static const uint8_t fog_weight[FOG_BLACK] = { 8, 6, 4, 3, 2, 1 };
+
+/* Los colores de un dibujo (count) con los niveles de niebla de 0 a fogs - 1,
+ * con el peso weight; map, si no es NULL, cambia cada color por otro. */
+static void add_drawing(const uint16_t *count, uint32_t weight, const uint8_t *map, int fogs)
+{
+    uint32_t total = 0;
+    for (int c = 0; c < 16; c++)
+        total += count[c];
+    for (int c = 0; total && c < 16; c++) {
+        uint32_t w = count[c] * 1024u / total * weight;
+        for (int f = 0; w && f < fogs; f++)
+            add_target(fog_rgb(map ? map[c] : c, f), w * fog_weight[f]);
+    }
+}
+
+/* Las paredes del laberinto (según cuántas celdas hay de cada una), la
+ * puerta y los objetos. */
+static void add_world(int fogs)
+{
+    int cells[8] = { 0 }, total = 0;
+    for (int y = 0; y < maze_h; y++)
+        for (int x = 0; x < maze_w; x++) {
+            int c = cell_at(x, y);
+            if (c >= CELL_WALL && c < CELL_GATE) {
+                cells[c - CELL_WALL]++;
+                total++;
+            }
+        }
+    for (int n = 0; n < 8; n++)
+        if (cells[n])
+            add_drawing(art_wall_count[n], 1 + cells[n] * 32u / (uint32_t)total, 0, fogs);
+    add_drawing(art_wall_count[WALL_GATE], 1, 0, fogs);
+    add_drawing(art_wall_count[WALL_OPEN], 1, 0, fogs);
+    add_drawing(art_sprite_count[SPR_RUNE], 2, 0, fogs);
+    add_drawing(art_sprite_count[SPR_FLASK], 1, 0, fogs);
+    /* Las sombras, sin los ojos (el 10), que tienen el suyo. */
+    colour_count body;
+    for (int c = 0; c < 16; c++)
+        body[c] = c == 10 ? 0 : art_sprite_count[SPR_SHADOW][c];
+    add_drawing(body, 2, 0, fogs < 4 ? fogs : 4);
+}
+
+/* Los colores pal[fixed] a pal[n - 1] para los objetivos (k-medias con
+ * pesos); los de antes ya están puestos. */
+static void quantize(rgb_t *pal, int fixed, int n)
+{
+    /* Para empezar, uno a uno, el objetivo peor representado (d: lo lejos
+     * que está cada uno del más cercano que ya hay). */
+    static uint32_t d[TARGETS];
+    static uint8_t near_k[TARGETS];
+    for (int i = 0; i < ntargets; i++)
+        nearest(targets[i].c, pal, fixed, &d[i]);
+    for (int k = fixed; k < n; k++) {
+        uint64_t worst = 0;
+        int at = -1;
+        for (int i = 0; i < ntargets; i++) {
+            uint64_t e = (uint64_t)d[i] * targets[i].w;
+            if (e > worst) {
+                worst = e;
+                at = i;
+            }
+        }
+        pal[k] = at < 0 ? pal[0] : targets[at].c;
+        for (int i = 0; i < ntargets; i++) {
+            uint32_t e = rgb_dist(targets[i].c, pal[k]);
+            if (e < d[i])
+                d[i] = e;
+        }
+    }
+    /* Luego, cada uno en el centro de los que tiene más cerca, hasta que no
+     * cambia nada. */
+    for (int it = 0; it < 8; it++) {
+        uint64_t sr[16] = { 0 }, sg[16] = { 0 }, sb[16] = { 0 }, sw[16] = { 0 };
+        int moved = 0;
+        for (int i = 0; i < ntargets; i++) {
+            int k = nearest(targets[i].c, pal, n, 0);
+            moved |= it == 0 || k != near_k[i];
+            near_k[i] = (uint8_t)k;
+            uint32_t w = targets[i].w;
+            sr[k] += (uint64_t)targets[i].c.r * w;
+            sg[k] += (uint64_t)targets[i].c.g * w;
+            sb[k] += (uint64_t)targets[i].c.b * w;
+            sw[k] += w;
+        }
+        if (!moved)
+            break;
+        for (int k = fixed; k < n; k++)
+            if (sw[k])
+                pal[k] = (rgb_t){ (uint8_t)((sr[k] + sw[k] / 2) / sw[k]), (uint8_t)((sg[k] + sw[k] / 2) / sw[k]),
+                                  (uint8_t)((sb[k] + sw[k] / 2) / sw[k]) };
+    }
+}
+
+/* Un color hecho con dos de la paleta: j en a / 4 de los píxeles, con el
+ * tramado de Bayer (x e y, mod 4). */
+typedef struct {
+    uint8_t i, j, a;
+} mix_t;
+
+static const uint8_t bayer[4][4] = { { 0, 8, 2, 10 }, { 12, 4, 14, 6 }, { 3, 11, 1, 9 }, { 15, 7, 13, 5 } };
+
+static int mix_at(mix_t m, int x, int y) { return bayer[y & 3][x & 3] < 4 * m.a ? m.j : m.i; }
+
+/* La mejor manera de hacer c con los n primeros colores de pal: uno solo, o
+ * dos de los cuatro más cercanos mezclados. */
+static mix_t best_mix(rgb_t c, const rgb_t *pal, int n)
+{
+    int near[4] = { 0 }, m = 0;
+    uint32_t nd[4] = { 0 };
+    for (int i = 0; i < n; i++) {
+        uint32_t d = rgb_dist(c, pal[i]);
+        int k = m < 4 ? m++ : 4;
+        for (; k > 0 && nd[k - 1] > d; k--)
+            if (k < 4) {
+                near[k] = near[k - 1];
+                nd[k] = nd[k - 1];
+            }
+        if (k < 4) {
+            near[k] = i;
+            nd[k] = d;
+        }
+    }
+    mix_t best = { (uint8_t)near[0], (uint8_t)near[0], 0 };
+    uint32_t be = nd[0];
+    for (int a = 1; a <= 2; a++)
+        for (int x = 0; x < m; x++)
+            for (int y = 0; y < m; y++) {
+                if (x == y)
+                    continue;
+                rgb_t p = pal[near[x]], q = pal[near[y]];
+                rgb_t mixed = { (uint8_t)((p.r * (4 - a) + q.r * a + 2) / 4), (uint8_t)((p.g * (4 - a) + q.g * a + 2) / 4),
+                                (uint8_t)((p.b * (4 - a) + q.b * a + 2) / 4) };
+                uint32_t e = rgb_dist(c, mixed);
+                if (e < be) {
+                    be = e;
+                    best = (mix_t){ (uint8_t)near[x], (uint8_t)near[y], (uint8_t)a };
+                }
+            }
+    return best;
+}
+
+/* Las mezclas de los 16 colores (cambiados por map, si no es NULL) con la
+ * niebla f; cada color distinto, una vez. */
+static void mixes(mix_t m[16], const uint8_t *map, int f, const rgb_t *pal, int n)
+{
+    rgb_t c[16];
+    for (int i = 0; i < 16; i++) {
+        c[i] = fog_rgb(map ? map[i] : i, f);
+        int j = 0;
+        while (j < i && (c[j].r != c[i].r || c[j].g != c[i].g || c[j].b != c[i].b))
+            j++;
+        m[i] = j < i ? m[j] : best_mix(c[i], pal, n);
+    }
 }
 
 /* Las paredes: por nivel de niebla, la columna (x mod 4) y la línea (y mod
  * 4), el byte de cada color (los dos píxeles iguales). */
 static uint8_t wall_lut[FOG_LEVELS][4][4][16];
-/* El suelo y el techo: por nivel (sin el 4, que es negro), la línea (y mod
- * 4) y el byte (par o impar: x mod 4), el byte que queda. Llevan los colores
- * del nivel. */
-static uint8_t floor_lut[4][4][2][256], ceiling_lut[4][4][2][256];
+/* El suelo y el techo: por nivel (sin el negro), la línea (y mod 4) y el
+ * byte (par o impar: x mod 4), el byte que queda. Llevan los colores del
+ * nivel. */
+static uint8_t floor_lut[FOG_BLACK][4][2][256], ceiling_lut[FOG_BLACK][4][2][256];
 /* Los objetos: por nivel, su tabla de colores para zxv_spr_draw; las sombras
  * tienen la suya, con los ojos que se ven a oscuras. */
 static uint8_t item_fog[FOG_LEVELS][16], shadow_fog[FOG_LEVELS][16];
@@ -111,44 +351,120 @@ static const uint8_t ceiling_colours[5][3] = {
     { 1, 7, 15 }, { 2, 3, 11 }, { 4, 1, 12 }, { 1, 5, 13 }, { 3, 1, 11 },
 };
 
-static void make_surface(uint8_t lut[4][4][2][256], const uint8_t *colours)
+static void surface_map(uint8_t map[16], const uint8_t *colours)
 {
-    uint8_t rc[16];
     for (int c = 0; c < 16; c++)
-        rc[c] = (uint8_t)c;
-    rc[1] = colours[0];
-    rc[7] = colours[1];
-    rc[15] = colours[2];
-    for (int f = 0; f < 4; f++)
+        map[c] = (uint8_t)c;
+    map[1] = colours[0];
+    map[7] = colours[1];
+    map[15] = colours[2];
+}
+
+static void make_surface(uint8_t lut[FOG_BLACK][4][2][256], const uint8_t *map, const rgb_t *pal)
+{
+    for (int f = 0; f < FOG_BLACK; f++) {
+        mix_t m[16];
+        mixes(m, map, f, pal, 16);
         for (int y = 0; y < 4; y++)
-            for (int k = 0; k < 2; k++)
-                for (int b = 0; b < 256; b++)
-                    lut[f][y][k][b] = (uint8_t)(fog(f, 2 * k, y, rc[b & 15]) |
-                                                fog(f, 2 * k + 1, y, rc[b >> 4]) << 4);
+            for (int k = 0; k < 2; k++) {
+                uint8_t lo[16], hi[16], *p = lut[f][y][k];
+                for (int c = 0; c < 16; c++) {
+                    lo[c] = (uint8_t)mix_at(m[c], 2 * k, y);
+                    hi[c] = (uint8_t)(mix_at(m[c], 2 * k + 1, y) << 4);
+                }
+                for (int h = 0; h < 16; h++)
+                    for (int l = 0; l < 16; l++)
+                        *p++ = lo[l] | hi[h];
+            }
+    }
+}
+
+/* Los colores de una mitad de la vista: los comunes y 4 para su superficie. */
+static void surface_palette(rgb_t *pal, const rgb_t *common, const uint16_t *count, const uint8_t *map)
+{
+    for (int i = 0; i < COMMON; i++)
+        pal[i] = common[i];
+    ntargets = 0;
+    add_drawing(count, 1, map, FOG_BLACK);
+    quantize(pal, COMMON, 16);
+    for (int i = 0; i < 16; i++)
+        pal[i] = shown(pal[i]);
 }
 
 void view_level(int wall)
 {
-    static int made;
-    if (!made) {
-        made = 1;
-        for (int f = 0; f < FOG_LEVELS; f++)
+    uint8_t fmap[16], cmap[16];
+    surface_map(fmap, floor_colours[wall]);
+    surface_map(cmap, ceiling_colours[wall]);
+
+    /* Los comunes: el negro, los ojos, los colores de cerca que más se ven,
+     * tal cual, y los demás para lo que queda (lo de lejos, lo que menos se
+     * ve). */
+    rgb_t common[COMMON] = { { 0, 0, 0 }, fog_rgb(10, 0) };
+    int fixed = EYES + 1;
+    ntargets = 0;
+    add_world(2);
+    while (fixed < EYES + 1 + FIXED) {
+        int best = -1;
+        for (int i = 0; i < ntargets; i++)
+            if (targets[i].w && (best < 0 || targets[i].w > targets[best].w))
+                best = i;
+        if (best < 0)
+            break;
+        uint32_t d;
+        nearest(targets[best].c, common, fixed, &d);
+        if (d)                          /* el negro y los ojos ya están */
+            common[fixed++] = targets[best].c;
+        targets[best].w = 0;
+    }
+    ntargets = 0;
+    add_world(FOG_BLACK);
+    quantize(common, fixed, COMMON);
+    for (int i = 0; i < COMMON; i++)
+        common[i] = shown(common[i]);
+    surface_palette(pal_ceiling, common, art_ceiling_count, cmap);
+    surface_palette(pal_floor, common, art_floor_count, fmap);
+
+    /* Las paredes y los objetos, con los comunes. */
+    for (int f = 0; f < FOG_LEVELS; f++) {
+        mix_t m[16];
+        mixes(m, 0, f, common, COMMON);
+        for (int c = 0; c < 16; c++) {
             for (int x = 0; x < 4; x++)
                 for (int y = 0; y < 4; y++)
-                    for (int c = 0; c < 16; c++)
-                        wall_lut[f][x][y][c] = (uint8_t)(fog(f, x, y, c) * 0x11);
-        for (int f = 0; f < FOG_LEVELS; f++)
-            for (int c = 0; c < 16; c++) {
-                int t = c == ZXV_TRANSPARENT;
-                item_fog[f][c] = (uint8_t)(t ? c : f == 0 ? c : f < 3 ? c & 7 : c ? 1 : 0);
-                shadow_fog[f][c] = (uint8_t)(t ? c : c == 10 ? (f < 2 ? 10 : 2)
-                                             : f == 0 ? c : f == 1 ? c & 7 : f == 2 ? (c ? 1 : 0)
-                                             : ZXV_TRANSPARENT);
-            }
+                    wall_lut[f][x][y][c] = (uint8_t)(mix_at(m[c], x, y) * 0x11);
+            int t = c == ZXV_TRANSPARENT;
+            item_fog[f][c] = (uint8_t)(t ? c : nearest(fog_rgb(c, f), common, COMMON, 0));
+            if (c == 10)
+                shadow_fog[f][c] = EYES;
+            else
+                shadow_fog[f][c] = (uint8_t)(t || f >= 4 ? ZXV_TRANSPARENT : item_fog[f][c]);
+        }
     }
-    make_surface(floor_lut, floor_colours[wall]);
-    make_surface(ceiling_lut, ceiling_colours[wall]);
+    make_surface(ceiling_lut, cmap, pal_ceiling);
+    make_surface(floor_lut, fmap, pal_floor);
 }
+
+/* Los colores de la vista en este frame: los del nivel, con la luz de la
+ * lámpara (bright, x 256) y el rojo de un golpe (flash, x 256). */
+void view_colours(int bright, int flash)
+{
+    const rgb_t *src[2] = { pal_ceiling, pal_floor };
+    for (int t = 0; t < 2; t++)
+        for (int i = 0; i < 16; i++) {
+            rgb_t c = src[t][i];
+            int k = i == EYES ? 256 : bright;
+            int r = c.r * k >> 8, g = c.g * k >> 8, b = c.b * k >> 8;
+            r += (255 - r) * flash >> 8;
+            g -= g * flash >> 8;
+            b -= b * flash >> 8;
+            video_pal[PAL_CEILING + t][i] = rgb565((rgb_t){ (uint8_t)(r > 255 ? 255 : r), (uint8_t)g, (uint8_t)b });
+        }
+}
+
+/* El color de la vista más parecido al color c de siempre: para lo que se
+ * escribe sobre el techo. */
+int view_ui_colour(int c) { return nearest(fog_rgb(c, 0), pal_ceiling, 16, 0); }
 
 /* --- Los rayos ------------------------------------------------------------------- */
 
@@ -230,7 +546,7 @@ static void draw_wall(uint8_t *page, int c)
     int f = col[c].fog;
     uint8_t *p = page + col[c].y0 * (W / 2) + c;
     int y = col[c].y0, n = col[c].y1 - y;
-    if (f == 4) {                       /* a oscuras: negro */
+    if (f == FOG_BLACK) {               /* a oscuras: negro */
         for (; n > 0; n--, p += W / 2)
             *p = 0;
         return;
@@ -271,14 +587,14 @@ static void tint_row(uint8_t *page, int y, uint8_t lut[4][2][256])
 /* Las líneas de y0 a y1 del suelo (o del techo), la primera con las líneas
  * del modo 7 l, con la niebla de cada una (row_fog[y]). */
 static void surface(uint8_t *page, const zxv_m7tex *t, const zxv_m7line *l, int y0, int y1,
-                    const uint8_t *row_fog, uint8_t lut[4][4][2][256])
+                    const uint8_t *row_fog, uint8_t lut[FOG_BLACK][4][2][256])
 {
     int y = y0;
     while (y < y1) {
         int f = row_fog[y], e = y + 1;
         while (e < y1 && row_fog[e] == f)
             e++;
-        if (f == 4 || !t->texels) {
+        if (f == FOG_BLACK || !t->texels) {
             black_rows(page, y, e);
         } else {
             zxv_m7_draw(t, l + (y - y0), y, e - y);
@@ -353,7 +669,7 @@ static int gather(thing_t *things, const cam_t *cam, int32_t light, int t)
             continue;
         int32_t u = (int32_t)(((int64_t)dy * ca - (int64_t)dx * sa) >> 16);
         int f = fog_level(z, light);
-        if (f == 4 && !shadow)
+        if (f == FOG_BLACK && !shadow)
             continue;
         thing_t *o = &things[n];
         /* Un píxel de una sombra es un texel, 1/64 de celda; los objetos son
@@ -413,7 +729,7 @@ void view_draw(const cam_t *cam, int32_t light, int t)
     static uint8_t row_fog[VIEW_H];
     for (int y = 0; y < VIEW_H; y++) {
         int dy = y >= HORIZON ? y - HORIZON : HORIZON - y;
-        row_fog[y] = (uint8_t)(dy ? fog_level((int32_t)(((int32_t)FOCAL << 15) / dy), light) : 4);
+        row_fog[y] = (uint8_t)(dy ? fog_level((int32_t)(((int32_t)FOCAL << 15) / dy), light) : FOG_BLACK);
     }
     zxv_m7cam m7 = {
         .x = cam->x * 64, .y = cam->y * 64,         /* en texels: una celda son 64 */

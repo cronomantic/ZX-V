@@ -1,7 +1,8 @@
 /*
  * canvas_test.cpp - Los lienzos de zxv-gfx con el ratón de QTest (sin
  * pantalla): las herramientas de dibujo, seleccionar y mover, pegar,
- * deshacer y rehacer, y pintar los mapas.
+ * deshacer y rehacer, las pantallas (con su borde y con su paleta) y pintar
+ * los mapas.
  */
 #include <QScrollArea>
 #include <QtTest>
@@ -134,6 +135,64 @@ private slots:
         pixel->discard();
         QVERIFY(im == before);
         QCOMPARE(ed.canUndo(), couldUndo);
+    }
+
+    void screens()
+    {
+        gfx::Document doc;
+        doc.screens[3] = gfx::newScreen(0, 2);
+        ed.setDocument(doc, QString());
+        ed.select(Section::Screens, 3);
+        pixel->setZoom(2);
+        /* Con el borde alrededor: la imagen empieza más lejos. */
+        int m = pixel->margin();
+        QVERIFY(m > 8);
+        auto px = [m](int x, int y) { return QPoint(m + x * 2 + 1, m + y * 2 + 1); };
+        gfx::Image &im = ed.doc().screens[3].img;
+        ed.setColor(0, 8);
+        ed.setTool(Tool::Pen);
+        drag(pixel, px(10, 10), px(20, 10));
+        QCOMPARE(im.at(15, 10), 8);         /* el 8 es un color más */
+        QCOMPARE(im.at(9, 10), 0);
+        QTest::mouseClick(pixel, Qt::LeftButton, Qt::NoModifier, QPoint(m - 4, m - 4));
+        QCOMPARE(im.at(0, 0), 0);           /* en el borde no se pinta */
+        ed.setColor(0, 5);
+        ed.setTool(Tool::Fill);
+        QTest::mouseClick(pixel, Qt::LeftButton, Qt::NoModifier, px(100, 100));
+        QCOMPARE(im.at(0, 0), 5);
+        QCOMPARE(im.at(15, 10), 8);
+        /* No cambia de tamaño al girarla entera. */
+        pixel->transform(gfx::rotatedRight);
+        QCOMPARE(im.w, 256);
+        QCOMPARE(im.h, 192);
+        ed.undo();
+        QCOMPARE(im.at(0, 0), 0);
+        QCOMPARE(ed.doc().screens[3].border, 2);
+        /* Sin pantalla, el margen de siempre. */
+        ed.select(Section::Screens, 4);
+        QCOMPARE(pixel->margin(), 8);
+    }
+
+    /* Una pantalla con paleta (D90) se ve con sus colores, el borde también. */
+    void screenPalette()
+    {
+        gfx::Document doc;
+        doc.screens[0] = gfx::newScreen(0, 2);
+        doc.screens[0].hasPalette = true;
+        doc.screens[0].palette[0] = 0x1234;
+        doc.screens[0].palette[2] = 0x8410;
+        ed.setDocument(doc, QString());
+        ed.select(Section::Screens, 0);
+        pixel->setZoom(2);
+        int m = pixel->margin();
+        QImage shot = pixel->grab().toImage();
+        QCOMPARE(shot.pixel(m + 5, m + 5) & 0xFFFFFFu, 0x10449Fu);
+        QCOMPARE(shot.pixel(m - 4, m - 4) & 0xFFFFFFu, 0x7F7F7Fu);
+        /* Sin paleta, los de siempre. */
+        ed.doc().screens[0].removePalette();
+        shot = pixel->grab().toImage();
+        QCOMPARE(shot.pixel(m + 5, m + 5) & 0xFFFFFFu, 0x000000u);
+        QCOMPARE(shot.pixel(m - 4, m - 4) & 0xFFFFFFu, 0xD70000u);
     }
 
     void maps()

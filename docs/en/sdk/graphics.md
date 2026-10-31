@@ -455,6 +455,20 @@ left as it is (each colour as itself). Changing a table changes the colours
 of the whole screen at once, without touching the video memory: fades,
 flashes, colour cycling.
 
+Each table also has its own **palette**: the 16 RGB565 colours shown for
+each index, at `ZXV_PALETTE(t)`. They start as the usual ones; changing one
+gives any colour (`ZXV_RGB(r, g, b)`, 0 to 255 per component) to everything
+drawn with it. With the line table, each band of the screen can have its own
+16 colours:
+
+```c
+volatile uint16_t *pal1 = (volatile uint16_t *)(uintptr_t)ZXV_PALETTE(1);
+pal1[2] = ZXV_RGB(255, 128, 0);                 /* table 1's red, orange */
+```
+
+Index 8 is still transparent for sprites and tiles even if the palette gives
+it another colour.
+
 This program shows both: border stripes with the line table, and six
 bands whose colours rotate through table 1:
 
@@ -610,12 +624,15 @@ system is.
 | `--map M S FILE.csv` | Map M from a CSV file with the value of each cell |
 | `--texture N IMAGE [C]` | Texture N (a square, its side a power of 2 from 2 to 256); it repeats or, with C, outside it is colour C |
 | `--wrap M` | Map M repeats |
+| `--screen N IMAGE [B]` | Screen N (like those of `SAVE "x" SCREEN$` and loading screens): 256 × 192 (mode 0) or 512 × 384 (mode 1), or the whole frame (320 × 240 or 640 × 480) with the border in the colour of its corner; B, the border colour. With colours other than the usual ones (16 at most), it carries its palette |
 | `--flip` | `--level` also reuses mirrored tiles |
 | `--key RRGGBB` | That colour is transparent (as well as pixels with alpha below 128) |
 
 Each pixel becomes the nearest ZX-V colour, with a warning if it was not
 exact. Paint with the 15 exact colours: each component 00, D7 or FF
-(for example `D70000` is red and `FF0000` bright red).
+(for example `D70000` is red and `FF0000` bright red). Screens keep their
+colours: with colours other than the usual ones (16 at most), the screen
+carries its palette.
 
 ### Reading a `.gfx` file in C
 
@@ -630,6 +647,7 @@ by its data:
 | 2 | Tiles of S × S (S is the object number) | count (16 bits), 0 (16 bits), then the tiles (32 or 128 bytes each) |
 | 3 | Map | width, height (16 bits each), tile size, repeat (bytes), 0 (16 bits), then the cells (16 bits each) |
 | 4 | Texture | log2 of the side, repeat, colour outside, 0 (bytes), then the texels (one byte each) |
+| 5 | Screen | mode (0 or 1), border colour, flags (bit 0: it has a palette), 0 (bytes); with a palette, its 16 RGB565 colours (32 bytes); then the pixels of the page, as in VRAM (24,576 bytes in mode 0, 98,304 in mode 1) |
 
 All numbers are little-endian. To read them, the SDK has a small
 library, **`zxv_gfxfile.h`** (with `gfxfile.c`). The file can be anywhere:
@@ -646,7 +664,9 @@ buffer, it only tells):
 | `zxv_gfxf_tiles(&f, side, buf, room, &count)` | The 8 or 16 pixel tiles |
 | `zxv_gfxf_map(&f, n, &map, tiles, buf, room)` | Map `n`: its cells in `buf` and, in the `zxv_tilemap`, the tiles given |
 | `zxv_gfxf_texture(&f, n, &texture, buf, room)` | Mode 7 texture `n` |
-| `zxv_gfxf_find(&f, kind, n, &length)` | An object's data as it is in the file |
+| `zxv_gfxf_screen(&f, n, &mode, &border, buf, room)` | Screen `n`: its pixels in `buf`, like a VRAM page (for example, the hidden one, to flip pages at VBLANK) |
+| `zxv_gfxf_screen_palette(&f, n, pal)` | The 16 RGB565 colours screen `n` was shown with, to put in a palette (`ZXV_PALETTE(t)`): 1 if it carries them; otherwise 0 and the usual ones |
+| `zxv_gfxf_find(&f, kind, n, &length)` | An object's data as it is in the file (`kind`: `ZXV_GFXF_SPRITE` 1, `ZXV_GFXF_TILES` 2, `ZXV_GFXF_MAP` 3, `ZXV_GFXF_TEXTURE` 4, `ZXV_GFXF_SCREEN` 5) |
 
 This program loads `art.gfx` from the current folder, prepares the two
 sprites and the map (with 8 pixel tiles), and scrolls them:
@@ -720,8 +740,8 @@ speaks Spanish or English, the system's language (or the one you ask for:
 
 ![zxv-gfx with the level of the platform game in the examples](../../images/sdk-gfx-editor-en.png)
 
-- **A tab for each kind of object** (sprites, 8 and 16 pixel tiles, maps and
-  textures) and, on the left, their thumbnails; double clicking an empty
+- **A tab for each kind of object** (sprites, 8 and 16 pixel tiles, maps,
+  textures and screens) and, on the left, their thumbnails; double clicking an empty
   slot creates it. On the right, the palette, the properties (size,
   wrapping, the colour outside…) and a preview: sprites animated with the
   next ones, tiles repeated 3 × 3 to see whether they match, and textures
@@ -735,13 +755,15 @@ speaks Spanish or English, the system's language (or the one you ask for:
   panel and its attributes (both mirrors, transparent and in front); the
   right button puts tile 0. Double clicking a tile in the panel opens it for
   editing.
+- **Screens** can have their own colours: double clicking a colour of the
+  palette changes it to any other, and the screen then carries its palette.
 - **Copy and paste** with the system clipboard: what you copy pastes into
   other programs as an image, and an image from another program pastes with
   ZX-V colours (the nearest one to each pixel).
 - **Import an image** (File > Import, or by dragging it onto the window): a
   sprite, a sprite sheet, tiles, a whole level (the tiles, reusing the
-  repeated ones and, if you want, the mirrored ones, and the map) or a
-  texture. It gives the same as `png2gfx.py` with the same commands.
+  repeated ones and, if you want, the mirrored ones, and the map), a texture
+  or a screen. It gives the same as `png2gfx.py` with the same commands.
   **Export as PNG** saves the object, the tile set or the drawn map.
 - **Unlimited undo and redo**, zoom with Ctrl and the wheel, and the middle
   button to drag the view. The status bar tells how much it would all take
@@ -759,6 +781,10 @@ At the top there is a tab for each kind of graphic:
 | Tiles 8, Tiles 16 | The two tile sets: the tile enlarged, the same tile repeated 3 × 3 to see whether it matches its neighbours, and below the whole set, to pick from |
 | Maps | The 16 maps: painted with the chosen tile and its attributes (both mirrors, 8 transparent and in front), as with `MAP POKE` |
 | Textures | The 4 mode 7 textures: their side, whether they wrap and the colour outside |
+
+Screens (those of `SAVE "x" SCREEN$` and loading screens) are not edited
+here but in `zxv-gfx`: loading a file skips them, and saving it leaves them
+out.
 
 - **Drawing:** pen, line, box, filled box, flood fill and picking a colour
   from the image. The left button paints with one colour of the palette and

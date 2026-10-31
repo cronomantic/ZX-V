@@ -224,7 +224,14 @@ Do the first checks **before soldering the Picos**, with a multimeter.
 6. **The board test:** `LOAD "ROM:boardtest"` checks, one by one, what a program
    can see: the screen (by its HPD), the clock, the SD card, the keyboard, the
    gamepads, the mouse and the sound (keys 1, 2 and 3: beeper, AY left and
-   right). Press MODE to see the video line change, and Esc to go back.
+   right). Press MODE to see the video line change, and Esc to go back. Press
+   **P** for the palettes: the ROM's usual colours and the same ones set by
+   hand, line by line, with no stripes showing; a grey ramp; a fire ramp that
+   cycles; and the border, which changes every second (black, black, orange
+   and purple) while nothing else does. Space stops the ramp, and the
+   "Palettes CRC" must read `95AF97D6`, the same as in the emulator and as on
+   the diagnostic page (Ctrl+Alt+F12), in the ULA's line: the palettes reach
+   the ULA intact. P again goes back to the test.
 
 The Picos can still be connected to a computer by their micro-USB while the
 board is powered: the protection diodes keep the two supplies apart. **Not
@@ -239,7 +246,7 @@ The labels printed on the board are in Spanish.
 | Label | Where | Part | What it is |
 |---|---|---|---|
 | `5 V` | Back, left | J1, USB-C | Power: any 5 V USB-C charger of 2 A. Power only, no data |
-| `HDMI` | Back, behind the ULA | J7 | The screen: picture, and sound in the HDMI modes |
+| `HDMI` | Back, behind the ULA | J7 | The screen: picture, and sound in the HDMI mode |
 | `AUDIO` | Back, behind the CPU | J8, 3.5 mm jack | Stereo line-level sound, always on |
 | `OFF` `ON` | Front, far left | SW3 | Power switch: lever to the right is on, to the left is off |
 | `MODO` | Front, left | SW2 | **Mode**: a short press switches video mode; a long press (1 to 5 s) shows or hides the diagnostic page; held at power-on, the safe mode |

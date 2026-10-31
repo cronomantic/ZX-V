@@ -13,10 +13,11 @@ other way round. It comes in several forms:
 | **`zxv-cli`** | No window at all: runs as fast as it can, for scripts, tests and screenshots |
 | **The web version** | The same machine in a web browser |
 | **`sdimg`** | A small tool to create and fill SD card images |
-| **`zxv-gfx`** | The graphics editor: sprites, tiles, maps and textures in `.gfx` files (see the [SDK graphics guide](sdk/graphics.md#the-graphics-editor-for-the-pc-zxv-gfx)) |
+| **`zxv-gfx`** | The graphics editor: sprites, tiles, maps, textures and screens in `.gfx` files (see the [SDK graphics guide](sdk/graphics.md#the-graphics-editor-for-the-pc-zxv-gfx)) |
+| **`zxv-check`** | Checks BASIC listings without the machine (see [below](#zxv-check-checking-listings)) |
 | **`zxv-tracker`** | The tracker: music for the two AY chips in PT3 modules and AYFX effects, the ones the SDK music library plays (see the [SDK guide](sdk/README.md#the-tracker-for-the-pc-zxv-tracker)) |
 
-The Windows and Linux packages contain `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-gfx` and `zxv-tracker`,
+The Windows and Linux packages contain `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-check`, `zxv-gfx` and `zxv-tracker`,
 plus the examples (the `ejemplos` folder) and the `ROM:` drive
 (`romdisk.bin`). How to download them is explained in
 [Getting started](getting-started.md#download).
@@ -171,7 +172,7 @@ The machine keeps your files on its SD card. In `zxv` you can choose, in
   `U No SD card`.
 
 A folder card behaves like a real card: names are not case sensitive
-(`GAME.TAP` and `game.tap` are the same file) and programs cannot see anything
+(`GAME.ZVB` and `game.zvb` are the same file) and programs cannot see anything
 outside the folder. File names can use only unaccented letters, digits and
 some symbols, up to 63 characters; files with other names do not show up.
 
@@ -179,8 +180,8 @@ some symbols, up to 63 characters; files with other names do not show up.
 
 ```sh
 sdimg new card.img 64 fat32          # a new 64 MB image (fat, fat32 or exfat)
-sdimg put card.img game.tap /game.tap   # copy a file into the image
-sdimg get card.img /game.tap game.tap   # copy a file out of it
+sdimg put card.img game.zvb /game.zvb   # copy a file into the image
+sdimg get card.img /game.zvb game.zvb   # copy a file out of it
 sdimg mkdir card.img /games          # create a folder
 sdimg ls card.img /                  # list a folder, with dates
 ```
@@ -193,11 +194,11 @@ sits next to the emulator. If it is missing, `ROM:` is empty.
 ### Opening files
 
 **File > Open...** (Alt+O), dragging a file onto the window, or naming it on
-the command line (`zxv game.tap`) all do the same:
+the command line (`zxv game.zvb`) all do the same:
 
 | File | What happens |
 |---|---|
-| `.zxv`, `.tap`, `.tzx` | The machine is reset and the program is loaded with `LOAD`, exactly as you would on the machine. If it is in a subfolder of the card, the emulator first changes to that folder with `CD`, in case the program loads more files from it |
+| `.zvb`, `.zxv`, `.tap`, `.tzx` | The machine is reset and the program is loaded with `LOAD`, exactly as you would on the machine. If it is in a subfolder of the card, the emulator first changes to that folder with `CD`, in case the program loads more files from it |
 | `.bas` | A BASIC listing in plain text: like a program, it is loaded with `LOAD` (the BASIC turns it into a program, checking each line) |
 | `.txt` | A text, typed into the editor for you, line by line: a listing, or commands such as `RUN` |
 | `.zxvs` | A snapshot: the machine continues from where it was saved |
@@ -322,11 +323,12 @@ lists them all). These are the ones you are most likely to use:
 | `--screenshot F.bmp` | Save the screen at the end |
 | `--wav F.wav` | Record the sound to a WAV file |
 | `--strict` | Strict mode: warn about anything the real machine would not allow |
-| `--version` | Print the ZX-V version (`ZX-V 0.6.2`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
+| `--version` | Print the ZX-V version (`ZX-V 0.7.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
 
-The rest (`--rom`, `--elf`, `--load`, `--gdb`, `--debug`, `--profile`,
-`--panel`, `--test`, `--fail-on-warning`) are for programmers and are explained
-in the [SDK guide](sdk/README.md).
+The rest (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
+`--profile`, `--panel`, `--test`, `--fail-on-warning`) are for programmers:
+`zxv-cli --help` explains them, and the [SDK guide](sdk/README.md#debugging)
+tells how to debug.
 
 ### `zxv-cli`: the machine without a window
 
@@ -341,13 +343,13 @@ the file after anything given with `--type`, so make `RUN` the last line of
 `program.bas`:
 
 ```sh
-zxv-cli --paste program.bas --frames 300 --screenshot result.bmp
+zxv-cli --paste program.bas --frames 360 --screenshot result.bmp
 ```
 
 Load a game from the card, wait, and record ten seconds of its music:
 
 ```sh
-zxv-cli --sd mycard --type 'LOAD "game"\n' --frames 500 --wav music.wav
+zxv-cli --sd mycard --type 'LOAD "game"\n' --frames 600 --wav music.wav
 ```
 
 ### `zxv-check`: checking listings
@@ -456,8 +458,12 @@ The emulator is also a complete development environment for native programs:
 - in `zxv-cli`, a console debugger (`--debug`);
 - a **GDB server** (`--gdb PORT`, or Debug > GDB server... in `zxv`) to debug C
   programs with GDB, line by line;
+- the **BASIC debugger** of the ROM (`--basic-debug PORT` in `zxv-sdl` and
+  `zxv-cli`): the VS Code extension uses it to debug a ROM BASIC listing,
+  with breakpoints, steps by statement, variables and the call stack;
 - **strict mode**, which warns about anything that would fail on the real
   machine.
 
-All of this is explained in the [SDK guide](sdk/README.md).
+All of this is explained in the [SDK guide](sdk/README.md), except the BASIC
+debugger, which you use from the VS Code extension.
 

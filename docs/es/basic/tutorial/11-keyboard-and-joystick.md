@@ -34,14 +34,11 @@ Un bucle se puede escribir en una sola línea, como en las líneas 30 y 40:
 
 ### Por qué los programas acaban con `PAUSE 0`
 
-La máquina se acuerda de las teclas que pulsas mientras funciona un
-programa, para escribirlas luego en el editor; `INKEY$` y `KEY` miran el
-teclado, pero no las sacan de esa memoria. Sin la línea 70, las teclas que
-has pulsado llegarían al editor en cuanto acabara el programa, como si
-acabaras de teclearlas. `PAUSE` se olvida de las teclas pulsadas antes y
-espera una nueva, así que acabar con `PAUSE 0` ("pulsa una tecla para
-terminar") lo arregla. Todos los programas de este capítulo que leen el
-teclado acaban así.
+Al acabar, el programa deja abajo su informe (`0 OK...`) hasta que pulsas
+una tecla. Si acaba con `PAUSE 0` ("pulsa una tecla para terminar"), la
+pantalla se queda limpia, sin el informe. `PAUSE` se olvida de las teclas
+pulsadas antes y espera una nueva. Todos los programas de este capítulo que
+leen el teclado acaban así.
 
 ## `KEY`: varias teclas a la vez
 
@@ -105,9 +102,8 @@ medir el tiempo. Este juego mide tus reflejos:
 
 Cada frame dura un sesentavo de segundo; de ahí el `t*1000/60`. (`PAUSE`
 cuenta en cincuentavos de segundo, como en el Spectrum: `PAUSE 50` es un
-segundo.) Sin el `PAUSE 0` de la
-línea 90, el espacio que has pulsado te devolvería al editor antes de que
-pudieras leer tu tiempo.
+segundo.) Gracias al `PAUSE 0` de la línea 90, el tiempo se queda en la
+pantalla hasta que pulses otra tecla.
 
 ## El mando: `JOY`
 

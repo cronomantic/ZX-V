@@ -163,7 +163,8 @@ además 5 V en el pin 18 del conector HDMI
 **Una pulsación larga de MODO** (de 1 a 5 segundos) o **Ctrl+Alt+F12** en el
 teclado enseñan una franja azul en el centro de la pantalla con cómo van las
 dos Pico, al día cada segundo: arriba la ULA (su modo, las imágenes por
-segundo, los errores del enlace, el sonido); abajo la CPU (enlace, sonido,
+segundo, los errores del enlace, el CRC de las paletas que le llegan, el
+sonido); abajo la CPU (enlace, sonido,
 tarjeta, USB, reloj). Si lo de la CPU no llega en 2,5 segundos, la página lo
 dice. Lo mismo otra vez la quita. Sale sin tildes: la fuente de la página solo
 tiene ASCII. Va en el idioma de la máquina, que la CPU le manda a la ULA con

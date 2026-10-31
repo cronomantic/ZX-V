@@ -98,6 +98,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ed_(new Editor(th
     tabs_->addTab(tr("Tiles de 16"));
     tabs_->addTab(tr("Mapas"));
     tabs_->addTab(tr("Texturas"));
+    tabs_->addTab(tr("Pantallas"));
     tabs_->setExpanding(false);
     lay->addWidget(tabs_);
     stack_ = new QStackedWidget;
@@ -394,17 +395,18 @@ bool MainWindow::open(const QString &path)
     addRecent(ed_->path());
     /* En cada pestaña, su primer objeto; y se empieza por la primera que
      * tenga algo. */
-    auto first = [&doc](Section s) {
-        int n = s == Section::Sprites ? gfx::SPRITES : s == Section::Maps ? gfx::MAPS : gfx::TEXTURES;
-        for (int i = 0; i < n; i++)
-            if (s == Section::Sprites ? !doc.sprites[i].empty()
-                : s == Section::Maps  ? !doc.maps[i].empty()
-                                      : !doc.textures[i].empty())
+    auto first = [this](Section s) {
+        const gfx::Document &d = ed_->doc();
+        for (int i = 0; i < ed_->count(s); i++)
+            if (s == Section::Sprites ? !d.sprites[i].empty()
+                : s == Section::Maps  ? !d.maps[i].empty()
+                : s == Section::Textures ? !d.textures[i].empty()
+                                         : !d.screens[i].empty())
                 return i;
         return -1;
     };
     Section start = Section::Sprites;
-    for (Section s : { Section::Textures, Section::Maps, Section::Sprites }) {
+    for (Section s : { Section::Screens, Section::Textures, Section::Maps, Section::Sprites }) {
         int i = first(s);
         ed_->select(s, std::max(i, 0));
         if (i >= 0)
@@ -550,6 +552,12 @@ void MainWindow::exportImage()
             img = gfx::toQImage(doc.textures[i].img, false);
         base = QString("textura%1").arg(i);
         break;
+    case Section::Screens:
+        /* Sin el borde y con sus colores: se vuelve a importar igual. */
+        if (!doc.screens[i].empty())
+            img = gfx::screenImage(doc.screens[i]);
+        base = QString("pantalla%1").arg(i);
+        break;
     }
     if (img.isNull()) {
         message(tr("No hay nada que exportar aquí."));
@@ -579,7 +587,11 @@ void MainWindow::copy(bool cut)
     raw.append(reinterpret_cast<const char *>(img.px.data()), qsizetype(img.px.size()));
     auto *mime = new QMimeData;
     mime->setData(CLIP_MIME, raw);
-    mime->setImageData(gfx::toQImage(img, ed_->transparentImage()));
+    /* Para otros programas, con los colores de la pantalla. */
+    std::array<uint32_t, 16> colors;
+    if (gfx::Screen *scr = ed_->screen())
+        colors = scr->rgbs();
+    mime->setImageData(gfx::toQImage(img, ed_->transparentImage(), ed_->screen() ? colors.data() : nullptr));
     QApplication::clipboard()->setMimeData(mime);
     if (cut)
         pixel_->erase();
@@ -600,10 +612,19 @@ void MainWindow::pasteClipboard()
             }
         }
     } else if (mime && mime->hasImage()) {
-        /* De otro programa: a los colores de ZX-V. */
+        /* De otro programa: a los colores de ZX-V (en una pantalla con
+         * paleta, a los suyos). */
         int inexact = 0;
-        img = gfx::fromQImage(qvariant_cast<QImage>(mime->imageData()), &inexact);
-        if (inexact)
+        gfx::Screen *scr = ed_->screen();
+        std::array<uint32_t, 16> colors;
+        if (scr && scr->hasPalette)
+            colors = scr->rgbs();
+        img = gfx::fromQImage(qvariant_cast<QImage>(mime->imageData()), &inexact, QColor(),
+                              scr && scr->hasPalette ? colors.data() : nullptr);
+        if (inexact && scr && scr->hasPalette)
+            message(tr("%n píxel(es) no eran colores de la paleta de la pantalla: se usa el más cercano.", nullptr,
+                       inexact));
+        else if (inexact)
             message(tr("%n píxel(es) no eran colores de ZX-V: se usa el más cercano.", nullptr, inexact));
     }
     if (img.empty()) {
@@ -631,7 +652,8 @@ void MainWindow::about()
 {
     QMessageBox::about(this, tr("Acerca de zxv-gfx"),
                        tr("<p><b>Editor de gráficos de ZX-V</b> %1</p>"
-                          "<p>Sprites, tiles, mapas y texturas para el BASIC de ZX-V (LOAD \"x\" GRAPHICS) y "
+                          "<p>Sprites, tiles, mapas, texturas y pantallas para el BASIC de ZX-V (LOAD \"x\" GRAPHICS, "
+                          "SAVE \"x\" SCREEN$) y "
                           "para los programas del SDK, en ficheros .gfx.</p>"
                           "<p>Software libre con la licencia MIT: el código está en el SDK de ZX-V "
                           "(sdk/tools/gfx), en <a href=\"https://github.com/cronomantic/ZX-V\">"

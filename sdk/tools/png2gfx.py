@@ -22,6 +22,12 @@ Uso: png2gfx.py SALIDA.gfx ORDEN...
                                   2, de 2 a 256); se repite o, con C, fuera
                                   es del color C
   --wrap M                        el mapa M se repite
+  --screen N IMAGEN [B]           la pantalla N: de 256 x 192 (modo 0) o
+                                  512 x 384 (modo 1); o el cuadro entero,
+                                  de 320 x 240 o 640 x 480, con el borde del
+                                  color de su esquina. B, el color del borde.
+                                  Con colores que no son los de siempre (16
+                                  como mucho), lleva su paleta
 Opciones:
   --flip                          --level aprovecha también los tiles
                                   espejados (con los bits de espejo)
@@ -30,6 +36,8 @@ Opciones:
 Cada píxel toma el color de ZX-V más cercano (se avisa si no es uno
 exacto); los píxeles con alfa < 128 son transparentes (el 8). En un nivel,
 las celdas de los tiles con transparencias llevan el bit de transparencia.
+Las pantallas guardan sus colores: si no son los de siempre, la pantalla
+lleva una paleta con ellos (D90; lo transparente es el negro).
 Solo hace falta Python 3: el PNG se lee aquí mismo.
 """
 import os
@@ -88,6 +96,12 @@ Commands (applied in this order; the numbers are the BASIC's):
                                   from 2 to 256); it repeats or, with C,
                                   outside it is colour C
   --wrap M                        map M repeats
+  --screen N IMAGE [B]            screen N: 256 x 192 (mode 0) or 512 x 384
+                                  (mode 1); or the whole frame, 320 x 240 or
+                                  640 x 480, with the border in the colour of
+                                  its corner. B, the border colour. With
+                                  colours other than the standard ones (16 at
+                                  most), it carries its palette
 Options:
   --flip                          --level also reuses mirrored tiles (with
                                   the mirror bits)
@@ -96,6 +110,8 @@ Options:
 Each pixel takes the nearest ZX-V colour (with a warning if it is not an
 exact one); pixels with alpha < 128 are transparent (colour 8). In a level,
 the cells of tiles with transparent pixels get the transparency bit.
+Screens keep their colours: if they are not the standard ones, the screen
+carries a palette with them (D90; transparent pixels are black).
 Only Python 3 is needed: the PNG is read right here.
 """
 
@@ -117,6 +133,39 @@ def palette():
 
 
 PALETTE = palette()
+
+
+# --- RGB565 (spec §4.1) -------------------------------------------------------------
+
+
+def to5(v):
+    """Un canal de 8 bits en 5, con la curva de la salida (ZXV_TO5 en zxv.h)."""
+    return (v * 27 + 107) // 215 if v <= 215 else 27 + ((v - 215) * 4 + 20) // 40
+
+
+def to6(v):
+    """El verde de 8 bits en 6 (ZXV_TO6)."""
+    return (v * 54 + 107) // 215 if v <= 215 else 54 + ((v - 215) * 9 + 20) // 40
+
+
+def rgb565(r, g, b):
+    """Un color de 8 bits por canal en RGB565, como ZXV_RGB."""
+    return to5(r) << 11 | to6(g) << 5 | to5(b)
+
+
+def rgb888(c):
+    """Un color RGB565 en 8 bits por canal, con la curva de la salida (la del
+    emulador): los de siempre dan exactamente D7 y FF."""
+    def ch5(v):
+        return (v * 215 + 13) // 27 if v <= 27 else 215 + (v - 27) * 10
+    g = (c >> 5) & 63
+    return ch5(c >> 11), (g * 215 + 27) // 54 if g <= 54 else 215 + ((g - 54) * 40 + 4) // 9, ch5(c & 31)
+
+
+# Los colores de siempre en RGB565 (ZXV_STD_RGB565) y el índice de cada uno
+# (el del negro, el 0).
+STD565 = [rgb565(*c) for c in PALETTE]
+STD_INDEX = {c: i for i, c in reversed(list(enumerate(STD565)))}
 
 # --- PNG ------------------------------------------------------------------------
 
@@ -242,22 +291,31 @@ class Image:
 
     def __init__(self, path, key):
         self.path = path
-        self.w, self.h, rgba = read_png(path)
-        cache, inexact = {}, 0
-        self.pix = []
-        for row in rgba:
-            r_out = []
-            for p in row:
-                hit = cache.get(p)
-                if hit is None:
-                    hit = cache[p] = colour(p, key)
-                r_out.append(hit[0])
-                inexact += not hit[1]
-            self.pix.append(r_out)
-        if inexact:
-            print(tr("png2gfx: warning: %s: %d pixels are not ZX-V colours (the nearest one is used)",
-                     "png2gfx: aviso: %s: %d píxeles no son colores de ZX-V (se usa el más cercano)")
-                  % (path, inexact), file=sys.stderr)
+        self.key = key
+        self.w, self.h, self.rgba = read_png(path)
+        self._pix = None
+
+    @property
+    def pix(self):
+        """Los índices de cada píxel, que se calculan la primera vez (una
+        pantalla no los usa: guarda sus colores)."""
+        if self._pix is None:
+            cache, inexact = {}, 0
+            self._pix = []
+            for row in self.rgba:
+                r_out = []
+                for p in row:
+                    hit = cache.get(p)
+                    if hit is None:
+                        hit = cache[p] = colour(p, self.key)
+                    r_out.append(hit[0])
+                    inexact += not hit[1]
+                self._pix.append(r_out)
+            if inexact:
+                print(tr("png2gfx: warning: %s: %d pixels are not ZX-V colours (the nearest one is used)",
+                         "png2gfx: aviso: %s: %d píxeles no son colores de ZX-V (se usa el más cercano)")
+                      % (self.path, inexact), file=sys.stderr)
+        return self._pix
 
     def region(self, x, y, w, h, outside=TRANSPARENT):
         return [[self.pix[j][i] if 0 <= i < self.w and 0 <= j < self.h else outside
@@ -297,6 +355,112 @@ def vmirror(t, s):
     return tuple(reversed(t))
 
 
+# --- Pantallas (D89) ------------------------------------------------------------------
+
+# El área activa dentro del cuadro con borde, por modo (spec §4.4).
+FRAMES = {(256, 192): (0, 0, 0), (512, 384): (1, 0, 0), (320, 240): (0, 32, 24), (640, 480): (1, 64, 48)}
+
+
+SCREEN_F_PALETTE = 0x01             # las marcas: lleva paleta (D90)
+SCREEN_PIXELS = (24576, 98304)      # los bytes de la página, por modo
+
+
+def screen_palette(colours):
+    """La paleta de una pantalla con estos colores RGB565 (distintos, en el
+    orden en que aparecen): None si todos son de los de siempre; si no, los
+    16 colores, con cada uno de los de siempre en su índice (el negro en el 0)
+    y los demás en los que quedan libres, por orden (el 8 el último: es el
+    transparente de los sprites); los que no se usan, los de siempre. Y
+    False si son más de 16."""
+    if all(c in STD_INDEX for c in colours):
+        return None
+    if len(colours) > 16:
+        return False
+    pal, used = list(STD565), [False] * 16
+    for c in colours:
+        if c in STD_INDEX:
+            used[STD_INDEX[c]] = True
+    free = [i for i in range(16) if not used[i] and i != TRANSPARENT] + ([] if used[TRANSPARENT] else [TRANSPARENT])
+    for c, i in zip([c for c in colours if c not in STD_INDEX], free):
+        pal[i] = c
+    return pal
+
+
+def screen_data(img, border=None):
+    """Los datos de un objeto pantalla: modo, borde, marcas, 0, la paleta si
+    la lleva y los píxeles de la página. Cada píxel guarda su color en RGB565
+    (lo transparente es el negro): si todos son de los de siempre, sin
+    paleta; si no, 16 como mucho, con la paleta de screen_palette."""
+    if (img.w, img.h) not in FRAMES:
+        die(tr("%s: a screen is 256 x 192 or 512 x 384 (or the frame with its border, 320 x 240 or 640 x 480)",
+               "%s: una pantalla es de 256 x 192 o 512 x 384 (o el cuadro con su borde, 320 x 240 o 640 x 480)")
+            % img.path)
+    mode, x, y = FRAMES[(img.w, img.h)]
+    w, h = (512, 384) if mode else (256, 192)
+    cache = {}
+
+    def c565(p):
+        hit = cache.get(p)
+        if hit is None:
+            r, g, b, a = p
+            hit = cache[p] = 0 if a < 128 or (r, g, b) == img.key else rgb565(r, g, b)
+        return hit
+    area = [[c565(p) for p in row[x:x + w]] for row in img.rgba[y:y + h]]
+    corner = c565(img.rgba[0][0]) if border is None and x else None
+    # Los colores en el orden en que aparecen: el área, fila a fila, y el borde.
+    seen = dict.fromkeys(c for row in area for c in row)
+    if corner is not None:
+        seen.setdefault(corner)
+    pal = screen_palette(list(seen))
+    if pal is False:
+        die(tr("%s: a screen has up to 16 colours and this one has %d (reduce them to 16, or use the ZX-V standard ones)",
+               "%s: una pantalla tiene 16 colores como mucho y esta tiene %d (redúcelos a 16, o usa los de siempre de ZX-V)")
+            % (img.path, len(seen)))
+    index = STD_INDEX if pal is None else {c: i for i, c in reversed(list(enumerate(pal)))}
+    rows = [[index[c] for c in row] for row in area]
+    if corner is not None:
+        border = index[corner]
+    elif border is None:
+        border = 0
+    elif pal is None and border == TRANSPARENT:
+        border = 0                  # sin paleta, el 8 es el mismo negro que el 0
+    head = bytes([mode, border, 0 if pal is None else SCREEN_F_PALETTE, 0])
+    if pal is not None:
+        head += struct.pack("<16H", *pal)
+    return head + pack(rows)
+
+
+def screen_size(d):
+    """Lo que ocupa un objeto pantalla según su cabecera, o -1 si no vale."""
+    if len(d) < 4 or d[0] > 1 or d[1] > 15 or d[2] & ~SCREEN_F_PALETTE:
+        return -1
+    return 4 + (32 if d[2] & SCREEN_F_PALETTE else 0) + SCREEN_PIXELS[d[0]]
+
+
+def screen_block(path):
+    """La pantalla de carga de un PNG, o la primera pantalla de un .gfx (con
+    su paleta, si la lleva)."""
+    if path.lower().endswith(".gfx"):
+        try:
+            data = open(path, "rb").read()
+        except OSError as e:
+            die("%s: %s" % (path, e.strerror))
+        if data[:4] != b"ZXVG" or len(data) < 8 or data[4] != 1:
+            die(tr("%s: not a graphics file", "%s: no es un fichero de gráficos") % path)
+        count, = struct.unpack_from("<H", data, 6)
+        pos = 8
+        for _ in range(count):
+            kind, _, num, ln = struct.unpack_from("<BBHI", data, pos)
+            if kind == 5:
+                d = data[pos + 8:pos + 8 + ln]
+                if len(d) != screen_size(d):
+                    die(tr("%s: screen %d is not valid", "%s: la pantalla %d no es válida") % (path, num))
+                return bytes(d)
+            pos += 8 + ln
+        die(tr("%s: has no screen", "%s: no tiene ninguna pantalla") % path)
+    return screen_data(Image(path, None))
+
+
 # --- Gráficos -----------------------------------------------------------------------
 
 
@@ -306,6 +470,7 @@ class Store:
         self.tiles = {8: {}, 16: {}}  # lado -> {n: tile (tupla de filas)}
         self.maps = {}              # m -> [an, al, lado, repite, celdas]
         self.textures = {}          # n -> (log2, repite, fuera, texels)
+        self.screens = {}           # n -> los datos del objeto pantalla
 
     def tile_count(self, s):
         return max(self.tiles[s]) + 1 if self.tiles[s] else 0
@@ -327,6 +492,8 @@ class Store:
         for n in sorted(self.textures):
             l2, wrap, out, texels = self.textures[n]
             recs.append((4, n, bytes([l2, wrap, out, 0]) + bytes(texels)))
+        for n in sorted(self.screens):
+            recs.append((5, n, self.screens[n]))
         out = b"ZXVG" + struct.pack("<BBH", 1, 0, len(recs))
         for kind, num, data in recs:
             out += struct.pack("<BBHI", kind, 0, num, len(data)) + data
@@ -466,6 +633,9 @@ def list_gfx(path):
             how = (tr("wraps", "se repite") if d[1]
                    else tr("outside, colour %d", "fuera, el color %d") % d[2])
             print(tr("texture %d: %d x %d, %s", "textura %d: %d x %d, %s") % (num, side, side, how))
+        elif kind == 5:
+            print(tr("screen %d: mode %d, border %d", "pantalla %d: modo %d, borde %d") % (num, d[0], d[1]) +
+                  (tr(", with a palette", ", con paleta") if len(d) > 2 and d[2] & SCREEN_F_PALETTE else ""))
         else:
             die(tr("%s: unknown object type %d", "%s: objeto de tipo %d desconocido") % (path, kind))
     for num, s, top in maps:
@@ -478,7 +648,7 @@ def list_gfx(path):
 # --- Órdenes ---------------------------------------------------------------------------
 
 ARGS = {"--sprite": (2, 3), "--sprites": (3, 3), "--tiles": (3, 4), "--level": (3, 3),
-        "--map": (3, 3), "--texture": (2, 3), "--wrap": (1, 1)}
+        "--map": (3, 3), "--texture": (2, 3), "--wrap": (1, 1), "--screen": (2, 3)}
 
 
 def main(argv):
@@ -576,6 +746,10 @@ def main(argv):
             st.textures[n] = (img.w.bit_length() - 1, 1 if out_c is None else 0, out_c or 0, texels)
         elif cmd == "--wrap":
             wraps.append(number(a[0], 0, 15, tr("map", "mapa")))
+        elif cmd == "--screen":
+            n = number(a[0], 0, 255, tr("screen", "pantalla"))
+            border = number(a[2], 0, 15, tr("border", "borde")) if len(a) > 2 else None
+            st.screens[n] = screen_data(image(a[1]), border)
     for m in wraps:
         if m not in st.maps:
             die(tr("--wrap %d: there is no map %d", "--wrap %d: no hay mapa %d") % (m, m))

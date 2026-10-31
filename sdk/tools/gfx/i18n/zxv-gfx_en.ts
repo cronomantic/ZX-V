@@ -27,6 +27,14 @@
         <source>Una textura es un cuadrado de lado potencia de 2, de 2 a 256 (esta es de %1 x %2).</source>
         <translation>A texture is a square with a power of 2 side, from 2 to 256 (this one is %1 x %2).</translation>
     </message>
+    <message>
+        <source>Una pantalla es de 256 x 192 (modo 0) o 512 x 384 (modo 1), o el cuadro con su borde, de 320 x 240 o 640 x 480 (esta es de %1 x %2).</source>
+        <translation>A screen is 256 x 192 (mode 0) or 512 x 384 (mode 1), or the frame with its border, 320 x 240 or 640 x 480 (this one is %1 x %2).</translation>
+    </message>
+    <message>
+        <source>Una pantalla tiene 16 colores como mucho y esta tiene %1: redúcelos a 16, o usa los de siempre de ZX-V.</source>
+        <translation>A screen has up to 16 colours and this one has %1: reduce them to 16, or use the ZX-V standard ones.</translation>
+    </message>
 </context>
 <context>
     <name>ImportDialog</name>
@@ -89,6 +97,30 @@
     <message numerus="yes">
         <source>%n píxel(es) no son colores de ZX-V: se usa el más cercano.</source>
         <translation><numerusform>%n pixel is not ZX-V colours: the nearest one is used.</numerusform><numerusform>%n pixels are not ZX-V colours: the nearest one is used.</numerusform></translation>
+    </message>
+    <message>
+        <source>Una pantalla, la</source>
+        <translation>A screen, number</translation>
+    </message>
+    <message>
+        <source>el borde de la imagen, o negro</source>
+        <translation>the image&apos;s border, or black</translation>
+    </message>
+    <message>
+        <source>borde del color %1</source>
+        <translation>border in colour %1</translation>
+    </message>
+    <message>
+        <source>De 256 x 192 es el modo 0 y de 512 x 384, el 1; de 320 x 240 o 640 x 480 es la pantalla con su borde, del color de la esquina</source>
+        <translation>256 x 192 is mode 0 and 512 x 384, mode 1; 320 x 240 or 640 x 480 is the screen with its border, in the colour of the corner</translation>
+    </message>
+    <message>
+        <source>Como pantalla no cabe: tiene %1 colores y una pantalla tiene 16 como mucho.</source>
+        <translation>As a screen it does not fit: it has %1 colours and a screen has 16 at most.</translation>
+    </message>
+    <message>
+        <source>Como pantalla, guarda sus %1 colores con su paleta.</source>
+        <translation>As a screen, it keeps its %1 colours with its palette.</translation>
     </message>
 </context>
 <context>
@@ -522,8 +554,16 @@
         <translation>About zxv-gfx</translation>
     </message>
     <message>
-        <source>&lt;p&gt;&lt;b&gt;Editor de gráficos de ZX-V&lt;/b&gt; %1&lt;/p&gt;&lt;p&gt;Sprites, tiles, mapas y texturas para el BASIC de ZX-V (LOAD &quot;x&quot; GRAPHICS) y para los programas del SDK, en ficheros .gfx.&lt;/p&gt;&lt;p&gt;Software libre con la licencia MIT: el código está en el SDK de ZX-V (sdk/tools/gfx), en &lt;a href=&quot;https://github.com/cronomantic/ZX-V&quot;&gt;github.com/cronomantic/ZX-V&lt;/a&gt;.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;&lt;b&gt;ZX-V graphics editor&lt;/b&gt; %1&lt;/p&gt;&lt;p&gt;Sprites, tiles, maps and textures for ZX-V BASIC (LOAD &quot;x&quot; GRAPHICS) and for SDK programs, in .gfx files.&lt;/p&gt;&lt;p&gt;Free software under the MIT licence: the code is in the ZX-V SDK (sdk/tools/gfx), at &lt;a href=&quot;https://github.com/cronomantic/ZX-V&quot;&gt;github.com/cronomantic/ZX-V&lt;/a&gt;.&lt;/p&gt;</translation>
+        <source>Pantallas</source>
+        <translation>Screens</translation>
+    </message>
+    <message>
+        <source>&lt;p&gt;&lt;b&gt;Editor de gráficos de ZX-V&lt;/b&gt; %1&lt;/p&gt;&lt;p&gt;Sprites, tiles, mapas, texturas y pantallas para el BASIC de ZX-V (LOAD &quot;x&quot; GRAPHICS, SAVE &quot;x&quot; SCREEN$) y para los programas del SDK, en ficheros .gfx.&lt;/p&gt;&lt;p&gt;Software libre con la licencia MIT: el código está en el SDK de ZX-V (sdk/tools/gfx), en &lt;a href=&quot;https://github.com/cronomantic/ZX-V&quot;&gt;github.com/cronomantic/ZX-V&lt;/a&gt;.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;&lt;b&gt;ZX-V graphics editor&lt;/b&gt; %1&lt;/p&gt;&lt;p&gt;Sprites, tiles, maps, textures and screens for ZX-V BASIC (LOAD &quot;x&quot; GRAPHICS, SAVE &quot;x&quot; SCREEN$) and for SDK programs, in .gfx files.&lt;/p&gt;&lt;p&gt;Free software under the MIT licence: the code is in the ZX-V SDK (sdk/tools/gfx), at &lt;a href=&quot;https://github.com/cronomantic/ZX-V&quot;&gt;github.com/cronomantic/ZX-V&lt;/a&gt;.&lt;/p&gt;</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n píxel(es) no eran colores de la paleta de la pantalla: se usa el más cercano.</source>
+        <translation><numerusform>%n pixel was not a colour of the screen's palette: the nearest one is used.</numerusform><numerusform>%n pixels were not colours of the screen's palette: the nearest one is used.</numerusform></translation>
     </message>
 </context>
 <context>
@@ -589,6 +629,14 @@
         <source>Izquierdo: %1</source>
         <translation>Left: %1</translation>
     </message>
+    <message>
+        <source>Doble clic: cambiar ese color de la pantalla (que pasa a tener su paleta)</source>
+        <translation>Double click: change that colour of the screen (which then has its own palette)</translation>
+    </message>
+    <message>
+        <source>Color %1 de la pantalla %2</source>
+        <translation>Colour %1 of screen %2</translation>
+    </message>
 </context>
 <context>
     <name>PixelCanvas</name>
@@ -611,6 +659,10 @@
     <message>
         <source>   (%1 x %2)</source>
         <translation>   (%1 x %2)</translation>
+    </message>
+    <message>
+        <source>La pantalla %1 está vacía: créala en Propiedades (de modo 0 o 1), o importa una imagen de 256 x 192 o 512 x 384.</source>
+        <translation>Screen %1 is empty: create it in Properties (mode 0 or 1), or import a 256 x 192 or 512 x 384 image.</translation>
     </message>
 </context>
 <context>
@@ -709,6 +761,46 @@
     <message>
         <source>Textura %1</source>
         <translation>Texture %1</translation>
+    </message>
+    <message>
+        <source>El de la pantalla nueva; una pantalla no cambia de modo</source>
+        <translation>The new screen&apos;s mode; a screen does not change mode</translation>
+    </message>
+    <message>
+        <source>Modo</source>
+        <translation>Mode</translation>
+    </message>
+    <message>
+        <source>Borde</source>
+        <translation>Border</translation>
+    </message>
+    <message>
+        <source>Pantalla %1</source>
+        <translation>Screen %1</translation>
+    </message>
+    <message>
+        <source>Colores</source>
+        <translation>Colours</translation>
+    </message>
+    <message>
+        <source>Colores de siempre</source>
+        <translation>Standard colours</translation>
+    </message>
+    <message>
+        <source>Quita la paleta de la pantalla: cada índice, con su color de siempre</source>
+        <translation>Removes the screen's palette: each index, with its standard colour</translation>
+    </message>
+    <message>
+        <source>Color %1: #%2 (RGB565 %3). Clic: cambiarlo</source>
+        <translation>Colour %1: #%2 (RGB565 %3). Click: change it</translation>
+    </message>
+    <message>
+        <source>los de su paleta</source>
+        <translation>those of its palette</translation>
+    </message>
+    <message>
+        <source>los de siempre</source>
+        <translation>the standard ones</translation>
     </message>
 </context>
 <context>

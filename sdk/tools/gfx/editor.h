@@ -15,7 +15,8 @@
 #include "doc.h"
 
 /* Las clases de objeto, como las pestañas. */
-enum class Section { Sprites, Tiles8, Tiles16, Maps, Textures };
+enum class Section { Sprites, Tiles8, Tiles16, Maps, Textures, Screens };
+constexpr int SECTIONS = 6;
 
 enum class Tool { Pen, Line, Rect, FilledRect, Ellipse, FilledEllipse, Fill, Pick, Select };
 
@@ -34,15 +35,17 @@ public:
     int index(Section s) const { return index_[int(s)]; }
     void select(Section s, int index);
     void select(int index) { select(section_, index); }
-    /* Cuántos hay de la clase actual (los huecos de sprites, mapas y
-     * texturas, o los tiles que hay). */
+    /* Cuántos hay de la clase actual (los huecos de sprites, mapas,
+     * texturas y pantallas, o los tiles que hay). */
     int count(Section s) const;
     int tileSide() const { return section_ == Section::Tiles16 ? 16 : 8; }
     bool isTiles() const { return section_ == Section::Tiles8 || section_ == Section::Tiles16; }
 
-    /* La imagen elegida (un sprite, un tile o una textura), o nullptr. */
+    /* La imagen elegida (un sprite, un tile, una textura o una pantalla), o
+     * nullptr. */
     gfx::Image *image();
     gfx::Map *map();
+    gfx::Screen *screen();
     /* Si la imagen es de las que tienen el 8 transparente. */
     bool transparentImage() const { return section_ == Section::Sprites; }
     /* El color con el que se vacía y se amplía la imagen actual. */
@@ -84,7 +87,7 @@ signals:
 private:
     gfx::Document doc_;
     Section section_ = Section::Sprites;
-    int index_[5] = {};
+    int index_[SECTIONS] = {};
     int color_[2] = { 0, gfx::TRANSP };
     Tool tool_ = Tool::Pen;
     int mapTile_ = 0, mapFlags_ = 0;

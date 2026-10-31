@@ -1,11 +1,13 @@
 /*
  * umbra.h - Umbra, un laberinto en 3D para ZX-V: lo que comparten sus partes.
  *
- *   video.c  la pantalla: doble buffer, el texto y los sprites
+ *   video.c  la pantalla: doble buffer, las tablas de colores, el texto y
+ *            los sprites
  *   art.c    los gráficos y los niveles, los de umbra.gfx: las texturas, los
  *            sprites y un mapa por nivel
  *   view.c   la vista en 3D: las paredes por raycasting, el suelo y el techo
- *            con el modo 7, la niebla de la lámpara y los objetos
+ *            con el modo 7, las paletas de cada nivel, la niebla de la
+ *            lámpara y los objetos
  *   maze.c   los laberintos (los mapas de umbra.gfx), lo que hay en ellos y
  *            las sombras
  *   sound.c  la música (primer AY, módulos .pt3) y los efectos (segundo AY,
@@ -48,10 +50,16 @@ typedef struct {
     uint16_t w, h;
 } sprite_t;
 
+/* Las tablas de colores de la pantalla: la de siempre y las de la vista. */
+enum { PAL_UI, PAL_CEILING, PAL_FLOOR, PALETTES };
+extern uint16_t video_pal[PALETTES][16];  /* RGB565; la 0 no cambia */
+
 void video_init(void);
+void video_colours_init(void);          /* las tablas, con la tabla por línea */
 void video_begin(void);                 /* elige la página oculta */
 void video_end(void);                   /* la enseña en el siguiente VBLANK y lo espera */
-void video_done(void);                  /* vuelve a la página 0 */
+void video_done(void);                  /* vuelve a la página 0 y a los colores de siempre */
+void video_ui(int y0, int y1);          /* esas líneas, con los colores de siempre en este frame */
 uint32_t video_lost(void);              /* frames perdidos (el dibujo no cupo en uno) */
 uint8_t *video_page(void);              /* la página de dibujo */
 
@@ -72,6 +80,10 @@ enum { WALL_STONE, WALL_BRICK, WALL_MOSS, WALL_CRYSTAL, WALL_TEMPLE, WALL_GATE, 
 
 extern sprite_t art[SPRITES];
 extern zxv_m7tex tex_floor, tex_ceiling;
+/* Cuántos texels o píxeles de cada color tiene cada dibujo (sin el
+ * transparente de los sprites): de él salen los colores de cada nivel. */
+typedef uint16_t colour_count[16];
+extern colour_count art_wall_count[8], art_floor_count, art_ceiling_count, art_sprite_count[SPRITES];
 
 void art_init(void);
 const uint8_t *art_wall(int n);         /* el texel de arriba a la izquierda; filas de 128 */
@@ -143,7 +155,13 @@ extern const int32_t sin_q[257];        /* seno de un cuarto de vuelta x 65536 *
 int32_t isin(int a);                    /* a en 1/1024 de vuelta; x 65536 */
 static inline int32_t icos(int a) { return isin(a + TURN / 4); }
 
-void view_level(int lvl);               /* los colores del suelo y del techo del nivel */
+/* Los colores del nivel (con el laberinto ya hecho): los de sus paredes, su
+ * suelo y su techo, y los de la niebla. */
+void view_level(int wall);
+/* Los colores de la vista en este frame (video_pal): los del nivel, con la
+ * luz bright (x 256) y el rojo de un golpe flash (x 256). */
+void view_colours(int bright, int flash);
+int view_ui_colour(int c);              /* el más parecido al color c de siempre */
 /* Dibuja lo que se ve desde cam con la lámpara de alcance light (en celdas,
  * 16.16), y los objetos y las sombras; t, el tiempo, para animarlos. */
 void view_draw(const cam_t *cam, int32_t light, int t);

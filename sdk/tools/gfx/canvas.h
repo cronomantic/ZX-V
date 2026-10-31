@@ -1,6 +1,6 @@
 /*
- * canvas.h - Los lienzos de zxv-gfx: PixelCanvas para los sprites, los tiles
- * y las texturas, y MapCanvas para los mapas. Van dentro de un QScrollArea;
+ * canvas.h - Los lienzos de zxv-gfx: PixelCanvas para los sprites, los tiles,
+ * las texturas y las pantallas, y MapCanvas para los mapas. Van dentro de un QScrollArea;
  * la rueda con Ctrl cambia el zoom y el botón central arrastra la vista.
  */
 #ifndef ZXV_GFX_CANVAS_H
@@ -28,6 +28,8 @@ public:
     void fit();
     bool grid() const { return grid_; }
     void setGrid(bool on);
+    /* Lo que hay alrededor de la imagen en el widget, con el zoom actual. */
+    int margin() const { return marginAt(zoom_); }
 
 signals:
     void zoomChanged(int zoom);
@@ -41,6 +43,7 @@ protected:
     void paintEmpty(QPainter &p);
     virtual int minZoom() const { return 1; }
     virtual int maxZoom() const { return 64; }
+    virtual int marginAt(int zoom) const;
     QRect contentRect() const;               /* en el widget */
     QScrollArea *scrollArea() const;
     void updateSize();
@@ -83,6 +86,8 @@ public:
 protected:
     QSize contentSize() const override;
     QString emptyText() const override;
+    /* Las pantallas, con su borde alrededor. */
+    int marginAt(int zoom) const override;
     void paintEvent(QPaintEvent *e) override;
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;

@@ -16,6 +16,9 @@
  * El suelo y el techo se dibujan con el 1 (oscuro), el 7 (medio) y el 15
  * (claro), y cada nivel los cambia por los suyos (view.c).
  *
+ * De cada dibujo se cuenta cuántos píxeles tiene de cada color: con eso cada
+ * nivel elige los suyos (view.c).
+ *
  * Los sprites: 0 la runa, 1 el frasco de aceite, 2-4 la sombra (se anima
  * con los tres), 5 la lámpara y 6 la runa pequeña del marcador. En el
  * laberinto, una celda mide lo que 64 píxeles de una sombra o 96 de un
@@ -36,6 +39,7 @@
 
 sprite_t art[SPRITES];
 zxv_m7tex tex_floor, tex_ceiling;
+colour_count art_wall_count[8], art_floor_count, art_ceiling_count, art_sprite_count[SPRITES];
 static zxv_m7tex tex_walls[2];
 
 /* El fichero, dentro del programa, con 16 KB más detrás para que quepa uno
@@ -71,13 +75,27 @@ static void load_texture(int n, int side, zxv_m7tex *t, uint8_t **at, uint8_t *e
 
 static uint8_t *pool_at;
 
-static sprite_t load_sprite(int num)
+static void count_texture(const zxv_m7tex *t, colour_count count)
+{
+    int side = 1 << t->log2size;
+    if (t->texels)
+        for (int i = 0; i < side * side; i++)
+            count[t->texels[i] & 15]++;
+}
+
+static sprite_t load_sprite(int num, colour_count count)
 {
     sprite_t s = { 0, 0, 0 };
     zxv_bitmap b;
     static uint32_t pix[64 * 64 / 8];   /* hasta 64 x 64, para prepararlo */
     if (zxv_gfxf_sprite(&gfx, num, &b, pix, sizeof(pix)) - 1 >= sizeof(pix))
         return s;
+    for (int y = 0; y < b.h; y++)
+        for (int x = 0; x < b.w; x++) {
+            int c = (b.pix[y * b.stride + x / 2] >> (x & 1 ? 4 : 0)) & 15;
+            if (c != ZXV_TRANSPARENT)
+                count[c]++;
+        }
     uint32_t need = zxv_spr_prepare(&b, 0, 0, b.w, b.h, 0);
     if (pool_at + need > MUSIC_MEM)
         return s;
@@ -134,8 +152,16 @@ void art_init(void)
     load_texture(1, 128, &tex_walls[1], &at, end);
     load_texture(2, 128, &tex_floor, &at, end);
     load_texture(3, 64, &tex_ceiling, &at, end);
+    for (int n = 0; n < 8; n++) {
+        const uint8_t *w = art_wall(n);
+        for (int y = 0; y < 64; y++)
+            for (int x = 0; x < 64; x++)
+                art_wall_count[n][w[y * 128 + x] & 15]++;
+    }
+    count_texture(&tex_floor, art_floor_count);
+    count_texture(&tex_ceiling, art_ceiling_count);
 
     pool_at = SPARE1;
     for (int i = 0; i < SPRITES; i++)
-        art[i] = load_sprite(i);
+        art[i] = load_sprite(i, art_sprite_count[i]);
 }

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
 La ventana de zxv-gfx, sin pantalla (QT_QPA_PLATFORM=offscreen): abre un
-.gfx con de todo (hecho con png2gfx.py) y se guarda la ventana en cada
-pestaña. Tiene que abrirlo sin errores y dibujar algo en cada una, en
+.gfx con de todo (hecho con png2gfx.py, y una pantalla) y se guarda la
+ventana en cada pestaña. Tiene que abrirlo sin errores y dibujar algo en cada una, en
 español y en inglés.
 
     window_test.py ZXV_GFX CARPETA_TEMPORAL
 """
 import os
+import struct
 import subprocess
 import sys
 
@@ -23,13 +24,18 @@ st.tiles[8] = {i: tuple(tuple((i + x * y) % 16 for x in range(8)) for y in range
 st.tiles[16] = {0: tuple(tuple((x ^ y) % 16 for x in range(16)) for y in range(16))}
 st.maps[2] = [20, 12, 8, 0, [(x + y) % 5 | (0x1000 if x % 3 == 0 else 0) for y in range(12) for x in range(20)]]
 st.textures[1] = (5, 1, 0, [(x // 4 + y // 4) % 16 for y in range(32) for x in range(32)])
+data = st.serialize()
+# La pantalla 0, de modo 0 con el borde rojo (tipo 5, detrás de lo demás).
+screen = bytes([0, 2, 0, 0]) + bytes((x // 8 + y // 8) % 16 * 0x11 for y in range(192) for x in range(128))
+count, = struct.unpack_from("<H", data, 6)
+data = data[:6] + struct.pack("<H", count + 1) + data[8:] + struct.pack("<BBHI", 5, 0, 0, len(screen)) + screen
 gfx = os.path.join(tmp, "todo.gfx")
-open(gfx, "wb").write(st.serialize())
+open(gfx, "wb").write(data)
 
 env = dict(os.environ, QT_QPA_PLATFORM="offscreen", ZXV_HOME=tmp)
 bad = 0
 for lang in ("es", "en"):
-    for section in range(5):
+    for section in range(6):
         shot = os.path.join(tmp, "ventana-%s-%d.png" % (lang, section))
         if os.path.exists(shot):
             os.remove(shot)

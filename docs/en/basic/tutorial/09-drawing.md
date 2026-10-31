@@ -130,9 +130,10 @@ door are drawn after the wall.
 
 1. Draw a target: five filled circles, one inside the other, alternating red
    and white.
-2. Add a tree to the house picture: a brown trunk is not possible (there is
-   no brown), so use a yellow `BOX` for the trunk and a green `DISC` for the
-   leaves.
+2. Add a tree to the house picture: there is no brown among the standard
+   colours, so use a yellow `BOX` for the trunk and a green `DISC` for the
+   leaves. (With [`PALETTE`](../reference.md#palette) you could make a
+   brown.)
 
 <details>
 <summary>Hint</summary>

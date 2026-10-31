@@ -8,7 +8,7 @@
 
 namespace gfx {
 
-Image fromQImage(const QImage &src, int *inexact, const QColor &key)
+Image fromQImage(const QImage &src, int *inexact, const QColor &key, const uint32_t *pal)
 {
     QImage q = src.convertToFormat(QImage::Format_ARGB32);
     Image im(q.width(), q.height(), TRANSP);
@@ -26,11 +26,11 @@ Image fromQImage(const QImage &src, int *inexact, const QColor &key)
                 if (qAlpha(p) >= 128 && !(key.isValid() && rgb == (key.rgb() & 0xFFFFFF))) {
                     long best = -1;
                     for (int i = 0; i < 16; i++) {
-                        if (i == TRANSP)
+                        if (i == TRANSP && !pal)
                             continue;
-                        uint32_t pal = paletteRgb(i);
-                        long dr = long(qRed(p)) - (pal >> 16 & 255), dg = long(qGreen(p)) - (pal >> 8 & 255),
-                             db = long(qBlue(p)) - (pal & 255), d = dr * dr + dg * dg + db * db;
+                        uint32_t rgb = pal ? pal[i] : paletteRgb(i);
+                        long dr = long(qRed(p)) - (rgb >> 16 & 255), dg = long(qGreen(p)) - (rgb >> 8 & 255),
+                             db = long(qBlue(p)) - (rgb & 255), d = dr * dr + dg * dg + db * db;
                         if (best < 0 || d < best) {
                             best = d;
                             c = i;
@@ -49,17 +49,25 @@ Image fromQImage(const QImage &src, int *inexact, const QColor &key)
     return im;
 }
 
-QImage toQImage(const Image &im, bool transp)
+QImage toQImage(const Image &im, bool transp, const uint32_t *pal)
 {
     QImage q(im.w, im.h, QImage::Format_ARGB32);
+    QRgb rgb[16];
+    for (int i = 0; i < 16; i++)
+        rgb[i] = 0xFF000000 | (pal ? pal[i] : paletteRgb(i));
     for (int y = 0; y < im.h; y++) {
         QRgb *line = reinterpret_cast<QRgb *>(q.scanLine(y));
         for (int x = 0; x < im.w; x++) {
             int c = im.at(x, y);
-            line[x] = transp && c == TRANSP ? 0 : 0xFF000000 | paletteRgb(c);
+            line[x] = transp && c == TRANSP ? 0 : rgb[c & 15];
         }
     }
     return q;
+}
+
+QImage screenImage(const Screen &s)
+{
+    return toQImage(s.img, false, s.rgbs().data());
 }
 
 static QRect whole(const Image &img, QRect r)
@@ -177,6 +185,112 @@ QString Import::texture(Document &doc, int n, const Image &img, int out)
     t.wrap = out < 0;
     t.out = out < 0 ? 0 : out;
     doc.textures[n] = t;
+    return QString();
+}
+
+/* El modo y dónde empieza la página dentro de la imagen, como en
+ * png2gfx.py: la pantalla sola o el cuadro entero con su borde. */
+static bool screenFrame(int w, int h, int *mode, int *x, int *y)
+{
+    static const int frames[4][5] = {
+        { 256, 192, 0, 0, 0 }, { 512, 384, 1, 0, 0 }, { 320, 240, 0, 32, 24 }, { 640, 480, 1, 64, 48 } };
+    for (const auto &f : frames)
+        if (w == f[0] && h == f[1]) {
+            *mode = f[2];
+            *x = f[3];
+            *y = f[4];
+            return true;
+        }
+    return false;
+}
+
+bool Import::isScreen(int w, int h)
+{
+    int mode, x, y;
+    return screenFrame(w, h, &mode, &x, &y);
+}
+
+/* Los colores de una imagen de pantalla en RGB565 (lo transparente y el
+ * color clave, el negro): los del área, fila a fila, y los distintos en el
+ * orden en que aparecen, con el de la esquina (el borde) al final si hace
+ * falta. */
+struct ScreenColors {
+    int mode = 0;
+    std::vector<uint16_t> area, colors;
+    int corner = -1;
+};
+
+static bool screenColorsOf(const QImage &src, int border, const QColor &key, ScreenColors &sc)
+{
+    int x0, y0;
+    if (!screenFrame(src.width(), src.height(), &sc.mode, &x0, &y0))
+        return false;
+    QImage q = src.convertToFormat(QImage::Format_ARGB32);
+    auto c565 = [&](QRgb p) {
+        if (qAlpha(p) < 128 || (key.isValid() && (p & 0xFFFFFF) == (key.rgb() & 0xFFFFFF)))
+            return uint16_t(0);
+        return toRgb565(qRed(p), qGreen(p), qBlue(p));
+    };
+    std::vector<bool> seen(65536);
+    auto add = [&](uint16_t c) {
+        if (!seen[c]) {
+            seen[c] = true;
+            sc.colors.push_back(c);
+        }
+    };
+    int w = Screen::width(sc.mode), h = Screen::height(sc.mode);
+    sc.area.reserve(size_t(w) * h);
+    for (int y = 0; y < h; y++) {
+        const QRgb *line = reinterpret_cast<const QRgb *>(q.constScanLine(y0 + y)) + x0;
+        for (int x = 0; x < w; x++) {
+            uint16_t c = c565(line[x]);
+            sc.area.push_back(c);
+            add(c);
+        }
+    }
+    if (border < 0 && x0) {
+        sc.corner = c565(q.pixel(0, 0));
+        add(uint16_t(sc.corner));
+    }
+    return true;
+}
+
+int Import::screenColors(const QImage &img, int border, const QColor &key)
+{
+    ScreenColors sc;
+    Palette pal;
+    if (!screenColorsOf(img, border, key, sc) || screenPalette(sc.colors, pal) == 0)
+        return 0;
+    return int(sc.colors.size());
+}
+
+QString Import::screen(Document &doc, int n, const QImage &img, int border, const QColor &key)
+{
+    ScreenColors sc;
+    if (!screenColorsOf(img, border, key, sc))
+        return tr("Una pantalla es de 256 x 192 (modo 0) o 512 x 384 (modo 1), o el cuadro con su borde, "
+                  "de 320 x 240 o 640 x 480 (esta es de %1 x %2).")
+            .arg(img.width()).arg(img.height());
+    Screen s;
+    int got = screenPalette(sc.colors, s.palette);
+    if (got < 0)
+        return tr("Una pantalla tiene 16 colores como mucho y esta tiene %1: redúcelos a 16, o usa los de siempre "
+                  "de ZX-V.").arg(sc.colors.size());
+    s.hasPalette = got > 0;
+    /* El índice de cada color (de dos iguales, el primero: el negro, el 0). */
+    std::vector<int8_t> index(65536, -1);
+    for (int i = 15; i >= 0; i--)
+        index[s.palette[size_t(i)]] = int8_t(i);
+    s.img = Image(Screen::width(sc.mode), Screen::height(sc.mode), 0);
+    for (size_t k = 0; k < sc.area.size(); k++)
+        s.img.px[k] = uint8_t(index[sc.area[k]]);
+    if (sc.corner >= 0)
+        s.border = index[size_t(sc.corner)];
+    else if (border < 0 || (!s.hasPalette && border == TRANSP))
+        s.border = 0;                   /* sin paleta, el 8 es el mismo negro que el 0 */
+    else
+        s.border = border;
+    doc.screens[n] = s;
     return QString();
 }
 

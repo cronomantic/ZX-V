@@ -19,6 +19,9 @@ cada uno tiene una versión más brillante:
 | 2 | rojo | 6 | amarillo |
 | 3 | magenta | 7 | blanco |
 
+Son los colores de siempre. Con [`PALETTE`](../reference.md#palette), cada
+número puede ser el color que quieras; lo verás en la referencia.
+
 Cada carácter de la pantalla tiene dos colores: la **tinta** (el color de la
 letra) y el **papel** (el fondo que hay detrás). Alrededor de la pantalla hay
 un marco, el **borde**.

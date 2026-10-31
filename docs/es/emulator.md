@@ -13,10 +13,11 @@ hardware, y al revés. Viene en varias formas:
 | **`zxv-cli`** | Sin ventana: va tan rápido como puede, para guiones, pruebas y capturas |
 | **La versión web** | La misma máquina en el navegador |
 | **`sdimg`** | Una pequeña herramienta para crear y llenar imágenes de tarjeta SD |
-| **`zxv-gfx`** | El editor de gráficos: sprites, tiles, mapas y texturas en ficheros `.gfx` (ver la [guía de gráficos del SDK](sdk/graphics.md#el-editor-de-gráficos-para-el-pc-zxv-gfx)) |
+| **`zxv-gfx`** | El editor de gráficos: sprites, tiles, mapas, texturas y pantallas en ficheros `.gfx` (ver la [guía de gráficos del SDK](sdk/graphics.md#el-editor-de-gráficos-para-el-pc-zxv-gfx)) |
+| **`zxv-check`** | Comprueba listados BASIC sin la máquina (ver [abajo](#zxv-check-comprobar-listados)) |
 | **`zxv-tracker`** | El tracker: música para los dos AY en módulos PT3 y efectos AYFX, los que toca la biblioteca de música del SDK (ver la [guía del SDK](sdk/README.md#el-tracker-para-el-pc-zxv-tracker)) |
 
-Los paquetes de Windows y Linux traen `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-gfx` y `zxv-tracker`,
+Los paquetes de Windows y Linux traen `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-check`, `zxv-gfx` y `zxv-tracker`,
 además de los ejemplos (la carpeta `ejemplos`) y la unidad `ROM:`
 (`romdisk.bin`). Cómo descargarlos se explica en
 [Primeros pasos](getting-started.md#descarga).
@@ -171,7 +172,7 @@ La máquina guarda tus ficheros en su tarjeta SD. En `zxv` se elige en
   `U No hay tarjeta SD`.
 
 Una carpeta se comporta como una tarjeta de verdad: no se distinguen las
-mayúsculas de las minúsculas (`JUEGO.TAP` y `juego.tap` son el mismo fichero) y
+mayúsculas de las minúsculas (`JUEGO.ZVB` y `juego.zvb` son el mismo fichero) y
 los programas no ven nada fuera de la carpeta. Los nombres solo pueden llevar
 letras sin tildes, cifras y algunos signos, hasta 63 caracteres; los ficheros
 con otros nombres no aparecen.
@@ -180,8 +181,8 @@ con otros nombres no aparecen.
 
 ```sh
 sdimg new tarjeta.img 64 fat32            # una imagen nueva de 64 MB (fat, fat32 o exfat)
-sdimg put tarjeta.img juego.tap /juego.tap   # copia un fichero a la imagen
-sdimg get tarjeta.img /juego.tap juego.tap   # copia un fichero de la imagen
+sdimg put tarjeta.img juego.zvb /juego.zvb   # copia un fichero a la imagen
+sdimg get tarjeta.img /juego.zvb juego.zvb   # copia un fichero de la imagen
 sdimg mkdir tarjeta.img /juegos           # crea una carpeta
 sdimg ls tarjeta.img /                    # lista una carpeta, con las fechas
 ```
@@ -194,11 +195,11 @@ está junto al emulador. Si falta, `ROM:` está vacía.
 ### Abrir ficheros
 
 **Archivo > Abrir...** (Alt+O), arrastrar un fichero a la ventana o darlo en la
-línea de órdenes (`zxv juego.tap`) hacen lo mismo:
+línea de órdenes (`zxv juego.zvb`) hacen lo mismo:
 
 | Fichero | Qué pasa |
 |---|---|
-| `.zxv`, `.tap`, `.tzx` | La máquina se reinicia y el programa se carga con `LOAD`, igual que lo harías en la máquina. Si está en una subcarpeta de la tarjeta, el emulador entra antes en ella con `CD`, por si el programa carga más ficheros de ahí |
+| `.zvb`, `.zxv`, `.tap`, `.tzx` | La máquina se reinicia y el programa se carga con `LOAD`, igual que lo harías en la máquina. Si está en una subcarpeta de la tarjeta, el emulador entra antes en ella con `CD`, por si el programa carga más ficheros de ahí |
 | `.bas` | Un listado BASIC en texto: como un programa, se carga con `LOAD` (el BASIC lo convierte en programa y comprueba cada línea) |
 | `.txt` | Un texto, que se teclea solo en el editor, línea a línea: un listado, u órdenes como `RUN` |
 | `.zxvs` | Una instantánea: la máquina sigue desde donde se guardó |
@@ -326,11 +327,12 @@ lista todas). Estas son las que más vas a usar:
 | `--screenshot F.bmp` | Guarda la pantalla al terminar |
 | `--wav F.wav` | Graba el sonido en un fichero WAV |
 | `--strict` | Modo estricto: avisa de lo que la máquina real no permitiría |
-| `--version` | Escribe la versión de ZX-V (`ZX-V 0.6.2`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
+| `--version` | Escribe la versión de ZX-V (`ZX-V 0.7.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
 
-Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--debug`, `--profile`,
-`--panel`, `--test`, `--fail-on-warning`) son para programadores y se explican
-en la [guía del SDK](sdk/README.md).
+Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
+`--profile`, `--panel`, `--test`, `--fail-on-warning`) son para programadores:
+`zxv-cli --help` las explica, y la [guía del SDK](sdk/README.md#depurar)
+cuenta cómo depurar.
 
 ### `zxv-cli`: la máquina sin ventana
 
@@ -345,13 +347,13 @@ teclea el fichero después de lo que se dé con `--type`, así que la última l�
 de `programa.bas` debe ser `RUN`:
 
 ```sh
-zxv-cli --lang es --paste programa.bas --frames 300 --screenshot resultado.bmp
+zxv-cli --lang es --paste programa.bas --frames 360 --screenshot resultado.bmp
 ```
 
 Cargar un juego de la tarjeta, esperar y grabar diez segundos de su música:
 
 ```sh
-zxv-cli --sd mitarjeta --type 'LOAD "juego"\n' --frames 500 --wav musica.wav
+zxv-cli --sd mitarjeta --type 'LOAD "juego"\n' --frames 600 --wav musica.wav
 ```
 
 ### `zxv-check`: comprobar listados
@@ -463,7 +465,11 @@ nativos:
 - en `zxv-cli`, un depurador de consola (`--debug`);
 - un **servidor GDB** (`--gdb PUERTO`, o Depurar > Servidor GDB... en `zxv`)
   para depurar programas en C con GDB, línea a línea;
+- el **depurador del BASIC** de la ROM (`--basic-debug PUERTO` en `zxv-sdl` y
+  `zxv-cli`): la extensión de VS Code lo usa para depurar un listado del BASIC
+  de la ROM, con puntos de ruptura, pasos por sentencia, variables y la pila;
 - el **modo estricto**, que avisa de lo que fallaría en la máquina real.
 
-Todo esto se explica en la [guía del SDK](sdk/README.md).
+Todo esto se explica en la [guía del SDK](sdk/README.md), salvo el depurador
+del BASIC, que se usa desde la extensión de VS Code.
 

@@ -6,8 +6,9 @@ Un laberinto en 3D en C para ZX-V, a oscuras: la única luz es la de tu
 lámpara, que se va apagando. Reúne las runas de cada nivel para abrir la
 puerta de salida antes de que se acabe el aceite, y huye de las sombras que
 vagan por los pasillos. Las paredes se dibujan por *raycasting*, el suelo y
-el techo con el modo 7 del motor gráfico, y la niebla de la lámpara, con
-tablas de colores.
+el techo con el modo 7 del motor gráfico, y la luz de la lámpara va en las
+paletas de ZX-V: cada nivel tiene sus colores, y lo oscuro se apaga con
+colores oscuros de verdad, no con puntos negros.
 
 ```sh
 make -C sdk                       # build/umbra.zxv
@@ -23,15 +24,17 @@ También está en el disco ROM de la máquina: `LOAD "ROM:umbra"`.
   cristal y el templo. En cada uno hay unas runas escondidas; con todas, la
   puerta de salida se abre y la salida lleva al siguiente.
 - **La lámpara:** una llena dura 80 segundos. Cuanto menos aceite le queda,
-  menos lejos se ve: los colores se apagan, la niebla llega antes y al final
-  solo se ve lo que está al lado. Los frascos de aceite la rellenan. Cuando
-  le queda poco, se oye el latido.
+  menos lejos se ve: la niebla llega antes, con menos de la mitad la luz
+  baja, con menos de una cuarta parte la llama tiembla, y al final solo se
+  ve lo que está al lado. Los frascos de aceite la rellenan. Cuando le queda
+  poco, se oye el latido.
 - **Las sombras** vagan por el laberinto y te huelen a ocho pasos: entonces
   te persiguen, y se oye su susurro, más fuerte cuanto más cerca. Van más
   deprisa cuanta menos luz tienes y en los niveles de más adelante. Si te
-  tocan se beben parte del aceite (el borde se pone rojo) y desaparecen,
-  para volver a salir lejos. Si la lámpara se apaga del todo, enciendes otra
-  de las de repuesto; sin ninguna, se acaba la partida. Sus ojos rojos se ven
+  tocan se beben parte del aceite (un destello rojo) y desaparecen, para
+  volver a salir lejos. Si la lámpara se apaga del todo, todo se queda a
+  oscuras y enciendes otra de las de repuesto; sin ninguna, se acaba la
+  partida. Sus ojos rojos se ven
   aunque estén a oscuras.
 - **El mapa:** lo que ya has visto queda apuntado. Abajo, a la izquierda,
   lo que tienes alrededor; con M, el laberinto entero (el juego se para
@@ -114,6 +117,10 @@ sombras por nivel.
 El suelo y el techo se dibujan con los colores 1 (oscuro), 7 (medio) y 15
 (claro), que cada nivel cambia por los suyos; el 0 se queda negro.
 
+En la pantalla cada nivel tiene sus paletas, que salen de los colores que
+usan sus dibujos (más abajo): si se repinta una textura o un sprite, las
+paletas lo siguen.
+
 | Sprite | |
 |---|---|
 | 0 | La runa |
@@ -137,9 +144,9 @@ segundo AY; la música, en el primero.
 | Fichero | |
 |---|---|
 | `umbra.h` | Lo que comparten las partes: tamaños, las celdas, los objetos y las sombras, el sonido |
-| `video.c` | La pantalla: doble buffer, la fuente de 5 × 7 y los sprites |
+| `video.c` | La pantalla: doble buffer, las tablas de colores, la fuente de 5 × 7 y los sprites |
 | `art.c` | Los gráficos y los niveles de `umbra.gfx` (con `zxv_gfxfile.h`) |
-| `view.c` | La vista en 3D: las paredes, el suelo y el techo, la niebla y los objetos |
+| `view.c` | La vista en 3D: las paredes, el suelo y el techo, las paletas de cada nivel, la niebla y los objetos |
 | `maze.c` | Los laberintos (los mapas), los caminos y las sombras |
 | `sound.c` | La música y los efectos, con `zxv_music.h` |
 | `game.c` | El jugador, la lámpara, el marcador, el mapa, el título y la demostración |
@@ -154,13 +161,39 @@ segundo AY; la música, en el primero.
   (`zxv_m7_camera`, con la misma tabla de senos que el motor) da las líneas
   del suelo; el techo usa las del otro lado del horizonte. Solo se dibujan
   las líneas que alguna pared deja ver.
-- **La niebla:** cada nivel de niebla es una tabla de colores: sin brillo,
-  luego la mitad de los píxeles en negro (un tablero), luego tres de cada
-  cuatro, y al final negro. Las paredes la llevan columna a columna; el
-  suelo y el techo, línea a línea, con una tabla de 256 para cada byte (sus
-  dos píxeles), que además les pone los colores del nivel; los sprites, con
-  la tabla de colores de `zxv_spr_draw_scaled`. El alcance lo da el aceite
-  que queda.
+- **Los colores, con paletas (D90):** con la tabla por línea, cada línea de
+  la pantalla toma la paleta de una de las cuatro tablas de colores.
+  - La tabla 0 tiene los colores de siempre: el marcador, los letreros y los
+    mapas (sus líneas pasan a ella en ese frame).
+  - La vista usa la tabla 1 en las líneas del techo y la 2 en las del suelo.
+    Las paredes y los objetos pasan por las dos mitades, así que los 12
+    primeros colores son los mismos en las dos: el negro, el rojo de los
+    ojos de las sombras y diez más. Los 4 últimos son solo para el techo o
+    solo para el suelo. Son hasta 36 colores a la vez en la pantalla: 16 en
+    el marcador y 20 en la vista.
+  - Al empezar un nivel, sus paletas se eligen con los colores que usan sus
+    dibujos (contados al cargar `umbra.gfx`) a cada distancia de la
+    lámpara, con el peso de lo que se ve cada uno. Los colores de cerca que
+    más se ven quedan tal cual; los demás van, con k-medias con pesos, a los
+    oscuros.
+  - En cada frame las dos paletas de la vista se vuelven a poner con la luz
+    de la lámpara (menos con poco aceite, el temblor de la llama, la luz que
+    sube desde negro al empezar un nivel o con otra lámpara) y el destello
+    rojo de un golpe. Son 32 colores, y no se redibuja nada. El color de los
+    ojos no se apaga.
+  - ¿Por qué no 64 colores, con una paleta por cada franja del suelo? Las
+    paredes van por columnas y pasan por todas las líneas: cambiarían de
+    color en el borde de cada franja.
+- **La niebla:** seis niveles por la distancia, según el alcance de la
+  lámpara, y después negro. El 0 tiene los colores de los dibujos y el 1,
+  sin brillo (también las caras de un lado, de cerca). Del 2 en adelante,
+  cada uno más oscuro y algo más rojizo, la luz de una llama. Cada nivel es
+  una tabla de colores: para cada color de un dibujo, el más parecido de la
+  paleta o una mezcla de dos con un tramado de Bayer de 4 × 4. Las paredes
+  la llevan columna a columna; el suelo y el techo, línea a línea, con una
+  tabla de 256 para cada byte (sus dos píxeles), que además les pone los
+  colores del nivel; los sprites, con la tabla de colores de
+  `zxv_spr_draw_scaled`. El alcance lo da el aceite que queda.
 - **Los objetos y las sombras** son sprites escalados, de lejos a cerca, y
   se cortan por las paredes que tienen delante: con la distancia de cada
   columna, se dibujan solo en los tramos de columnas en los que la pared
@@ -184,10 +217,12 @@ Compilado con `make -C sdk -B build/umbra.zxv EXTRA_CFLAGS=-DUMBRA_STATS`,
 el marcador enseña los frames perdidos y lo que tardó el frame más lento del
 último segundo, en microsegundos, y la demostración juega todos los niveles
 sin gastar aceite. Con `EXTRA_CFLAGS=-DUMBRA_SCORE=9876543` la partida
-empieza con esos puntos, para ver el marcador con los números más grandes.
+empieza con esos puntos, para ver el marcador con los números más grandes;
+con `EXTRA_CFLAGS=-DUMBRA_OIL=2000`, cada nivel empieza con ese aceite (de
+10000), para ver de cerca la niebla y la llama.
 En el emulador (a 144 MHz) un frame del laberinto tarda menos de 7 ms de los
-16,7 de un frame a 60 por segundo, y el más lento, el que empieza un nivel
-(prepara las tablas de colores del suelo y del techo), unos 12,5; no se
-pierde ninguno. En la
+16,7 de un frame a 60 por segundo (las paletas no cuestan nada en cada
+frame), y el más lento, el que empieza un nivel (elige las paletas y
+prepara las tablas de colores), unos 14; no se pierde ninguno. En la
 Pico 2 no está medido.
 

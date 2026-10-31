@@ -29,8 +29,8 @@ start typing the next line straight away.
 
 ## Typing a line
 
-The cursor is a blinking cyan block. Type as on any computer: letters,
-digits, symbols (with Shift, as your keyboard shows them) and spaces.
+The cursor is a block that blinks cyan and blue. Type as on any computer:
+letters, digits, symbols (with Shift, as your keyboard shows them) and spaces.
 
 **Keywords are typed letter by letter**, in upper or lower case: `print`,
 `Print` and `PRINT` are the same. When the line is stored, ZX-V shows it
@@ -269,7 +269,7 @@ The line just above the bar shows:
 
 | Message | When |
 |---|---|
-| `© 2026 Cronomantic  ZX-V 0.6.2` | When ZX-V starts, and after `NEW`: the copyright and the ROM version |
+| `© 2026 Cronomantic  ZX-V 0.7.0` | When ZX-V starts, and after `NEW`: the copyright and the ROM version |
 | An error in red, such as `C Nonsense in BASIC` | When a line you tried to store or run has a mistake |
 | `Program renumbered`, `Cannot renumber` | After the Renumber option |
 | `Listing sent to the printer` | After the Print option |
@@ -280,18 +280,19 @@ The line just above the bar shows:
 | `Change undone`, `Nothing to undo` | After the Undo option |
 
 The message disappears with the next key you press. The bar under it always
-shows the free memory: the program and its variables share about 96 KB.
+shows the free memory: the program and its variables share about 94 KB.
 
 ## Saving and loading
 
 Programs are kept on the SD card. From the editor:
 
-- `SAVE "game"` saves the program as `game.tap`. `SAVE "game" LINE 10` saves
+- `SAVE "game"` saves the program as `game.zvb`. `SAVE "game" LINE 10` saves
   it so that it runs by itself from line 10 when loaded.
 - `LOAD "game"` loads it, replacing the program in memory.
 - `CAT` lists the files of the current folder, and `CAT "ROM:"` the examples
   that come with ZX-V; `LOAD "ROM:hello"` runs one of them.
-- `MERGE "game"` adds the lines of a saved program to the one you have.
+- `MERGE "game"` adds the lines (and the variables) of a saved program to the
+  one you have.
 - `OPEN #4, "game.txt" OUT: LIST #4: CLOSE #4` writes the listing as a text
   file, to read it on a computer.
 

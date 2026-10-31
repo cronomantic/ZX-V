@@ -6,13 +6,15 @@
  * en hora y que avance), la tarjeta (escribe, lee y borra un fichero; el LED
  * SD parpadea) y la versión. Luego, en vivo: el teclado, los dos mandos y el
  * ratón. Con 1, 2 y 3 suenan el beeper, el AY por la izquierda y por la
- * derecha; con T se repiten la tarjeta y el reloj; con Esc se vuelve al BASIC.
- * Lo que no se ve desde aquí (MODO, RESET, el LED del enlace) va en las
- * instrucciones de abajo.
+ * derecha; con T se repiten la tarjeta y el reloj; con P, la página de las
+ * paletas (spec §4.6); con Esc se vuelve al BASIC. Lo que no se ve desde aquí
+ * (MODO, RESET, el LED del enlace) va en las instrucciones de abajo.
  */
 #include "zxv_api.h"
+#include "zxv_gfx.h"
 
 #define REG8(a)         (*(volatile uint8_t *)(uintptr_t)(a))
+#define REG16(a)        (*(volatile uint16_t *)(uintptr_t)(a))
 #define REG32(a)        (*(volatile uint32_t *)(uintptr_t)(a))
 #define KEY_ESC         0x1B
 
@@ -264,6 +266,145 @@ static void ay_off(void)
     ay_until = 0;
 }
 
+/* --- Las paletas (spec §4.6) ------------------------------------------------------- */
+
+/* Tras el VBLANK, cuando el enlace ya ha leído la imagen: ahora se pueden
+ * cambiar las paletas y la tabla por línea (spec §4.8). */
+static void frame(void)
+{
+    zxv_wait_vblank();
+    while (REG32(ZXV_SV_SYSFLAGS) & ZXV_SYSF_LINK_BUSY)
+        ;
+}
+
+/* El CRC-32 de zlib de las 4 paletas: el mismo que da la ULA en su página de
+ * diagnóstico (Ctrl+Alt+F12) con lo que le llega por el enlace. */
+static uint32_t palettes_crc(void)
+{
+    uint32_t c = 0xFFFFFFFFu;
+    for (uint32_t a = ZXV_PALETTES; a < ZXV_PALETTES + 128; a++) {
+        c ^= REG8(a);
+        for (int k = 0; k < 8; k++)
+            c = c >> 1 ^ (0xEDB88320u & -(c & 1));
+    }
+    return ~c;
+}
+
+/* La tabla 3: una rampa de fuego en los índices 1 a 15, girada `step`. */
+static void fire(int step)
+{
+    for (int i = 1; i < 16; i++) {
+        unsigned v = 17u * (unsigned)(1 + (i - 1 + step) % 15);
+        REG16(ZXV_PALETTE(3) + 2 * i) = ZXV_RGB(v, v * v / 255u, 0);
+    }
+}
+
+/* La página, en la página 1 de la VRAM (la de la prueba sigue en la 0). La
+ * tabla 0 es la de la ROM, para las letras. Una banda de las tablas 0 y 1
+ * línea a línea (la 1, con los colores de siempre puestos a mano: no se
+ * deben ver rayas), una de la 2 (una rampa gris) y una de la 3 (una de
+ * fuego, que gira en el VBLANK). El borde, con el índice 0 y la paleta de
+ * REMAP, que cambia cada segundo; las letras y las barras van con su tabla
+ * en la tabla por línea, así que no cambian. */
+static void palette_page(void)
+{
+    static const uint32_t usual[16] = {                 /* spec §4.1 */
+        0x000000, 0x0000D7, 0xD70000, 0xD700D7, 0x00D700, 0x00D7D7, 0xD7D700, 0xD7D7D7,
+        0x000000, 0x0000FF, 0xFF0000, 0xFF00FF, 0x00FF00, 0x00FFFF, 0xFFFF00, 0xFFFFFF,
+    };
+    static uint16_t saved[64];
+    uint8_t border = REG8(ZXV_V_BORDER), remap = REG8(ZXV_V_REMAP), flags = REG8(ZXV_V_FLAGS);
+    for (int i = 0; i < 64; i++)
+        saved[i] = REG16(ZXV_PALETTES + 2 * i);
+
+    zxv_gfx_draw_page(1);
+    zxv_cls(BLANCO);
+    zxv_text_colors(BLANCO, AZUL);
+    zxv_text_at(0, 0);
+    zxv_print_str(TR(" ZX-V: palettes", " ZX-V: paletas"));
+    for (int i = es ? 14 : 15; i < 32; i++)
+        zxv_print_char(' ');
+    at(0, 2, AZUL, TR("Table 0 (ROM) and 1 (by hand):", "Tabla 0 (ROM) y 1 (a mano):"));
+    at(0, 6, NEGRO, TR("Alternating lines: no stripes.", "Líneas alternas: sin rayas."));
+    at(0, 8, AZUL, TR("Table 2: grey ramp, 1 to 15", "Tabla 2: rampa gris, 1 a 15"));
+    at(0, 11, AZUL, TR("Table 3: it moves (Space)", "Tabla 3: se mueve (Espacio)"));
+    at(0, 15, NEGRO, TR("Border, every second: black,", "Borde, cada segundo: negro,"));
+    at(0, 16, NEGRO, TR("black, orange, purple. Text and", "negro, naranja, morado. Lo demás"));
+    at(0, 17, NEGRO, TR("bars do not change.", "no cambia."));
+    at(0, 19, AZUL, TR("Palettes CRC", "CRC paletas"));
+    at(0, 20, NEGRO, TR("Stopped, the same as in the", "Parado, el mismo que en el"));
+    at(0, 21, NEGRO, TR("emulator and in Ctrl+Alt+F12.", "emulador y en Ctrl+Alt+F12."));
+    at(0, 23, ROJO, TR("P or Esc: back", "P o Esc: volver"));
+    for (int i = 0; i < 16; i++) {
+        zxv_gfx_rect(16 * i, 24, 16, 24, i);
+        zxv_gfx_rect(16 * i, 72, 16, 16, i);
+        zxv_gfx_rect(16 * i, 96, 16, 16, i);
+    }
+
+    frame();
+    for (int i = 0; i < 16; i++) {
+        REG16(ZXV_PALETTE(1) + 2 * i) = ZXV_RGB(usual[i] >> 16, (usual[i] >> 8) & 255, usual[i] & 255);
+        unsigned v = 17u * (unsigned)i;
+        REG16(ZXV_PALETTE(2) + 2 * i) = ZXV_RGB(v, v, v);
+    }
+    REG16(ZXV_PALETTE(2)) = ZXV_RGB(215, 108, 0);       /* el índice 0, el del borde: naranja */
+    REG16(ZXV_PALETTE(3)) = ZXV_RGB(108, 0, 215);       /* y morado */
+    fire(0);
+    for (int ly = 0; ly < ZXV_FRAME_LINES(0); ly++) {
+        int y = ly - ZXV_BORDER_LINES(0);
+        uint8_t *e = (uint8_t *)(uintptr_t)(ZXV_LINE_TABLE + ZXV_LINE_ENTRY_SIZE * (uint32_t)ly);
+        e[ZXV_LT_BORDER] = 0xFF;
+        e[ZXV_LT_REMAP] = (uint8_t)(y < 0 || y >= 192 ? 0xFF
+                                    : y >= 24 && y < 48 ? (y & 1)
+                                    : y >= 72 && y < 88 ? 2
+                                    : y >= 96 && y < 112 ? 3 : 0);
+        e[ZXV_LT_SCROLL_X] = e[ZXV_LT_SCROLL_X + 1] = 0xFF;
+        e[ZXV_LT_SRC_LINE] = e[ZXV_LT_SRC_LINE + 1] = 0xFF;
+        e[6] = e[7] = 0;
+    }
+    REG8(ZXV_V_BORDER) = 0;
+    REG8(ZXV_V_FLAGS) = flags | ZXV_VFLAG_LINETAB;
+    zxv_set_page(1);
+
+    int run = 1, step = 0;
+    uint32_t shown = 0;
+    for (unsigned n = 0;; n++) {
+        frame();
+        REG8(ZXV_V_REMAP) = (uint8_t)(n / 60 % 4);
+        if (run && !(n & 1))
+            fire(step = (step + 14) % 15);
+        uint32_t crc = palettes_crc();
+        if (crc != shown || n == 0) {
+            char s[12], *p = s;
+            for (int k = 28; k >= 0; k -= 4)
+                *p++ = "0123456789ABCDEF"[(crc >> k) & 15];
+            *p = 0;
+            rest(13, 19);
+            at(13, 19, NEGRO, s);
+            if (!run)
+                zxv_print_str(TR(" (stopped)", " (parado)"));
+            shown = crc;
+        }
+        int k = zxv_key_get();
+        if (k == ' ') {
+            run = !run;
+            fire(step = 0);
+            shown = ~crc;                       /* para que lo escriba con "parado" o sin él */
+        } else if (k == 'p' || k == 'P' || k == KEY_ESC) {
+            break;
+        }
+    }
+
+    frame();
+    for (int i = 0; i < 64; i++)
+        REG16(ZXV_PALETTES + 2 * i) = saved[i];
+    REG8(ZXV_V_BORDER) = border;
+    REG8(ZXV_V_REMAP) = remap;
+    REG8(ZXV_V_FLAGS) = flags;
+    zxv_set_page(0);
+    zxv_gfx_draw_page(0);
+}
+
 /* --- La pantalla ------------------------------------------------------------------ */
 
 static void labels(void)
@@ -287,6 +428,7 @@ static void labels(void)
     at(0, 12, AZUL, TR("Mouse", "Ratón"));
     at(0, 14, NEGRO, TR("1 beeper  2 AY left  3 AY right", "1 beeper  2 AY izq.  3 AY der."));
     at(0, 15, NEGRO, TR("T: card and clock again", "T: otra vez tarjeta y reloj"));
+    at(0, 16, NEGRO, TR("P: the palettes", "P: las paletas"));
     at(0, 17, NEGRO, TR("MODE: changes the video mode;", "MODO: cambia el modo de vídeo;"));
     at(0, 18, NEGRO, TR("  the Video line follows it.", "  la línea Vídeo lo sigue."));
     at(0, 19, NEGRO, TR("RESET: restarts the machine.", "RESET: reinicia la máquina."));
@@ -341,6 +483,8 @@ int main(void)
         else if (k == 't' || k == 'T') {
             clock_test();
             card_test();
+        } else if (k == 'p' || k == 'P') {
+            palette_page();
         }
     }
     ay_off();

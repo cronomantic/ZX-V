@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """
 Convierte un ELF32 RISC-V (enlazado con sdk/zxv.ld) en un ejecutable .ZXV
-(spec §9.2): cabecera de 64 bytes + imagen contigua.
+(spec §9.2): cabecera de 72 bytes, la pantalla de carga (si la hay) y la
+imagen contigua.
 
 Uso: elf2zxv.py ENTRADA.elf SALIDA.zxv [--name NOMBRE] [--mode 0|1]
-                [--stack DIRECCIÓN]
+                [--stack DIRECCIÓN] [--screen PANTALLA]
+
+La pantalla de carga es un PNG (de 256 x 192, 512 x 384 o el cuadro con el
+borde) o la primera pantalla de un .gfx (png2gfx.py --screen, zxv-gfx).
 
 Los mensajes van en español si el idioma del sistema lo es y, si no, en
 inglés.
@@ -17,7 +21,7 @@ import zlib
 
 URAM_BASE, URAM_END = 0x20034000, 0x20072000
 MAGIC = b"ZXV1"
-HDR_SIZE = 64
+HDR_SIZE = 72
 PROFILE = 1
 
 
@@ -102,6 +106,9 @@ def main():
     ap.add_argument("--stack", type=address, default=0, metavar=tr("ADDRESS", "DIRECCIÓN"),
                     help=tr("the top of its stack (0: it keeps the current one)",
                             "el tope de su pila (0: sigue en la de ahora)"))
+    ap.add_argument("--screen", metavar=tr("SCREEN", "PANTALLA"),
+                    help=tr("its loading screen: a PNG or a .gfx with a screen",
+                            "su pantalla de carga: un PNG o un .gfx con una pantalla"))
     a = ap.parse_args()
 
     with open(a.elf, "rb") as f:
@@ -130,11 +137,20 @@ def main():
 
     name = (a.name or a.zxv.rsplit("/", 1)[-1].rsplit(".", 1)[0]).encode("ascii", "replace")[:27]
     flags = 0                                       # reservado
-    hdr = struct.pack("<4sHHIIIIIBBHI28s", MAGIC, HDR_SIZE, PROFILE, load, entry, len(image),
-                      bss, a.stack, a.mode, flags, 0, zlib.crc32(image) & 0xFFFFFFFF, name)
+    screen = b""
+    if a.screen:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import png2gfx
+        try:
+            screen = png2gfx.screen_block(a.screen)
+        except SystemExit as e:                     # png2gfx dice ya qué pasa
+            raise SystemExit(str(e).replace("png2gfx: ", "", 1))
+    hdr = struct.pack("<4sHHIIIIIBBHI28sII", MAGIC, HDR_SIZE, PROFILE, load, entry, len(image),
+                      bss, a.stack, a.mode, flags, 0, zlib.crc32(image) & 0xFFFFFFFF, name,
+                      len(screen), 0)
     assert len(hdr) == HDR_SIZE
     with open(a.zxv, "wb") as f:
-        f.write(hdr + bytes(image))
+        f.write(hdr + screen + bytes(image))
     print(tr("{}: load {:#010x}, entry {:#010x}, image {} B, BSS {} B",
              "{}: carga {:#010x}, entrada {:#010x}, imagen {} B, BSS {} B").format(
         a.zxv, load, entry, len(image), bss))

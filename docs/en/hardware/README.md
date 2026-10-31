@@ -82,7 +82,7 @@ Pico has two output modes:
 
 ### Sound
 
-The sound comes out on the HDMI (in modes 0 and 1) and, always, on the
+The sound comes out on the HDMI (in mode 0) and, always, on the
 **3.5 mm stereo jack** (labelled `AUDIO`). The jack gives a line-level signal:
 connect powered speakers, an amplifier or your TV's audio input. Headphones
 need an amplifier.

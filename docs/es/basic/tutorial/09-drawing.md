@@ -133,8 +133,10 @@ puerta se dibujan después de la pared.
 
 1. Dibuja una diana: cinco círculos rellenos, uno dentro de otro, alternando
    el rojo y el blanco.
-2. Añade un árbol al dibujo de la casa: no hay marrón, así que usa un `BOX`
-   amarillo para el tronco y un `DISC` verde para la copa.
+2. Añade un árbol al dibujo de la casa: entre los colores de siempre no hay
+   marrón, así que usa un `BOX` amarillo para el tronco y un `DISC` verde
+   para la copa. (Con [`PALETTE`](../reference.md#palette) podrías crear un
+   marrón.)
 
 <details>
 <summary>Pista</summary>

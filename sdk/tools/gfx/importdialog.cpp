@@ -67,6 +67,15 @@ ImportDialog::ImportDialog(Editor *ed, const QImage &img, const QString &name, Q
     for (int c = 0; c < 16; c++)
         textureOut_->addItem(tr("fuera, el color %1").arg(c), c);
     g->addWidget(textureOut_, r++, 2, 1, 4);
+    g->addWidget(screen_ = new QRadioButton(tr("Una pantalla, la")), r, 0);
+    g->addWidget(screenN_ = spin(0, gfx::SCREENS - 1, s == Section::Screens ? i : 0), r, 1);
+    screenBorder_ = new QComboBox;
+    screenBorder_->addItem(tr("el borde de la imagen, o negro"), -1);
+    for (int c = 0; c < 16; c++)
+        screenBorder_->addItem(tr("borde del color %1").arg(c), c);
+    screenBorder_->setToolTip(tr("De 256 x 192 es el modo 0 y de 512 x 384, el 1; de 320 x 240 o 640 x 480 es la "
+                                 "pantalla con su borde, del color de la esquina"));
+    g->addWidget(screenBorder_, r++, 2, 1, 4);
     lay->addLayout(g);
     lay->addWidget(cornerKey_ = new QCheckBox(tr("El color del píxel de arriba a la izquierda también es transparente")));
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -77,8 +86,11 @@ ImportDialog::ImportDialog(Editor *ed, const QImage &img, const QString &name, Q
     /* Lo más probable según lo que se está editando y la imagen. */
     bool square = img.width() == img.height() && img.width() >= 2 && img.width() <= 256 &&
                   !(img.width() & (img.width() - 1));
+    bool screen = gfx::Import::isScreen(img.width(), img.height());
     if (s == Section::Textures && square)
         texture_->setChecked(true);
+    else if (s == Section::Screens || (screen && s == Section::Sprites))
+        screen_->setChecked(true);
     else if (s == Section::Maps)
         level_->setChecked(true);
     else if (ed->isTiles())
@@ -90,16 +102,26 @@ ImportDialog::ImportDialog(Editor *ed, const QImage &img, const QString &name, Q
     tilesSide_->setCurrentIndex(s == Section::Tiles16);
     levelSide_->setCurrentIndex(0);
     connect(cornerKey_, &QCheckBox::toggled, this, &ImportDialog::updateInfo);
+    connect(screenBorder_, &QComboBox::currentIndexChanged, this, &ImportDialog::updateInfo);
     updateInfo();
 }
 
 void ImportDialog::updateInfo()
 {
     int inexact = 0;
-    gfx::fromQImage(img_, &inexact, cornerKey_->isChecked() ? img_.pixelColor(0, 0) : QColor());
+    QColor key = cornerKey_->isChecked() ? img_.pixelColor(0, 0) : QColor();
+    gfx::fromQImage(img_, &inexact, key);
     QString t = tr("%1 x %2 píxeles.").arg(img_.width()).arg(img_.height());
     if (inexact)
         t += " " + tr("%n píxel(es) no son colores de ZX-V: se usa el más cercano.", nullptr, inexact);
+    /* Una pantalla guarda sus colores, con su paleta (D90). */
+    if (gfx::Import::isScreen(img_.width(), img_.height())) {
+        int n = gfx::Import::screenColors(img_, screenBorder_->currentData().toInt(), key);
+        if (n > 16)
+            t += " " + tr("Como pantalla no cabe: tiene %1 colores y una pantalla tiene 16 como mucho.").arg(n);
+        else if (n)
+            t += " " + tr("Como pantalla, guarda sus %1 colores con su paleta.").arg(n);
+    }
     info_->setText(t);
 }
 
@@ -127,10 +149,15 @@ QString ImportDialog::apply()
         err = gfx::Import::level(doc, levelM_->value(), levelSide_->currentData().toInt(), img, levelFlip_->isChecked());
         go = Section::Maps;
         index = levelM_->value();
-    } else {
+    } else if (texture_->isChecked()) {
         err = gfx::Import::texture(doc, textureN_->value(), img, textureOut_->currentData().toInt());
         go = Section::Textures;
         index = textureN_->value();
+    } else {
+        err = gfx::Import::screen(doc, screenN_->value(), img_, screenBorder_->currentData().toInt(),
+                                  cornerKey_->isChecked() ? img_.pixelColor(0, 0) : QColor());
+        go = Section::Screens;
+        index = screenN_->value();
     }
     if (!err.isEmpty())
         return err;

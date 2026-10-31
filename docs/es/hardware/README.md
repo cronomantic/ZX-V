@@ -81,7 +81,7 @@ aceptar, y la Pico ULA tiene dos modos de salida:
 
 ### El sonido
 
-El sonido sale por el HDMI (en los modos 0 y 1) y, siempre, por el **jack
+El sonido sale por el HDMI (en el modo 0) y, siempre, por el **jack
 estéreo de 3,5 mm** (rotulado `AUDIO`). El jack da nivel de línea: conecta unos
 altavoces con amplificador, un amplificador o la entrada de audio de la tele.
 Unos auriculares necesitan un amplificador.

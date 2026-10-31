@@ -1,10 +1,12 @@
 /*
- * doc.h - Los gráficos de zxv-gfx: sprites, tiles, mapas y texturas, como
- * los del BASIC de ZX-V, y su fichero .gfx (LOAD "x" GRAPHICS). Sin Qt: lo
- * usan también las pruebas.
+ * doc.h - Los gráficos de zxv-gfx: sprites, tiles, mapas, texturas y
+ * pantallas, como los del BASIC de ZX-V, y su fichero .gfx (LOAD "x"
+ * GRAPHICS, SAVE "x" SCREEN$). Sin Qt: lo usan también las pruebas.
  *
  * Los colores son los 16 de ZX-V (0-15); el 8 es el transparente de los
- * sprites y de las celdas de mapa con ZXV_CELL_TRANSP.
+ * sprites y de las celdas de mapa con ZXV_CELL_TRANSP (en las texturas y
+ * en las pantallas es un negro más, como el 0). Una pantalla puede llevar
+ * su paleta: el color RGB565 de cada índice (D90).
  */
 #ifndef ZXV_GFX_DOC_H
 #define ZXV_GFX_DOC_H
@@ -17,7 +19,7 @@
 namespace gfx {
 
 constexpr int TRANSP = 8;
-constexpr int SPRITES = 256, MAPS = 16, TEXTURES = 4, MAX_TILES = 4096;
+constexpr int SPRITES = 256, MAPS = 16, TEXTURES = 4, SCREENS = 256, MAX_TILES = 4096;
 constexpr int MAX_SIDE = 1024;          /* lo más grande de un sprite */
 
 /* Los atributos de una celda (como en zxv_gfx.h). */
@@ -26,6 +28,22 @@ constexpr uint16_t CELL_TILE = 0x0FFF, CELL_FLIP_H = 0x1000, CELL_FLIP_V = 0x200
 
 /* El color i de ZX-V en 0xRRGGBB: BRIGHT-G-R-B, con 0xD7 sin brillo. */
 uint32_t paletteRgb(int i);
+
+/* RGB565 (spec §4.1): el color de siempre del índice i (ZXV_STD_RGB565); uno
+ * de 8 bits por canal, con la curva de ZXV_RGB; y al revés, en 0xRRGGBB, con
+ * la curva de la salida (la del emulador: los de siempre dan D7 y FF). */
+uint16_t stdRgb565(int i);
+uint16_t toRgb565(int r, int g, int b);
+uint32_t rgb565ToRgb(uint16_t c);
+using Palette = std::array<uint16_t, 16>;
+/* Los 16 colores de siempre en RGB565. */
+Palette standardPalette();
+/* La paleta de una pantalla con estos colores RGB565 (distintos, en el orden
+ * en que aparecen), como png2gfx.py: 0 si todos son de los de siempre (y pal,
+ * los de siempre); 1 con la paleta en pal: los de siempre en su índice (el
+ * negro en el 0), los demás en los índices libres por orden (el 8 el último)
+ * y los que no se usan, de siempre; o -1 si son más de 16. */
+int screenPalette(const std::vector<uint16_t> &colors, Palette &pal);
 
 /* Un bitmap: un píxel por byte. Vacío (w == 0) es que no existe. */
 struct Image {
@@ -84,6 +102,33 @@ struct Texture {
     bool operator==(const Texture &o) const { return img == o.img && wrap == o.wrap && out == o.out; }
 };
 
+/* Una pantalla: la página entera de la VRAM, en modo 0 (256 x 192) o en
+ * modo 1 (512 x 384), con el color del borde. Su modo no cambia. Con
+ * paleta (D90), cada índice se ve con su color de palette; sin ella, con
+ * los de siempre (y palette son los de siempre). */
+struct Screen {
+    Image img;
+    int border = 0;
+    bool hasPalette = false;
+    Palette palette = standardPalette();
+
+    static int width(int mode) { return mode ? 512 : 256; }
+    static int height(int mode) { return mode ? 384 : 192; }
+    bool empty() const { return img.empty(); }
+    int mode() const { return img.w == width(1) ? 1 : 0; }
+    /* El color del índice i en 0xRRGGBB, y los 16. */
+    uint32_t rgb(int i) const { return hasPalette ? rgb565ToRgb(palette[i & 15]) : paletteRgb(i & 15); }
+    std::array<uint32_t, 16> rgbs() const;
+    /* Sin paleta: los colores de siempre. */
+    void removePalette();
+    bool operator==(const Screen &o) const
+    {
+        return img == o.img && border == o.border && hasPalette == o.hasPalette && palette == o.palette;
+    }
+};
+/* Una pantalla nueva, toda negra. */
+Screen newScreen(int mode, int border);
+
 enum { LOAD_OK, LOAD_NOT_GFX, LOAD_DAMAGED, LOAD_UNKNOWN };
 
 struct Document {
@@ -91,13 +136,14 @@ struct Document {
     std::vector<Image> tiles8, tiles16;
     std::array<Map, MAPS> maps;
     std::array<Texture, TEXTURES> textures;
+    std::array<Screen, SCREENS> screens;
 
     std::vector<Image> &tiles(int side) { return side == 8 ? tiles8 : tiles16; }
     const std::vector<Image> &tiles(int side) const { return side == 8 ? tiles8 : tiles16; }
     bool operator==(const Document &o) const
     {
         return sprites == o.sprites && tiles8 == o.tiles8 && tiles16 == o.tiles16 && maps == o.maps &&
-               textures == o.textures;
+               textures == o.textures && screens == o.screens;
     }
 
     /* El fichero .gfx. load añade lo del fichero (sustituye lo del mismo

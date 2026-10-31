@@ -187,6 +187,8 @@ int obj_image(int slot, int tile, img_t *im)
  *   2 tiles    (el número es el lado) cuántos (u16), 0 (u16) y los tiles
  *   3 mapa     ancho, alto (u16), lado, repetición (u8), 0 (u16), las celdas
  *   4 textura  log2 del lado, repetición, color de fuera, 0 y los texels
+ *   5 pantalla modo, borde, 0 y los píxeles (D89): este editor no las edita;
+ *              al cargar se las salta, como LOAD GRAPHICS (y no las graba)
  */
 
 static uint32_t get16(const uint8_t *p) { return p[0] | (uint32_t)p[1] << 8; }
@@ -287,6 +289,15 @@ static int load_object(int kind, uint32_t num, uint32_t len)
                     return GFX_BAD;
                 img_set(&im, x, y, row[x]);
             }
+        }
+        return 0;
+    }
+    case 5: {
+        uint8_t skip[256];
+        for (uint32_t n = len; n > 0;) {
+            uint32_t k = n < sizeof(skip) ? n : sizeof(skip);
+            rd(skip, k);
+            n -= k;
         }
         return 0;
     }

@@ -30,9 +30,9 @@ así que puedes empezar a escribir la línea siguiente sin más.
 
 ## Teclear una línea
 
-El cursor es un recuadro cian que parpadea. Se teclea como en cualquier
-ordenador: letras, cifras, signos (con Mayúsculas, como vienen en tu teclado)
-y espacios.
+El cursor es un recuadro que parpadea en cian y azul. Se teclea como en
+cualquier ordenador: letras, cifras, signos (con Mayúsculas, como vienen en tu
+teclado) y espacios.
 
 **Las palabras clave se teclean letra a letra**, en mayúsculas o en
 minúsculas: `print`, `Print` y `PRINT` son lo mismo. Al guardar la línea, ZX-V
@@ -278,7 +278,7 @@ La línea que hay justo encima de la barra enseña:
 
 | Mensaje | Cuándo |
 |---|---|
-| `© 2026 Cronomantic  ZX-V 0.6.2` | Al arrancar ZX-V, y después de `NEW`: el copyright y la versión de la ROM |
+| `© 2026 Cronomantic  ZX-V 0.7.0` | Al arrancar ZX-V, y después de `NEW`: el copyright y la versión de la ROM |
 | Un error en rojo, como `C Sintaxis incorrecta` | Cuando una línea que querías guardar o ejecutar tiene un error |
 | `Programa renumerado`, `No se puede renumerar` | Tras la opción Renumerar |
 | `Listado enviado a la impresora` | Tras la opción Imprimir |
@@ -290,18 +290,19 @@ La línea que hay justo encima de la barra enseña:
 
 El mensaje desaparece con la siguiente tecla que pulses. La barra de debajo
 enseña siempre la memoria libre: el programa y sus variables comparten unos
-96 KB.
+94 KB.
 
 ## Grabar y cargar
 
 Los programas se guardan en la tarjeta SD. Desde el editor:
 
-- `SAVE "juego"` graba el programa como `juego.tap`. `SAVE "juego" LINE 10`
+- `SAVE "juego"` graba el programa como `juego.zvb`. `SAVE "juego" LINE 10`
   lo graba para que, al cargarlo, se ejecute solo desde la línea 10.
 - `LOAD "juego"` lo carga, y sustituye al programa que haya en la memoria.
 - `CAT` lista los ficheros de la carpeta actual, y `CAT "ROM:"`, los ejemplos
   que trae ZX-V; `LOAD "ROM:hello"` ejecuta uno de ellos.
-- `MERGE "juego"` añade las líneas de un programa grabado al que tienes.
+- `MERGE "juego"` añade las líneas (y las variables) de un programa grabado
+  al que tienes.
 - `OPEN #4, "juego.txt" OUT: LIST #4: CLOSE #4` escribe el listado en un
   fichero de texto, para leerlo en un ordenador.
 

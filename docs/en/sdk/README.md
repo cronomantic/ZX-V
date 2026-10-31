@@ -142,7 +142,7 @@ others, leaving out `files`.
 | [`scroll`](../../../sdk/examples/scroll/scroll.c) | Hardware scrolling over a 1024-pixel-wide field, drawing only the column that comes in, and parallax with the line table |
 | [`digital`](../../../sdk/examples/digital/digital.c) | Digitised sound: 8 kHz samples played through the volume of a sound chip channel |
 | [`files`](../../../sdk/examples/files/files.c) | The standard C library with the SD card: `fopen`, `fprintf`, `fgets`, `opendir`, `malloc`... (needs picolibc) |
-| [`boardtest`](../../../sdk/examples/boardtest/boardtest.c) | The board test: `OUT_INFO` (output and screen), the clock, a file written and read back, the keyboard, gamepads and mouse live, and the sound chip's two stereo channels |
+| [`boardtest`](../../../sdk/examples/boardtest/boardtest.c) | The board test: `OUT_INFO` (output and screen), the clock, a file written and read back, the keyboard, gamepads and mouse live, the sound chip's two stereo channels and, with P, the palettes with the per-line table |
 | [`estela`](../../../sdk/examples/estela) | **Estela**, a complete shoot'em up: three stages, bosses, music and effects on both sound chips, keyboard and joystick, a high score on the card; its graphics (`.gfx`) and music (`.pt3`) can be changed without compiling ([its README](../../../sdk/examples/estela/README.md)) |
 | [`route128`](../../../sdk/examples/route128) | **Route 128**, a racing game: a pseudo-3D road with bends and blind crests, painted line by line, and the scenery and traffic as scaled sprites; three stages against the clock; its graphics (`.gfx`) and music (`.pt3`) can be changed without compiling ([its README](../../../sdk/examples/route128/README.md)) |
 | [`mine`](../../../sdk/examples/mine) | **The Mine**, a digging game: boulders and diamonds that fall and roll, creatures that follow the walls, growing moss and twelve caves bigger than the screen, with smooth scrolling; the rules, kept apart, are also tested on the PC ([its README](../../../sdk/examples/mine/README.md)) |
@@ -264,7 +264,8 @@ When you type `LOAD "hello"`, the machine:
 2. copies the program to the start of the **user RAM** (address
    `0x2003_4000`) and fills its uninitialised variables with zeros;
 3. sets the video mode written in the file (0 unless you choose another, see
-   [Distributing](#distributing-your-program)) and clears the screen;
+   [Distributing](#distributing-your-program)) and clears the screen (or
+   keeps the loading screen, if the program has one in its mode);
 4. jumps to `crt0.S`, the tiny piece of start-up code the SDK adds, which
    calls your `main`.
 
@@ -356,7 +357,9 @@ headers:
 |---|---|
 | `zxv_api.h` | The system routines as C functions: screen, text, keys, joystick, sound, files, clock, mouse |
 | `zxv_gfx.h` | The graphics engine: bitmaps, sprites, tile maps, mode 7 and shapes (includes `zxv_api.h`) |
-| `zxv.h` | Addresses, registers and constants (included by the other two) |
+| `zxv_gfxfile.h` | Reading `.gfx` graphics files (with `gfxfile.c`; see [Graphics](graphics.md#reading-a-gfx-file-in-c)) |
+| `zxv_music.h` | Tracker music and sound effects (with `sdk/music`; see [Sound](#tracker-music-and-sound-effects)) |
+| `zxv.h` | Addresses, registers and constants (included by `zxv_api.h` and `zxv_gfx.h`) |
 
 There is no `printf` or `malloc`: you print with `zxv_print_str` and keep
 your data in global or static arrays. `float`, `double` and 64-bit
@@ -408,6 +411,11 @@ eight brighter (add 8):
 
 Colour 8 is the same black as 0, but the graphics engine uses it as
 **transparent** in sprites and tiles.
+
+These are the colours at start. Each number can be any other colour: each
+remapping table has a palette of 16 RGB565 colours you can change
+(`ZXV_PALETTE(t)`, `ZXV_RGB(r, g, b)`). That gives 16 colours per line and
+up to 64 on screen; see [Graphics](graphics.md#colour-remapping).
 
 This program draws all 16 and changes the colour of the **border**, the
 frame around the picture:
@@ -723,6 +731,10 @@ int main(void)
 - `zxv_music_info` gives the format, title and author of a module without
   playing it; `zxv_music_pause`, `zxv_music_playing` and `zxv_music_steps`
   (the 1/50 s steps played) complete the API.
+- For the effects, `zxv_sfx_play_data(effect, size, channel)` plays a single
+  effect (`.afx`) without a bank, `zxv_sfx_stop(channel)` stops one (all of
+  them with `ZXV_SFX_AUTO`) and `zxv_sfx_playing(channel)` says whether one
+  is playing. The details are in the [reference](reference.md#music-and-effects).
 
 To use it, build your program with the files in `sdk/music`: in the
 Makefile above, `SOURCES := hello.c $(wildcard $(SDK)/music/*.c)`. The
@@ -1344,7 +1356,7 @@ to someone:
   If the program loads more files without a drive in their names, keep
   them in the same folder and `CD` into it first, or open the program in
   `zxv`, which does that for you.
-- If a `name.tap` file is in the same folder, `LOAD "name"` loads that one:
+- If a `name.zvb` or `name.tap` file is in the same folder, `LOAD "name"` loads that one:
   write `LOAD "name.zxv"` to be sure.
 - In the web version, upload the files to its card (File > The SD card).
 - **On a web page of its own**, which starts the game without going through
@@ -1358,6 +1370,7 @@ to someone:
 | `--name NAME` | The program's name, up to 27 characters (by default, the file name) |
 | `--mode 1` | Start in mode 1 (512 × 384) instead of mode 0 |
 | `--stack ADDRESS` | Use your own stack, starting at that address (aligned to 16, above your program) |
+| `--screen SCREEN` | A loading screen: a PNG or a `.gfx` with a screen (from `zxv-gfx` or `png2gfx.py --screen`). It shows while the program loads, and on the game's web page while it starts |
 
 Some advice:
 

@@ -5,7 +5,8 @@
 With **`sdk/tools/mkweb.py`** you turn your game into a web page that has
 only that game: it can be uploaded as it is to [itch.io](https://itch.io) or
 to any server, and it also works opened from the disk. It works for C
-programs (`.zxv`), tapes (`.tap`, `.tzx`) and BASIC listings (`.bas`).
+programs (`.zxv`), BASIC programs (`.zvb`, and `.bas` listings) and Spectrum
+tapes (`.tap`, `.tzx`).
 
 **Contents**
 
@@ -22,7 +23,10 @@ programs (`.zxv`), tapes (`.tap`, `.tzx`) and BASIC listings (`.bas`).
 
 - **A cover** with the game's name and "Click to play" ("Tap to play" on a
   phone). Meanwhile the game loads out of sight: when the player clicks, it
-  starts on its title screen, without going through the BASIC.
+  starts on its title screen, without going through the BASIC. If the
+  program has a loading screen (a `.zxv` made with `elf2zxv.py --screen`, or
+  a `.zvb` saved with `SAVE "game" LINE 10 SCREEN$`), it shows behind the
+  cover and while the game starts.
 - **Only the game's picture**, as big as the window (or itch.io's frame),
   and two small buttons at the top right: the sound and full screen.
 - **When the game ends or goes back to the BASIC** (with Esc, for example),

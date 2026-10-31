@@ -13,7 +13,7 @@ machine in the emulator and in the real hardware.
 | Processor | 32-bit RISC-V at 144 MHz |
 | Memory | 520 KB of RAM in total; about 94 KB free for a BASIC program, and up to 248 KB for a native program |
 | Screen | 256 × 192 or 512 × 384 pixels, with a border |
-| Colours | 15, any colour on any pixel |
+| Colours | 15 as standard; with palettes, 16 per line out of 65,536 (up to 64 on screen), any colour on any pixel |
 | Video pages | Two, to draw one while you show the other |
 | Sound | Two AY-3-8912 music chips (6 voices) and a beeper, in stereo |
 | Storage | SD card, plus the built-in `ROM:` drive with the examples |
@@ -36,7 +36,7 @@ surrounded by a coloured **border**:
 | Mode | Pixels | Text (8 × 8 characters) | Used for |
 |---|---|---|---|
 | 0 | 256 × 192 | 32 columns × 24 rows | Programs and games: the classic resolution, with big pixels |
-| 1 | 512 × 384 | 64 columns × 48 rows | Detailed graphics and lots of text. The BASIC editor uses it |
+| 1 | 512 × 384 | 64 columns × 48 rows | Detailed graphics and lots of text. The BASIC editor uses it (it can also use mode 0) |
 
 Both fill the same area of your TV: a mode 1 pixel is half the width and half
 the height of a mode 0 pixel. In BASIC, `MODE 0` and `MODE 1` switch between
@@ -78,6 +78,11 @@ shown. Programs use this for fades, flashing and colour-cycling effects (in
 BASIC, `REMAP`). There are four such tables, and different parts of the screen
 can use different ones.
 
+**Palettes.** The 15 colours are the usual ones, but not the only ones: each
+table has its own **palette**, which says what colour each of the 16 numbers
+is, out of 65,536 (in BASIC, `PALETTE`). So each line of the screen can have
+16 colours of your choice, and the whole screen up to 64.
+
 ### Two pages
 
 The machine has **two video pages**, two complete screens in memory. One is
@@ -87,9 +92,10 @@ once, without flicker (in BASIC, `SCREEN` chooses the page to draw on and
 `PAGE` the one shown).
 
 BASIC uses the two pages in its own way: page 0, in mode 0, is your program's
-screen, and page 1, in mode 1, is the editor. That is why a program's output
-and your listing do not mix: when you run a program you see its screen, and
-when it ends a key takes you back to the editor.
+screen, and page 1 is the editor (in mode 1, or in mode 0 if you choose it
+in its menu). That is why a program's output and your listing do not mix:
+when you run a program you see its screen, and when it ends a key takes you
+back to the editor.
 
 ### Sprites, tile maps and layers
 
@@ -214,7 +220,7 @@ The processor has 520 KB of RAM. Most of it is shared like this:
 
 **From BASIC**, about 94 KB are free for your program, its variables and its
 graphics (sprites, tiles and maps): the editor shows the exact number,
-94,400 bytes when the machine starts. The rest of the user memory is BASIC's
+93,856 bytes when the machine starts. The rest of the user memory is BASIC's
 own working space.
 
 **A native program** takes over the user memory: it can use nearly all of the
@@ -239,7 +245,7 @@ The machine has two **drives**:
 
 You use them with the usual BASIC commands: `CAT` lists a folder, `CD` changes
 folder, `MKDIR` and `RMDIR` create and remove folders, and `COPY`, `MOVE` and
-`ERASE` copy, move and delete files (also with wildcards like `*.tap`). A path
+`ERASE` copy, move and delete files (also with wildcards like `*.zvb`). A path
 can start with the drive: `LOAD "ROM:graphics"`, `CAT "SD:/games"`. `CD "ROM:"`
 enters the `ROM:` drive and `CD "SD:"` goes back to the card.
 
@@ -251,19 +257,24 @@ separated with `/`.
 
 | Extension | What it holds | How to use it |
 |---|---|---|
-| `.tap` | Tape file: BASIC programs, blocks of memory (`CODE`), screens and arrays. It is ZX-V's normal format for BASIC programs, and the same format as the Spectrum's | `SAVE "name"`, `LOAD "name"` |
+| `.zvb` | A ZX-V BASIC program with its variables, as they are in memory. It is the format of programs. It can carry a loading screen | `SAVE "name"`, `LOAD "name"`; with a loading screen, `SAVE "name" LINE n SCREEN$` |
+| `.zvd` | A BASIC array (numbers or characters), as it is in memory | `SAVE "name" DATA a()`, `LOAD "name" DATA a()` |
+| `.bin` | Bytes of memory, nothing else | `SAVE "name" CODE start, length`, `LOAD "name" CODE start` |
+| `.tap` | Spectrum tape file: BASIC programs, blocks of memory (`CODE`), screens and arrays. For code made for the Spectrum, and to take things to its emulators | `LOAD "name"`, `SAVE "name.tap"` |
 | `.tzx` | Spectrum tape file (another format); its BASIC programs, code, screens and arrays load | `LOAD "name.tzx"` |
-| `.bas` | A BASIC listing as plain text, to write or share programs with a text editor | Open it in the emulator, which types it in |
-| `.zxv` | A native program, compiled from C or assembler | `LOAD "name"` |
+| `.bas` | A BASIC listing as plain text, to write or share programs with a text editor | `LOAD "name.bas"`, `SAVE "name.bas"`, `MERGE`; the emulator opens it too |
+| `.zxv` | A native program, compiled from C or assembler. It can carry a loading screen, shown while it loads | `LOAD "name"` |
 | `.zxvs` | A snapshot: the whole state of the machine, to continue later (emulator only) | File > Open in the emulator |
-| `.gfx` | Graphics for BASIC: sprites, tiles, maps and textures | `SAVE "name" GRAPHICS`, `LOAD "name" GRAPHICS`. They can also be made from PNG images on your PC (see the [SDK](sdk/README.md)) |
-| `.scr` | A Spectrum screen (6,912 bytes), shown as it was, colour limitations included | `LOAD "name.scr" SCREEN$`, `SAVE "name.scr" SCREEN$` (without an extension, `SAVE` puts the screen in a `.tap`) |
-| any | Raw data and text files | `LOAD "name" CODE address`; text files with `OPEN #`, `PRINT #` and `INPUT #` |
+| `.gfx` | Graphics: sprites, tiles, maps, textures and screens (those of `SCREEN$`) | `SAVE "name" GRAPHICS`, `LOAD "name" GRAPHICS`; screens, `SAVE "name" SCREEN$`, `LOAD "name" SCREEN$`. They can also be made from PNG images on your PC (see the [SDK](sdk/README.md)) |
+| `.pt3` | Music made with a tracker (also Pro Tracker 2, Sound Tracker, ASC, PSG and TurboSound) | `LOAD "name" MUSIC` |
+| `.afb`, `.afx` | AYFX sound effects: a bank or a single effect | `LOAD "name" SFX` |
+| `.scr` | A Spectrum screen (6,912 bytes), shown as it was, colour limitations included | `LOAD "name.scr" SCREEN$`, `SAVE "name.scr" SCREEN$` |
+| any | Raw data and text files | `LOAD "name.dat" CODE address`; text files with `OPEN #`, `PRINT #` and `INPUT #` |
 
 `LPRINT`, `LLIST` and `COPY` (the printer commands) write to the text file
 `printer.txt` at the root of the card.
 
-**Tapes.** A `.tap` or `.tzx` that you load stays "in the tape recorder": later
+**Spectrum tapes.** A `.tap` or `.tzx` that you load stays "in the tape recorder": later
 `LOAD ""` commands read the next blocks from it, as on a real tape. That is how
 programs in several parts (a loader, a title screen, the game) load as they
 did on the Spectrum.
@@ -307,10 +318,10 @@ curious about it.
 | RAM | 48 KB / 128 KB | 520 KB |
 | Free for BASIC | About 41 KB | About 94 KB |
 | Screen | 256 × 192 | 256 × 192 or 512 × 384 |
-| Colour | 2 colours per 8 × 8 cell (*colour clash*) | Any of the 15 colours on any pixel |
+| Colour | 2 colours per 8 × 8 cell (*colour clash*) | Any of 16 colours on any pixel, from a palette of 65,536 |
 | Video pages | 1 (2 on the 128K) | 2, plus hardware scrolling and a virtual playfield |
 | Sound | Beeper / beeper and one AY | Beeper and two AY chips, stereo |
-| Storage | Cassette tape | SD card and the `ROM:` drive; `.tap` and `.tzx` files |
+| Storage | Cassette tape | SD card and the `ROM:` drive; reads the Spectrum's `.tap` and `.tzx` |
 | BASIC | Sinclair BASIC, keywords with one key | Compatible Sinclair BASIC, typed letter by letter, with a full-screen editor like the 128's and many extensions |
 | Machine code | Z80 | RISC-V (native programs in C or assembler) |
 
@@ -318,9 +329,10 @@ What carries over from the Spectrum:
 
 - **BASIC programs.** The BASIC follows Sinclair BASIC closely: the same
   numbers, random sequences, error messages and drawing algorithms. Spectrum
-  BASIC programs in `.tap` or `.tzx` files load and run, and programs saved by
-  ZX-V load on a real Spectrum. `PEEK` and `POKE` on the Spectrum's screen,
-  attributes and system variables work, and `SPEED 0` makes BASIC run at the
+  BASIC programs in `.tap` or `.tzx` files load and run, and a program saved
+  as a tape (`SAVE "name.tap"`) loads on a real Spectrum. `PEEK` and `POKE` on
+  the Spectrum's screen, attributes and system variables work, and `SPEED 0`
+  makes BASIC run at the
   speed of a 48K for programs that depend on it.
 - **Screens** (`.scr` and `SCREEN$` blocks) load and look as they did, colour
   clash included.

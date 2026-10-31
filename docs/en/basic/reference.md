@@ -59,7 +59,7 @@ program line (with a line number, to be run later) or as a **direct command**
 - [Drawing with PLOT and DRAW](#drawing-with-plot-and-draw): `PLOT`, `DRAW`,
   `CIRCLE`, `POINT`
 - [Video modes and screen effects](#video-modes-and-screen-effects): `MODE`,
-  `PAGE`, `SCREEN`, `SCROLL`, `REMAP`, `RASTER`
+  `PAGE`, `SCREEN`, `SCROLL`, `REMAP`, `PALETTE`, `RASTER`
 - [Sprites, tile maps and fast graphics](#sprites-tile-maps-and-fast-graphics):
   `GRAB`, `SPRITE`, `TILE`, `MAP`, `FLOOR`, `BOX`, `DISC`, `POLY`...
 - [Sound and music](#sound-and-music): `BEEP`, `PLAY`, `SOUND`, `MUSIC`,
@@ -68,7 +68,7 @@ program line (with a line number, to be run later) or as a **direct command**
   `INKEY$`, `KEY`, `JOY`, `MOUSE`
 - [Files and the SD card](#files-and-the-sd-card): `SAVE`, `LOAD`, `CAT`,
   `CD`, `COPY`, `ERASE`...
-- [Tape files](#tape-files): `.tap` and `.tzx`
+- [Tape files](#tape-files): the Spectrum's `.tap` and `.tzx`
 - [Streams and channels](#streams-and-channels): `OPEN #`, `CLOSE #`,
   text files
 - [Memory and system](#memory-and-system): `PEEK`, `POKE`, `USR`, `IN`,
@@ -596,6 +596,9 @@ is not open, `O Invalid stream`.
 TRACE ON: RUN
 ```
 
+**See also:** the [BASIC debugger](../emulator.md#debugging), to stop a
+program at a line and look at its variables from VS Code.
+
 ### REM
 
 ```
@@ -1012,7 +1015,8 @@ The [sprite and fast graphics commands](#sprites-tile-maps-and-fast-graphics),
 [`RASTER BORDER`](#raster) and [`REMAP`](#remap) use the 16 colours directly,
 from 0 to 15: 0–7 are the colours above and 8–15 their bright versions (10
 is bright red). Colour 8 is black too, and is used as "transparent" in
-sprites.
+sprites. With [`PALETTE`](#palette), each of the 16 can be any colour you
+like.
 
 On ZX-V, each pixel has its own colour: drawing a pixel only changes the
 colour of that pixel, never its neighbours.
@@ -1182,7 +1186,7 @@ Chooses the screen mode and clears the screen:
 | 1 | 512 × 384 | 64 columns × 48 rows |
 
 `MODE` clears both pages, shows page 0 and removes scrolling, `REMAP`,
-`RASTER` and `CLIP`. In mode 0, the page can also be larger than the screen,
+`PALETTE`, `RASTER` and `CLIP`. In mode 0, the page can also be larger than the screen,
 so that the screen is a window that you move over it with
 [`SCROLL`](#scroll): `MODE 0, 512, 384`, `MODE 0, 1024, 192` or
 `MODE 0, 256, 768`. Then `PRINT AT`, `PLOT` and the rest cover the whole page
@@ -1257,6 +1261,43 @@ lines only. `REMAP` alone resets the three tables and goes back to table 0.
 ```
 10 PRINT INK 1; "blinking"
 20 REMAP 1,10: PAUSE 25: REMAP 1,1: PAUSE 25: GO TO 20
+```
+
+`REMAP` swaps one of the 16 colours for another; what each colour looks like
+is set by [`PALETTE`](#palette).
+
+### PALETTE
+
+```
+PALETTE colour, r, g, b [; colour, r, g, b]...
+PALETTE #table; colour, r, g, b [; colour, r, g, b]...
+PALETTE #table
+PALETTE
+```
+
+Changes how one of the 16 colours looks: `r`, `g` and `b` are its red, green
+and blue, from 0 to 255. Everything drawn in that colour changes instantly.
+After `PALETTE 1, 255, 128, 0`, blue is shown orange. The colour goes from 0
+to 15 (otherwise `K Invalid colour`), and `r`, `g` and `b` from 0 to 255
+(otherwise `B Integer out of range`).
+
+The usual colours have 215 in each component (255 the bright ones): red is
+`PALETTE 2, 215, 0, 0`. The screen has 65,536 possible colours, and the
+nearest one is used.
+
+Each [`REMAP`](#remap) table has its own palette. Without `#`, `PALETTE`
+changes table 0's, the one normally in use; `PALETTE #t; ...` changes table
+`t`'s (0 to 2). So, with [`RASTER REMAP`](#raster), each band of the screen
+can have its own 16 colours. `PALETTE #t` alone gives table `t` back its
+usual colours, and `PALETTE` alone does it for all three. [`MODE`](#mode)
+also resets them.
+
+Colour 8 is still transparent in sprites and tiles (it is not drawn), even
+if the palette gives it another colour.
+
+```
+10 FOR i=0 TO 15: BOX i, i*16, 0, 16, 176: NEXT i
+20 FOR v=0 TO 255 STEP 5: PALETTE 7, v, v, 255-v: WAIT: NEXT v
 ```
 
 ### RASTER
@@ -1906,7 +1947,7 @@ Programs and data are kept on the SD card. There is also a read-only drive,
   gives `V Disk error (not allowed)`.
 - **Wildcards** in `CAT`, `ERASE`, `MOVE` and `COPY`: `*` stands for any
   characters (also none) and `?` for one character, in the last part of the
-  path only: `"*.tap"`, `"games/level?.dat"`. If nothing matches,
+  path only: `"*.zvb"`, `"games/level?.dat"`. If nothing matches,
   `T File not found`.
 
 Common file errors are `F Invalid file name`, `T File not found`, `U No SD
@@ -1917,7 +1958,7 @@ card` and `V Disk error`, which adds the reason when it is known:
 ### SAVE
 
 ```
-SAVE name$ [LINE line]
+SAVE name$ [LINE line [SCREEN$] [PROTECT]]
 SAVE name$ CODE start, length
 SAVE name$ SCREEN$
 SAVE name$ DATA letter()
@@ -1927,21 +1968,44 @@ SAVE name$ GRAPHICS
 
 Saves to the SD card:
 
-- The **program** (with no other words): as a `.tap` file, the tape format of
-  the Spectrum, so it can be opened in Spectrum emulators. With `LINE`, the
-  program starts by itself from that line when loaded.
-- `CODE`: `length` bytes of memory from address `start`.
-- `SCREEN$`: the screen, as a Spectrum screen (`CODE 16384,6912`).
-- `DATA`: an array (numbers or characters), with its name.
+- The **program** (with no other words) and its variables, in a `.zvb` file,
+  the format of ZX-V programs: both as they are in memory, with no limit but
+  the memory. With `LINE`, the program starts by itself from that line when
+  loaded, with its variables. With `LINE` and `SCREEN$`, it also carries the
+  screen you see as a **loading screen**: `LOAD` puts it up first, and the
+  program starts with it. With `PROTECT` at the end, it is saved
+  **protected** (see below).
+- `CODE`: `length` bytes of memory from address `start`, in a `.bin` file
+  (just the bytes).
+- `SCREEN$`: the program's screen, as you see it (its mode, its border and
+  the colour of each pixel; if they are not the usual colours, also the
+  colours it is shown with, see [`PALETTE`](#palette)), in a `.gfx` file
+  with a screen (which you can edit in `zxv-gfx`). With the extension `.scr`, the Spectrum's one
+  (`CODE 16384,6912`: the ink and paper shadow of each cell, without what is
+  drawn with ZX-V's colours), in the format of its tools.
+- `DATA`: an array (numbers or characters), in a `.zvd` file, the format of
+  ZX-V data: as it is in memory, with no limit but the memory.
 - `GRAPHICS`: the graphics store (sprites, tiles, maps, textures) as a
   `.gfx` file.
 
-If the name has no extension, `.tap` is added (`.gfx` for `GRAPHICS`). With
-another extension, `CODE` and `SCREEN$` are saved as plain bytes, without the
-tape header; `DATA` is always saved as `.tap`. An existing file is replaced.
+If the name has no extension, each kind gets its own: `.zvb`, `.bin`,
+`.zvd` or `.gfx` (`GRAPHICS` and `SCREEN$`). With another extension, `CODE`
+is saved the same way, as plain bytes, and a program, an array or a screen in
+its format.
+An existing file is replaced.
+
+With the extension `.tap`, it is saved as a **Spectrum tape**, to take it to a
+Spectrum emulator: the program and its variables, the `CODE` block (with its
+address, so that `LOAD` puts it back), the screen (the Spectrum's, as with
+`.scr`) or the array, in the Spectrum's format. The loading screen only goes
+in a `.zvb`. ZX-V's own keywords show there as odd characters, and a
+block cannot be over 64 KB, nor a string of 65535 characters
+(`B Integer out of range`). A `.tzx` is not saved.
 
 With the extension `.bas`, the program is saved as a **listing in plain text**
-(see [Listings in text](#listings-in-text)): `SAVE "game.bas"`.
+(see [Listings in text](#listings-in-text)): `SAVE "game.bas"`. A listing has
+neither the variables nor the start line: `SAVE "game.bas" LINE 10` gives
+`C Nonsense in BASIC`.
 
 ```
 10 PRINT "I was saved"
@@ -1963,17 +2027,29 @@ LOAD name$ SFX
 
 Loads from the SD card (or the `ROM:` drive):
 
-- A **program**: replaces the program in memory (variables are not kept). If
-  it was saved with `LINE`, it runs. Without an extension, ZX-V tries
-  `name.tap`, then `name.zxv` (a [native program](#native-programs), which
-  runs), then `name.bas` (a [listing in text](#listings-in-text)), then the
-  name as it is. Spectrum `.tap` and `.tzx` files with BASIC programs load
-  directly.
-- `CODE`: a block of bytes, at the address it was saved from or at `start`,
-  and at most `length` bytes. A file that is not a `.tap` is read as plain
-  bytes, and then `start` is needed.
-- `SCREEN$`: a Spectrum screen (a `.scr` file or a block of a `.tap`).
-- `DATA`: an array, replacing the array of that name. The type must match.
+- A **program**: replaces the program in memory, and its variables replace
+  the ones there were. If it was saved with `LINE`, it runs from that line
+  without clearing them, as with `GO TO`. Without an extension, ZX-V tries
+  `name.zvb`, then `name.tap`, then `name.zxv` (a [native
+  program](#native-programs), which runs), then `name.bas` (a [listing in
+  text](#listings-in-text)), then the name as it is. Spectrum `.tap` and
+  `.tzx` files with BASIC programs load directly, with their variables (see
+  [Tape files](#tape-files)); ZX-V `.tap` files from before 0.7 carry no
+  variables.
+- `CODE`: a file of bytes (without an extension, `name.bin` and then
+  `name.tap`), at `start` and at most `length` bytes. A file that is not a
+  `.tap` does not know where it goes, so `start` is needed:
+  `LOAD "data" CODE 40000`; the `CODE` block of a `.tap` goes back without
+  it to the address it was saved from.
+- `SCREEN$`: a screen (without an extension, `name.gfx` and then a block of
+  `name.tap`). The one in a `.gfx` goes up as it is, with its mode (if it is
+  not the current one, it changes as with `MODE`) and its border; if it
+  carries its colours, they go into table 0's palette, without `REMAP`
+  changes, and that table becomes the one in use (as with `REMAP #0`).
+  `SCREEN$()` does not recognise the text on it. A `.scr` or a `.tap` is a
+  Spectrum screen, shown as it was.
+- `DATA`: an array (without an extension, `name.zvd` and then `name.tap`),
+  replacing the array of that name, as `DIM` does. The type must match.
 - `GRAPHICS`: the objects of a `.gfx` file replace those with the same number;
   the others stay, so you can load sprites from one file and a level from
   another. A file that is not valid gives `R Tape loading error`.
@@ -2014,8 +2090,35 @@ MERGE name$
 ```
 
 Adds the lines of a saved program to the one in memory; lines with the same
-number are replaced. The variables are deleted. It also works with a
-[listing in text](#listings-in-text) (`.bas`).
+number are replaced. The same goes for the variables, as on the Spectrum:
+those in the file replace the ones with the same name, and the others stay.
+It also works with a [listing in text](#listings-in-text) (`.bas`), which has
+no variables. A protected program cannot be merged (`R Tape loading error`).
+
+### Protected programs
+
+```
+SAVE name$ LINE line [SCREEN$] PROTECT
+```
+
+If you do not want the people who play your program to see how it is made,
+save it with `PROTECT`. The program in memory does not change: you can go on
+working on it and also save it unprotected, for yourself.
+
+- A protected program starts by itself when it is loaded, so it needs
+  `LINE`. It is only saved in a `.zvb` (in a `.tap` or a `.bas`, `C Nonsense
+  in BASIC`).
+- While it runs, it is like any other: `ON ERROR` catches errors and BREAK.
+- When it stops, for any reason (an error, BREAK, `STOP` or because it
+  ends), its report appears and it **is deleted**, with its variables, as
+  with `NEW`. It cannot be listed, the deletion cannot be undone, and the
+  debugger cannot look at it.
+- `MERGE` does not accept it, and if it saves the program itself, it is
+  saved protected.
+
+It is a protection like the Spectrum's: it stops the curious, but the file
+format is open, and someone who knows can read it on a PC. ZX-V's tools do
+not show its listing either.
 
 ### Listings in text
 
@@ -2057,7 +2160,7 @@ wildcards or a file name, only what matches.
 
 ```
 CAT "ROM:"
-CAT "*.tap"
+CAT "*.zvb"
 ```
 
 ### CD, DIR$
@@ -2111,8 +2214,8 @@ folder, it goes inside it with the same name. With wildcards, `to$` must be a
 folder and every file that matches is moved.
 
 ```
-MOVE "game.tap" TO "old game.tap"
-MOVE "*.tap" TO "games"
+MOVE "game.zvb" TO "old game.zvb"
+MOVE "*.zvb" TO "games"
 ```
 
 ### COPY
@@ -2157,8 +2260,10 @@ is gone in every case.
 ## Tape files
 
 ZX-V reads the tape files of Spectrum emulators, `.tap` and `.tzx` (the
-standard-speed blocks: programs, `CODE`, screens and arrays). Spectrum machine
-code inside them cannot run.
+standard-speed blocks: programs, `CODE`, screens and arrays), to use BASIC
+code made for the Spectrum. Spectrum machine code inside them cannot run.
+ZX-V programs are saved in their own format, `.zvb` (see [SAVE](#save)); a
+`.tap` is only saved when asked for, to take a program to a Spectrum emulator.
 
 A tape file that has been loaded stays **inserted**, like a cassette in a
 tape recorder, so programs in several parts work:
@@ -2728,7 +2833,7 @@ Spanish, but your programs cannot.
 | Nested block IFs and `SELECT CASE` | no limit |
 | Parameters of a procedure | 16 |
 | Nested brackets in an expression | about 150 (about 25 nested `FN`) |
-| Memory for program and variables | about 96 KB (shown in the editor's bar) |
+| Memory for program and variables | about 94 KB (shown in the editor's bar) |
 | Open files | 8, on streams 4 to 15 |
 | Sprites | 256 (0–255), each up to 1024 × 1024 pixels |
 | Tiles | 4096 of 8 × 8 and 4096 of 16 × 16 |
@@ -2835,6 +2940,7 @@ Spanish, but your programs cannot.
 | `OUT` | statement; in `OPEN #` | [IN, OUT](#in-out), [OPEN, CLOSE](#open-close) |
 | `OVER` | statement, item | [INVERSE, OVER](#inverse-over) |
 | `PAGE` | statement | [PAGE, SCREEN](#page-screen) |
+| `PALETTE` | statement | [PALETTE](#palette) |
 | `PAPER` | statement, item | [INK, PAPER](#ink-paper) |
 | `PAUSE` | statement | [PAUSE](#pause) |
 | `PEEK` | function | [PEEK, POKE](#peek-poke) |
@@ -2847,6 +2953,7 @@ Spanish, but your programs cannot.
 | `POLY` | statement | [POLY](#poly) |
 | `PRINT` | statement | [PRINT](#print) |
 | `PROC` | statement | [DEF PROC, PROC, END PROC](#def-proc-proc-end-proc) |
+| `PROTECT` | in `SAVE` | [Protected programs](#protected-programs) |
 | `RANDOMIZE` | statement | [RND, RANDOMIZE](#rnd-randomize) |
 | `RASTER` | statement | [RASTER](#raster) |
 | `READ` | statement | [READ, DATA, RESTORE](#read-data-restore) |

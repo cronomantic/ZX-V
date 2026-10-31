@@ -5,7 +5,8 @@
 Con **`sdk/tools/mkweb.py`** conviertes tu juego en una página web que solo
 tiene ese juego: se sube tal cual a [itch.io](https://itch.io) o a cualquier
 servidor, y también funciona abierta desde el disco. Vale para los programas
-en C (`.zxv`), las cintas (`.tap`, `.tzx`) y los listados en BASIC (`.bas`).
+en C (`.zxv`), los programas en BASIC (`.zvb`, y los listados `.bas`) y las
+cintas del Spectrum (`.tap`, `.tzx`).
 
 **Contenido**
 
@@ -22,7 +23,10 @@ en C (`.zxv`), las cintas (`.tap`, `.tzx`) y los listados en BASIC (`.bas`).
 
 - **Una portada** con el nombre del juego y «Haz clic para jugar» («Toca para
   jugar» en un móvil). Mientras tanto el juego se carga sin verse: al
-  pulsar, empieza en su pantalla de título, sin pasar por el BASIC.
+  pulsar, empieza en su pantalla de título, sin pasar por el BASIC. Si el
+  programa tiene pantalla de carga (un `.zxv` hecho con `elf2zxv.py
+  --screen`, o un `.zvb` grabado con `SAVE "juego" LINE 10 SCREEN$`), se ve
+  ella detrás de la portada y mientras arranca.
 - **Solo la imagen del juego**, del tamaño de la ventana (o del marco de
   itch.io), y dos botones pequeños arriba a la derecha: el sonido y la
   pantalla completa.

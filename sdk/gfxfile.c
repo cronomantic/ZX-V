@@ -38,6 +38,9 @@ static int valid(int kind, uint32_t num, const uint8_t *d, uint32_t len)
                len == 8 + rd16(d) * rd16(d + 2) * 2;
     case ZXV_GFXF_TEXTURE:
         return len >= 4 && d[0] >= 1 && d[0] <= 10 && len == 4 + (1u << (2 * d[0]));
+    case ZXV_GFXF_SCREEN:
+        return len >= ZXV_SCREEN_HEAD && d[0] <= 1 && d[1] <= 15 && !(d[2] & ~ZXV_SCREEN_F_PALETTE) &&
+               !d[3] && len == ZXV_SCREEN_SIZE_F(d[0], d[2]);
     }
     return 1;                               /* clases nuevas: se saltan */
 }
@@ -138,4 +141,29 @@ uint32_t zxv_gfxf_texture(const zxv_gfxfile *f, int num, zxv_m7tex *t, void *buf
     if (buf && room >= bytes)
         copy(buf, d + 4, bytes);
     return bytes;
+}
+
+uint32_t zxv_gfxf_screen(const zxv_gfxfile *f, int num, int *mode, int *border, void *buf, uint32_t room)
+{
+    uint32_t len;
+    const uint8_t *d = zxv_gfxf_find(f, ZXV_GFXF_SCREEN, num, &len);
+    if (!d)
+        return 0;
+    uint32_t need = ZXV_SCREEN_PIXELS(d[0]);
+    if (mode)
+        *mode = d[0];
+    if (border)
+        *border = d[1];
+    if (buf && room >= need)
+        copy(buf, d + len - need, need);
+    return need;
+}
+
+int zxv_gfxf_screen_palette(const zxv_gfxfile *f, int num, uint16_t pal[16])
+{
+    const uint8_t *d = zxv_gfxf_find(f, ZXV_GFXF_SCREEN, num, NULL);
+    int has = d && (d[2] & ZXV_SCREEN_F_PALETTE);
+    for (int i = 0; i < 16; i++)
+        pal[i] = has ? (uint16_t)rd16(d + ZXV_SCREEN_HEAD + 2 * i) : ZXV_STD_RGB565(i);
+    return has;
 }

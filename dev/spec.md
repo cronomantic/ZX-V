@@ -1,8 +1,8 @@
 # Especificación de la máquina ZX-V
 
 **Versión 0.1 (borrador).** Todo lo que aparece aquí puede cambiar hasta la v1.0. Las
-direcciones, desplazamientos y tamaños marcados como *provisional* se fijarán cuando
-existan el emulador y las pruebas de hardware.
+direcciones, desplazamientos y tamaños marcados como *provisional* se fijarán con las
+pruebas de la placa.
 Licencia CC BY 4.0, como el resto de la documentación ([docs/LICENSE](../docs/LICENSE)).
 
 Este documento describe la máquina **tal como la ve el software**. La forma de
@@ -114,7 +114,7 @@ son las pilas de sus dos núcleos y algo de código que tiene que ir rápido.
 | Desplazamiento | Tamaño | Contenido |
 |---|---|---|
 | `0x0000` | 1 KB | Tabla de vectores de la API (256 punteros) |
-| `0x0400` | 256 B | Registros de vídeo |
+| `0x0400` | 256 B | Registros de vídeo (y en `+0x80`, las paletas: 4.6) |
 | `0x0500` | 256 B | Registros de entrada |
 | `0x0600` | 256 B | Registros de sonido |
 | `0x0700` | 256 B | Variables del sistema |
@@ -122,7 +122,8 @@ son las pilas de sus dos núcleos y algo de código que tiene que ir rápido.
 | `0x0A00` | 2 KB | Cola de eventos del beeper (256 × 8 B) |
 | `0x1200` | 64 B | Tablas de remapeo de color (4 × 16 B) |
 | `0x1240` | ~1,5 KB | Interfaz interna ROM ↔ plataforma (no usar desde programas) |
-| `0x1800` | 4,5 KB | Tabla por línea (480 × 8 B; el resto, reservado) |
+| `0x1800` | 3,75 KB | Tabla por línea (480 × 8 B) |
+| `0x2700` | 768 B | Buzón del depurador del BASIC (8.2) |
 | `0x2A00` | 5,5 KB | Espacio de trabajo interno de la ROM |
 
 ---
@@ -131,7 +132,9 @@ son las pilas de sus dos núcleos y algo de código que tiene que ir rápido.
 
 ### 4.1 Paleta
 
-Cada píxel es un índice de 4 bits con el mismo orden que la tinta del Spectrum:
+Cada píxel es un índice de 4 bits; el color con el que se ve lo dice la paleta
+de su tabla (4.6), que se puede cambiar (D90). Los **colores de siempre**, los
+de las paletas al empezar, tienen el mismo orden que la tinta del Spectrum:
 
 ```
 bit 3   bit 2   bit 1   bit 0
@@ -149,11 +152,28 @@ BRIGHT    G       R       B
 | 6 | Amarillo | `D7D700` | 14 | Amarillo brillante | `FFFF00` |
 | 7 | Blanco | `D7D7D7` | 15 | Blanco brillante | `FFFFFF` |
 
-- Hay **15 colores distintos**: el 0 y el 8 son el mismo negro.
-- **Convención:** el índice 8 se usa como **transparente** en las rutinas de copia
-  de gráficos (sprites, fuentes). En pantalla se ve negro.
+- Con los colores de siempre hay **15 distintos**: el 0 y el 8 son el mismo
+  negro. Con las paletas, cada índice puede ser cualquiera de los 65.536 colores
+  de RGB565.
+- **Convención:** el índice 8 es **transparente** en las rutinas de copia de
+  gráficos (sprites, tiles transparentes, fuentes): no se escribe. Un 8 que está
+  en la página se ve con el color 8 de su paleta (negro al empezar).
 - El nivel "normal" (`D7`) es una calibración de la salida, no un dato del
   software. Cada salida debe acercarse a esa proporción (84 %).
+- En RGB565 (rojo en los bits 15–11, verde en los 10–5 y azul en los 4–0), los
+  colores de siempre tienen 27 en rojo y azul y 54 en verde en el nivel normal, y
+  31 y 63 con BRIGHT (`ZXV_STD_RGB565(i)` en `zxv.h`). La Pico ULA saca el
+  RGB565 tal cual por el HDMI; el emulador lo pasa a 8 bits por canal con la
+  curva de la salida, que da exactamente `D7` y `FF` en los colores de siempre:
+
+  | Canal | Hasta el nivel normal | Por encima |
+  |---|---|---|
+  | Rojo, azul (5 bits) | `v ≤ 27`: `(v × 215 + 13) / 27` | `215 + (v − 27) × 10` |
+  | Verde (6 bits) | `v ≤ 54`: `(v × 215 + 27) / 54` | `215 + ((v − 54) × 40 + 4) / 9` |
+
+  Y al revés, de 8 bits a RGB565 (`ZXV_RGB(r, g, b)`, `PALETTE` del BASIC), la
+  misma curva: `(c × 27 + 107) / 215` hasta 215 y `27 + ((c − 215) × 4 + 20) / 40`
+  por encima (en verde, 54 y `× 9`). Ida y vuelta, cada nivel vuelve a sí mismo.
 
 ### 4.2 Modos
 
@@ -196,7 +216,7 @@ píxeles de modo 0). En `zxv.h`: `ZXV_FRAME_W`, `ZXV_FRAME_H`, `ZXV_BORDER_X`,
 |---|---|---|---|
 | `+0x00` | `MODE` | u8 | Modo de vídeo: 0 o 1 |
 | `+0x01` | `PAGE` | u8 | Página visible: 0 o 1 |
-| `+0x02` | `BORDER` | u8 | Color del borde (índice 0–15, sin remapeo) |
+| `+0x02` | `BORDER` | u8 | Color del borde (índice 0–15, sin remapeo; con la paleta de la tabla de `REMAP`) |
 | `+0x03` | `VFLAGS` | u8 | Bit 0 `LINETAB`: usar la tabla por línea. Bit 1 `BLANK`: área activa apagada (solo borde) |
 | `+0x04` | `SCROLL_X` | u16 | Desplazamiento horizontal del área activa (circular) |
 | `+0x06` | `SCROLL_Y` | u16 | Desplazamiento vertical del área activa (circular) |
@@ -208,11 +228,30 @@ Con scroll, el píxel activo `(x, y)` muestra el píxel de la página
 `((x + SCROLL_X) mod ancho, (y + SCROLL_Y) mod alto)`, donde `ancho` y `alto` son
 los de la página: 512 × 384 en modo 1, y en modo 0 los que indique `VSIZE`.
 
-### 4.6 Tablas de remapeo (`0x2000_1200`)
+### 4.6 Tablas de remapeo (`0x2000_1200`) y paletas (`0x2000_0480`)
 
-Hay 4 tablas de 16 bytes. La entrada `v` indica qué índice de color se muestra para
-el valor de píxel `v`. Inicialmente son la identidad. Sirven para fundidos, ciclos
-de color, FLASH y efectos, siempre dentro de los 15 colores.
+Hay 4 tablas. Cada una tiene su **remapeo**, 16 bytes en `0x2000_1200`: la entrada
+`v` dice qué índice se muestra para el valor de píxel `v` (al empezar, la
+identidad). Y su **paleta**, 16 colores RGB565 (u16) en `0x2000_0480 + 32 × t`:
+el color de cada índice (al empezar, los de siempre, 4.1). Un píxel de valor `v`
+en una línea que usa la tabla `t` (`REMAP` o la tabla por línea) se ve con
+
+```
+PALETA[t][REMAP[t][v]]
+```
+
+- El remapeo sirve para fundidos, ciclos de color y efectos sin cambiar los
+  colores: un ciclo con el remapeo gira por los colores de la paleta.
+- Las paletas dan hasta 64 colores en la pantalla a la vez, 16 por línea,
+  eligiendo la tabla en cada línea (4.7).
+- El borde no pasa por el remapeo: su índice se ve con la paleta de la tabla
+  del registro `REMAP`, `PALETA[REMAP][BORDER]` (también en las líneas con otra
+  tabla en la tabla por línea, para que los lados y las franjas de arriba y
+  abajo se vean iguales).
+- La ROM las pone con los colores de siempre al arrancar y al empezar un
+  programa nativo (`zxv_exec`, que pone después la de la pantalla de carga si la
+  trae). En el BASIC, la tabla 3 es la del editor: su remapeo y su paleta se
+  quedan como al principio.
 
 ### 4.7 Tabla por línea (`0x2000_1800`)
 
@@ -235,8 +274,8 @@ degradados, **sin tener que cambiar registros a mitad de frame**.
 ### 4.8 Cuándo se aplican los cambios
 
 En cada VBLANK el sistema toma una **instantánea** de los registros de vídeo, las
-tablas de remapeo, la tabla por línea (si está activa) y la página visible, y la
-envía a la pantalla. Esa instantánea se muestra en el frame siguiente.
+tablas de remapeo, las paletas, la tabla por línea (si está activa) y la página
+visible, y la envía a la pantalla. Esa instantánea se muestra en el frame siguiente.
 
 - Escribir en una página **que no es la visible** es siempre seguro.
 - Mientras `SYSFLAGS.LINK_BUSY = 1` (ver 8.1), el sistema todavía está leyendo la
@@ -673,7 +712,7 @@ anfitrión (`--sd`), o usa una imagen de tarjeta con el mismo código que la Pic
   (abrir para escribir, borrar, renombrar, crear carpetas) da `ZXV_E_ACCESS`.
 
 Una ruta que empieza por `ROM:` o `SD:` (sin distinguir mayúsculas) va a esa
-unidad **desde su raíz**: `ROM:graphics` es `ROM:/graficos`, y `ROM:` sola, la raíz.
+unidad **desde su raíz**: `ROM:graphics` es `ROM:/graphics`, y `ROM:` sola, la raíz.
 Sin prefijo, la ruta es de la unidad en la que está la carpeta actual. La
 carpeta actual puede estar en cualquiera de las dos: `dir_change("ROM:")`
 entra en el disco ROM y `dir_change("SD:")` vuelve a la raíz de la tarjeta.
@@ -681,7 +720,7 @@ entra en el disco ROM y `dir_change("SD:")` vuelve a la raíz de la tarjeta.
 ROM. Si no hay disco ROM, lo que va a `ROM:` da `ZXV_E_NOENT`.
 
 **La carpeta del programa (el BASIC).** El BASIC apunta la carpeta del
-fichero del que cargó el programa (`.tap`, `.tzx` o `.bas`; `NEW` y los
+fichero del que cargó el programa (`.zvb`, `.tap`, `.tzx` o `.bas`; `NEW` y los
 `.zxv` la borran). `LOAD`, `VERIFY`, `MERGE` y `OPEN #` para leer, con un
 nombre relativo que no está en la carpeta actual (probando las extensiones
 de cada orden), lo buscan ahí. La carpeta actual va antes; lo que se graba
@@ -1010,6 +1049,68 @@ minúsculas guardado en un u32, la primera letra en el byte bajo:
 | `+0x20` | `LANG` | u32 | El idioma de la máquina (§7.10). Solo lectura: se cambia con `lang_set` |
 | `+0x24` | `EDITOR` | u32 | 1 mientras el BASIC espera una orden (en el editor o con un informe en la pantalla); 0 mientras ejecuta algo, también un programa nativo. La escribe la ROM; la página de los juegos para la web (D85) la mira para empezarlos y volver a empezarlos |
 
+### 8.2 Buzón del depurador del BASIC (`0x2000_2700`)
+
+Lo comparten la ROM y un **anfitrión** que depura un programa del BASIC (el
+emulador, el panel de VS Code): el anfitrión escribe órdenes y lee las
+respuestas, sin saber BASIC (D86). Cada palabra la escribe solo uno de los
+dos. La ROM lo pone a cero al arrancar y escribe su firma; los programas no
+lo usan. Las constantes están en `zxv.h` (`ZXV_DBG_...`).
+
+| Desp. | Tipo | Nombre | Quién | Qué |
+|---|---|---|---|---|
+| `+0x00` | u32 | `MAGIC` | ROM | `0x4456585A` (`ZXVD`): esta ROM tiene depurador |
+| `+0x04` | u32 | `VERSION` | ROM | La versión del buzón: 1 |
+| `+0x08` | u32 | `CTRL` | anfitrión | Bit 0 conectado; bit 1 parar en los errores; bit 2 solo en los que no recoge `ON ERROR` |
+| `+0x0C` | u32 | `PAUSE` | anfitrión | Al cambiar, el programa para en la sentencia siguiente |
+| `+0x10` | u32 | `CMD` | anfitrión | La orden (byte bajo) y su argumento (`<< 8`) |
+| `+0x14` | u32 | `SEQ` | anfitrión | Cambia con cada orden: se escribe después de `CMD` y `TEXT` |
+| `+0x18` | u32 | `BPGEN` | anfitrión | Cambia cuando cambian los puntos de ruptura |
+| `+0x20` | u32 | `STATE` | ROM | 0 sin programa en marcha; 1 en marcha; 2 parado |
+| `+0x24` | u32 | `PAUSE_ACK` | ROM | El último `PAUSE` atendido |
+| `+0x28` | u32 | `ACK` | ROM | El último `SEQ` atendido |
+| `+0x2C` | u32 | `RESULT` | ROM | Lo que devuelve la orden (abajo) |
+| `+0x30` | u32 | `ENDS` | ROM | Cuántos programas depurados han acabado |
+| `+0x34` | u16, u8, u8 | `LINE`, `STMT`, `REASON` | ROM | Dónde está parado y por qué: 1 punto de ruptura, 2 paso, 3 pausa, 4 error |
+| `+0x38` | u8, u8, u8 | `ERR`, `DEPTH`, `END_REPORT` | ROM | El informe del error que lo ha parado; los `GO SUB` y `PROC` en curso; el informe con el que acabó el programa |
+| `+0x3C` | 48 × 4 B | `BP` | anfitrión | Puntos de ruptura: línea (u16), sentencia (u8; 0, la línea entera), activo (u8) |
+| `+0x100` | 512 B | `TEXT` | los dos | La expresión o el nombre que se pregunta; la respuesta (con un 0 al final). Al parar por un error y al acabar el programa, la ROM deja ahí el informe, como sale en la pantalla |
+
+**Paradas.** Conectado, antes de cada sentencia de un programa la ROM mira,
+por este orden, `PAUSE`, los puntos de ruptura y el paso en curso. Un punto
+de una línea entera salta al llegar a ella (también con un salto, como el de
+un `NEXT` a la misma línea); uno de una sentencia, en esa sentencia. Las
+sentencias se cuentan como en `GO TO línea, sentencia`: separan `:`, `THEN`
+y `ELSE`. Con el bit 1 de `CTRL`, también para en los errores de un
+programa (no en los de una orden directa, ni en `STOP`), antes de
+`ON ERROR` o del informe; al seguir, el error sigue su curso. Parado, la ROM pone la música
+en pausa y calla los dos AY, y espera órdenes frame a frame (la máquina
+sigue viva); al seguir, devuelve el sonido como estaba. Si el anfitrión
+quita el bit 0, el programa sigue.
+
+**Órdenes** (solo con el programa parado; la ROM responde escribiendo `ACK`
+con el `SEQ` de la orden):
+
+| `CMD` | Orden | `RESULT` y `TEXT` |
+|---|---|---|
+| 1 | Seguir | — |
+| 2 | Paso a paso: la sentencia siguiente, aunque entre en un `GO SUB` o un `PROC` | — |
+| 3 | Paso por encima: la siguiente con la misma profundidad o menos | — |
+| 4 | Salir: la siguiente con menos profundidad | — |
+| 5 | Evaluar la expresión de `TEXT` | 0 y `n⇥valor` o `s⇥longitud⇥texto`; o el informe del error y su mensaje |
+| 6 | Las variables, desde la número argumento | Una por línea (abajo) |
+| 7 | La pila, desde la llamada número argumento | `gosub⇥línea⇥sentencia` o `proc⇥línea⇥sentencia` por llamada, de la última a la primera: dónde se hizo (línea −1: desde una orden directa) |
+| 8 | Los elementos de la matriz de `TEXT` (`a`, `a$`), desde el número argumento | Uno por línea en el orden de la memoria; en las de cadenas, el texto de cada fila. `RESULT` `0xFFFFFFFF` si no existe |
+
+Las respuestas que no caben en `TEXT` siguen por páginas: `RESULT` es por
+dónde seguir (el argumento de la orden siguiente), o 0 si está todo. Las
+variables: `nombre⇥n⇥valor` (número), `nombre⇥f⇥valor⇥límite⇥paso⇥línea⇥sentencia`
+(variable de `FOR`, con dónde está su `FOR`), `nombre$⇥s⇥longitud⇥texto`
+(cadena), `nombre⇥N⇥d1,d2...` y `nombre$⇥S⇥d1,d2...` (matrices). En el
+texto de las cadenas, lo imprimible va tal cual, `\` doblada y el resto como
+`\xHH`, hasta unos 200 caracteres (la longitud es la de verdad). Los números
+salen como los escribe `PRINT`.
+
 ---
 
 ## 9. Programas nativos
@@ -1027,13 +1128,13 @@ minúsculas guardado en un u32, la primera letra en el byte bajo:
 
 ### 9.2 Formato `.ZXV`
 
-Es un ejecutable con una cabecera de 64 bytes (little-endian), seguida de la imagen
-que se copia en `load_addr`:
+Es un ejecutable con una cabecera de 72 bytes (little-endian), seguida de la
+pantalla de carga, si la hay, y de la imagen que se copia en `load_addr`:
 
 | Desp. | Tipo | Campo |
 |---|---|---|
 | `0x00` | 4 B | Firma `ZXV1` |
-| `0x04` | u16 | Tamaño de la cabecera (64) |
+| `0x04` | u16 | Tamaño de la cabecera (72) |
 | `0x06` | u16 | Versión del perfil de la especificación |
 | `0x08` | u32 | `load_addr`: dirección de carga |
 | `0x0C` | u32 | `entry`: punto de entrada |
@@ -1045,6 +1146,16 @@ que se copia en `load_addr`:
 | `0x1E` | u16 | Reservado |
 | `0x20` | u32 | CRC-32 de la imagen (el de zlib / IEEE 802.3) |
 | `0x24` | 28 B | Nombre (ASCII, terminado en cero) |
+| `0x40` | u32 | Tamaño de la pantalla de carga (0 = no hay) |
+| `0x44` | u32 | Reservado (0) |
+
+- **La pantalla de carga** (D89) va justo detrás de la cabecera, antes de la
+  imagen: los datos de un objeto pantalla de un `.gfx` (modo, color del
+  borde, marcas, 0, la paleta si la lleva y los píxeles de la página;
+  `dev/basic.md` §9.8). La ROM la pone antes de cargar la imagen, en el modo
+  y con el borde que dice, y con su paleta en la tabla 0 si la trae. Si es
+  del modo de la cabecera, el programa empieza con ella en la página 0, la
+  visible; si no, con la pantalla borrada en su modo.
 
 - **Carga** (`zxv_exec`, `LOAD`). Si el nombre no existe y no tiene extensión,
   se prueba con `.zxv`. La ROM comprueba:
@@ -1090,12 +1201,15 @@ Ver [sdk/README.md](../sdk/README.md):
 - `zxv.h`: direcciones y constantes.
 - `zxv_api.h`: la API desde C (incluye `<stdint.h>` y `<stddef.h>`, así que
   `NULL` y `size_t` están a mano); `zxv_gfx.h`, el motor gráfico.
+- `zxv_gfxfile.h` (`gfxfile.c`): lee los ficheros `.gfx`. `zxv_music.h`
+  (`music/`): la música y los efectos de los dos AY.
 - `zxv.ld` y `crt0.S`: enlazado y arranque.
 - La biblioteca estándar de C (picolibc), con los ficheros y carpetas sobre la API.
 - `tools/elf2zxv.py`: convierte un ELF en `.ZXV`; `tools/png2gfx.py`, los gráficos
-  en PNG en sprites, tiles y mapas.
+  en PNG en sprites, tiles y mapas; `tools/mkweb.py`, la página web de un
+  juego (D85).
 - Ejemplos en C: `hello`, `graphics`, `scroll`, `digital`, `files`, `boardtest`,
-  `estela`, `route128`, `mine`, `street`, `umbra` y `keep`.
+  `estela`, `route128`, `mine`, `street`, `umbra`, `keep`, `player` y `gfxedit`.
   Todos devuelven 0 al acabar bien.
 
 Previsto: `zxv.inc` con macros para ensamblador (`ZXV_CALL`, `WAIT_VBLANK`,
@@ -1129,7 +1243,8 @@ versión web (WebAssembly). Ver [la guía del emulador](../docs/es/emulator.md).
   visor de VRAM, de las colas del AY y de la tabla por línea, y **servidor GDB
   remoto** (`--gdb PUERTO`) para depurar con `riscv gdb`. Los puntos de ruptura
   no cambian la memoria del programa. Con un depurador activo, `ebreak` para la
-  CPU en él (2.4). Ver [la guía del emulador](../docs/es/emulator.md).
+  CPU en él (2.4). Con `--basic-debug PUERTO`, el buzón del depurador del BASIC
+  (8.2) por TCP. Ver [la guía del emulador](../docs/es/emulator.md).
 
 ---
 

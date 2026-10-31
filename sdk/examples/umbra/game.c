@@ -10,6 +10,11 @@
  * lámpara se apaga del todo, pierdes una de tus tres lámparas. Los niveles
  * son los mapas de umbra.gfx (maze.c).
  *
+ * La luz de la lámpara va en los colores de la vista (view_colours): con
+ * poco aceite se oscurecen poco a poco y, al final, la llama tiembla; un
+ * golpe es un destello rojo, y al empezar un nivel o encender otra lámpara
+ * la luz sube desde negro.
+ *
  * Controles: cursores o QAOP para andar y girar, Z y X para ir de lado, M
  * para el mapa de lo que ya has visto, Intro para la pausa, S para la música
  * y Esc para salir; o un mando (fuego 2 enseña el mapa). Sin tocar nada en
@@ -20,7 +25,8 @@
  * enseña los frames perdidos y lo que tarda el frame más lento, y la
  * demostración juega todos los niveles sin perder aceite: para medir. Con
  * -DUMBRA_SCORE=n la partida empieza con n puntos: para ver el marcador con
- * los números más grandes.
+ * los números más grandes; con -DUMBRA_OIL=n, cada nivel empieza con n de
+ * aceite (de 10000): para ver la niebla de cerca.
  *
  * Dónde va cada cosa en la pantalla: cada texto tiene su sitio y nada se
  * dibuja encima de otra cosa.
@@ -126,6 +132,9 @@ static struct {
 
 static uint32_t record, frame;
 static int demo, banner_t, flash_t, border;
+static int light_t, light_len;          /* la luz sube desde negro: light_t de light_len */
+static int flame, flame_to;             /* lo que tiembla la llama, x 256 */
+static uint32_t flame_rng = 1;          /* aparte: la demostración no cambia */
 static const char *banner_a, *banner_b;
 #ifdef UMBRA_STATS
 static uint32_t stats_us, stats_max, stats_t0;
@@ -349,6 +358,7 @@ static void box(const char *a, const char *b, const char *c)
     if (!n)
         return;
     zxv_gfx_rect(0, BOX_Y, W, 6 + 10 * n, 0);
+    video_ui(BOX_Y, BOX_Y + 6 + 10 * n);
     int y = BOX_Y + 4;
     for (int i = 0; i < 3; i++)
         if (lines[i]) {
@@ -362,6 +372,7 @@ static void box_big(const char *s)
 {
     static const uint8_t col[7] = { 15, 15, 13, 13, 5, 5, 1 };
     zxv_gfx_rect(0, BOX_Y, W, 30, 0);
+    video_ui(BOX_Y, BOX_Y + 30);
     text_big((W - text_width(s) * 3) / 2, BOX_Y + 4, s, 3, col);
 }
 
@@ -372,6 +383,7 @@ static void box_big(const char *s)
 static void map_screen(const char *a, const char *b, const char *c)
 {
     zxv_gfx_rect(0, 0, W, VIEW_H, 0);
+    video_ui(0, VIEW_H);
     const char *lines[3] = { a, b, c };
     for (int i = 0; i < 3; i++)
         if (lines[i])
@@ -402,7 +414,20 @@ static void frame_end(void)
         stats_max = 0;
     }
 #endif
-    /* El destello rojo del borde cuando una sombra te toca. */
+    /* La luz de la lámpara: menos con menos de la mitad del aceite, y con
+     * menos de una cuarta parte, la llama tiembla. */
+    int bright = pl.oil >= OIL_MAX / 2 ? 256 : 150 + 106 * pl.oil / (OIL_MAX / 2);
+    if (frame % 3 == 0) {
+        flame_rng = flame_rng * 1103515245u + 12345u;
+        int low = OIL_MAX / 4 - pl.oil;
+        flame_to = low > 0 ? (int)((flame_rng >> 16) % 80) * low / (OIL_MAX / 4) : 0;
+    }
+    flame = (flame + flame_to) / 2;
+    bright = bright * (256 - flame) >> 8;
+    if (light_t < light_len)
+        bright = bright * ++light_t / light_len;
+    /* Un golpe: un destello rojo en la vista y en el borde. */
+    view_colours(bright, flash_t * 176 / (ZXV_FRAME_HZ / 4));
     *(volatile uint8_t *)(uintptr_t)ZXV_V_BORDER = (uint8_t)(flash_t ? 2 : border);
     if (flash_t)
         flash_t--;
@@ -452,10 +477,16 @@ static void start_level(int lvl)
     maze_build(lvl);
     view_level(level_wall);
     place_player();
+#ifdef UMBRA_OIL
+    pl.oil = UMBRA_OIL;
+#else
     pl.oil = OIL_MAX;
+#endif
     pl.hurt = 2 * ZXV_FRAME_HZ;
     bot_target = -1;
     banner_t = 0;
+    light_t = 0;                        /* la luz sube en medio segundo */
+    light_len = ZXV_FRAME_HZ / 2;
 }
 
 /* Lo que pasa en un frame del nivel: la lámpara, las cosas, las sombras.
@@ -556,6 +587,8 @@ static int level_update(int in)
             return END_DEAD;
         pl.oil = OIL_REVIVE;
         pl.hurt = 3 * ZXV_FRAME_HZ;
+        light_t = 0;                    /* a oscuras, y se enciende la otra */
+        light_len = 2 * ZXV_FRAME_HZ;
         for (int i = 0; i < shadow_count; i++)
             shadows_respawn(&shadows[i], 7);
         banner(T("TU LÁMPARA SE APAGA", "YOUR LAMP GOES OUT"), T("ENCIENDES OTRA", "YOU LIGHT ANOTHER"), 3);
@@ -724,8 +757,11 @@ static int game(void)
  * para la demostración, -1 para salir. */
 static int title(void)
 {
-    static const uint8_t logo[7] = { 15, 15, 13, 13, 5, 5, 1 };
+    static const uint8_t logo_std[7] = { 15, 15, 13, 13, 5, 5, 1 };
+    uint8_t logo[7];
     start_level(0);
+    for (int i = 0; i < 7; i++)         /* con los colores del techo, debajo */
+        logo[i] = (uint8_t)view_ui_colour(logo_std[i]);
     sound_song(SONG_TITLE);
     sound_ambient(0, 0);
     for (int t = 0;; t++) {
@@ -744,6 +780,8 @@ static int title(void)
         text_big((W - 5 * 6 * 5 + 5) / 2, 14, "UMBRA", 5, logo);
         zxv_gfx_rect(0, 52, W, 24, 0);      /* franjas para que se lean */
         zxv_gfx_rect(0, 116, W, 13, 0);
+        video_ui(52, 76);
+        video_ui(116, 129);
         text_center(56, T("REÚNE LAS RUNAS Y BUSCA LA SALIDA", "GATHER THE RUNES AND FIND THE EXIT"), 15);
         text_center(66, T("ANTES DE QUE SE APAGUE TU LÁMPARA", "BEFORE YOUR LAMP GOES OUT"), 15);
         if (t & 32)
@@ -777,6 +815,7 @@ int main(void)
     maze_init();
     load_record();
     video_init();                       /* otra vez: lo que tarda lo de antes no son frames perdidos */
+    video_colours_init();
     input_now = 0x7FF;                  /* lo que esté pulsado al empezar no cuenta */
     for (;;) {
         int r = title();

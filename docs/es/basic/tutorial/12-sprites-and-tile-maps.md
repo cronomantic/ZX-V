@@ -212,9 +212,12 @@ programa acaba, y también tras `RUN`; `NEW` los borra. Para guardarlos todos
 en un fichero de la tarjeta SD, usa `SAVE "nombre" GRAPHICS`, y
 `LOAD "nombre" GRAPHICS` los recupera.
 
-Dibujar sprites grandes con cadenas es un trabajo lento. Puedes dibujarlos en
-el PC con cualquier programa de dibujo y convertir las imágenes con la
-herramienta `png2gfx`: la [guía del SDK](../../sdk/README.md) explica cómo.
+Dibujar sprites grandes con cadenas es un trabajo lento. Es más fácil
+dibujarlos en el PC con [`zxv-gfx`](../../sdk/graphics.md#el-editor-de-gráficos-para-el-pc-zxv-gfx),
+el editor de gráficos que viene con el emulador, que graba los `.gfx`
+directamente. También puedes usar cualquier programa de dibujo y convertir
+las imágenes con la herramienta `png2gfx`: la [guía del SDK](../../sdk/README.md)
+explica cómo.
 
 ## Pruébalo
 

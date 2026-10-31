@@ -6,7 +6,7 @@
  *   png_test SALIDA.gfx [--flip] [--key RRGGBB] ORDEN...
  *     --sprite N IMAGEN [X,Y,AN,AL]   --sprites N IMAGEN AN,AL
  *     --tiles S N IMAGEN [X,Y,AN,AL]  --level M S IMAGEN
- *     --texture N IMAGEN [C]
+ *     --texture N IMAGEN [C]          --screen N IMAGEN [B]
  */
 #include <QFile>
 #include <QGuiApplication>
@@ -63,6 +63,10 @@ int main(int argc, char **argv)
             int n = a[i++].toInt();
             Image img = load(a[i++]);
             err = Import::texture(doc, n, img, isArg(i) ? a[i++].toInt() : -1);
+        } else if (cmd == "--screen") {
+            int n = a[i++].toInt();
+            QImage img(a[i++]);
+            err = Import::screen(doc, n, img, isArg(i) ? a[i++].toInt() : -1, key);
         } else {
             err = "orden desconocida: " + cmd;
         }

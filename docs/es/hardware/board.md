@@ -225,7 +225,13 @@ Las primeras comprobaciones, **antes de soldar las Pico**, con un polímetro.
    ve un programa: el monitor (por su HPD), el reloj, la tarjeta, el teclado,
    los mandos, el ratón y el sonido (teclas 1, 2 y 3: beeper, AY por la
    izquierda y por la derecha). Pulsa MODO para ver cambiar la línea del vídeo,
-   y Esc para volver.
+   y Esc para volver. Con **P**, las paletas: los colores de siempre de la ROM
+   y los mismos puestos a mano, línea a línea, sin que se vean rayas; una rampa
+   gris; una de fuego que gira, y el borde, que cambia cada segundo (negro,
+   negro, naranja y morado) sin que cambie nada más. Con Espacio se para la
+   rampa, y el «CRC paletas» debe ser `95AF97D6`, el mismo que en el emulador y
+   que el de la página de diagnóstico (Ctrl+Alt+F12), en la línea de la ULA:
+   así las paletas llegan bien a la ULA. P otra vez vuelve a la prueba.
 
 Las Pico se pueden conectar al ordenador por su micro-USB con la placa
 encendida: los diodos de protección separan las dos alimentaciones. **Con la
@@ -237,7 +243,7 @@ enlace. Si algo no funciona, mira [Qué mirar](firmware.md#si-no-hay-imagen-o-no
 | Rótulo | Dónde | Pieza | Qué es |
 |---|---|---|---|
 | `5 V` | Detrás, a la izquierda | J1, USB-C | La corriente: cualquier cargador USB-C de 5 V y 2 A. Solo corriente, sin datos |
-| `HDMI` | Detrás, tras la ULA | J7 | La pantalla: la imagen, y el sonido en los modos HDMI |
+| `HDMI` | Detrás, tras la ULA | J7 | La pantalla: la imagen, y el sonido en el modo HDMI |
 | `AUDIO` | Detrás, tras la CPU | J8, jack de 3,5 mm | El sonido estéreo, a nivel de línea, siempre |
 | `OFF` `ON` | Delante, en la esquina izquierda | SW3 | El encendido: con la palanca a la derecha, encendida; a la izquierda, apagada |
 | `MODO` | Delante, a la izquierda | SW2 | Una pulsación corta cambia el modo de vídeo; una larga (de 1 a 5 s) enseña o quita la página de diagnóstico; apretado al encender, el modo seguro |

@@ -6,7 +6,9 @@ A 3D maze game in C for ZX-V, played in the dark. The only light is your
 lamp, and it is slowly going out. Gather each level's runes to open the
 exit gate before the oil runs out, and run from the shadows that roam the
 corridors. The walls are drawn by raycasting, and the floor and ceiling with
-the graphics engine's mode 7. The lamp's fog is made with colour tables.
+the graphics engine's mode 7. The lamp's light lives in ZX-V's palettes:
+each level has its own colours, and the dark fades through real dark shades
+instead of black dots.
 
 ```sh
 make -C sdk                       # build/umbra.zxv
@@ -22,15 +24,15 @@ It is also on the machine's ROM disk: `LOAD "ROM:umbra"`.
   the temple. Each one hides some runes. With all of them, the exit gate
   opens and leads to the next maze.
 - **The lamp:** a full one lasts 80 seconds. The less oil it has, the less
-  you can see. The colours fade, the fog comes closer, and in the end you
-  only see what is next to you. Oil flasks refill it. When it runs low, you
-  hear a heartbeat.
+  you can see. The fog comes closer, below half the light grows dim, below
+  a quarter the flame flickers, and in the end you only see what is next to
+  you. Oil flasks refill it. When it runs low, you hear a heartbeat.
 - **The shadows** roam the maze and smell you eight steps away. Then they
   chase you, and you hear their whisper, louder the closer they are. They
   are faster when your light is dim and in the later levels. A touch drinks
-  part of your oil (the border flashes red). The shadow then vanishes and
-  comes back somewhere far away. If the lamp goes out completely, you light
-  one of your spares; with none left, the game is over. Their red eyes show
+  part of your oil (a red flash). The shadow then vanishes and comes back
+  somewhere far away. If the lamp goes out completely, it goes dark and you
+  light one of your spares; with none left, the game is over. Their red eyes show
   even in the dark.
 - **The map:** what you have seen is mapped. At the bottom left you see
   your surroundings; M shows the whole maze (the game stops while you look).
@@ -111,6 +113,10 @@ the level. A level holds up to 24 runes and flasks and 8 shadows.
 The floor and ceiling are drawn with colours 1 (dark), 7 (mid) and 15
 (light), which each level replaces with its own; 0 stays black.
 
+On screen, each level has its own palettes, chosen from the colours its
+drawings use (see below). Repaint a texture or a sprite and the palettes
+follow.
+
 | Sprite | |
 |---|---|
 | 0 | The rune |
@@ -144,9 +150,9 @@ The effects play on the second AY; the music plays on the first.
 | File | |
 |---|---|
 | `umbra.h` | What the parts share: sizes, cells, objects and shadows, sound |
-| `video.c` | The screen: double buffer, the 5 × 7 font and sprites |
+| `video.c` | The screen: double buffer, the colour tables, the 5 × 7 font and sprites |
 | `art.c` | The graphics and levels from `umbra.gfx` (with `zxv_gfxfile.h`) |
-| `view.c` | The 3D view: walls, floor and ceiling, fog and objects |
+| `view.c` | The 3D view: walls, floor and ceiling, each level's palettes, fog and objects |
 | `maze.c` | The mazes (the maps), the paths and the shadows |
 | `sound.c` | Music and effects, with `zxv_music.h` |
 | `game.c` | The player, the lamp, the status bar, the map, the title and the demo |
@@ -161,9 +167,33 @@ The effects play on the second AY; the music plays on the first.
   floor's lines (`zxv_m7_camera`, with the engine's own sine table). The
   ceiling uses the lines on the other side of the horizon. Only lines that
   some wall leaves visible are drawn.
-- **The fog:** each fog level is a colour table. First the brightness goes,
-  then half the pixels turn black (a checkerboard), then three in four, and
-  finally everything is black.
+- **The colours, with palettes (D90):** with the per-line table, each line
+  of the screen takes the palette of one of the four colour tables.
+  - Table 0 keeps the usual colours: the status bar, the banners and the
+    maps (their lines switch to it for that frame).
+  - The view uses table 1 on the ceiling's lines and table 2 on the floor's.
+    The walls and objects cross both halves, so the first 12 colours are the
+    same in both: black, the shadows' red eyes and ten more. The last 4 are
+    for the ceiling, or for the floor, alone. That makes up to 36 colours on
+    screen at once: 16 in the status bar and 20 in the view.
+  - When a level starts, its palettes are chosen from the colours its
+    drawings use (counted when `umbra.gfx` is loaded) at every distance from
+    the lamp, weighted by how much each one shows. The near colours that
+    show most stay exactly as they are; the rest go, by weighted k-means, to
+    the dark shades.
+  - Every frame the view's two palettes are set again with the lamp's light
+    (dimmer with less oil, the flicker, coming up from black at the start of
+    a level or with a new lamp) and the red flash of a hit. That is 32
+    colours, and nothing is redrawn. The eyes' colour doesn't dim.
+  - Why not 64 colours, with a palette per band of floor? The walls go by
+    columns and cross every line: they would change colour at each band's
+    edge.
+- **The fog:** six levels by distance, relative to the lamp's reach, then
+  black. Level 0 has the drawings' own colours and level 1 drops the
+  brightness (as do the near side faces). From level 2 on, each one is
+  darker and slightly redder, the light of a flame. Each level is a colour
+  table: for each colour of a drawing, the nearest one in the palette or a
+  mix of two with a 4 × 4 Bayer dither.
   - The walls get their fog column by column.
   - The floor and ceiling get it line by line, with a 256-entry table for
     each byte (its two pixels). The same table also gives them the level's
@@ -193,10 +223,12 @@ Built with `make -C sdk -B build/umbra.zxv EXTRA_CFLAGS=-DUMBRA_STATS`, the
 status bar shows the lost frames and the slowest frame of the last second,
 in microseconds. In this build the demo plays every level without using oil. With
 `EXTRA_CFLAGS=-DUMBRA_SCORE=9876543` a game starts with that score, to see
-the status bar with its largest numbers.
+the status bar with its largest numbers. With `EXTRA_CFLAGS=-DUMBRA_OIL=2000`
+each level starts with that much oil (out of 10000), to see the fog and the
+flame up close.
 In the emulator (at 144 MHz) a maze frame takes under 7 ms of the 16.7 ms
-frame at 60 frames per second. The slowest frame, the one that starts a
-level (it builds the floor and ceiling colour tables), takes about 12.5 ms.
-No frame is lost. It hasn't been
+frame at 60 frames per second; the palettes cost nothing per frame. The
+slowest frame, the one that starts a level (it chooses the palettes and
+builds the colour tables), takes about 14 ms. No frame is lost. It hasn't been
 measured on the Pico 2.
 

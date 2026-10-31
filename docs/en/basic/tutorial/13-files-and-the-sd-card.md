@@ -23,8 +23,8 @@ Type a short program and save it with `SAVE` and a name:
 SAVE "hello"
 ```
 
-The program is now in the file `hello.tap` on the card: ZX-V adds the
-`.tap` ending by itself. `CAT` lists the files of the card:
+The program is now in the file `hello.zvb` on the card: ZX-V adds the
+`.zvb` ending, the one of its programs, by itself. `CAT` lists the files of the card:
 
 ```
 NEW
@@ -46,9 +46,14 @@ itself, from that line, every time it is loaded:
 SAVE "hello" LINE 10
 ```
 
-**If you know the Spectrum:** `.tap` files are the same as the Spectrum's
-tape files, so you can open your ZX-V programs in a Spectrum emulator, and
-load BASIC programs from Spectrum `.tap` and `.tzx` files.
+The file also carries the variables there were when you saved it, as on the
+Spectrum: with `LINE`, the program finds them when it starts (`RUN` clears
+them).
+
+**If you know the Spectrum:** ZX-V loads the BASIC programs in the
+Spectrum's tape files, `.tap` and `.tzx`, with `LOAD` like its own. And if you
+want to take a program to a Spectrum emulator, save it as a tape:
+`SAVE "hello.tap"`.
 
 ## Folders
 
@@ -61,8 +66,8 @@ As you save more programs, you can put them in **folders**:
 | `CD ".."` | Goes back up one folder |
 | `CD "/"` | Goes back to the main folder of the card |
 | `PRINT DIR$` | Shows the current folder |
-| `CAT "*.tap"` | Lists only the files whose names end in `.tap` (`*` means "anything") |
-| `ERASE "old.tap"` | Deletes a file. Careful: it cannot be undone |
+| `CAT "*.zvb"` | Lists only the files whose names end in `.zvb` (`*` means "anything") |
+| `ERASE "old.zvb"` | Deletes a file. Careful: it cannot be undone |
 
 You can also give the folder in the name: `LOAD "games/hello"`.
 

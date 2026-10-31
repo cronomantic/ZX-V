@@ -4,8 +4,10 @@
 #include "panels.h"
 
 #include <QCheckBox>
+#include <QColorDialog>
 #include <QComboBox>
 #include <QFormLayout>
+#include <QGridLayout>
 #include <QLabel>
 #include <QMouseEvent>
 #include <QPainter>
@@ -13,6 +15,7 @@
 #include <QSpinBox>
 #include <QStackedWidget>
 #include <QTimer>
+#include <QToolButton>
 #include <QVBoxLayout>
 #include <algorithm>
 
@@ -63,8 +66,42 @@ static const int SW = 26;               /* el lado de cada color */
 PalettePanel::PalettePanel(Editor *ed, QWidget *parent) : QWidget(parent), ed_(ed)
 {
     connect(ed_, &Editor::colorsChanged, this, QOverload<>::of(&QWidget::update));
+    /* Los colores de la pantalla elegida. */
+    connect(ed_, &Editor::documentChanged, this, QOverload<>::of(&QWidget::update));
+    connect(ed_, &Editor::selectionChanged, this, [this] {
+        updateTip();
+        update();
+    });
     setMinimumSize(sizeHint());
-    setToolTip(tr("Botón izquierdo: el color del botón izquierdo; botón derecho: el del derecho"));
+    updateTip();
+}
+
+void PalettePanel::updateTip()
+{
+    QString t = tr("Botón izquierdo: el color del botón izquierdo; botón derecho: el del derecho");
+    if (ed_->screen())
+        t += "\n" + tr("Doble clic: cambiar ese color de la pantalla (que pasa a tener su paleta)");
+    setToolTip(t);
+}
+
+void PalettePanel::editScreenColor(QWidget *parent, Editor *ed, int c)
+{
+    gfx::Screen *scr = ed->screen();
+    if (!scr || c < 0 || c > 15)
+        return;
+    QColor got = QColorDialog::getColor(QColor(scr->rgb(c)), parent,
+                                        tr("Color %1 de la pantalla %2").arg(c).arg(ed->index()));
+    if (!got.isValid())
+        return;
+    /* En RGB565, como lo guarda el fichero y lo enseña la máquina. */
+    uint16_t v = gfx::toRgb565(got.red(), got.green(), got.blue());
+    if (scr->hasPalette && scr->palette[size_t(c)] == v)
+        return;
+    ed->begin();
+    scr = ed->screen();
+    scr->hasPalette = true;
+    scr->palette[size_t(c)] = v;
+    ed->changed();
 }
 
 QSize PalettePanel::sizeHint() const
@@ -80,19 +117,22 @@ QRect PalettePanel::swatch(int c) const
 void PalettePanel::paintEvent(QPaintEvent *)
 {
     QPainter p(this);
+    /* En una pantalla, sus colores, y el 8 es uno más. */
+    const gfx::Screen *scr = ed_->screen();
+    auto rgb = [scr](int c) { return QColor(scr ? scr->rgb(c) : gfx::paletteRgb(c)); };
     for (int c = 0; c < 16; c++) {
         QRect r = swatch(c);
-        if (c == gfx::TRANSP)
+        if (c == gfx::TRANSP && !scr)
             drawChecker(p, r, 6);
         else
-            p.fillRect(r, QColor(gfx::paletteRgb(c)));
+            p.fillRect(r, rgb(c));
         p.setPen(QColor(0x60, 0x60, 0x60));
         p.setBrush(Qt::NoBrush);
         p.drawRect(r.adjusted(0, 0, -1, -1));
         for (int b = 0; b < 2; b++) {
             if (ed_->color(b) != c)
                 continue;
-            QColor mark = (c == 0 || c == 1 || c == 8 || c == 9) ? Qt::white : Qt::black;
+            QColor mark = rgb(c).lightness() < 128 ? Qt::white : Qt::black;
             QPolygon tri = b == 0 ? QPolygon({ r.topLeft(), r.topLeft() + QPoint(10, 0), r.topLeft() + QPoint(0, 10) })
                                   : QPolygon({ r.bottomRight(), r.bottomRight() - QPoint(10, 0),
                                                r.bottomRight() - QPoint(0, 10) });
@@ -106,10 +146,10 @@ void PalettePanel::paintEvent(QPaintEvent *)
     for (int b = 0; b < 2; b++) {
         QRect r(8 + b * (4 * SW), y, 34, 24);
         int c = ed_->color(b);
-        if (c == gfx::TRANSP)
+        if (c == gfx::TRANSP && !scr)
             drawChecker(p, r, 6);
         else
-            p.fillRect(r, QColor(gfx::paletteRgb(c)));
+            p.fillRect(r, rgb(c));
         p.setPen(palette().color(QPalette::WindowText));
         p.setBrush(Qt::NoBrush);
         p.drawRect(r.adjusted(0, 0, -1, -1));
@@ -123,6 +163,15 @@ void PalettePanel::mousePressEvent(QMouseEvent *e)
     for (int c = 0; c < 16; c++)
         if (swatch(c).contains(e->position().toPoint())) {
             ed_->setColor(e->button() == Qt::RightButton ? 1 : 0, c);
+            return;
+        }
+}
+
+void PalettePanel::mouseDoubleClickEvent(QMouseEvent *e)
+{
+    for (int c = 0; c < 16; c++)
+        if (e->button() == Qt::LeftButton && swatch(c).contains(e->position().toPoint())) {
+            editScreenColor(this, ed_, c);
             return;
         }
 }
@@ -208,6 +257,10 @@ void ObjectList::refresh()
             if (!doc.textures[i].empty())
                 img = gfx::toQImage(doc.textures[i].img, false);
             break;
+        case Section::Screens:
+            if (!doc.screens[i].empty())
+                img = gfx::screenImage(doc.screens[i]);
+            break;
         }
         QListWidgetItem *it = item(i);
         it->setIcon(img.isNull() ? emptyIcon(ICON) : thumbnail(img, ICON, transp));
@@ -235,6 +288,15 @@ PropertiesPanel::PropertiesPanel(Editor *ed, QWidget *parent) : QWidget(parent),
         s->setRange(lo, hi);
         s->setKeyboardTracking(false);
         return s;
+    };
+    auto colors = []() {
+        auto *c = new QComboBox;
+        for (int k = 0; k < 16; k++) {
+            QPixmap pm(16, 12);
+            pm.fill(QColor(gfx::paletteRgb(k)));
+            c->addItem(QIcon(pm), QString::number(k), k);
+        }
+        return c;
     };
     auto page = [this]() {
         auto *w = new QWidget;
@@ -267,15 +329,43 @@ PropertiesPanel::PropertiesPanel(Editor *ed, QWidget *parent) : QWidget(parent),
         texSide_->addItem(QString("%1 x %1").arg(s), s);
     fx->addRow(tr("Lado"), texSide_);
     fx->addRow(QString(), texWrap_ = new QCheckBox(tr("Se repite")));
-    texOut_ = new QComboBox;
-    for (int c = 0; c < 16; c++) {
-        QPixmap pm(16, 12);
-        pm.fill(QColor(gfx::paletteRgb(c)));
-        texOut_->addItem(QIcon(pm), QString::number(c), c);
-    }
-    fx->addRow(tr("Color de fuera"), texOut_);
+    fx->addRow(tr("Color de fuera"), texOut_ = colors());
     /* Sin objeto. */
     page();
+    /* Pantallas: el modo, el de la nueva (después no cambia). */
+    QFormLayout *fp = page();
+    scrMode_ = new QComboBox;
+    scrMode_->addItem(QStringLiteral("0 (256 x 192)"), 0);
+    scrMode_->addItem(QStringLiteral("1 (512 x 384)"), 1);
+    scrMode_->setToolTip(tr("El de la pantalla nueva; una pantalla no cambia de modo"));
+    fp->addRow(tr("Modo"), scrMode_);
+    fp->addRow(tr("Borde"), scrBorder_ = colors());
+    /* Sus colores (D90): con paleta, los suyos; si no, los de siempre. */
+    fp->addRow(tr("Colores"), scrPalette_ = new QLabel);
+    auto *swatches = new QWidget;
+    auto *grid = new QGridLayout(swatches);
+    grid->setContentsMargins(0, 0, 0, 0);
+    grid->setSpacing(2);
+    for (int k = 0; k < 16; k++) {
+        auto *b = new QToolButton;
+        b->setAutoRaise(true);
+        b->setIconSize(QSize(16, 16));
+        grid->addWidget(b, k / 8, k % 8);
+        connect(b, &QToolButton::clicked, this, [this, k] { PalettePanel::editScreenColor(this, ed_, k); });
+        scrColor_[k] = b;
+    }
+    fp->addRow(QString(), swatches);
+    scrStandard_ = new QPushButton(tr("Colores de siempre"));
+    scrStandard_->setToolTip(tr("Quita la paleta de la pantalla: cada índice, con su color de siempre"));
+    fp->addRow(QString(), scrStandard_);
+    connect(scrStandard_, &QPushButton::clicked, this, [this] {
+        gfx::Screen *scr = ed_->screen();
+        if (!scr || !scr->hasPalette)
+            return;
+        ed_->begin();
+        ed_->screen()->removePalette();
+        ed_->changed();
+    });
 
     auto *buttons = new QHBoxLayout;
     buttons->addWidget(create_ = new QPushButton);
@@ -285,7 +375,7 @@ PropertiesPanel::PropertiesPanel(Editor *ed, QWidget *parent) : QWidget(parent),
 
     for (QSpinBox *s : { spriteW_, spriteH_, tilesN_, mapW_, mapH_ })
         connect(s, &QSpinBox::valueChanged, this, &PropertiesPanel::applySize);
-    for (QComboBox *c : { mapTile_, texSide_, texOut_ })
+    for (QComboBox *c : { mapTile_, texSide_, texOut_, scrBorder_ })
         connect(c, &QComboBox::currentIndexChanged, this, &PropertiesPanel::applySize);
     for (QCheckBox *c : { mapWrap_, texWrap_ })
         connect(c, &QCheckBox::toggled, this, &PropertiesPanel::applySize);
@@ -354,6 +444,37 @@ void PropertiesPanel::refresh()
         create_->setText(tr("Crear"));
         delete_->setText(tr("Borrar"));
         break;
+    case Section::Screens: {
+        name = tr("Pantalla %1").arg(i);
+        exists = !doc.screens[i].empty();
+        const gfx::Screen &scr = doc.screens[i];
+        if (exists) {
+            scrMode_->setCurrentIndex(scr.mode());
+            scrBorder_->setCurrentIndex(scr.border);
+        }
+        /* Los colores con que se ve: los de su paleta, o los de siempre. */
+        auto hex = [](uint32_t v, int digits) { return QString::number(v, 16).rightJustified(digits, '0').toUpper(); };
+        for (int k = 0; k < 16; k++) {
+            QPixmap pm(16, 12);
+            pm.fill(QColor(exists ? scr.rgb(k) : gfx::paletteRgb(k)));
+            scrBorder_->setItemIcon(k, QIcon(pm));
+            QPixmap big(16, 16);
+            big.fill(QColor(exists ? scr.rgb(k) : gfx::paletteRgb(k)));
+            scrColor_[k]->setIcon(QIcon(big));
+            scrColor_[k]->setToolTip(tr("Color %1: #%2 (RGB565 %3). Clic: cambiarlo")
+                                         .arg(k)
+                                         .arg(hex(scr.rgb(k), 6))
+                                         .arg(hex(scr.palette[size_t(k)], 4)));
+            scrColor_[k]->setEnabled(exists);
+        }
+        scrPalette_->setText(!exists ? QString() : scr.hasPalette ? tr("los de su paleta") : tr("los de siempre"));
+        scrStandard_->setEnabled(exists && scr.hasPalette);
+        scrMode_->setEnabled(!exists);
+        pages_->setCurrentIndex(5);
+        create_->setText(tr("Crear"));
+        delete_->setText(tr("Borrar"));
+        break;
+    }
     }
     title_->setText(name);
     create_->setVisible(ed_->isTiles() || !exists);
@@ -395,6 +516,10 @@ void PropertiesPanel::applySize()
             t.wrap = texWrap_->isChecked();
             t.out = texOut_->currentData().toInt();
         }
+        break;
+    case Section::Screens:
+        if (!doc.screens[i].empty())
+            doc.screens[i].border = scrBorder_->currentData().toInt();
         break;
     }
     if (doc == before)
@@ -442,6 +567,9 @@ void PropertiesPanel::createObject()
         doc.textures[i] = gfx::Texture();
         doc.textures[i].img = gfx::Image(32, 32, 0);
         break;
+    case Section::Screens:
+        doc.screens[i] = gfx::newScreen(scrMode_->currentData().toInt(), scrBorder_->currentData().toInt());
+        break;
     }
     ed_->changed();
 }
@@ -484,6 +612,9 @@ void PropertiesPanel::deleteObject()
         break;
     case Section::Textures:
         doc.textures[i] = gfx::Texture();
+        break;
+    case Section::Screens:
+        doc.screens[i] = gfx::Screen();
         break;
     }
     ed_->changed();
@@ -595,11 +726,22 @@ void PreviewPanel::paintEvent(QPaintEvent *)
             img = gfx::toQImage(doc.textures[i].img, false);
         reps = 2;
         break;
+    case Section::Screens:
+        if (!doc.screens[i].empty())
+            img = gfx::screenImage(doc.screens[i]);
+        break;
     }
     if (img.isNull())
         return;
     int w = img.width() * z, h = img.height() * z;
-    QPoint o(a.left() + std::max(0, (a.width() - w * reps) / 2), a.top() + std::max(0, (a.height() - h * reps) / 2));
+    /* Las pantallas, con su borde (de 16 píxeles). */
+    int b = ed_->section() == Section::Screens ? 16 * z : 0;
+    QPoint o(a.left() + std::max(0, (a.width() - w * reps - 2 * b) / 2),
+             a.top() + std::max(0, (a.height() - h * reps - 2 * b) / 2));
+    if (b) {
+        p.fillRect(QRect(o, QSize(w + 2 * b, h + 2 * b)), QColor(doc.screens[i].rgb(doc.screens[i].border)));
+        o += QPoint(b, b);
+    }
     for (int y = 0; y < reps; y++)
         for (int x = 0; x < reps; x++) {
             QRect r(o + QPoint(x * w, y * h), QSize(w, h));

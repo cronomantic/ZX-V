@@ -1,6 +1,6 @@
 # El BASIC de ZX-V
 
-**Versión 0.1 (borrador).** El intérprete, el editor a pantalla completa y las
+**Versión 0.1.** El intérprete, el editor a pantalla completa y las
 extensiones de §9 ya funcionan: ver [§11](#11-estado-de-la-implementación).
 Licencia CC BY 4.0, como el resto de la documentación ([docs/LICENSE](../docs/LICENSE)).
 
@@ -131,29 +131,35 @@ y los interfaces Cursor, para los programas que leen el teclado con `IN` o
 
 La tarjeta SD (FAT, FAT32 o exFAT) sustituye a la cinta:
 
-Los programas se guardan como **`.TAP` del Spectrum** (cabecera y bloque de
-datos): se pueden abrir en cualquier emulador del Spectrum, y los `.TAP` de
-programas BASIC del Spectrum se cargan directamente.
+Los programas se guardan en su propio formato, **`.zvb`** (el programa y sus
+variables como están en la memoria; ver abajo), sin los límites de una cinta.
+Los `.TAP` y `.TZX` del Spectrum se cargan directamente, para el código BASIC
+heredado, y `SAVE "x.tap"` graba uno para llevar un programa a sus emuladores
+(D88).
 
 | Orden | Efecto |
 |---|---|
-| `LOAD "nombre"` | Sin extensión prueba `nombre.tap`, después `nombre.zxv` (lo ejecuta; al acabar, la memoria del BASIC empieza de nuevo y el informe es `0 OK` o `W`, spec §9.2), después `nombre.bas` y por último `nombre`. Lee `.TAP` y `.TZX` (el primer programa BASIC, y la deja puesta: ver abajo). Si el programa se grabó con `LINE`, arranca solo |
-| `LOAD "x" CODE [dir[, long]]` | Un bloque `CODE` de un `.TAP`, o un fichero binario en bruto (entonces `dir` es obligatoria) |
-| `LOAD "x" SCREEN$` | `CODE 16384,6912`: una pantalla `.SCR` (o de un `.TAP`) que se convierte a color por píxel; se ve igual que en el Spectrum, *clash* incluido |
-| `SAVE "x" [LINE n]`, `SAVE "x" CODE dir, long`, `SAVE "x" SCREEN$` | Equivalentes de grabación. Sin extensión, se añade `.tap`; con otra extensión, `CODE` y `SCREEN$` se graban en bruto |
+| `LOAD "nombre"` | Sin extensión prueba `nombre.zvb`, después `nombre.tap`, después `nombre.zxv` (lo ejecuta; al acabar, la memoria del BASIC empieza de nuevo y el informe es `0 OK` o `W`, spec §9.2), después `nombre.bas` y por último `nombre`. Lee `.TAP` y `.TZX` (el primer programa BASIC, y la deja puesta: ver abajo). Si el programa se grabó con `LINE`, arranca solo |
+| `LOAD "x" CODE [dir[, long]]` | Sin extensión, `x.bin` y luego `x.tap`. Un fichero en bruto necesita `dir`; el bloque `CODE` de un `.TAP` vuelve a su dirección |
+| `LOAD "x" SCREEN$` | Sin extensión, `x.gfx` (la pantalla de ZX-V, ver abajo) y luego `x.tap`. Con `.scr` o de un `.TAP`, el `CODE 16384,6912` del Spectrum, que se convierte a color por píxel; se ve igual que en el Spectrum, *clash* incluido |
+| `SAVE "x" [LINE n]` | El programa y sus variables en un `.zvb` (la extensión que se añade si no hay otra); en un `.tap` con esa extensión, como el `SAVE` del Spectrum (de `PROG` a `E_LINE`, las variables convertidas al formato del Spectrum, D87); en texto con `.bas`. Un `.tzx` no se graba |
+| `SAVE "x" CODE dir, long` | En bruto: sin extensión, `x.bin`; en un `.tap`, el bloque `CODE` del Spectrum (con la dirección, de 16 bits, y como mucho 64 KB) |
+| `SAVE "x" SCREEN$`, `LOAD "x" SCREEN$` | La pantalla del programa (página 0, su modo y su borde) como un objeto pantalla de un `.gfx` (la extensión que se añade; D89). `LOAD` la pone con `scr_set_mode` si el modo no es el de ahora; si trae paleta, sus colores van a la tabla 0. No toca la sombra del Spectrum (`SCREEN$()` no reconoce su texto). Con `.scr` o `.tap`, la del Spectrum: la sombra, `CODE 16384,6912` |
+| `SAVE "x" LINE n SCREEN$` | El programa con la pantalla de carga (la pantalla del programa), delante en el `.zvb`; `LOAD` la pone y enseña la página 0 antes de leer el programa |
+| `SAVE "x" LINE n [SCREEN$] PROTECT` | Protegido (D91): la marca en la cabecera del `.zvb` (en un `.tap` o un `.bas`, `C`). Al cargarlo arranca; al pararse (cualquier informe que llega al bucle de órdenes) se borra con sus variables, también de la memoria y de la copia para deshacer; el depurador no lo ve y `MERGE` no lo admite (`R`). Lo que grabe él mismo va protegido |
 | `LOAD "x.bas"`, `MERGE "x.bas"`, `SAVE "x.bas"` | Un listado en texto (UTF-8, LF o CR LF): cada línea se tokeniza y se comprueba como en el editor (`tokenize` y `syntax_check`, guardando `g.pc`, `g.ppc`, `g.subppc` y `g.tmp` de la orden que se ejecuta); un error para con su informe y el número de la línea del fichero. Tildes fuera (como al teclear), £ y © del Spectrum, gráficos de bloque con los cuadrantes de Unicode, y un byte que no es UTF-8 (los UDG al grabar), tal cual. Los búferes (1 + 2 KB), en la zona temporal: en el espacio de trabajo de la ROM no caben |
-| `SAVE "x" DATA a()`, `SAVE "x" DATA a$()` | Una matriz de números o de caracteres, en un `.TAP` como el del Spectrum (siempre en ese formato, aunque el nombre tenga otra extensión) |
-| `LOAD "x" DATA b()`, `LOAD "x" DATA b$()` | Carga la matriz de un `.TAP` con el nombre `b` (sustituye a la variable que se llame así, como `DIM`). El tipo debe coincidir |
+| `SAVE "x" DATA a()`, `SAVE "x" DATA a$()` | Una matriz de números o de caracteres en un `.zvd` (ver abajo; la extensión que se añade si no hay otra), o en un `.TAP` como el del Spectrum con esa extensión |
+| `LOAD "x" DATA b()`, `LOAD "x" DATA b$()` | Sin extensión, `x.zvd` y luego `x.tap`. Carga la matriz con el nombre `b` (sustituye a la variable que se llame así, como `DIM`; de un `.zvd`, se lee directamente en la nueva). El tipo debe coincidir |
 | `LOAD ""`, `LOAD "" SCREEN$`, `LOAD "" CODE`... | Lo siguiente de ese tipo en la **cinta puesta** (ver abajo) |
 | `VERIFY`, `MERGE` | Como en el Spectrum (`MERGE` no admite `DATA`) |
 | `SAVE "x" GRAPHICS`, `LOAD "x" GRAPHICS`, `VERIFY "x" GRAPHICS` | El almacén de gráficos (§9.8), en un fichero `.gfx` (la extensión que se añade si no hay otra) |
-| `CAT ["carpeta"]` | Lista la carpeta (la actual, sin nombre): primero la carpeta, luego cada fichero con su tamaño y las carpetas con `/` y `<DIR>`. Con comodines (`CAT "*.tap"`, `CAT "juegos/nivel?.dat"`) o el nombre de un fichero, solo lo que encaja |
+| `CAT ["carpeta"]` | Lista la carpeta (la actual, sin nombre): primero la carpeta, luego cada fichero con su tamaño y las carpetas con `/` y `<DIR>`. Con comodines (`CAT "*.zvb"`, `CAT "juegos/nivel?.dat"`) o el nombre de un fichero, solo lo que encaja |
 | `CD "carpeta"` | Cambia de carpeta (`"/"` es la raíz de la unidad, `".."` la de arriba). `CD "ROM:"` entra en el disco ROM y `CD "SD:"` vuelve a la tarjeta |
 | `DIR$` | La carpeta actual, como `"/juegos"` en la tarjeta o `"ROM:/"` en el disco ROM (función) |
 | `MKDIR "carpeta"`, `RMDIR "carpeta"` | Crea una carpeta; borra una carpeta vacía |
 | `ERASE "fichero"` | Borra un fichero. Con comodines (`ERASE "*.bak"`), todos los ficheros que encajan (las carpetas no) |
-| `MOVE "a" TO "b"` | Cambia el nombre de un fichero o una carpeta, o lo lleva a otra carpeta: si `b` es una carpeta, va dentro con el mismo nombre. Con comodines (`MOVE "*.tap" TO "juegos"`), `b` tiene que ser una carpeta y se mueven los ficheros que encajan (las carpetas no) |
-| `COPY "a" TO "b"` | Copia un fichero (si `b` existe, lo sustituye; si es una carpeta, va dentro). Con comodines (`COPY "*.tap" TO "copias"`), `b` tiene que ser una carpeta. Copiar un fichero sobre sí mismo da `V Disk error (already exists)`. `COPY` solo sigue copiando la pantalla a la impresora |
+| `MOVE "a" TO "b"` | Cambia el nombre de un fichero o una carpeta, o lo lleva a otra carpeta: si `b` es una carpeta, va dentro con el mismo nombre. Con comodines (`MOVE "*.zvb" TO "juegos"`), `b` tiene que ser una carpeta y se mueven los ficheros que encajan (las carpetas no) |
+| `COPY "a" TO "b"` | Copia un fichero (si `b` existe, lo sustituye; si es una carpeta, va dentro). Con comodines (`COPY "*.zvb" TO "copias"`), `b` tiene que ser una carpeta. Copiar un fichero sobre sí mismo da `V Disk error (already exists)`. `COPY` solo sigue copiando la pantalla a la impresora |
 | `LPRINT`, `LLIST`, `COPY` | Van al fichero `/printer.txt` de la tarjeta, aunque se esté en el disco ROM (`COPY` reconoce el texto de la pantalla) |
 
 **El disco ROM.** La máquina trae, además de la tarjeta, un disco de solo
@@ -163,8 +169,9 @@ arriba la admiten: `CAT "ROM:"`, `CAT "ROM:*.zxv"`, `LOAD "ROM:graphics"`,
 `SD:` empiezan siempre en la raíz de su unidad; sin prefijo, la ruta es de la
 unidad de la carpeta actual. Lo que escribe en el disco ROM (`SAVE`, `ERASE`,
 `MOVE`, `MKDIR`…) da `V Disk error (not allowed)`. Un programa que carga más
-ficheros, como el juego de plataformas, los busca en la carpeta actual: mejor
-`CD "ROM:"` y luego `LOAD "platformer"`.
+ficheros, como el juego de plataformas, los busca primero en la carpeta actual
+y después en la carpeta de la que se cargó (D84): `LOAD "ROM:platformer"`
+funciona sin `CD`. Un fichero de la carpeta actual tapa al de la del programa.
 
 **La cinta puesta.** Un `.TAP` o un `.TZX` cargado se queda puesto, como una
 cinta en la casetera, para los programas de varias partes del Spectrum (un
@@ -189,10 +196,29 @@ SCREEN$: LOAD ""` trae su pantalla y el programa.
 
 De los `.TAP` y `.TZX` se aprovechan los bloques de datos de velocidad estándar
 (BASIC, `CODE` y pantallas). El código máquina Z80 que contengan no se puede
-ejecutar. Las variables de un programa del Spectrum no se cargan (el formato
-interno es otro), pero las matrices de `SAVE ... DATA` sí, en los dos
-sentidos: los números van en la forma de 5 bytes del Spectrum (con su
+ejecutar. Las variables de un programa del Spectrum sí se cargan (D87),
+convertidas al formato de ZX-V, y las matrices de `SAVE ... DATA` también, en
+los dos sentidos: los números van en la forma de 5 bytes del Spectrum (con su
 precisión), y un 48K con su ROM original carga las que graba ZX-V.
+
+#### Formato de los ficheros `.zvb` y `.zvd`
+
+Los programas (`.zvb`) y las matrices (`.zvd`) de ZX-V (D88). Los números son
+*little-endian*:
+
+| Parte | Contenido |
+|---|---|
+| Cabecera (24 bytes) | `"ZXVB"`, versión (1 byte, 1), tipo (1 byte: 0 programa, 1 matriz de números, 2 matriz de caracteres), marcas (1 byte: en un programa con línea, bit 0 protegido, D91; los demás, 0; un fichero con otras no se carga), nombre (1 byte: la letra de la matriz, 0 en un programa), línea de arranque (2 bytes; `0xFFFF` sin ella, si no de 0 a 9999; en una matriz, `0xFFFF`), 0 (2 bytes), dos longitudes (4 bytes cada una: el programa y las variables, o la matriz y 0) y la de la pantalla de carga (4 bytes; 0 sin ella, y siempre en una matriz) |
+| Pantalla de carga | Si la hay, la primera (D89): lo mismo que los datos de un objeto pantalla del `.gfx` (modo, borde, marcas, 0, la paleta si la lleva y los píxeles). `LOAD` la enseña antes de leer el programa |
+| Matriz (`.zvd`) | Los datos de la variable, como los de abajo: dimensiones, tamaños y elementos |
+| Programa | Las líneas como en el Spectrum: número (2 bytes, *big-endian*), longitud del resto (2 bytes), los tokens y `0x0D`; los números del texto llevan detrás `0x0E` y su forma de 5 bytes, y las palabras propias de ZX-V el prefijo `0x01` |
+| Variables | Una detrás de otra, en el orden en que se crearon: tipo (1 byte: 1 número, 2 variable de `FOR`, 3 cadena, 4 matriz de números, 5 matriz de caracteres), longitud del nombre (1 byte, de 1 a 63; 1 salvo los números), el nombre (letras minúsculas y cifras, empieza por letra), longitud de los datos (4 bytes) y los datos |
+| Datos | Número: un `double` (8 bytes, IEEE 754). `FOR`: valor, límite y paso (`double`), la línea (2 bytes; `0xFFFE` en una orden directa) y la sentencia (1 byte) que siguen al `FOR`. Cadena: el texto. Matrices: dimensiones (1 byte), sus tamaños (2 bytes cada uno) y los elementos (`double` o un byte) |
+
+Detrás de las variables no hay nada más. `LOAD` comprueba todo antes de
+usarlo (líneas bien formadas, variables enteras y con `double` finitos) y,
+como en el Spectrum, lee el programa en su sitio después de borrar el de
+antes: así cabe uno tan grande como la memoria.
 
 ### 7.1 Canales de fichero
 
@@ -226,7 +252,7 @@ Un stream del 4 al 15 puede ir a un fichero de texto de la tarjeta:
 ```
 
 **Comodines:** `*` (cualquier cosa, también nada) y `?` (un carácter), sin
-distinguir mayúsculas, solo en el último nombre de la ruta (`"juegos/*.tap"` sí;
+distinguir mayúsculas, solo en el último nombre de la ruta (`"juegos/*.zvb"` sí;
 en la parte de la carpeta, `F Invalid file name`). Si no encaja nada, `T File not
 found`.
 
@@ -331,11 +357,11 @@ de su número (desde `0x80`), para que el formato de las líneas siga siendo el
 del Spectrum. Las sentencias solo se reconocen al principio de una sentencia,
 así que no estropean programas que usen esos nombres como variables; las
 funciones (`TIME`, `JOY`, `KEY`, `ERR`, `ERL`, `HIT`, `CELL`, `PIXEL`, `MOUSE`,
-`CLOCK`, `DIR$`) y
+`CLOCK`, `DIR$`, `MUSIC`, `SFX`) y
 `ELSE` se reconocen en cualquier sitio. `PLAY` lleva el token del 128K (`0xA4`), así que
 los programas del 128K que lo usan se cargan tal cual.
 
-Quedan libres los números `0xBC`–`0xFF` (y otros bytes de prefijo, si hiciera
+Quedan libres los números `0xC1`–`0xFF` (y otros bytes de prefijo, si hiciera
 falta). Los números ya usados no cambian nunca, porque están en los
 programas grabados. Como algunos coinciden con tokens del Spectrum, lo que
 recorre las líneas byte a byte (como la renumeración) salta siempre el par
@@ -399,6 +425,9 @@ Si no existe: `X Label not found`. Las etiquetas no cambian al renumerar.
 | `REMAP #t; v, c[; v, c…]` | Lo mismo en la tabla `t` (0–2), que no se ve hasta que se elige con `REMAP #t` o se pone en unas líneas con `RASTER REMAP` |
 | `REMAP #t` | Toda la pantalla usa la tabla `t`: cambia todos los colores de golpe |
 | `REMAP` | Las tres tablas vuelven a la identidad y se usa la 0 |
+| `PALETTE c, r, g, b[; c, r, g, b…]` | El color `c` (0–15) de la paleta de la tabla 0 se ve con ese RGB (0–255 cada uno; 215 es el nivel normal), sin tocar la VRAM (D90, [spec.md §4.6](spec.md)) |
+| `PALETTE #t; c, r, g, b[; …]` | Lo mismo en la paleta de la tabla `t` (0–2) |
+| `PALETTE #t`, `PALETTE` | La paleta `t`, o las tres, vuelven a los colores de siempre |
 | `RASTER BORDER y1, y2, c` | Las líneas `y1` a `y2` tienen el borde del color `c` (0–15, también los brillantes) |
 | `RASTER REMAP y1, y2, t` | Las líneas `y1` a `y2` usan la tabla de remapeo `t` |
 | `RASTER SCROLL y1, y2, x[, y]` | Las líneas `y1` a `y2` tienen su propio scroll horizontal `x` y, si se da `y`, enseñan las líneas de la página desde la `y` (pantallas partidas con scroll independiente) |
@@ -408,15 +437,16 @@ Si no existe: `X Label not found`. Las etiquetas no cambian al renumerar.
 - **Tabla por línea:** `RASTER` escribe en la tabla por línea de la máquina
   ([spec.md §4.7](spec.md)), que la pantalla aplica línea a línea sin gastar
   nada de la CPU. Las líneas son las filas de píxeles de la pantalla, con la 0
-  arriba como en `SPRITE`; las del borde son negativas (hasta −48 en modo 0 y
-  −96 en modo 1) o pasan del alto (hasta 239 y 479). Lo que no se toca queda
+  arriba como en `SPRITE`; las del borde son negativas (hasta −24 en modo 0 y
+  −48 en modo 1) o pasan del alto (hasta 215 y 431). Lo que no se toca queda
   como dicen `BORDER`, `REMAP #t` y `SCROLL`. `MODE` deja la pantalla como al
-  principio: sin tabla por línea y con las tablas de remapeo en la identidad.
+  principio: sin tabla por línea, con las tablas de remapeo en la identidad y
+  las paletas con los colores de siempre.
   El editor no la usa, y al volver a la pantalla del programa sigue ahí.
 
   ```
   10 REM Rayas en el borde, como al cargar una cinta
-  20 FOR y=-48 TO 239 STEP 4: RASTER BORDER y,y+1,2: RASTER BORDER y+2,y+3,5: NEXT y
+  20 FOR y=-24 TO 212 STEP 4: RASTER BORDER y,y+1,2: RASTER BORDER y+2,y+3,5: NEXT y
   30 REM La tinta 1 cambia de color por franjas
   40 REMAP #1; 1,9: REMAP #2; 1,5: REMAP #0; 1,13
   50 RASTER REMAP 0,63,1: RASTER REMAP 64,127,2
@@ -631,13 +661,14 @@ es el transparente):
 | Tiles (tipo 2) | El número es el lado (8 o 16). Cuántos (2 bytes), 0 (2 bytes) y los tiles seguidos (lado × lado / 2 bytes cada uno) |
 | Mapa (tipo 3) | Ancho y alto (2 bytes), lado del tile y repetición (1 byte cada uno), 0 (2 bytes) y las celdas (2 bytes), fila a fila |
 | Textura (tipo 4) | log₂ del lado, repetición, color de fuera y 0 (1 byte cada uno) y los texels, uno por byte |
+| Pantalla (tipo 5) | Modo (1 byte, 0 o 1), color del borde (1 byte, 0–15), marcas (1 byte: bit 0, lleva paleta; los demás, 0), 0 (1 byte), la paleta si la lleva (16 colores RGB565, 32 bytes: los de cada índice como se veían, D90) y los píxeles de la página como en la VRAM: 192 líneas de 128 bytes en modo 0 (24.576) o 384 de 256 en modo 1 (98.304). `SAVE "x" SCREEN$` graba la pantalla del programa (la página 0) como el objeto 0 (D89); `LOAD GRAPHICS` se salta las pantallas |
 
 `examples/basic/platformer` es un juego completo hecho así: gráficos
 convertidos con `png2gfx`, mapa con scroll, sprites con doble buffer,
 colisiones con `CELL` y `HIT`, sonido y récord en la tarjeta.
 
 Un bucle del BASIC dibuja unos 380 sprites de 16 × 16 por frame (medido en el
-emulador); el coste está más en interpretar cada sentencia que en el dibujo.
+emulador, a 50 Hz, antes de D81); el coste está más en interpretar cada sentencia que en el dibujo.
 
 ## 10. Pendiente
 
@@ -672,6 +703,12 @@ gráficos, ficheros y carpetas, comodines, el reloj, el idioma, el ratón y
 las capturas de las órdenes de vídeo y gráficos, los ficheros en una carpeta y
 en una imagen de tarjeta, y la cinta puesta.
 
+El depurador (D86): desde fuera (el panel de VS Code, `zxv-sdl --basic-debug`)
+se para un programa en cualquier sentencia y se ven sus variables y su pila, a
+través del buzón de [spec.md §8.2](spec.md). El gancho va en `stmt_loop`; lo
+demás, en `rom/src/basic/debug.c`. Sus guiones: `debug`, `debugvars` y
+`debugerr`.
+
 Diferencias conocidas:
 
 - La fuente es propia, así que los píxeles de las letras no coinciden.
@@ -699,4 +736,4 @@ creó; pero el intérprete recuerda dónde encontró lo último que buscó
 vez (D76). `SPEED 0` sigue contando lo que recorrería el 48K. Medido en el
 emulador, 30.000 `GO SUB` a una subrutina con 300 líneas en medio tardaban
 252 imágenes y ahora 56, lo mismo que sin esas líneas; 30.000 `LET a=a+b`
-con 60 variables creadas antes, de 111 a 35.
+con 60 variables creadas antes, de 111 a 35 (medido a 50 Hz, antes de D81).

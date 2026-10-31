@@ -1,7 +1,7 @@
 /*
  * zxv_gfxfile.h - Los gráficos de un fichero .gfx (los de zxv-gfx, el editor
- * GFX de la ROM y png2gfx.py), ya en memoria: sprites, tiles, mapas y
- * texturas, en los formatos de zxv_gfx.h.
+ * GFX de la ROM y png2gfx.py), ya en memoria: sprites, tiles, mapas,
+ * texturas, en los formatos de zxv_gfx.h, y pantallas.
  *
  * El fichero puede estar donde sea: leído de la tarjeta con zxv_file_load o
  * dentro del programa (.incbin). Sus objetos no van alineados, así que cada
@@ -30,6 +30,7 @@
 #define ZXV_GFXF_TILES      2           /* su número es el lado: 8 o 16 */
 #define ZXV_GFXF_MAP        3
 #define ZXV_GFXF_TEXTURE    4
+#define ZXV_GFXF_SCREEN     5           /* una pantalla entera (D89) */
 
 typedef struct {
     const uint8_t *data;
@@ -58,5 +59,17 @@ uint32_t zxv_gfxf_map(const zxv_gfxfile *f, int num, zxv_tilemap *m, const void 
 
 /* La textura num de modo 7: sus texels se copian en buf. */
 uint32_t zxv_gfxf_texture(const zxv_gfxfile *f, int num, zxv_m7tex *t, void *buf, uint32_t room);
+
+/* La pantalla num: su modo (0 o 1) en *mode, el color de su borde en
+ * *border y sus píxeles en buf, como los de una página de la VRAM (24.576
+ * bytes en modo 0, 98.304 en modo 1). buf puede ser la página que no se ve
+ * (ZXV_VRAM1_BASE): luego se cambia de página (o se pone el modo y el borde)
+ * en el VBLANK. */
+uint32_t zxv_gfxf_screen(const zxv_gfxfile *f, int num, int *mode, int *border, void *buf, uint32_t room);
+
+/* Los 16 colores RGB565 con los que se veía la pantalla num (D90), para
+ * ponerlos en una paleta (ZXV_PALETTE(t)): 1 si los lleva; si no, 0 y los
+ * colores de siempre. */
+int zxv_gfxf_screen_palette(const zxv_gfxfile *f, int num, uint16_t pal[16]);
 
 #endif /* ZXV_GFXFILE_H */

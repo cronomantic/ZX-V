@@ -40,8 +40,60 @@
 #define ZXV_REMAP_TABLES        (ZXV_SYS_BASE + 0x1200u)
 #define ZXV_PLATFORM_IF         (ZXV_SYS_BASE + 0x1240u)
 #define ZXV_LINE_TABLE          (ZXV_SYS_BASE + 0x1800u)
+#define ZXV_DBG_BOX             (ZXV_SYS_BASE + 0x2700u)
 #define ZXV_ROM_WORKSPACE       (ZXV_SYS_BASE + 0x2A00u)
 #define ZXV_ROM_WORKSPACE_END   (ZXV_SYS_BASE + 0x4000u)
+
+/* --- El buzón del depurador del BASIC (spec §8.2) -----------------------
+ * Lo escriben la ROM y el anfitrión (el emulador, el panel de VS Code), cada
+ * palabra solo uno de los dos. Desplazamientos desde ZXV_DBG_BOX. */
+#define ZXV_DBG_SIZE            0x300u
+#define ZXV_DBG_MAGIC_VALUE     0x4456585Au     /* "ZXVD" */
+#define ZXV_DBG_VERSION_VALUE   1u
+#define ZXV_DBG_MAGIC           0x00u   /* u32, ROM: ZXV_DBG_MAGIC_VALUE */
+#define ZXV_DBG_VERSION         0x04u   /* u32, ROM */
+#define ZXV_DBG_CTRL            0x08u   /* u32, anfitrión: ZXV_DBGC_... */
+#define ZXV_DBG_PAUSE           0x0Cu   /* u32, anfitrión: + 1 = parar ya */
+#define ZXV_DBG_CMD             0x10u   /* u32, anfitrión: orden | argumento << 8 */
+#define ZXV_DBG_SEQ             0x14u   /* u32, anfitrión: cambia con cada orden */
+#define ZXV_DBG_BPGEN           0x18u   /* u32, anfitrión: cambia con los puntos */
+#define ZXV_DBG_STATE           0x20u   /* u32, ROM: ZXV_DBGS_... */
+#define ZXV_DBG_PAUSE_ACK       0x24u   /* u32, ROM: el último PAUSE atendido */
+#define ZXV_DBG_ACK             0x28u   /* u32, ROM: el último SEQ atendido */
+#define ZXV_DBG_RESULT          0x2Cu   /* u32, ROM: lo que sigue (por páginas) o el informe */
+#define ZXV_DBG_ENDS            0x30u   /* u32, ROM: programas acabados */
+#define ZXV_DBG_LINE            0x34u   /* u16, ROM: dónde está parada */
+#define ZXV_DBG_STMT            0x36u   /* u8 */
+#define ZXV_DBG_REASON          0x37u   /* u8: ZXV_DBGR_... */
+#define ZXV_DBG_ERR             0x38u   /* u8: el informe, si ha parado por un error */
+#define ZXV_DBG_DEPTH           0x39u   /* u8: GO SUB y PROC en curso */
+#define ZXV_DBG_END_REPORT      0x3Au   /* u8: el informe con el que acabó */
+#define ZXV_DBG_BP              0x3Cu   /* ZXV_DBG_BP_MAX x (u16 línea, u8 sentencia, u8 activo) */
+#define ZXV_DBG_BP_MAX          48u
+#define ZXV_DBG_TEXT            0x100u  /* texto de ida y vuelta */
+#define ZXV_DBG_TEXT_SIZE       0x200u
+
+#define ZXV_DBGC_ON             0x01u   /* CTRL: conectado */
+#define ZXV_DBGC_ERRORS         0x02u   /* parar en los errores */
+#define ZXV_DBGC_UNCAUGHT       0x04u   /* ... solo en los que no recoge ON ERROR */
+
+#define ZXV_DBGS_IDLE           0u      /* STATE: no hay programa en marcha */
+#define ZXV_DBGS_RUNNING        1u
+#define ZXV_DBGS_STOPPED        2u
+
+#define ZXV_DBGR_BREAKPOINT     1u      /* REASON */
+#define ZXV_DBGR_STEP           2u
+#define ZXV_DBGR_PAUSE          3u
+#define ZXV_DBGR_ERROR          4u
+
+#define ZXV_DBGO_CONTINUE       1u      /* CMD */
+#define ZXV_DBGO_STEP_IN        2u
+#define ZXV_DBGO_STEP_OVER      3u
+#define ZXV_DBGO_STEP_OUT       4u
+#define ZXV_DBGO_EVAL           5u      /* TEXT: la expresión */
+#define ZXV_DBGO_VARS           6u      /* argumento: desde qué variable */
+#define ZXV_DBGO_STACK          7u      /* argumento: desde qué marco */
+#define ZXV_DBGO_ARRAY          8u      /* TEXT: el nombre; argumento: desde qué elemento */
 
 /* --- Registros de vídeo (spec §4.5) ------------------------------------- */
 #define ZXV_V_MODE              (ZXV_VIDEO_REGS + 0x00u)   /* u8  */
@@ -53,6 +105,24 @@
 #define ZXV_V_REMAP             (ZXV_VIDEO_REGS + 0x08u)   /* u8  */
 #define ZXV_V_VSIZE             (ZXV_VIDEO_REGS + 0x09u)   /* u8, campo virtual (modo 0) */
 #define ZXV_V_OUT_INFO          (ZXV_VIDEO_REGS + 0x0Cu)   /* u32, solo lectura */
+
+/* Las paletas (spec §4.6, D90): 4 tablas de 16 colores RGB565 (u16). Un píxel
+ * de valor v en una línea con la tabla t se ve con
+ * ZXV_PALETTES[t][ZXV_REMAP_TABLES[t][v]]. */
+#define ZXV_PALETTES            (ZXV_VIDEO_REGS + 0x80u)
+#define ZXV_PALETTE(t)          (ZXV_PALETTES + 32u * (uint32_t)(t))
+/* Un color RGB565 de r, g, b de 0 a 255, con la curva de la salida (spec
+ * §4.1): 215 (D7) es el nivel normal, 27 (54 en verde), y de ahí a 255 en
+ * línea recta. ZXV_RGB(215, 0, 0) es el rojo de siempre. */
+#define ZXV_TO5(v)              ((v) <= 215u ? ((v) * 27u + 107u) / 215u : 27u + (((v) - 215u) * 4u + 20u) / 40u)
+#define ZXV_TO6(v)              ((v) <= 215u ? ((v) * 54u + 107u) / 215u : 54u + (((v) - 215u) * 9u + 20u) / 40u)
+#define ZXV_RGB(r, g, b)        ((uint16_t)((ZXV_TO5((uint32_t)(r)) << 11) | (ZXV_TO6((uint32_t)(g)) << 5) | \
+                                            ZXV_TO5((uint32_t)(b))))
+/* El color de siempre del índice i (spec §4.1), en RGB565. */
+#define ZXV_STD_CHAN5(i, bit)   (((i) & (bit)) ? (((i) & 8) ? 31u : 27u) : 0u)
+#define ZXV_STD_RGB565(i)       ((uint16_t)((ZXV_STD_CHAN5(i, 2) << 11) | \
+                                            ((((i) & 4) ? (((i) & 8) ? 63u : 54u) : 0u) << 5) | \
+                                            ZXV_STD_CHAN5(i, 1)))
 
 #define ZXV_VFLAG_LINETAB       0x01u
 #define ZXV_VFLAG_BLANK         0x02u
@@ -308,7 +378,7 @@
 #define ZXV_E_INVAL             (-17)   /* valor no válido (una fecha que no existe) */
 
 /* --- Ejecutables .ZXV (spec §9.2) ---------------------------------------- */
-#define ZXV_HDR_SIZE            64
+#define ZXV_HDR_SIZE            72
 #define ZXV_HDR_MAGIC           0x3156585Au     /* "ZXV1" */
 #define ZXV_HDR_PROFILE         1u
 #define ZXV_H_MAGIC             0x00
@@ -323,6 +393,20 @@
 #define ZXV_H_FLAGS             0x1D    /* u8, reservado: 0 al escribir, se ignora al leer */
 #define ZXV_H_CRC               0x20
 #define ZXV_H_NAME              0x24    /* char[28] */
+#define ZXV_H_SCREEN            0x40    /* u32: la pantalla de carga, detrás de la cabecera */
+
+/* --- Pantallas (D89): el objeto pantalla de un .gfx y la pantalla de carga
+ * de un .zxv o un .zvb. Modo (u8), color del borde (u8), marcas (u8), 0 (u8),
+ * la paleta si la lleva (D90) y los píxeles de la página como en la VRAM. -- */
+#define ZXV_SCREEN_HEAD         4
+#define ZXV_SCREEN_PIXELS(mode) ((mode) ? 98304u : 24576u)
+#define ZXV_SCREEN_SIZE(mode)   (ZXV_SCREEN_HEAD + ZXV_SCREEN_PIXELS(mode))
+/* Las marcas (el byte 2): con paleta, sus 16 colores RGB565 (32 bytes) van
+ * antes de los píxeles (D90). */
+#define ZXV_SCREEN_F_PALETTE    0x01u
+#define ZXV_SCREEN_PALETTE      32u
+#define ZXV_SCREEN_SIZE_F(mode, flags) \
+    (ZXV_SCREEN_SIZE(mode) + (((flags) & ZXV_SCREEN_F_PALETTE) ? ZXV_SCREEN_PALETTE : 0u))
 
 /* --- Temporización ------------------------------------------------------ */
 #define ZXV_FRAME_HZ            60      /* D81; lo del Spectrum, en cincuentavos */
