@@ -84,6 +84,7 @@ const E = {
     rush: 0,                    // > 0: tantos frames en cada vuelta, sin esperar al reloj
     manual: false,              // las pruebas hacen los frames a mano
     hold: false,                // la página de un juego, quieta hasta que se pulsa jugar
+    still: false,               // se enseña una imagen fija (showStill), no la máquina
 };
 
 let image = null;
@@ -155,7 +156,25 @@ function withStr(s, f) {
     try { return f(p); } finally { Module._free(p); }
 }
 
+/* Una imagen fija del cuadro (640 x 480, RGBA) en vez de la máquina, con el
+ * mismo escalado: la pantalla de carga de la página de un juego. Hasta
+ * clearStill, los frames de la máquina no se enseñan. */
+function showStill(rgba) {
+    E.still = true;
+    if (gl) {
+        gl.bindTexture(gl.TEXTURE_2D, glTex);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, H, gl.RGBA, gl.UNSIGNED_BYTE, rgba);
+        frameStale = false;
+    }
+    frameCtx.putImageData(new ImageData(new Uint8ClampedArray(rgba.buffer, rgba.byteOffset, W * H * 4), W, H), 0, 0);
+    present();
+}
+
+function clearStill() { E.still = false; }
+
 function draw() {
+    if (E.still)
+        return;
     const ptr = E.core.screen();
     if (!image || image.data.buffer !== Module.HEAPU8.buffer || image.ptr !== ptr) {
         image = new ImageData(new Uint8ClampedArray(Module.HEAPU8.buffer, ptr, W * H * 4), W, H);
@@ -546,6 +565,10 @@ function init(opts) {
                 paused: c('paused', 'number', []),
                 pause: c('pause', null, ['number']),
                 step: c('step', null, []),
+                // El buzón del depurador del BASIC (spec §8.2); no lo tienen
+                // los núcleos anteriores a la 0.7.
+                dbgRead: c('dbg_read', 'number', ['number', 'number']),
+                dbgWrite: c('dbg_write', null, ['number', 'number', 'number']),
             };
             FS.mkdir(opts.card);
             FS.mount(FS.filesystems.IDBFS, {}, opts.card);
@@ -569,7 +592,7 @@ function init(opts) {
 
 Object.assign(E, {
     init, langCode, withStr, draw, present, shownRect, frame, frameCanvasNow, pixel, canvasPixel,
-    startAudio, audioPaced, syncCard, isDir, exists, focusKeys, extraJoy,
+    showStill, clearStill, startAudio, audioPaced, syncCard, isDir, exists, focusKeys, extraJoy,
 });
 return E;
 })();

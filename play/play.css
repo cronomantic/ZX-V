@@ -84,6 +84,8 @@ html, body {
     z-index: 4;
 }
 #portada { background: radial-gradient(circle at 50% 40%, #1d2a4a, #000 70%); }
+/* Con pantalla de carga, se ve detrás de la portada. */
+body.con-carga #portada { background: rgba(0, 0, 0, 0.55); }
 #portada[hidden], #parado[hidden], #cargando[hidden] { display: none; }
 #titulo {
     margin: 0 1em;

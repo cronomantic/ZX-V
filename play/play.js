@@ -13,6 +13,9 @@
  * se para enseguida varias veces seguidas, se enseña la pantalla del BASIC
  * (con el informe) y un botón para volver a empezar.
  *
+ * Si el programa tiene pantalla de carga (D89), se ve ella mientras arranca,
+ * y detrás de la portada, en vez de la pantalla vacía.
+ *
  * La tarjeta es la carpeta /tarjeta-ID, con su propia base de datos de
  * IndexedDB: los récords de cada juego se quedan en el navegador y no se
  * mezclan con los de otros juegos del mismo sitio (itch.io).
@@ -92,11 +95,62 @@ E.border = Number.isInteger(G.border) ? Math.min(2, Math.max(0, G.border)) : 0;
 E.fit = ['proporcion', 'entera', 'llenar'].includes(G.fit) ? G.fit : 'proporcion';
 E.muted = store('silencio') === '1';
 
+/* Un color RGB565 en 8 bits por canal, con la curva de la salida (spec §4.1):
+ * los colores de siempre dan exactamente D7 y FF. */
+function rgb565(c) {
+    const ch5 = v => (v <= 27 ? ((v * 215 + 13) / 27) | 0 : 215 + (v - 27) * 10);
+    const g = (c >> 5) & 63;
+    return [ch5(c >> 11), g <= 54 ? ((g * 215 + 27) / 54) | 0 : 215 + (((g - 54) * 40 + 4) / 9 | 0), ch5(c & 31)];
+}
+
+/* La pantalla de carga de game.js (los datos de un objeto pantalla: modo,
+ * borde, marcas, 0, la paleta si la lleva y los píxeles de la página) como
+ * el cuadro de 640 x 480 en RGBA. */
+function stillImage() {
+    if (!G.screen)
+        return null;
+    const b = base64(G.screen), mode = b[0], withPal = b[2] & 1;
+    const at = 4 + (withPal ? 32 : 0);          /* los píxeles */
+    if (mode > 1 || (b[2] & ~1) || b.length !== at + (mode ? 98304 : 24576))
+        return null;
+    /* Con paleta (D90), sus 16 colores; si no, los de siempre. */
+    const pal = [];
+    for (let i = 0; i < 16; i++) {
+        const lvl = i & 8 ? 255 : 0xD7;
+        pal.push(withPal ? rgb565(b[4 + 2 * i] | b[5 + 2 * i] << 8) : [i & 2 ? lvl : 0, i & 4 ? lvl : 0, i & 1 ? lvl : 0]);
+    }
+    const out = new Uint8Array(E.W * E.H * 4), k = mode ? 1 : 2, line = mode ? 256 : 128;
+    for (let y = 0; y < E.H; y++) {
+        for (let x = 0; x < E.W; x++) {
+            const ax = x - 64, ay = y - 48;
+            let c = b[1];
+            if (ax >= 0 && ax < 512 && ay >= 0 && ay < 384) {
+                const px = (ax / k) | 0, v = b[at + ((ay / k) | 0) * line + (px >> 1)];
+                c = px & 1 ? v >> 4 : v & 15;
+            }
+            const o = (y * E.W + x) * 4;
+            out[o] = pal[c][0];
+            out[o + 1] = pal[c][1];
+            out[o + 2] = pal[c][2];
+            out[o + 3] = 255;
+        }
+    }
+    return out;
+}
+let still = null;
+
 function hidden(on) {
-    canvas.classList.toggle('oculto', on);
+    /* Con pantalla de carga, se ve ella en vez de no verse nada. */
+    canvas.classList.toggle('oculto', on && !still);
+    if (still) {
+        if (on)
+            E.showStill(still);
+        else
+            E.clearStill();
+    }
     E.silent = on;
     E.rush = on ? RUSH : 0;
-    loading.hidden = !on || !clicked;
+    loading.hidden = !on || !clicked || !!still;
 }
 
 function setState(s) {
@@ -392,7 +446,11 @@ E.init({
     onLog: text => console.log(text),
     afterFrame,
     /* El juego, como disco ROM: web_start lo pone en ROM:. */
-    prepare: () => E.FS.writeFile('/romdisk.bin', base64(G.romdisk)),
+    prepare: () => {
+        E.FS.writeFile('/romdisk.bin', base64(G.romdisk));
+        still = stillImage();
+        document.body.classList.toggle('con-carga', !!still);   /* la portada, encima */
+    },
     loaded: err => {
         if (err)
             console.warn(T.nocard);
@@ -416,6 +474,7 @@ window.zxvPlay = {
     runFrames(n) { for (let i = 0; i < n && !E.hold; i++) E.frame(); },
     get state() { return state; },
     get visible() { return !canvas.classList.contains('oculto'); },
+    get still() { return E.still; },
     get hold() { return E.hold; },
     get joy() { return E.extraJoy[0]; },
     get restarts() { return restarts; },

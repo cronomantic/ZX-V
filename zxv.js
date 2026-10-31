@@ -72,8 +72,8 @@ const EN = {
     'Nombre de la carpeta:': 'Folder name:',
     'Nombre del programa en la tarjeta (sin extensión):': 'Program name on the card (no extension):',
     'Abierto: %1': 'Opened: %1',
-    'No sé abrir %1: los programas son .zxv, .tap o .tzx; los listados, .bas o .txt; las instantáneas, .zxvs':
-        'Cannot open %1: programs are .zxv, .tap or .tzx; listings, .bas or .txt; snapshots, .zxvs',
+    'No sé abrir %1: los programas son .zvb, .zxv, .tap o .tzx; los listados, .bas o .txt; las instantáneas, .zxvs':
+        'Cannot open %1: programs are .zvb, .zxv, .tap or .tzx; listings, .bas or .txt; snapshots, .zxvs',
     'Instantánea guardada': 'Snapshot saved',
     'Instantánea cargada: %1': 'Snapshot loaded: %1',
     'Este navegador no puede guardar la tarjeta: se perderá al cerrar la página.':
@@ -330,14 +330,14 @@ function openFile(path) {
     if (ext === '.bas' || ext === '.txt') {
         E.core.reset();
         E.withStr(new TextDecoder().decode(E.FS.readFile(path)), p => E.core.paste(p, 40));
-    } else if (ext === '.zxv' || ext === '.tap' || ext === '.tzx') {
+    } else if (ext === '.zvb' || ext === '.zxv' || ext === '.tap' || ext === '.tzx') {
         E.core.reset();
         const slash = rel.lastIndexOf('/');
         const base = rel.slice(slash + 1).replace(/\.[^.]*$/, '');
         const keys = (slash > 0 ? `CD "/${rel.slice(0, slash)}"\\n` : '') + `LOAD "${base}"\\n`;
         E.withStr(keys, p => E.core.type(p, 25));
     } else {
-        message(t('No sé abrir %1: los programas son .zxv, .tap o .tzx; los listados, .bas o .txt; las instantáneas, .zxvs', name));
+        message(t('No sé abrir %1: los programas son .zvb, .zxv, .tap o .tzx; los listados, .bas o .txt; las instantáneas, .zxvs', name));
         return false;
     }
     message(t('Abierto: %1', rel));
@@ -407,7 +407,7 @@ function showCard() {
         } else {
             cName.textContent = name;
             cSize.textContent = String(E.FS.stat(path).size);
-            if (/\.(zxv|tap|tzx|bas|txt|zxvs)$/i.test(name))
+            if (/\.(zvb|zxv|tap|tzx|bas|txt|zxvs)$/i.test(name))
                 link(t('abrir'), () => { document.getElementById('d-tarjeta').close(); openFile(path); });
             link(t('descargar'), () => download(name, E.FS.readFile(path)));
         }
