@@ -77,6 +77,8 @@ if(Python3_FOUND)
     add_test(NAME gfx-png
              COMMAND ${Python3_EXECUTABLE} ${ZXV_GFX_DIR}/tests/png_test.py $<TARGET_FILE:zxv_gfx_png_test>
                      ${CMAKE_CURRENT_BINARY_DIR}/gfx-png)
+    # Sin pantalla, como en la CI: el QGuiApplication de la prueba no abre X11.
+    set_tests_properties(gfx-png PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     add_test(NAME gfx-ventana
              COMMAND ${Python3_EXECUTABLE} ${ZXV_GFX_DIR}/tests/window_test.py $<TARGET_FILE:zxv-gfx>
                      ${CMAKE_CURRENT_BINARY_DIR}/gfx-ventana)

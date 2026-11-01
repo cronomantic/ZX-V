@@ -327,7 +327,7 @@ lista todas). Estas son las que más vas a usar:
 | `--screenshot F.bmp` | Guarda la pantalla al terminar |
 | `--wav F.wav` | Graba el sonido en un fichero WAV |
 | `--strict` | Modo estricto: avisa de lo que la máquina real no permitiría |
-| `--version` | Escribe la versión de ZX-V (`ZX-V 0.7.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
+| `--version` | Escribe la versión de ZX-V (`ZX-V 0.7.1`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
 
 Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
 `--profile`, `--panel`, `--test`, `--fail-on-warning`) son para programadores:
@@ -381,6 +381,12 @@ los compiladores, para que los editores lo entiendan. `--lang es` o
 
 Solo mira la sintaxis de cada línea: los errores que salen al ejecutar (una
 variable que no existe, un `NEXT` sin `FOR`...) los da `RUN`.
+
+`zxv-check --keywords` da las palabras clave del BASIC como JSON, sacadas
+del propio tokenizador: sus códigos, cuáles son funciones y dónde se
+reconocen (al principio de una sentencia, en cualquier sitio, o solo en
+`SAVE`, `LOAD`, `VERIFY` y `MERGE`). Es para los editores, como la extensión
+de VS Code; `zxv-check.js` lo da con `check_keywords()`.
 
 ## La versión web
 

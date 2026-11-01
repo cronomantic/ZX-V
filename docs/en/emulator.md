@@ -323,7 +323,7 @@ lists them all). These are the ones you are most likely to use:
 | `--screenshot F.bmp` | Save the screen at the end |
 | `--wav F.wav` | Record the sound to a WAV file |
 | `--strict` | Strict mode: warn about anything the real machine would not allow |
-| `--version` | Print the ZX-V version (`ZX-V 0.7.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
+| `--version` | Print the ZX-V version (`ZX-V 0.7.1`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
 
 The rest (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
 `--profile`, `--panel`, `--test`, `--fail-on-warning`) are for programmers:
@@ -378,6 +378,12 @@ it as JSON. It exits with 0 if there are no errors and with 1 if there are.
 It only looks at the syntax of each line: the errors that come up when the
 program runs (a variable that does not exist, a `NEXT` without `FOR`...)
 come from `RUN`.
+
+`zxv-check --keywords` gives the BASIC's keywords as JSON, taken from the
+tokenizer itself: their codes, which ones are functions and where they are
+recognised (at the start of a statement, anywhere, or only in `SAVE`,
+`LOAD`, `VERIFY` and `MERGE`). It is for editors, such as the VS Code
+extension; `zxv-check.js` gives it with `check_keywords()`.
 
 ## The web version
 
