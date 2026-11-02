@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2. Variables and maths · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../es/basic/tutorial/02-variables-and-maths.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../../getting-started.html">Getting started</a>
+</li>
+<li><a href="../../emulator.html">The emulator</a>
+</li>
+<li><a href="../../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../index.html">Learn BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. First steps</a></li>
+<li><a href="02-variables-and-maths.html" class="aqui">2. Variables and maths</a></li>
+<li><a href="03-text-and-input.html">3. Text and input</a></li>
+<li><a href="04-decisions.html">4. Decisions</a></li>
+<li><a href="05-loops.html">5. Loops</a></li>
+<li><a href="06-arrays-and-data.html">6. Arrays and data</a></li>
+<li><a href="07-procedures.html">7. Procedures</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Colours and the screen</a></li>
+<li><a href="09-drawing.html">9. Drawing</a></li>
+<li><a href="10-sound-and-music.html">10. Sound and music</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Keyboard and joystick</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Files and the SD card</a></li>
+<li><a href="14-a-complete-game.html">14. A complete game</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">The editor</a>
+</li>
+<li><a href="../reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../../hardware/board.html">The board</a>
+</li>
+<li><a href="../../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="2-variables-and-maths">2. Variables and maths</h1>
+<p><strong>In this chapter you will learn</strong> to keep numbers in <strong>variables</strong> with
+<code>LET</code>, to do sums of all kinds, to arrange what <code>PRINT</code> writes, and to get
+random numbers to roll dice.</p>
+<h2 id="variables-boxes-with-a-name">Variables: boxes with a name<a class="ancla" href="#variables-boxes-with-a-name" aria-hidden="true">#</a></h2>
+<p>A <strong>variable</strong> is a box with a name where the machine keeps a number. You put
+a value in it with <code>LET</code>:</p>
+<pre><code>10 LET apples=5
+20 LET pears=3
+30 PRINT &quot;Fruit: &quot;;apples+pears
+40 LET apples=apples-1
+50 PRINT &quot;Apples left: &quot;;apples
+</code></pre>
+<p>This prints <code>Fruit: 8</code> and <code>Apples left: 4</code>. Line 40 looks strange if you
+read it as maths, but in BASIC it means "take the value of <code>apples</code>,
+subtract 1 and put the result back into <code>apples</code>". That is the way to make a
+variable change: count points, lose lives, move things.</p>
+<p>Rules for the names of number variables:</p>
+<ul>
+<li>They start with a letter and can go on with letters and digits: <code>x</code>,
+  <code>score</code>, <code>level2</code>.</li>
+<li>Capitals and small letters are the same: <code>Score</code> and <code>SCORE</code> are the same
+  box. Spaces inside the name are ignored too.</li>
+<li>A name cannot be just a keyword: <code>LET print=1</code> is a mistake.</li>
+<li>A variable must be given a value before you use it. Otherwise you get
+  <code>2 Variable not found</code>, as you saw in chapter 1.</li>
+</ul>
+<h2 id="doing-sums">Doing sums<a class="ancla" href="#doing-sums" aria-hidden="true">#</a></h2>
+<p>These are the signs for maths:</p>
+<table>
+<thead>
+<tr>
+<th>Sign</th>
+<th>Meaning</th>
+<th>Example</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>+</code></td>
+<td>add</td>
+<td><code>7+3</code></td>
+<td><code>10</code></td>
+</tr>
+<tr>
+<td><code>-</code></td>
+<td>subtract</td>
+<td><code>7-3</code></td>
+<td><code>4</code></td>
+</tr>
+<tr>
+<td><code>*</code></td>
+<td>multiply</td>
+<td><code>7*3</code></td>
+<td><code>21</code></td>
+</tr>
+<tr>
+<td><code>/</code></td>
+<td>divide</td>
+<td><code>7/2</code></td>
+<td><code>3.5</code></td>
+</tr>
+<tr>
+<td><code>^</code></td>
+<td>power</td>
+<td><code>2^10</code></td>
+<td><code>1024</code></td>
+</tr>
+</tbody>
+</table>
+<p>As in school maths, <code>^</code> goes first, then <code>*</code> and <code>/</code>, and finally <code>+</code> and
+<code>-</code>. So <code>2+3*4</code> is 14. Use brackets to change the order: <code>(2+3)*4</code> is 20.</p>
+<p>The machine also knows many <strong>functions</strong>, which take a number and give
+back another one:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>What it gives</th>
+<th>Example</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SQR</code></td>
+<td>square root</td>
+<td><code>SQR 16</code></td>
+<td><code>4</code></td>
+</tr>
+<tr>
+<td><code>INT</code></td>
+<td>the whole number below</td>
+<td><code>INT 7.9</code></td>
+<td><code>7</code></td>
+</tr>
+<tr>
+<td><code>ABS</code></td>
+<td>the number without its sign</td>
+<td><code>ABS -5</code></td>
+<td><code>5</code></td>
+</tr>
+<tr>
+<td><code>PI</code></td>
+<td>the number π</td>
+<td><code>PI</code></td>
+<td><code>3.1415927</code></td>
+</tr>
+</tbody>
+</table>
+<p>Here is a program that uses some of them to work out the area of a circle:</p>
+<pre><code>10 LET r=10
+20 LET area=PI*r^2
+30 PRINT &quot;Radius &quot;;r
+40 PRINT &quot;Area &quot;;area
+50 PRINT &quot;Rounded &quot;;INT (area+0.5)
+</code></pre>
+<p>It prints <code>Radius 10</code>, <code>Area 314.15927</code> and <code>Rounded 314</code>. Adding 0.5 before
+<code>INT</code> rounds to the nearest whole number. Notice the brackets after <code>INT</code>:
+without them, <code>INT area+0.5</code> would mean <code>(INT area)+0.5</code>, because a function
+only takes what comes right after it.</p>
+<p>Very big or very small numbers are written with an <code>E</code>: <code>PRINT 2^40</code> shows
+<code>1.0995116E+12</code>, which means 1.0995116 × 10¹².</p>
+<h2 id="arranging-what-print-writes">Arranging what <code>PRINT</code> writes<a class="ancla" href="#arranging-what-print-writes" aria-hidden="true">#</a></h2>
+<p>You can put several things in one <code>PRINT</code>, separated by these signs:</p>
+<table>
+<thead>
+<tr>
+<th>Sign</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>;</code></td>
+<td>Writes the next thing right after, with no gap</td>
+</tr>
+<tr>
+<td><code>,</code></td>
+<td>Jumps to the next half of the line (to column 0 or 16)</td>
+</tr>
+<tr>
+<td><code>'</code></td>
+<td>Starts a new line</td>
+</tr>
+</tbody>
+</table>
+<pre><code>10 PRINT &quot;A&quot;;&quot;B&quot;;&quot;C&quot;
+20 PRINT &quot;A&quot;,&quot;B&quot;
+30 PRINT &quot;A&quot;'&quot;B&quot;
+40 PRINT &quot;Total: &quot;;10*3
+</code></pre>
+<p>Line 10 writes <code>ABC</code>, line 20 writes <code>A</code> and <code>B</code> in two columns, line 30
+writes them on two lines, and line 40 writes <code>Total: 30</code>.</p>
+<p>You can also put several statements on the same line, separated by <code>:</code>.
+They run from left to right:</p>
+<pre><code>10 LET total=10: LET total=total*2: PRINT total
+</code></pre>
+<h2 id="random-numbers">Random numbers<a class="ancla" href="#random-numbers" aria-hidden="true">#</a></h2>
+<p><code>RND</code> gives a different number each time, between 0 and 1 (never 1 itself).
+To roll a dice, multiply by 6, keep the whole part and add 1, so that you get
+1 to 6:</p>
+<pre><code>10 RANDOMIZE
+20 LET dice=INT (RND*6)+1
+30 PRINT &quot;You rolled a &quot;;dice
+</code></pre>
+<p>Run it several times. <code>RANDOMIZE</code> shuffles the random numbers, so that each
+run starts somewhere different. Put it once at the start of programs that use
+<code>RND</code>.</p>
+<h2 id="try-it">Try it<a class="ancla" href="#try-it" aria-hidden="true">#</a></h2>
+<ol>
+<li>Write a program that turns a temperature in degrees Celsius into
+   Fahrenheit. The formula is F = C × 9 / 5 + 32. With 25 °C you should get
+   77.</li>
+<li>Change the dice program to roll two dice and print both and their total.</li>
+</ol>
+<details>
+<summary>Hint</summary>
+<p>For the first one, keep the Celsius value in a variable (<code>LET c=25</code>) and
+work out the other with <code>LET f=c*9/5+32</code>. For the second, use two variables,
+for example <code>d1</code> and <code>d2</code>, each with its own <code>INT (RND*6)+1</code>.</p>
+</details>
+<details>
+<summary>A solution for the first one</summary>
+<pre><code>10 LET c=25
+20 LET f=c*9/5+32
+30 PRINT c;&quot; C is &quot;;f;&quot; F&quot;
+</code></pre>
+</details>
+<hr />
+<p><strong>Reference:</strong> <a href="../reference.html#let"><code>LET</code></a>,
+<a href="../reference.html#variables">Variables</a>,
+<a href="../reference.html#expressions-and-operators">Expressions and operators</a>,
+<a href="../reference.html#maths">Maths</a>,
+<a href="../reference.html#rnd-randomize"><code>RND</code>, <code>RANDOMIZE</code></a>,
+<a href="../reference.html#print"><code>PRINT</code></a>.</p>
+<p><strong>Next:</strong> <a href="03-text-and-input.html">3. Text and input</a> ·
+<strong>Previous:</strong> <a href="01-first-steps.html">1. First steps</a></p>
+<nav class="pasos"><a class="anterior" href="01-first-steps.html"><small>Previous</small>← 1. First steps</a><a class="siguiente" href="03-text-and-input.html"><small>Next</small>3. Text and input →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

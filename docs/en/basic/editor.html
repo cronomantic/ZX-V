@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The editor · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../es/basic/editor.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../getting-started.html">Getting started</a>
+</li>
+<li><a href="../emulator.html">The emulator</a>
+</li>
+<li><a href="../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="index.html">Learn BASIC</a>
+</li>
+<li><a href="editor.html" class="aqui">The editor</a>
+<ul>
+</ul>
+</li>
+<li><a href="reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../hardware/board.html">The board</a>
+</li>
+<li><a href="../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="the-editor">The editor</h1>
+<p>When you switch on ZX-V you are in the <strong>editor</strong>, where you type and change
+BASIC programs and give commands. This page explains how it works and what
+every key does. For the BASIC language itself, see the
+<a href="index.html">BASIC course</a> and the <a href="reference.html">reference</a>.</p>
+<p><img alt="The editor with a short program and a typing mistake" src="../../images/editor-error-en.png" /></p>
+<h2 id="the-two-screens">The two screens<a class="ancla" href="#the-two-screens" aria-hidden="true">#</a></h2>
+<p>ZX-V shows two different screens:</p>
+<ul>
+<li>The <strong>editor screen</strong>, the one above: your program listed in 64 columns
+  (or 32, in <a href="#the-editor-in-mode-0">mode 0</a>), with an empty line at the end
+  for typing new lines and commands. At the bottom there is a <strong>status line</strong>
+  for messages and a black <strong>bar</strong> with <code>ZX-V BASIC</code>, the free memory in
+  bytes and the coloured stripes.</li>
+<li>The <strong>program screen</strong>, where programs run and commands show their results
+  (with <code>PRINT</code>, <code>PLOT</code> and so on), in the program's own mode and colours.</li>
+</ul>
+<p>When you run a command or a program, ZX-V switches to the program screen.
+When it ends, the report (for example <code>0 OK, 0:1</code>) stays at the bottom of the
+program screen until you press a key; then you are back in the editor. The
+key you press is not lost: it counts as typed in the editor, so you can
+start typing the next line straight away.</p>
+<h2 id="typing-a-line">Typing a line<a class="ancla" href="#typing-a-line" aria-hidden="true">#</a></h2>
+<p>The cursor is a block that blinks cyan and blue. Type as on any computer:
+letters, digits, symbols (with Shift, as your keyboard shows them) and spaces.</p>
+<p><strong>Keywords are typed letter by letter</strong>, in upper or lower case: <code>print</code>,
+<code>Print</code> and <code>PRINT</code> are the same. When the line is stored, ZX-V shows it
+again with the keywords in capitals and its own spacing: typing
+<code>10 goto 20</code> gives <code>10 GO TO 20</code>. Variable names keep the case you typed.</p>
+<p>A keyword must not run into the letters or digits that follow it:
+<code>GO TO 20</code> and <code>PRINT"hi"</code> are fine, but <code>GOTO20</code> is not read as <code>GO TO 20</code>.
+When in doubt, leave a space.</p>
+<p>You can type the characters with codes 32 to 127 (including <code>£</code> and <code>©</code>, if
+your keyboard has them). Letters with an accent, a diaeresis, a tilde or a
+cedilla are typed without it (<code>é</code> becomes <code>e</code>, <code>ñ</code> becomes <code>n</code>, <code>ç</code> becomes
+<code>c</code>), and <code>¿</code> and <code>¡</code> become <code>?</code> and <code>!</code>; other characters do nothing. Block
+graphics and user-defined graphics are written with <code>CHR$</code> (see the
+<a href="reference.html#character-set">character set</a>). A line can be up to 1024
+characters long; long lines continue on the next rows of the screen.</p>
+<blockquote>
+<p><strong>If you know the Spectrum:</strong> the editor works like the one of the
++2/128K: you edit the listing in place, there are no K, L and E modes, and
+the EDIT key opens the options menu. The keys are those of a PC keyboard,
+without CAPS SHIFT and SYMBOL SHIFT.</p>
+</blockquote>
+<h2 id="program-lines-and-direct-commands">Program lines and direct commands<a class="ancla" href="#program-lines-and-direct-commands" aria-hidden="true">#</a></h2>
+<p>What happens when you press <strong>Enter</strong> depends on how the line starts:</p>
+<ul>
+<li><strong>With a number</strong> (from 1 to 9999), it is a <strong>program line</strong>: it is
+  stored in the program, in its place by number, and nothing runs yet. If a
+  line with that number already existed, it is replaced.</li>
+<li><strong>Without a number</strong>, it is a <strong>direct command</strong>: it runs at once, on the
+  program screen. For example <code>PRINT 2+2</code>, <code>RUN</code>, <code>SAVE "game"</code> or <code>CLS</code>.</li>
+</ul>
+<p>Before storing or running anything, ZX-V checks the line. If there is a
+mistake, you hear a short buzz, the cursor jumps to where the problem is and
+the status line shows what is wrong in red (usually <code>C Nonsense in BASIC</code>).
+Nothing is stored or run until you fix it, as in the picture at the top of
+this page.</p>
+<p>After storing a line, the cursor goes to the start of the next line of the
+listing, or to the empty line at the end.</p>
+<h2 id="moving-around-and-changing-lines">Moving around and changing lines<a class="ancla" href="#moving-around-and-changing-lines" aria-hidden="true">#</a></h2>
+<p>The whole listing can be edited in place: move the cursor to a line, change
+it, and press Enter.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>← →</td>
+<td>Move one character. At the start or end of a line, go to the line before or after</td>
+</tr>
+<tr>
+<td>↑ ↓</td>
+<td>Move up or down one row, through the listing</td>
+</tr>
+<tr>
+<td>Home, End</td>
+<td>Go to the start or the end of the line</td>
+</tr>
+<tr>
+<td>Ctrl+Home</td>
+<td>Go to the first line of the program</td>
+</tr>
+<tr>
+<td>Ctrl+End</td>
+<td>Go to the empty line at the end</td>
+</tr>
+<tr>
+<td>Page Up, Page Down</td>
+<td>Go ten lines up or down</td>
+</tr>
+<tr>
+<td>Ctrl+← , Ctrl+→</td>
+<td>Go to the previous or next word</td>
+</tr>
+<tr>
+<td>Backspace</td>
+<td>Delete the character to the left of the cursor</td>
+</tr>
+<tr>
+<td>Delete</td>
+<td>Delete the character under the cursor; with the cursor in a <a href="#blocks-of-lines">block</a>, delete the block</td>
+</tr>
+<tr>
+<td>Enter</td>
+<td>Store the line (or run the command)</td>
+</tr>
+<tr>
+<td>Esc</td>
+<td>Undo the changes made to this line (if there are none, unmark the block); while a program runs, it is BREAK</td>
+</tr>
+<tr>
+<td>Tab</td>
+<td>EDIT: open the options menu</td>
+</tr>
+<tr>
+<td>Shift+↑ ↓</td>
+<td>Mark a <a href="#blocks-of-lines">block of lines</a></td>
+</tr>
+<tr>
+<td>F3</td>
+<td><a href="#find-and-replace-find-and-replace">Find</a> the last thing you searched for again</td>
+</tr>
+</tbody>
+</table>
+<p>Some useful things:</p>
+<ul>
+<li><strong>Leaving a changed line stores it.</strong> If you change a line and move to
+  another one with the cursor keys, the line is stored as if you had pressed
+  Enter. If it has a mistake, the cursor stays on it until you fix it or
+  press Esc.</li>
+<li><strong>To undo</strong> the changes to the line you are on, press Esc: the line goes
+  back to how it was.</li>
+<li><strong>To delete a line</strong>, type its number alone on the empty line and press
+  Enter (<code>30</code> deletes line 30). To delete several, use
+  <a href="reference.html#delete"><code>DELETE</code></a>.</li>
+<li><strong>To copy a line</strong>, change its number: the line is stored with the new
+  number and the old one stays where it was.</li>
+<li><strong>To run a line as a command</strong>, delete its number and press Enter: the text
+  runs as a direct command, and the program line stays as it was.</li>
+<li>Pressing Enter on a line you have not changed just moves to the next line.</li>
+</ul>
+<p>The empty line at the end keeps what you type even if you move up to look at
+the listing and come back.</p>
+<p><strong>The listing indents itself:</strong> whatever is inside a <code>FOR</code>, <code>WHILE</code>,
+<code>REPEAT</code>, <code>DEF PROC</code>, <code>SELECT CASE</code> or a <a href="reference.html#if-then-else">block IF</a>
+shows two spaces further right for each level, and <code>ELSE</code> and <code>CASE</code> one level
+less. The spaces are not stored (they take no memory), so there is no need to
+type them: when the line is stored, the editor indents it. <code>LIST</code> and the
+<code>.bas</code> files written by <code>SAVE</code> look the same.</p>
+<h2 id="running-a-program">Running a program<a class="ancla" href="#running-a-program" aria-hidden="true">#</a></h2>
+<ul>
+<li><code>RUN</code> runs the program from the start (it first deletes the variables);
+  <code>RUN 100</code> runs it from line 100. <code>GO TO 100</code> also runs it from line 100,
+  keeping the variables.</li>
+<li>Press <strong>BREAK (the Esc key)</strong> to stop a program. The report is
+  <code>L BREAK into program</code>, and <a href="reference.html#continue"><code>CONTINUE</code></a> carries on
+  from where it stopped.</li>
+<li>When a program fills the screen, it stops and asks <code>scroll?</code>: any key goes
+  on, and N, Space or Esc stop it.</li>
+<li>The report at the bottom says how the program ended and where (see
+  <a href="reference.html#reports">Reports</a>): <code>0 OK, 70:1</code> means it ended normally,
+  at statement 1 of line 70.</li>
+</ul>
+<h2 id="finding-a-line-list-and-edit">Finding a line: LIST and EDIT<a class="ancla" href="#finding-a-line-list-and-edit" aria-hidden="true">#</a></h2>
+<p>In a long program, Page Up and Page Down go ten lines at a time, and
+Ctrl+Home and Ctrl+End take you to the start and the end. To go straight to a
+line, type one of these as a command:</p>
+<ul>
+<li><code>LIST 200</code> puts the cursor on line 200 (or the next one that exists), ready
+  to edit it. <code>LIST</code> alone goes to the start.</li>
+<li><code>EDIT 200</code> does the same; <code>EDIT</code> alone goes to the last line you stored.</li>
+</ul>
+<p>To see the listing on the program screen instead, as on the Spectrum, use
+<code>LIST #2</code>. <code>LLIST</code> sends it to the printer file.</p>
+<h2 id="numbering-lines-auto-renum-delete">Numbering lines: AUTO, RENUM, DELETE<a class="ancla" href="#numbering-lines-auto-renum-delete" aria-hidden="true">#</a></h2>
+<ul>
+<li><a href="reference.html#auto"><code>AUTO</code></a> gives you line numbers automatically: after
+  <code>AUTO</code>, the empty line already starts with the next number (the last line
+  plus 10), and each time you press Enter the next number appears. <code>AUTO
+  100, 5</code> starts at 100 and goes up in fives. It ends when you press Enter on
+  a line with only the number, press Esc, or move to another line.</li>
+<li><a href="reference.html#renum"><code>RENUM</code></a> renumbers the whole program in tens (or
+  <code>RENUM 1000, 5</code>, from 1000 in fives), and corrects the numbers after
+  <code>GO TO</code>, <code>GO SUB</code>, <code>RESTORE</code>, <code>RUN</code>, <code>LIST</code>, <code>LLIST</code> and <code>LINE</code>. Line numbers
+  worked out by the program, as in <code>GO TO n*10</code>, are not corrected; labels
+  (<a href="reference.html#label"><code>@name</code></a>) never need it.</li>
+<li><a href="reference.html#delete"><code>DELETE 100, 190</code></a> deletes lines 100 to 190.</li>
+</ul>
+<p>These three work only as direct commands.</p>
+<h2 id="blocks-of-lines">Blocks of lines<a class="ancla" href="#blocks-of-lines" aria-hidden="true">#</a></h2>
+<p>To copy, move or delete several lines at once, mark them first:</p>
+<ol>
+<li>Put the cursor on the first line and press <strong>Shift+↓</strong> (or Shift+↑ to go
+   upwards). That line and the next are marked, and each time you press it
+   again one more line is marked. Marked lines show in yellow.</li>
+<li>Move the cursor to where you want the block and press <strong>EDIT (Tab)</strong>. With
+   a block marked, the menu has three more options:</li>
+</ol>
+<p><img alt="The menu with a block marked" src="../../images/editor-block-en.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Copy here</td>
+<td>Copies the lines of the block after the cursor line (on the empty line at the end, to the end of the program)</td>
+</tr>
+<tr>
+<td>Move here</td>
+<td>The same, but removes them from where they were. A <code>GO TO</code>, <code>GO SUB</code>, <code>RESTORE</code>... that pointed to a moved line now points to its new number</td>
+</tr>
+<tr>
+<td>Delete lines</td>
+<td>Deletes the block, like Delete</td>
+</tr>
+</tbody>
+</table>
+<p>The copied or moved lines get numbers between the cursor line and the next
+one, in tens if they fit (closer together if not). If there are not enough
+free numbers for all of them, the program is first renumbered in tens, as with
+<code>RENUM</code>. When copying, the line numbers inside the copied lines do not change:
+they still point to the same lines as before.</p>
+<p>To <strong>delete</strong> the block, put the cursor on one of its lines and press Delete:
+the status line asks <code>Delete 3 lines? (Y/N)</code>, and only Y deletes them.
+<strong>Esc</strong> unmarks the block without doing anything.</p>
+<h2 id="find-and-replace-find-and-replace">Find and replace: FIND and REPLACE<a class="ancla" href="#find-and-replace-find-and-replace" aria-hidden="true">#</a></h2>
+<ul>
+<li><a href="reference.html#find"><code>FIND "text"</code></a> moves the cursor to the next program line
+  where the text appears, starting with the line after the cursor and going
+  round to the start at the end. The cursor lands right on the text. Upper and
+  lower case are the same: <code>FIND "print"</code> finds the <code>PRINT</code>s.</li>
+<li><strong>F3</strong> finds the same text again, from the cursor. So does <code>FIND</code> on its
+  own.</li>
+<li><a href="reference.html#replace"><code>REPLACE "old", "new"</code></a> changes the text in the whole
+  program. Each changed line is checked as if you had typed it: if it would
+  have a mistake, it is left alone. The status line says how many changes were
+  made (<code>5 changes</code>), and in red how many lines were left unchanged.</li>
+</ul>
+<p>Both search the listing as you see it, keywords, quoted text and <code>REM</code>s
+included, but not the line numbers.</p>
+<h2 id="undo">Undo<a class="ancla" href="#undo" aria-hidden="true">#</a></h2>
+<p>The <strong>Undo</strong> option in the EDIT menu undoes the last change to the program: a
+line stored or deleted, a block copied, moved or deleted, and also <code>REPLACE</code>,
+<code>RENUM</code>, <code>DELETE</code>, <code>NEW</code>, <code>LOAD</code> and <code>MERGE</code>. Used again, it redoes what it
+undid. If the cursor line is half changed, it first just puts it back as it
+was, like Esc.</p>
+<p>To be able to undo, the editor keeps a copy of the program in free memory,
+without taking it from anyone. If a program later needs that memory (with a
+large <code>DIM</code>, for example), the copy is lost and the status line says
+<code>Nothing to undo</code>. With a very large program, which leaves no room for the
+copy, undo is not possible either.</p>
+<h2 id="the-options-menu-edit">The options menu (EDIT)<a class="ancla" href="#the-options-menu-edit" aria-hidden="true">#</a></h2>
+<p>Press <strong>EDIT (the Tab key)</strong> to open the options menu in the middle of the
+screen:</p>
+<p><img alt="The options menu" src="../../images/editor-menu-en.png" /></p>
+<p>Choose with ↑ and ↓ and press Enter. Esc or Tab close the menu without doing
+anything.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ZX-V BASIC</td>
+<td>Closes the menu and goes back to the editor</td>
+</tr>
+<tr>
+<td>Renumber</td>
+<td>Renumbers the program in tens from 10, like <code>RENUM</code>. The status line says <code>Program renumbered</code>, or <code>Cannot renumber</code> if the numbers would go past 9999 or there is not enough memory</td>
+</tr>
+<tr>
+<td>Screen</td>
+<td>Shows the program screen (what the last program or command left there) until you press a key</td>
+</tr>
+<tr>
+<td>Print</td>
+<td>Sends the listing to the printer, the file <code>printer.txt</code> on the SD card, like <code>LLIST</code>. The status line says <code>Listing sent to the printer</code></td>
+</tr>
+<tr>
+<td>Undo</td>
+<td>Undoes the last change to the program: see <a href="#undo">Undo</a></td>
+</tr>
+<tr>
+<td>Mode 0 / Mode 1</td>
+<td>Switches the editor to the other mode: see <a href="#the-editor-in-mode-0">The editor in mode 0</a></td>
+</tr>
+<tr>
+<td>Copy here, Move here, Delete lines</td>
+<td>Only with a block marked: see <a href="#blocks-of-lines">Blocks of lines</a></td>
+</tr>
+</tbody>
+</table>
+<p>Renumber and Print work with the stored program: if the line you are on has
+been changed, it is stored first (and if it has a mistake, the menu closes so
+that you can fix it).</p>
+<h2 id="the-editor-in-mode-0">The editor in mode 0<a class="ancla" href="#the-editor-in-mode-0" aria-hidden="true">#</a></h2>
+<p>The editor starts in screen mode 1: 64 columns and 46 rows for the listing,
+in small letters. The <strong>Mode 0</strong> option in the EDIT menu switches it to mode
+0, like the 128K's: <strong>32 columns and 22 rows</strong>, with letters twice as big,
+easier to read on a TV or from a distance. Long lines carry on in the rows
+below, as in mode 1, and the bar at the bottom only shows the free memory
+(without "bytes free"). In mode 0 the same option is called <strong>Mode 1</strong> and
+puts it back as it was.</p>
+<p><img alt="The editor in mode 0" src="../../images/editor-mode0-en.png" /></p>
+<p>The editor's mode has nothing to do with your programs' (<code>MODE</code>): each one
+uses its own screen. It stays after <code>NEW</code>, and when the machine is reset the
+editor goes back to mode 1.</p>
+<h2 id="the-status-line">The status line<a class="ancla" href="#the-status-line" aria-hidden="true">#</a></h2>
+<p>The line just above the bar shows:</p>
+<table>
+<thead>
+<tr>
+<th>Message</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>© 2026 Cronomantic  ZX-V 0.7.2</code></td>
+<td>When ZX-V starts, and after <code>NEW</code>: the copyright and the ROM version</td>
+</tr>
+<tr>
+<td>An error in red, such as <code>C Nonsense in BASIC</code></td>
+<td>When a line you tried to store or run has a mistake</td>
+</tr>
+<tr>
+<td><code>Program renumbered</code>, <code>Cannot renumber</code></td>
+<td>After the Renumber option</td>
+</tr>
+<tr>
+<td><code>Listing sent to the printer</code></td>
+<td>After the Print option</td>
+</tr>
+<tr>
+<td><code>3 lines copied</code>, <code>3 lines moved</code>, <code>3 lines deleted</code></td>
+<td>After copying, moving or deleting a block</td>
+</tr>
+<tr>
+<td><code>The cursor is in the block</code>, <code>No room for the lines</code></td>
+<td>When the block cannot be copied or moved there</td>
+</tr>
+<tr>
+<td><code>Not found</code></td>
+<td>After <code>FIND</code> or F3, if the text is not in the program</td>
+</tr>
+<tr>
+<td><code>5 changes</code>, <code>, 2 lines not changed (error)</code></td>
+<td>After <code>REPLACE</code></td>
+</tr>
+<tr>
+<td><code>Change undone</code>, <code>Nothing to undo</code></td>
+<td>After the Undo option</td>
+</tr>
+</tbody>
+</table>
+<p>The message disappears with the next key you press. The bar under it always
+shows the free memory: the program and its variables share about 94 KB.</p>
+<h2 id="saving-and-loading">Saving and loading<a class="ancla" href="#saving-and-loading" aria-hidden="true">#</a></h2>
+<p>Programs are kept on the SD card. From the editor:</p>
+<ul>
+<li><code>SAVE "game"</code> saves the program as <code>game.zvb</code>. <code>SAVE "game" LINE 10</code> saves
+  it so that it runs by itself from line 10 when loaded.</li>
+<li><code>LOAD "game"</code> loads it, replacing the program in memory.</li>
+<li><code>CAT</code> lists the files of the current folder, and <code>CAT "ROM:"</code> the examples
+  that come with ZX-V; <code>LOAD "ROM:hello"</code> runs one of them.</li>
+<li><code>MERGE "game"</code> adds the lines (and the variables) of a saved program to the
+  one you have.</li>
+<li><code>OPEN #4, "game.txt" OUT: LIST #4: CLOSE #4</code> writes the listing as a text
+  file, to read it on a computer.</li>
+</ul>
+<p><code>NEW</code> deletes the program, and loading a native program (<code>.zxv</code>) also clears
+BASIC when it ends: save your work first. All the details are in the
+reference, under <a href="reference.html#files-and-the-sd-card">Files and the SD card</a>.</p>
+<h2 id="the-language-of-the-editor">The language of the editor<a class="ancla" href="#the-language-of-the-editor" aria-hidden="true">#</a></h2>
+<p>The bar, the menu, the messages and the error reports are in English or
+Spanish, the language of the machine. Change it with <code>LANGUAGE "es"</code> or
+<code>LANGUAGE "en"</code> (see <a href="reference.html#language">LANGUAGE</a>); the emulator also
+has an option for it (see <a href="../emulator.html">the emulator</a>).</p>
+<nav class="pasos"><a class="anterior" href="tutorial/14-a-complete-game.html"><small>Previous</small>← 14. A complete game</a><a class="siguiente" href="reference.html"><small>Next</small>BASIC reference →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10. Sonido y música · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../en/basic/tutorial/10-sound-and-music.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../../emulator.html">El emulador</a>
+</li>
+<li><a href="../../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../index.html">Aprende BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. Primeros pasos</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables y cuentas</a></li>
+<li><a href="03-text-and-input.html">3. Texto y preguntas</a></li>
+<li><a href="04-decisions.html">4. Decisiones</a></li>
+<li><a href="05-loops.html">5. Bucles</a></li>
+<li><a href="06-arrays-and-data.html">6. Matrices y datos</a></li>
+<li><a href="07-procedures.html">7. Procedimientos</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Los colores y la pantalla</a></li>
+<li><a href="09-drawing.html">9. Dibujar</a></li>
+<li><a href="10-sound-and-music.html" class="aqui">10. Sonido y música</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Teclado y mando</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites y mapas de tiles</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a></li>
+<li><a href="14-a-complete-game.html">14. Un juego completo</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">El editor</a>
+</li>
+<li><a href="../reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../../hardware/board.html">La placa</a>
+</li>
+<li><a href="../../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="10-sonido-y-música">10. Sonido y música</h1>
+<p><strong>En este capítulo aprenderás</strong> a hacer pitidos sencillos con <code>BEEP</code>, a
+tocar melodías de hasta seis voces con <code>PLAY</code> y a crear efectos de sonido
+para juegos con <code>SOUND</code>.</p>
+<p>ZX-V tiene dos clases de sonido: el <strong>beeper</strong>, un altavoz sencillo como el
+del primer Spectrum, y dos <strong>chips de sonido</strong> (llamados AY), como el del
+Spectrum 128, que pueden tocar tres notas a la vez cada uno.</p>
+<h2 id="beep"><code>BEEP</code><a class="ancla" href="#beep" aria-hidden="true">#</a></h2>
+<p><code>BEEP duración,tono</code> toca una nota. La duración va en segundos, y el tono es
+el número de semitonos por encima del do central (0 es el do central, 12 el
+do una octava más arriba y -12 una más abajo):</p>
+<pre><code>10 BEEP 1,0
+20 BEEP 0.5,12
+30 BEEP 0.5,-12
+</code></pre>
+<p>El programa espera mientras suena la nota. Con <code>READ</code> y <code>DATA</code> puedes tocar
+una escala:</p>
+<pre><code>10 FOR i=1 TO 8
+20 READ t
+30 BEEP 0.25,t
+40 NEXT i
+50 DATA 0,2,4,5,7,9,11,12
+</code></pre>
+<h2 id="play-música-en-una-cadena"><code>PLAY</code>: música en una cadena<a class="ancla" href="#play-música-en-una-cadena" aria-hidden="true">#</a></h2>
+<p><code>PLAY</code> usa los chips de sonido y toma la música escrita en una cadena. Las
+cadenas más sencillas son solo los nombres de las notas, en el sistema
+inglés:</p>
+<pre><code>10 PLAY &quot;cdefgabC&quot;
+</code></pre>
+<p>Es una escala: <code>c</code> es do, <code>d</code> es re, <code>e</code> mi, <code>f</code> fa, <code>g</code> sol, <code>a</code> la y <code>b</code>
+si; una letra mayúscula es una octava más alta. Estos son los signos más
+útiles:</p>
+<table>
+<thead>
+<tr>
+<th>En la cadena</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>c d e f g a b</code></td>
+<td>Notas; en mayúsculas, una octava más arriba</td>
+</tr>
+<tr>
+<td><code>#c</code>, <code>$c</code></td>
+<td>Sostenido y bemol (el signo va delante de la nota)</td>
+</tr>
+<tr>
+<td><code>&amp;</code></td>
+<td>Un silencio</td>
+</tr>
+<tr>
+<td><code>1</code> a <code>9</code></td>
+<td>La duración de las notas siguientes: <code>3</code> corchea, <code>5</code> negra (la de partida), <code>7</code> blanca, <code>9</code> redonda</td>
+</tr>
+<tr>
+<td><code>O n</code></td>
+<td>Octava, de 0 a 8 (empieza en la 5, donde <code>c</code> es el do central)</td>
+</tr>
+<tr>
+<td><code>T n</code></td>
+<td>Tempo, en negras por minuto (de 60 a 240; empieza en 120)</td>
+</tr>
+<tr>
+<td><code>V n</code></td>
+<td>Volumen, de 0 a 15</td>
+</tr>
+</tbody>
+</table>
+<p>Una duración vale para las notas siguientes hasta que la cambies. Los
+espacios no cuentan, así que úsalos para que la melodía se lea mejor:</p>
+<pre><code>10 LET m$=&quot;T100 O4 5ccgg aa7g 5ffee dd7c&quot;
+20 PLAY m$
+</code></pre>
+<h3 id="varias-voces">Varias voces<a class="ancla" href="#varias-voces" aria-hidden="true">#</a></h3>
+<p>Si le das a <code>PLAY</code> varias cadenas, separadas por comas, suenan a la vez: una
+melodía y su acompañamiento.</p>
+<pre><code>10 LET a$=&quot;T120 O5 3cegCegCe 7C&quot;
+20 LET b$=&quot;O3 7c&amp;e&amp;&quot;
+30 PLAY a$,b$
+</code></pre>
+<p>Las tres primeras cadenas usan las tres voces del primer chip; la cuarta,
+quinta y sexta, las del segundo. Seis voces a la vez:</p>
+<pre><code>10 PLAY &quot;cdefg&quot;,&quot;efgab&quot;,&quot;gabCD&quot;,&quot;O3c&quot;,&quot;O3e&quot;,&quot;O3g&quot;
+</code></pre>
+<p>El tempo es el de la primera cadena. <code>PLAY</code> espera a que acaben todas las
+cadenas; <strong>Esc</strong> lo corta.</p>
+<p><strong>Si conoces el Spectrum:</strong> <code>PLAY</code> es el del Spectrum 128, con las mismas
+cadenas, ampliado al segundo chip. La <a href="../reference.html#play">referencia</a>
+tiene el resto de los signos: envolventes, repeticiones, tresillos y más.</p>
+<h2 id="efectos-de-sonido-con-sound">Efectos de sonido con <code>SOUND</code><a class="ancla" href="#efectos-de-sonido-con-sound" aria-hidden="true">#</a></h2>
+<p>Los juegos necesitan sonidos que no son notas: explosiones, saltos, disparos.
+<code>SOUND</code> habla directamente con el chip de sonido. Escribe un valor en uno de
+sus <strong>registros</strong>, sus mandos de control: <code>SOUND registro,valor</code>. Puedes
+escribir varios a la vez, separados por <code>;</code>. Para empezar bastan estos:</p>
+<table>
+<thead>
+<tr>
+<th>Registro</th>
+<th>Qué controla</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 y 1</td>
+<td>El tono de la voz A: es un <strong>periodo</strong>, así que los números más grandes son notas más graves. El registro 0 va de 0 a 255, y el 1 suma pasos de 256</td>
+</tr>
+<tr>
+<td>6</td>
+<td>El tono del ruido (de 0 a 31)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>El <strong>mezclador</strong>: qué voces tocan tono y cuáles ruido. 62 quiere decir "la voz A toca un tono"; 55, "la voz A toca ruido"</td>
+</tr>
+<tr>
+<td>8</td>
+<td>El volumen de la voz A (de 0 a 15), o 16 para que lo lleve la <strong>envolvente</strong></td>
+</tr>
+<tr>
+<td>11 y 12</td>
+<td>Lo que tarda la envolvente</td>
+</tr>
+<tr>
+<td>13</td>
+<td>La forma de la envolvente: 0 se apaga una vez</td>
+</tr>
+</tbody>
+</table>
+<p>Un zumbido que sube:</p>
+<pre><code>10 REM Un zumbido que sube, en el canal A
+20 SOUND 7,62;8,15
+30 FOR p=200 TO 20 STEP -6
+40 SOUND 0,p;1,0
+50 WAIT 1
+60 NEXT p
+70 SOUND 8,0
+</code></pre>
+<p>La línea 20 enciende el tono de la voz A a todo volumen, el bucle baja el
+periodo (así que la nota sube) una vez cada sesentavo de segundo y la línea
+70 baja el volumen a 0. <code>WAIT 1</code> espera al siguiente frame de la pantalla:
+lo volverás a ver en los próximos capítulos.</p>
+<p>Una explosión: ruido que se apaga solo, gracias a la envolvente:</p>
+<pre><code>10 REM Una explosion: ruido en el canal A, con la envolvente
+20 SOUND 6,31;7,55;8,16;11,0;12,40;13,0
+30 PAUSE 100
+</code></pre>
+<p>Al contrario que <code>BEEP</code> y <code>PLAY</code>, <code>SOUND</code> no espera: el programa sigue
+mientras toca el chip. Eso es justo lo que necesita un juego. El sonido sigue
+hasta que lo cambies, así que acuérdate de callarlo con <code>SOUND 8,0</code>. Los
+registros del 16 al 31 son los mismos del segundo chip.</p>
+<h2 id="música-de-verdad-music-y-sfx">Música de verdad: <code>MUSIC</code> y <code>SFX</code><a class="ancla" href="#música-de-verdad-music-y-sfx" aria-hidden="true">#</a></h2>
+<p>Para la música de un juego se usa un <em>tracker</em>, un programa para componer
+como los que usaban los músicos del Spectrum. ZX-V trae uno para el PC,
+<a href="../../sdk/index.html#el-tracker-para-el-pc-zxv-tracker"><code>zxv-tracker</code></a>,
+que guarda la canción en un fichero <code>.pt3</code> y los efectos de sonido en un
+<code>.afb</code>. El BASIC los toca <strong>de fondo</strong>, mientras el programa sigue:</p>
+<pre><code>10 LOAD &quot;tema&quot; MUSIC: MUSIC PLAY
+20 LOAD &quot;efectos&quot; SFX
+30 IF INKEY$=&quot; &quot; THEN SFX 0
+40 GO TO 30
+</code></pre>
+<p><code>MUSIC STOP</code> para la música y <code>SFX n</code> toca el efecto número <code>n</code> sin
+callarla. Todo lo demás está en la referencia: <a href="../reference.html#music"><code>MUSIC</code></a>
+y <a href="../reference.html#sfx"><code>SFX</code></a>.</p>
+<h2 id="pruébalo">Pruébalo<a class="ancla" href="#pruébalo" aria-hidden="true">#</a></h2>
+<ol>
+<li>Toca con <code>PLAY</code> el principio de una canción que conozcas.</li>
+<li>Haz un sonido de "moneda" para un juego: dos notas agudas y rápidas, una
+   detrás de otra, con <code>SOUND</code>.</li>
+</ol>
+<details>
+<summary>Pista</summary>
+<p>Para la moneda, enciende la voz A (<code>SOUND 7,62;8,15</code>), pon un periodo como
+60, espera unos frames con <code>WAIT 4</code>, pon un periodo más pequeño (una nota
+más aguda) como 40, espera otra vez y baja el volumen con <code>SOUND 8,0</code>.</p>
+</details>
+<details>
+<summary>Una solución para el segundo</summary>
+<pre><code>10 SOUND 7,62;8,15
+20 SOUND 0,60;1,0: WAIT 4
+30 SOUND 0,40;1,0: WAIT 8
+40 SOUND 8,0
+</code></pre>
+</details>
+<hr />
+<p><strong>Referencia:</strong> <a href="../reference.html#beep"><code>BEEP</code></a>, <a href="../reference.html#play"><code>PLAY</code></a>,
+<a href="../reference.html#sound"><code>SOUND</code></a>, <a href="../reference.html#wait"><code>WAIT</code></a>,
+<a href="../reference.html#music"><code>MUSIC</code></a>, <a href="../reference.html#sfx"><code>SFX</code></a>.</p>
+<p><strong>Siguiente:</strong> <a href="11-keyboard-and-joystick.html">11. Teclado y mando</a> ·
+<strong>Anterior:</strong> <a href="09-drawing.html">9. Dibujar</a></p>
+<nav class="pasos"><a class="anterior" href="09-drawing.html"><small>Anterior</small>← 9. Dibujar</a><a class="siguiente" href="11-keyboard-and-joystick.html"><small>Siguiente</small>11. Teclado y mando →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

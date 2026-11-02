@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Publicar tu juego en la web · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../en/sdk/web.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../emulator.html">El emulador</a>
+</li>
+<li><a href="../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Aprende BASIC</a>
+</li>
+<li><a href="../basic/editor.html">El editor</a>
+</li>
+<li><a href="../basic/reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="graphics.html">Gráficos</a>
+</li>
+<li><a href="reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="web.html" class="aqui">Publicar tu juego en la web</a>
+<ul>
+</ul>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../hardware/board.html">La placa</a>
+</li>
+<li><a href="../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="publicar-tu-juego-en-la-web">Publicar tu juego en la web</h1>
+<p>Con <strong><code>sdk/tools/mkweb.py</code></strong> conviertes tu juego en una página web que solo
+tiene ese juego: se sube tal cual a <a href="https://itch.io">itch.io</a> o a cualquier
+servidor, y también funciona abierta desde el disco. Vale para los programas
+en C (<code>.zxv</code>), los programas en BASIC (<code>.zvb</code>, y los listados <code>.bas</code>) y las
+cintas del Spectrum (<code>.tap</code>, <code>.tzx</code>).</p>
+<p><strong>Contenido</strong></p>
+<ul>
+<li><a href="#lo-que-ve-el-jugador">Lo que ve el jugador</a></li>
+<li><a href="#lo-que-hace-falta">Lo que hace falta</a></li>
+<li><a href="#hacer-la-página">Hacer la página</a></li>
+<li><a href="#las-opciones">Las opciones</a></li>
+<li><a href="#los-controles-táctiles">Los controles táctiles</a></li>
+<li><a href="#gamejson">game.json</a></li>
+<li><a href="#subirla-a-itchio">Subirla a itch.io</a></li>
+<li><a href="#cómo-funciona">Cómo funciona</a></li>
+</ul>
+<h2 id="lo-que-ve-el-jugador">Lo que ve el jugador<a class="ancla" href="#lo-que-ve-el-jugador" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>Una portada</strong> con el nombre del juego y «Haz clic para jugar» («Toca para
+  jugar» en un móvil). Mientras tanto el juego se carga sin verse: al
+  pulsar, empieza en su pantalla de título, sin pasar por el BASIC. Si el
+  programa tiene pantalla de carga (un <code>.zxv</code> hecho con <code>elf2zxv.py
+  --screen</code>, o un <code>.zvb</code> grabado con <code>SAVE "juego" LINE 10 SCREEN$</code>), se ve
+  ella detrás de la portada y mientras arranca.</li>
+<li><strong>Solo la imagen del juego</strong>, del tamaño de la ventana (o del marco de
+  itch.io), y dos botones pequeños arriba a la derecha: el sonido y la
+  pantalla completa.</li>
+<li><strong>Cuando el juego acaba o vuelve al BASIC</strong> (con Esc, por ejemplo), empieza
+  otra vez solo. Si se para enseguida dos veces seguidas (un error en el
+  programa), se queda en la pantalla del BASIC, con su informe, y un botón
+  para volver a empezar.</li>
+<li><strong>En un móvil o una tableta</strong>, una cruceta y unos botones en la pantalla
+  (<a href="#los-controles-táctiles">los controles táctiles</a>). Con teclado o mando
+  también se juega, como en el emulador.</li>
+<li><strong>Los récords se quedan en el navegador</strong>: el juego tiene su propia
+  tarjeta SD, que se guarda de una visita a otra y no se mezcla con la de
+  otros juegos del mismo sitio.</li>
+</ul>
+<h2 id="lo-que-hace-falta">Lo que hace falta<a class="ancla" href="#lo-que-hace-falta" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>Python 3</strong>, sin nada más.</li>
+<li><strong>El kit</strong>: la carpeta <code>play/</code> del paquete web de ZX-V (<code>zxv-web.zip</code>, en
+  las <a href="https://github.com/cronomantic/ZX-V/releases">versiones publicadas</a>).
+  Lleva la página (<code>index.html</code>, <code>play.js</code>, <code>play.css</code>), el motor de la
+  página (<code>engine.js</code>) y la máquina (<code>zxv-core.js</code>, el mismo emulador que la
+  versión web, sin los ejemplos). Si compilas la versión web tú mismo, está
+  en <code>emulator/build-web/web/play</code>.</li>
+</ul>
+<h2 id="hacer-la-página">Hacer la página<a class="ancla" href="#hacer-la-página" aria-hidden="true">#</a></h2>
+<pre><code class="language-sh">python3 sdk/tools/mkweb.py estela-web sdk/build/estela.zxv --kit play --title Estela --zip estela.zip
+</code></pre>
+<p>Deja la página en la carpeta <code>estela-web</code> (ábrela con <code>index.html</code> para
+probarla) y, con <code>--zip</code>, la misma página en <code>estela.zip</code>, lista para subir.</p>
+<p>Después del programa van los ficheros que necesita: los gráficos, la música,
+los niveles. Un juego en BASIC con sus ficheros:</p>
+<pre><code class="language-sh">python3 sdk/tools/mkweb.py cascade-web cascade.bas cascade.gfx cascade.pt3 cascade.afb --kit play --title Cascade
+</code></pre>
+<p>Todos van a la unidad <code>ROM:</code> de la máquina de la página, en su raíz, y la
+página carga el programa de ahí. Un listado en BASIC encuentra sus ficheros
+con <code>LOAD "cascade" GRAPHICS</code>, sin escribir <code>ROM:</code> (el BASIC los busca en la
+carpeta de la que se cargó el programa). Lo que el juego graba (un récord,
+una partida) va a la tarjeta, <code>SD:</code>, que se guarda en el navegador.</p>
+<h2 id="las-opciones">Las opciones<a class="ancla" href="#las-opciones" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Opción</th>
+<th>Efecto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--kit CARPETA</code></td>
+<td>La carpeta <code>play/</code> del paquete web (obligatoria)</td>
+</tr>
+<tr>
+<td><code>--title TEXTO</code></td>
+<td>El nombre de la portada y de la pestaña (por defecto, el del fichero)</td>
+</tr>
+<tr>
+<td><code>--id NOMBRE</code></td>
+<td>El nombre de su tarjeta en el navegador: letras, números, <code>-</code> y <code>_</code> (por defecto, el del fichero). Cambiarlo es empezar con la tarjeta vacía, sin los récords de antes</td>
+</tr>
+<tr>
+<td><code>--lang auto\|es\|en</code></td>
+<td>El idioma de la máquina y de la página; <code>auto</code> (por defecto), el del navegador</td>
+</tr>
+<tr>
+<td><code>--border 0\|1\|2</code></td>
+<td>El borde: completo (por defecto), pequeño o ninguno. Sin borde, la imagen del juego sale más grande</td>
+</tr>
+<tr>
+<td><code>--fit proporcion\|entera\|llenar</code></td>
+<td>Cómo se escala la imagen: manteniendo la proporción (por defecto), en múltiplos enteros o llenando la ventana. Valen también <code>aspect</code>, <code>integer</code> y <code>fill</code></td>
+</tr>
+<tr>
+<td><code>--touch PREAJUSTE\|JSON</code></td>
+<td>Los <a href="#los-controles-táctiles">controles táctiles</a></td>
+</tr>
+<tr>
+<td><code>--zip FICHERO.zip</code></td>
+<td>Además, la página en un <code>.zip</code>, con <code>index.html</code> en la raíz</td>
+</tr>
+<tr>
+<td><code>--config game.json</code></td>
+<td>Todo lo anterior en un fichero (<a href="#gamejson">game.json</a>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="los-controles-táctiles">Los controles táctiles<a class="ancla" href="#los-controles-táctiles" aria-hidden="true">#</a></h2>
+<p>En un móvil o una tableta, la página pone una cruceta a la izquierda, hasta
+cuatro botones redondos a la derecha y, abajo, hasta cuatro botones
+pequeños (para Esc, una pausa...). En vertical, la imagen va arriba y los
+controles debajo. Con <code>--touch</code> eliges cómo:</p>
+<table>
+<thead>
+<tr>
+<th>Preajuste</th>
+<th>Cruceta</th>
+<th>A</th>
+<th>B</th>
+<th>Abajo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>joystick</code> (por defecto)</td>
+<td>El mando 1</td>
+<td>Fuego 1</td>
+<td>Fuego 2</td>
+<td>Esc</td>
+</tr>
+<tr>
+<td><code>arrows</code></td>
+<td>Los cursores</td>
+<td>Espacio</td>
+<td>Intro</td>
+<td>Esc</td>
+</tr>
+<tr>
+<td><code>qaop</code></td>
+<td>Q, A, O y P</td>
+<td>Espacio</td>
+<td>M</td>
+<td>Esc</td>
+</tr>
+<tr>
+<td><code>none</code></td>
+<td>Sin controles táctiles</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>O a tu medida, con un JSON (en un fichero o en la misma orden):</p>
+<pre><code class="language-json">{
+  &quot;preset&quot;: &quot;joystick&quot;,
+  &quot;buttons&quot;: [
+    { &quot;label&quot;: &quot;A&quot;, &quot;joy&quot;: &quot;FIRE1&quot; },
+    { &quot;label&quot;: &quot;B&quot;, &quot;key&quot;: &quot;KeyZ&quot; }
+  ],
+  &quot;menu&quot;: [
+    { &quot;label&quot;: &quot;ESC&quot;, &quot;key&quot;: &quot;Escape&quot; },
+    { &quot;label&quot;: &quot;S&quot;, &quot;key&quot;: &quot;KeyS&quot; }
+  ]
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Contenido</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>preset</code></td>
+<td>El preajuste del que se parte (lo demás lo cambia)</td>
+</tr>
+<tr>
+<td><code>show</code></td>
+<td><code>auto</code> (solo con pantalla táctil, por defecto), <code>always</code> o <code>never</code></td>
+</tr>
+<tr>
+<td><code>dpad</code></td>
+<td><code>joy</code>, <code>arrows</code>, <code>qaop</code>, un objeto con <code>up</code>, <code>down</code>, <code>left</code> y <code>right</code> (cada uno, un control) o <code>null</code> (sin cruceta)</td>
+</tr>
+<tr>
+<td><code>buttons</code></td>
+<td>Hasta cuatro botones redondos</td>
+</tr>
+<tr>
+<td><code>menu</code></td>
+<td>Hasta cuatro botones pequeños, abajo</td>
+</tr>
+</tbody>
+</table>
+<p>Cada control es <code>{"label": "A", "joy": "FIRE1"}</code>, un bit del mando 1 (<code>UP</code>,
+<code>DOWN</code>, <code>LEFT</code>, <code>RIGHT</code>, <code>FIRE1</code>, <code>FIRE2</code>, <code>FIRE3</code>, <code>START</code> o <code>SELECT</code>), o
+<code>{"label": "Z", "key": "KeyZ"}</code>, una tecla con el nombre que le da el
+navegador (<code>KeyboardEvent.code</code>: <code>KeyA</code>…<code>KeyZ</code>, <code>Digit0</code>…<code>Digit9</code>, <code>Space</code>,
+<code>Enter</code>, <code>Escape</code>, <code>ArrowUp</code>, <code>ShiftLeft</code>...).</p>
+<h2 id="gamejson">game.json<a class="ancla" href="#gamejson" aria-hidden="true">#</a></h2>
+<p>Lo mismo, en un fichero que se guarda con el juego:</p>
+<pre><code class="language-json">{
+  &quot;start&quot;: &quot;build/minijuego.zxv&quot;,
+  &quot;files&quot;: [&quot;minijuego.gfx&quot;, &quot;minijuego.pt3&quot;],
+  &quot;kit&quot;: &quot;../zxv-web/play&quot;,
+  &quot;title&quot;: &quot;Minijuego&quot;,
+  &quot;id&quot;: &quot;minijuego&quot;,
+  &quot;lang&quot;: &quot;auto&quot;,
+  &quot;border&quot;: 2,
+  &quot;fit&quot;: &quot;proporcion&quot;,
+  &quot;touch&quot;: &quot;arrows&quot;
+}
+</code></pre>
+<pre><code class="language-sh">python3 sdk/tools/mkweb.py web --config game.json --zip minijuego.zip
+</code></pre>
+<p>Las rutas son relativas al propio <code>game.json</code>. Lo que se diga en la línea de
+órdenes manda sobre lo del fichero.</p>
+<h2 id="subirla-a-itchio">Subirla a itch.io<a class="ancla" href="#subirla-a-itchio" aria-hidden="true">#</a></h2>
+<ol>
+<li>Haz la página con <code>--zip</code>.</li>
+<li>En itch.io, crea un proyecto nuevo y elige <strong>Kind of project: HTML</strong>.</li>
+<li>Sube el <code>.zip</code> y marca <strong>This file will be played in the browser</strong>.</li>
+<li>En <strong>Embed options</strong>, un tamaño de 4:3 (por ejemplo, 960 × 720); marca
+   <strong>Mobile friendly</strong> si tiene controles táctiles. El botón de pantalla
+   completa de itch.io sobra: la página trae el suyo.</li>
+</ol>
+<p>Algunos navegadores (Safari, sobre todo) no dejan guardar nada a una página
+dentro del marco de otro sitio: ahí los récords duran lo que la visita.</p>
+<h2 id="cómo-funciona">Cómo funciona<a class="ancla" href="#cómo-funciona" aria-hidden="true">#</a></h2>
+<ul>
+<li>La página es la máquina entera (la misma que el emulador de la web), con
+  el juego en su disco ROM, en <code>game.js</code> (en base64). Por eso funciona sin
+  servidor.</li>
+<li>Al cargar, la máquina arranca sin verse, más deprisa que de costumbre y
+  sin sonido. Cuando el BASIC espera una orden (la variable del sistema
+  <code>EDITOR</code>, en <code>0x2000_0724</code>, vale 1), la página teclea
+  <code>LOAD "ROM:juego.zxv"</code> (y <code>RUN</code> si es un listado). Cuando <code>EDITOR</code> lleva
+  unos frames a 0, el juego ya está en marcha y se enseña; si vuelve a 1, el
+  juego ha vuelto al BASIC y la página reinicia la máquina.</li>
+<li>La tarjeta del juego es la carpeta <code>/tarjeta-ID</code> del navegador, con su
+  propia base de datos de IndexedDB.</li>
+</ul>
+<nav class="pasos"><a class="anterior" href="reference.html"><small>Anterior</small>← Referencia de la API</a><a class="siguiente" href="../zxbasic.html"><small>Siguiente</small>ZX Basic →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

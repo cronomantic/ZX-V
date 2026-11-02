@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6. Matrices y datos · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../en/basic/tutorial/06-arrays-and-data.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../../emulator.html">El emulador</a>
+</li>
+<li><a href="../../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../index.html">Aprende BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. Primeros pasos</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables y cuentas</a></li>
+<li><a href="03-text-and-input.html">3. Texto y preguntas</a></li>
+<li><a href="04-decisions.html">4. Decisiones</a></li>
+<li><a href="05-loops.html">5. Bucles</a></li>
+<li><a href="06-arrays-and-data.html" class="aqui">6. Matrices y datos</a></li>
+<li><a href="07-procedures.html">7. Procedimientos</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Los colores y la pantalla</a></li>
+<li><a href="09-drawing.html">9. Dibujar</a></li>
+<li><a href="10-sound-and-music.html">10. Sonido y música</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Teclado y mando</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites y mapas de tiles</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a></li>
+<li><a href="14-a-complete-game.html">14. Un juego completo</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">El editor</a>
+</li>
+<li><a href="../reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../../hardware/board.html">La placa</a>
+</li>
+<li><a href="../../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="6-matrices-y-datos">6. Matrices y datos</h1>
+<p><strong>En este capítulo aprenderás</strong> a guardar muchos valores con un solo nombre
+usando <strong>matrices</strong> (<code>DIM</code>), y a guardar listas de valores dentro del
+programa con <code>READ</code>, <code>DATA</code> y <code>RESTORE</code>.</p>
+<h2 id="matrices-una-fila-de-cajas">Matrices: una fila de cajas<a class="ancla" href="#matrices-una-fila-de-cajas" aria-hidden="true">#</a></h2>
+<p>Imagina que quieres guardar cinco notas. Cinco variables (<code>n1</code>, <code>n2</code>...)
+servirían, pero no se pueden usar en un bucle. Una <strong>matriz</strong> es una fila de
+cajas numeradas que comparten nombre. Se crea con <code>DIM</code>, diciendo cuántas
+cajas tiene:</p>
+<pre><code>10 DIM s(5)
+20 FOR i=1 TO 5
+30 INPUT &quot;Nota? &quot;;s(i)
+40 NEXT i
+50 LET total=0
+60 FOR i=1 TO 5: LET total=total+s(i): NEXT i
+70 PRINT &quot;Notas: &quot;;
+80 FOR i=1 TO 5: PRINT s(i);&quot; &quot;;: NEXT i
+90 PRINT: PRINT &quot;Media: &quot;;total/5
+</code></pre>
+<p><code>DIM s(5)</code> crea las cajas de <code>s(1)</code> a <code>s(5)</code>, todas a 0. El número entre
+paréntesis es el <strong>índice</strong>, y puede ser una variable: <code>s(i)</code> es "la caja
+número <code>i</code>". Eso es lo que hace tan útiles las matrices con <code>FOR</code>.</p>
+<p>Algunas reglas:</p>
+<ul>
+<li>El nombre de una matriz es una sola letra: <code>s</code>, <code>a</code>, <code>b</code>.</li>
+<li>Las cajas se numeran desde el 1. Pedir una caja que no existe, como <code>s(6)</code>
+  o <code>s(0)</code>, da <code>3 Subíndice incorrecto</code>.</li>
+<li>Una matriz puede tener más dimensiones: <code>DIM b(8,8)</code> es un tablero de
+  8 × 8 cajas, y <code>b(2,3)</code> es la fila 2, columna 3.</li>
+</ul>
+<p>Aquí una matriz cuenta cuántas veces sale cada cara de un dado en 600
+tiradas:</p>
+<pre><code>10 RANDOMIZE
+20 DIM c(6)
+30 FOR i=1 TO 600
+40 LET d=INT (RND*6)+1
+50 LET c(d)=c(d)+1
+60 NEXT i
+70 FOR d=1 TO 6: PRINT d;&quot;: &quot;;c(d): NEXT d
+</code></pre>
+<p>Cada cara sale unas 100 veces.</p>
+<h2 id="matrices-de-cadenas">Matrices de cadenas<a class="ancla" href="#matrices-de-cadenas" aria-hidden="true">#</a></h2>
+<p>Las matrices de cadenas necesitan un número más: lo larga que es cada
+cadena. <code>DIM d$(7,9)</code> crea 7 cadenas de 9 caracteres exactos cada una. Un
+texto más corto se rellena con espacios al final, y uno más largo se corta.</p>
+<h2 id="read-y-data-listas-dentro-del-programa"><code>READ</code> y <code>DATA</code>: listas dentro del programa<a class="ancla" href="#read-y-data-listas-dentro-del-programa" aria-hidden="true">#</a></h2>
+<p>Las líneas <code>DATA</code> guardan una lista de valores. <code>READ</code> coge el siguiente
+valor de la lista y lo mete en una variable:</p>
+<pre><code>10 DIM d$(7,9)
+20 FOR i=1 TO 7: READ d$(i): NEXT i
+30 FOR i=1 TO 7: PRINT i;&quot; &quot;;d$(i);&quot;|&quot;: NEXT i
+40 DATA &quot;lunes&quot;,&quot;martes&quot;,&quot;miercoles&quot;,&quot;jueves&quot;
+50 DATA &quot;viernes&quot;,&quot;sabado&quot;,&quot;domingo&quot;
+</code></pre>
+<p>El <code>|</code> del final enseña los espacios que rellenan cada día hasta 9
+caracteres.</p>
+<p>Las líneas <code>DATA</code> pueden ir en cualquier sitio del programa; la máquina se
+las salta al ejecutarlo. Los valores se leen en orden, línea tras línea. Una
+línea <code>DATA</code> puede mezclar números y cadenas, siempre que cada <code>READ</code> use el
+tipo de variable que toca:</p>
+<pre><code>10 FOR i=1 TO 3
+20 READ n$,e
+30 PRINT n$;&quot; tiene &quot;;e
+40 NEXT i
+50 RESTORE
+60 READ n$: PRINT &quot;Otra vez el primero: &quot;;n$
+70 DATA &quot;Ada&quot;,36,&quot;Alan&quot;,41,&quot;Grace&quot;,85
+</code></pre>
+<p><code>RESTORE</code> vuelve al principio de la lista, así que el siguiente <code>READ</code> coge
+otra vez el primer valor. <code>RESTORE 100</code> (o <code>RESTORE @etiqueta</code>) va a los
+<code>DATA</code> de esa línea. Leer más valores de los que hay da <code>E No quedan DATA</code>.</p>
+<h2 id="pruébalo">Pruébalo<a class="ancla" href="#pruébalo" aria-hidden="true">#</a></h2>
+<ol>
+<li>Guarda los nombres de los meses en <code>DATA</code> y escribe un programa que pida
+   un número del 1 al 12 y escriba el nombre de ese mes.</li>
+<li>Llena una matriz con 10 números al azar del 1 al 100 y escribe el mayor.</li>
+</ol>
+<details>
+<summary>Pista</summary>
+<p>Para el primero, lee los meses en <code>DIM m$(12,10)</code> con un bucle y luego
+escribe <code>m$(n)</code>. Para el segundo, guarda el mayor hasta el momento en una
+variable que empiece en 0 y compara cada número con ella:
+<code>IF a(i)&gt;mayor THEN LET mayor=a(i)</code>.</p>
+</details>
+<details>
+<summary>Una solución para el segundo</summary>
+<pre><code>10 RANDOMIZE
+20 DIM a(10): LET mayor=0
+30 FOR i=1 TO 10
+40 LET a(i)=INT (RND*100)+1: PRINT a(i);&quot; &quot;;
+50 IF a(i)&gt;mayor THEN LET mayor=a(i)
+60 NEXT i
+70 PRINT: PRINT &quot;El mayor es &quot;;mayor
+</code></pre>
+</details>
+<hr />
+<p><strong>Referencia:</strong> <a href="../reference.html#dim"><code>DIM</code></a>,
+<a href="../reference.html#matrices">Matrices</a>,
+<a href="../reference.html#read-data-restore"><code>READ</code>, <code>DATA</code>, <code>RESTORE</code></a>.</p>
+<p><strong>Siguiente:</strong> <a href="07-procedures.html">7. Procedimientos</a> ·
+<strong>Anterior:</strong> <a href="05-loops.html">5. Bucles</a></p>
+<nav class="pasos"><a class="anterior" href="05-loops.html"><small>Anterior</small>← 5. Bucles</a><a class="siguiente" href="07-procedures.html"><small>Siguiente</small>7. Procedimientos →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

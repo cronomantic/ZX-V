@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5. Loops · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../es/basic/tutorial/05-loops.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../../getting-started.html">Getting started</a>
+</li>
+<li><a href="../../emulator.html">The emulator</a>
+</li>
+<li><a href="../../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../index.html">Learn BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. First steps</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables and maths</a></li>
+<li><a href="03-text-and-input.html">3. Text and input</a></li>
+<li><a href="04-decisions.html">4. Decisions</a></li>
+<li><a href="05-loops.html" class="aqui">5. Loops</a></li>
+<li><a href="06-arrays-and-data.html">6. Arrays and data</a></li>
+<li><a href="07-procedures.html">7. Procedures</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Colours and the screen</a></li>
+<li><a href="09-drawing.html">9. Drawing</a></li>
+<li><a href="10-sound-and-music.html">10. Sound and music</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Keyboard and joystick</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Files and the SD card</a></li>
+<li><a href="14-a-complete-game.html">14. A complete game</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">The editor</a>
+</li>
+<li><a href="../reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../../hardware/board.html">The board</a>
+</li>
+<li><a href="../../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="5-loops">5. Loops</h1>
+<p><strong>In this chapter you will learn</strong> to repeat things with <code>FOR</code> ... <code>NEXT</code>,
+<code>WHILE</code> ... <code>WEND</code> and <code>REPEAT</code> ... <code>UNTIL</code>, to put one loop inside another,
+and to wait with <code>PAUSE</code>.</p>
+<h2 id="counting-with-for--next">Counting with <code>FOR</code> ... <code>NEXT</code><a class="ancla" href="#counting-with-for--next" aria-hidden="true">#</a></h2>
+<p>A <strong>loop</strong> repeats a group of lines. <code>FOR</code> is the loop that counts:</p>
+<pre><code>10 FOR i=1 TO 5
+20 PRINT &quot;Lap &quot;;i
+30 NEXT i
+40 PRINT &quot;Finished!&quot;
+</code></pre>
+<p><code>FOR i=1 TO 5</code> gives <code>i</code> the value 1 and runs the lines that follow. When it
+reaches <code>NEXT i</code>, it adds 1 to <code>i</code> and goes back, until <code>i</code> has gone past 5.
+So it prints <code>Lap 1</code> to <code>Lap 5</code>, and then <code>Finished!</code>.</p>
+<p>The variable that counts (here <code>i</code>) must have a <strong>one-letter name</strong>: <code>FOR
+lap=1 TO 5</code> is a mistake.</p>
+<p><code>STEP</code> changes how much is added each time, and it can be negative or have
+decimals:</p>
+<pre><code>10 FOR i=10 TO 0 STEP -2
+20 PRINT i;&quot; &quot;;
+30 NEXT i
+40 PRINT
+50 FOR x=0 TO 1 STEP 0.25: PRINT x;&quot; &quot;;: NEXT x
+</code></pre>
+<p>This prints <code>10 8 6 4 2 0</code> and, on the next line, <code>0 0.25 0.5 0.75 1</code>. A
+<code>PRINT</code> with nothing after it just ends the line.</p>
+<p>Any of the numbers can be a variable or a sum. Here is a times table:</p>
+<pre><code>10 INPUT &quot;Which times table? &quot;;t
+20 FOR i=1 TO 10
+30 PRINT i;&quot; x &quot;;t;&quot; = &quot;;i*t
+40 NEXT i
+</code></pre>
+<h2 id="loops-inside-loops">Loops inside loops<a class="ancla" href="#loops-inside-loops" aria-hidden="true">#</a></h2>
+<p>You can put one loop inside another. Each one needs its own letter:</p>
+<pre><code>10 FOR r=1 TO 5
+20 FOR c=1 TO r
+30 PRINT &quot;*&quot;;
+40 NEXT c
+50 PRINT
+60 NEXT r
+</code></pre>
+<p>The outside loop counts the rows (<code>r</code>); for each row, the inside loop prints
+<code>r</code> stars. The result is a triangle:</p>
+<pre><code>*
+**
+***
+****
+*****
+</code></pre>
+<h2 id="while--wend-repeat-while-something-is-true"><code>WHILE</code> ... <code>WEND</code>: repeat while something is true<a class="ancla" href="#while--wend-repeat-while-something-is-true" aria-hidden="true">#</a></h2>
+<p>Sometimes you do not know how many times to repeat. <code>WHILE</code> repeats while a
+condition is true, and checks it <strong>before</strong> each turn:</p>
+<pre><code>10 LET money=100: LET years=0
+20 WHILE money&lt;200
+30 LET money=money*1.1: LET years=years+1
+40 WEND
+50 PRINT &quot;Doubled after &quot;;years;&quot; years&quot;
+</code></pre>
+<p>With 10 % interest every year, your money doubles in 8 years. If the
+condition is false from the start, the lines inside are never run.</p>
+<h2 id="repeat--until-repeat-until-something-happens"><code>REPEAT</code> ... <code>UNTIL</code>: repeat until something happens<a class="ancla" href="#repeat--until-repeat-until-something-happens" aria-hidden="true">#</a></h2>
+<p><code>REPEAT</code> checks its condition <strong>after</strong> each turn, so the lines inside run
+at least once. It repeats until the condition becomes true:</p>
+<pre><code>10 RANDOMIZE
+20 LET rolls=0
+30 REPEAT
+40 LET d=INT (RND*6)+1: LET rolls=rolls+1
+50 PRINT d;&quot; &quot;;
+60 UNTIL d=6
+70 PRINT: PRINT &quot;A six after &quot;;rolls;&quot; rolls&quot;
+</code></pre>
+<p>With <code>REPEAT</code>, the guessing game from chapter 4 no longer needs <code>GO TO</code>:</p>
+<pre><code>10 RANDOMIZE
+20 LET secret=INT (RND*100)+1: LET tries=0
+30 REPEAT
+40 INPUT &quot;Guess my number (1-100): &quot;;g
+50 LET tries=tries+1
+60 IF g&lt;secret THEN PRINT g;&quot; is too low&quot;
+70 IF g&gt;secret THEN PRINT g;&quot; is too high&quot;
+80 UNTIL g=secret
+90 PRINT &quot;Yes! &quot;;tries;&quot; tries&quot;
+</code></pre>
+<p>Which loop should you use? <code>FOR</code> when you know how many times; <code>WHILE</code> when
+it may not need to run at all; <code>REPEAT</code> when it has to run at least once.</p>
+<h2 id="waiting-pause">Waiting: <code>PAUSE</code><a class="ancla" href="#waiting-pause" aria-hidden="true">#</a></h2>
+<p><code>PAUSE n</code> waits <code>n</code> fiftieths of a second, so <code>PAUSE 50</code> is one second.
+<code>PAUSE 0</code> waits until a key is pressed. A pressed key also cuts any pause
+short.</p>
+<pre><code>10 FOR n=10 TO 1 STEP -1
+20 PRINT n
+30 PAUSE 50
+40 NEXT n
+50 PRINT &quot;Lift off!&quot;
+</code></pre>
+<p><strong>If you know the Spectrum:</strong> <code>WHILE</code>, <code>WEND</code>, <code>REPEAT</code> and <code>UNTIL</code> are ZX-V
+extensions; <code>FOR</code>, <code>NEXT</code> and <code>PAUSE</code> work as on the 48K.</p>
+<h2 id="try-it">Try it<a class="ancla" href="#try-it" aria-hidden="true">#</a></h2>
+<ol>
+<li>Print the numbers from 1 to 20 with their squares (the number times
+   itself).</li>
+<li>Write a program that asks for a word and prints it backwards: with
+   <code>HELLO</code> it prints <code>OLLEH</code>.</li>
+</ol>
+<details>
+<summary>Hint</summary>
+<p>For the second, <code>w$(i)</code> is letter number <code>i</code>. Go through the letters from
+<code>LEN w$</code> down to 1 with <code>STEP -1</code>, and print each one followed by <code>;</code>.</p>
+</details>
+<details>
+<summary>A solution for the second one</summary>
+<pre><code>10 INPUT &quot;A word? &quot;;w$
+20 FOR i=LEN w$ TO 1 STEP -1
+30 PRINT w$(i);
+40 NEXT i
+</code></pre>
+</details>
+<hr />
+<p><strong>Reference:</strong> <a href="../reference.html#for-next"><code>FOR</code>, <code>NEXT</code></a>,
+<a href="../reference.html#while-wend"><code>WHILE</code>, <code>WEND</code></a>,
+<a href="../reference.html#repeat-until"><code>REPEAT</code>, <code>UNTIL</code></a>,
+<a href="../reference.html#pause"><code>PAUSE</code></a>.</p>
+<p><strong>Next:</strong> <a href="06-arrays-and-data.html">6. Arrays and data</a> ·
+<strong>Previous:</strong> <a href="04-decisions.html">4. Decisions</a></p>
+<nav class="pasos"><a class="anterior" href="04-decisions.html"><small>Previous</small>← 4. Decisions</a><a class="siguiente" href="06-arrays-and-data.html"><small>Next</small>6. Arrays and data →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

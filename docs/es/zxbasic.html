@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compilar BASIC con ZX Basic · ZX-V</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" type="image/png" href="../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../en/zxbasic.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="emulator.html">El emulador</a>
+</li>
+<li><a href="machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="basic/index.html">Aprende BASIC</a>
+</li>
+<li><a href="basic/editor.html">El editor</a>
+</li>
+<li><a href="basic/reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="zxbasic.html" class="aqui">ZX Basic</a>
+<ul>
+</ul>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="hardware/board.html">La placa</a>
+</li>
+<li><a href="hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="compilar-basic-con-zx-basic">Compilar BASIC con ZX Basic</h1>
+<p><a href="https://zxbasic.readthedocs.io">ZX Basic</a> es un compilador de BASIC para el
+ZX Spectrum, de José Rodríguez (Boriel), muy usado para hacer juegos. Hay una
+versión con un target para ZX-V que convierte un programa en BASIC en un
+programa nativo (<code>.zxv</code>), como los del <a href="sdk/index.html">SDK</a> en C: se carga
+con <code>LOAD "nombre"</code> y va unas 90 veces más rápido que el mismo programa en el
+BASIC de la máquina.</p>
+<p>No es una versión oficial de ZX Basic: está en un fork,
+<a href="https://github.com/cronomantic/zxbasic/tree/zxv">cronomantic/zxbasic</a>,
+basado en la versión 1.19.0.</p>
+<h2 id="qué-basic-es">Qué BASIC es<a class="ancla" href="#qué-basic-es" aria-hidden="true">#</a></h2>
+<p>ZX Basic <strong>no es el BASIC de ZX-V</strong>. Es el BASIC del Spectrum con añadidos de
+los BASIC modernos: tipos (<code>UByte</code>, <code>Integer</code>, <code>Long</code>, <code>Float</code>, <code>String</code>...),
+<code>SUB</code> y <code>FUNCTION</code> con variables locales, <code>DO ... LOOP</code>, <code>#include</code>, y no
+hacen falta números de línea. Un programa del Spectrum suele compilar tal
+cual: <code>PRINT AT</code>, <code>INK</code>, <code>PLOT</code>, <code>DRAW</code>, <code>CIRCLE</code>, <code>BEEP</code>, <code>INKEY$</code>, <code>PEEK</code> y
+<code>POKE</code> funcionan como allí, también con las direcciones de la pantalla
+(16384) y de las variables del sistema.</p>
+<p>Lo propio de ZX-V (los modos, las dos páginas, los sprites, las figuras, el
+mando y los AY) está en la librería <code>zxv.bas</code>, con los mismos nombres que en
+el BASIC de ZX-V:</p>
+<pre><code class="language-basic">#include &lt;zxv.bas&gt;
+
+GRABSTR 0, 4, &quot;1111122112211111&quot;
+FOR x = 0 TO 240 STEP 16
+    SPRITE 0, x, 80
+NEXT x
+BOX 4, 100, 20, 20, 20
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Órdenes</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MODE</code>, <code>PAGE</code>, <code>SCREEN</code>, <code>SCROLL</code>, <code>REMAP</code>, <code>WAIT</code></td>
+<td>Los modos, la página que se ve y en la que se dibuja (el doble buffer), el scroll, los cambios de color y el ritmo de 60 imágenes por segundo</td>
+</tr>
+<tr>
+<td><code>PALETTE</code>, <code>PALETTERESET</code></td>
+<td>La paleta: cualquier color (rojo, verde y azul de 0 a 255) en cada uno de los 16, y otra vez los de siempre</td>
+</tr>
+<tr>
+<td><code>GRAB</code>, <code>GRABSTR</code>, <code>SPRITE</code>, <code>HIT</code></td>
+<td>Los sprites, con espejo, otros colores o escalados, y los choques al píxel</td>
+</tr>
+<tr>
+<td><code>BOX</code>, <code>DISC</code>, <code>POLY</code>, <code>CLIP</code>, <code>PIXEL</code></td>
+<td>Figuras rellenas, el recorte y el color de un píxel</td>
+</tr>
+<tr>
+<td><code>KEY</code>, <code>JOY</code>, <code>SOUND</code>, <code>TIME</code></td>
+<td>Las teclas pulsadas, los mandos, los registros de los AY y el contador de frames</td>
+</tr>
+<tr>
+<td><code>MUSICLOAD</code>, <code>MUSICPLAY</code>, <code>MUSICSTOP</code>, <code>MUSICPAUSE</code>, <code>MUSICCONTINUE</code>, <code>MUSIC</code></td>
+<td>La música de un tracker (un <code>.pt3</code> de <a href="sdk/index.html#el-tracker-para-el-pc-zxv-tracker"><code>zxv-tracker</code></a>...), de fondo mientras el programa sigue</td>
+</tr>
+<tr>
+<td><code>SFXLOAD</code>, <code>SFX</code>, <code>SFXSTOP</code>, <code>SFXPLAYING</code></td>
+<td>Los efectos de sonido de un banco AYFX</td>
+</tr>
+</tbody>
+</table>
+<p>Las diferencias con el BASIC de ZX-V: el sprite de una cadena es <code>GRABSTR</code>
+(<code>GRAB n, ancho, a$</code> en el de ZX-V); <code>KEY</code>, <code>JOY</code>, <code>HIT</code> y <code>PIXEL</code> llevan
+paréntesis (<code>KEY(9)</code>); <code>REMAP</code> y <code>SOUND</code> van de par en par y <code>PALETTE</code> de
+color en color, solo en la tabla 0 (sin <code>#t</code>); <code>REMAP</code> y <code>PALETTE</code> solos son
+<code>REMAPRESET</code> y <code>PALETTERESET</code>; <code>POLY</code> admite hasta 8 puntos; y la música y los efectos se cargan con <code>MUSICLOAD f$</code> y
+<code>SFXLOAD f$</code> (<code>LOAD f$ MUSIC</code> y <code>SFX</code> en el de ZX-V), se tocan con <code>MUSICPLAY</code>,
+<code>MUSICSTOP</code>... y la función que dice si suena un efecto es <code>SFXPLAYING</code>.</p>
+<p><code>SAVE</code>, <code>LOAD</code> y <code>VERIFY</code> usan la tarjeta SD como el BASIC de ZX-V: sin
+extensión, la pantalla va en un <code>.gfx</code> (la de ZX-V, con sus colores si no son
+los de siempre) y <code>CODE</code> y <code>DATA</code> en un <code>.bin</code>, los bytes sin más; con la extensión <code>.tap</code>, en una cinta del Spectrum. Compilado con
+<code>--enable-break</code>, Esc para el programa y los errores dicen la línea. Lo demás,
+y las librerías que hay, está en su
+<a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md">documentación del target</a>.</p>
+<h2 id="instalarlo">Instalarlo<a class="ancla" href="#instalarlo" aria-hidden="true">#</a></h2>
+<p><strong>En Windows:</strong> descarga <code>zxbasic-1.19.0-zxv.5-win64.zip</code> de la
+<a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.5">página de la versión</a>
+y descomprímelo donde quieras. Trae <code>zxbc.exe</code>, que no necesita Python.</p>
+<p><strong>En Linux y macOS:</strong> descarga el código de esa misma página (o clona la rama
+<code>zxv</code> del fork). Hace falta Python 3.14; el compilador es <code>zxbc.py</code>.</p>
+<p><strong>Además, en todos:</strong> el compilador de C de RISC-V, el mismo que usa el SDK.
+Cómo instalarlo está en la <a href="sdk/index.html#instalar-las-herramientas">guía del SDK</a>.</p>
+<h2 id="tu-primer-programa">Tu primer programa<a class="ancla" href="#tu-primer-programa" aria-hidden="true">#</a></h2>
+<p>Guarda esto como <code>hola.bas</code>:</p>
+<pre><code class="language-basic">DIM x AS FLOAT
+PAPER 1: INK 7: CLS
+PRINT AT 10, 6; &quot;Hola desde ZX Basic&quot;
+FOR x = 0 TO 255
+    PLOT x, 40 + 30 * SIN(x / 20)
+NEXT x
+</code></pre>
+<p>Compílalo:</p>
+<pre><code>zxbc --arch=zxv hola.bas
+</code></pre>
+<p>(<code>zxbc.exe</code> en Windows, <code>python3 zxbc.py</code> con el código.) Sale <code>hola.zxv</code>:
+cópialo a la tarjeta SD (en el emulador, a la carpeta que hace de tarjeta) y
+cárgalo con <code>LOAD "hola"</code>. Al terminar, el informe (<code>0 OK</code> o el error) se
+queda abajo hasta que pulsas una tecla, como en el Spectrum.</p>
+<p>Con <code>--loading-screen titulo.png</code> (o un <code>.gfx</code> con una pantalla), el <code>.zxv</code>
+lleva una pantalla de carga, como con <code>elf2zxv.py --screen</code>. La máquina la
+enseña mientras carga el programa.</p>
+<p><strong>Ojo con los tipos.</strong> Sin <code>DIM</code>, una variable toma el tipo más pequeño que
+le vale: aquí, sin la primera línea, <code>x</code> sería un <code>UByte</code> (de 0 a 255). Y
+entre enteros, <code>/</code> divide como enteros: <code>x / 20</code> daría 0, 0, 0... 1, 1, 1, y
+la curva saldría a escalones. Y el <code>FOR</code> no acabaría nunca, porque un <code>UByte</code>
+no llega a pasar de 255. Declara como <code>FLOAT</code> lo que necesite decimales, y
+con un tipo más grande los contadores que lleguen al límite.</p>
+<h2 id="un-ejemplo">Un ejemplo<a class="ancla" href="#un-ejemplo" aria-hidden="true">#</a></h2>
+<p><a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/stardust/README.es.md">Stardust</a> es un juego pequeño
+hecho con <code>zxv.bas</code>: doble buffer, sprites de cadenas, choques, teclado o
+mando y sonido, a 60 imágenes por segundo.</p>
+<h2 id="la-licencia-de-tus-programas">La licencia de tus programas<a class="ancla" href="#la-licencia-de-tus-programas" aria-hidden="true">#</a></h2>
+<p>El compilador tiene la licencia AGPL 3, pero lo que va dentro de tus programas
+(el runtime y las librerías de ZX Basic, y las partes del SDK de ZX-V) es MIT:
+tus programas pueden tener la licencia que quieras, también cerrada.</p>
+<nav class="pasos"><a class="anterior" href="sdk/web.html"><small>Anterior</small>← Publicar tu juego en la web</a><a class="siguiente" href="hardware/index.html"><small>Siguiente</small>Construir el hardware →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

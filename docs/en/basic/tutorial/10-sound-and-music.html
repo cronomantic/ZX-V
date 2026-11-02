@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10. Sound and music · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../es/basic/tutorial/10-sound-and-music.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../../getting-started.html">Getting started</a>
+</li>
+<li><a href="../../emulator.html">The emulator</a>
+</li>
+<li><a href="../../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../index.html">Learn BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. First steps</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables and maths</a></li>
+<li><a href="03-text-and-input.html">3. Text and input</a></li>
+<li><a href="04-decisions.html">4. Decisions</a></li>
+<li><a href="05-loops.html">5. Loops</a></li>
+<li><a href="06-arrays-and-data.html">6. Arrays and data</a></li>
+<li><a href="07-procedures.html">7. Procedures</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Colours and the screen</a></li>
+<li><a href="09-drawing.html">9. Drawing</a></li>
+<li><a href="10-sound-and-music.html" class="aqui">10. Sound and music</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Keyboard and joystick</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Files and the SD card</a></li>
+<li><a href="14-a-complete-game.html">14. A complete game</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">The editor</a>
+</li>
+<li><a href="../reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../../hardware/board.html">The board</a>
+</li>
+<li><a href="../../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="10-sound-and-music">10. Sound and music</h1>
+<p><strong>In this chapter you will learn</strong> to make simple beeps with <code>BEEP</code>, to
+play tunes of up to six voices with <code>PLAY</code>, and to create sound effects for
+games with <code>SOUND</code>.</p>
+<p>ZX-V has two kinds of sound: the <strong>beeper</strong>, a simple loudspeaker like the
+one in the first Spectrum, and two <strong>sound chips</strong> (called AY), like the
+one in the Spectrum 128, each able to play three notes at once.</p>
+<h2 id="beep"><code>BEEP</code><a class="ancla" href="#beep" aria-hidden="true">#</a></h2>
+<p><code>BEEP duration,pitch</code> plays one note. The duration is in seconds, and the
+pitch is the number of semitones above middle C (0 is middle C, 12 is the C
+an octave higher, -12 an octave lower):</p>
+<pre><code>10 BEEP 1,0
+20 BEEP 0.5,12
+30 BEEP 0.5,-12
+</code></pre>
+<p>The program waits while the note plays. With <code>READ</code> and <code>DATA</code> you can play
+a scale:</p>
+<pre><code>10 FOR i=1 TO 8
+20 READ p
+30 BEEP 0.25,p
+40 NEXT i
+50 DATA 0,2,4,5,7,9,11,12
+</code></pre>
+<h2 id="play-music-in-a-string"><code>PLAY</code>: music in a string<a class="ancla" href="#play-music-in-a-string" aria-hidden="true">#</a></h2>
+<p><code>PLAY</code> uses the sound chips and takes the music written in a string. The
+simplest strings are just note names:</p>
+<pre><code>10 PLAY &quot;cdefgabC&quot;
+</code></pre>
+<p>That is a scale: <code>c</code> is C (do), <code>d</code> is D (re), and so on; a capital letter
+is one octave higher. These are the most useful signs:</p>
+<table>
+<thead>
+<tr>
+<th>In the string</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>c d e f g a b</code></td>
+<td>Notes; in capitals, one octave higher</td>
+</tr>
+<tr>
+<td><code>#c</code>, <code>$c</code></td>
+<td>Sharp and flat (the sign goes before the note)</td>
+</tr>
+<tr>
+<td><code>&amp;</code></td>
+<td>A rest (silence)</td>
+</tr>
+<tr>
+<td><code>1</code> to <code>9</code></td>
+<td>The length of the next notes: <code>3</code> a quaver, <code>5</code> a crotchet (the starting one), <code>7</code> a minim, <code>9</code> a semibreve</td>
+</tr>
+<tr>
+<td><code>O n</code></td>
+<td>Octave, from 0 to 8 (it starts at 5, where <code>c</code> is middle C)</td>
+</tr>
+<tr>
+<td><code>T n</code></td>
+<td>Tempo, in crotchets per minute (60 to 240; it starts at 120)</td>
+</tr>
+<tr>
+<td><code>V n</code></td>
+<td>Volume, from 0 to 15</td>
+</tr>
+</tbody>
+</table>
+<p>A length stays in force for the next notes until you change it. Spaces are
+ignored, so use them to make the tune easier to read:</p>
+<pre><code>10 LET m$=&quot;T100 O4 5ccgg aa7g 5ffee dd7c&quot;
+20 PLAY m$
+</code></pre>
+<h3 id="several-voices">Several voices<a class="ancla" href="#several-voices" aria-hidden="true">#</a></h3>
+<p>Give <code>PLAY</code> several strings, separated by commas, and they sound at the same
+time: a tune and its accompaniment.</p>
+<pre><code>10 LET a$=&quot;T120 O5 3cegCegCe 7C&quot;
+20 LET b$=&quot;O3 7c&amp;e&amp;&quot;
+30 PLAY a$,b$
+</code></pre>
+<p>The first three strings use the three voices of the first chip; a fourth,
+fifth and sixth string use the second chip. Six voices at once:</p>
+<pre><code>10 PLAY &quot;cdefg&quot;,&quot;efgab&quot;,&quot;gabCD&quot;,&quot;O3c&quot;,&quot;O3e&quot;,&quot;O3g&quot;
+</code></pre>
+<p>The tempo is the one of the first string. <code>PLAY</code> waits until all the strings
+have finished; <strong>Esc</strong> stops it.</p>
+<p><strong>If you know the Spectrum:</strong> <code>PLAY</code> is the one from the Spectrum 128, with
+the same strings, extended to the second chip. The <a href="../reference.html#play">reference</a>
+lists the rest of the signs: envelopes, repeats, triplets and more.</p>
+<h2 id="sound-effects-with-sound">Sound effects with <code>SOUND</code><a class="ancla" href="#sound-effects-with-sound" aria-hidden="true">#</a></h2>
+<p>Games need sounds that are not notes: explosions, jumps, laser shots.
+<code>SOUND</code> talks to the sound chip directly. It writes a value into one of the
+chip's <strong>registers</strong>, its control knobs: <code>SOUND register,value</code>. You can
+write several at once, separated by <code>;</code>. These are enough to start:</p>
+<table>
+<thead>
+<tr>
+<th>Register</th>
+<th>What it controls</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 and 1</td>
+<td>The pitch of voice A: a <strong>period</strong>, so bigger numbers are lower notes. Register 0 takes 0 to 255, and register 1 adds steps of 256</td>
+</tr>
+<tr>
+<td>6</td>
+<td>The pitch of the noise (0 to 31)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>The <strong>mixer</strong>: which voices play tone and which play noise. 62 means "voice A plays a tone"; 55 means "voice A plays noise"</td>
+</tr>
+<tr>
+<td>8</td>
+<td>The volume of voice A (0 to 15), or 16 to let the <strong>envelope</strong> control it</td>
+</tr>
+<tr>
+<td>11 and 12</td>
+<td>How long the envelope takes</td>
+</tr>
+<tr>
+<td>13</td>
+<td>The shape of the envelope: 0 fades out once</td>
+</tr>
+</tbody>
+</table>
+<p>A zap that rises:</p>
+<pre><code>10 REM A rising zap on channel A
+20 SOUND 7,62;8,15
+30 FOR p=200 TO 20 STEP -6
+40 SOUND 0,p;1,0
+50 WAIT 1
+60 NEXT p
+70 SOUND 8,0
+</code></pre>
+<p>Line 20 turns on the tone of voice A at full volume, the loop lowers the
+period (so the note goes up) once every sixtieth of a second, and line 70
+turns the volume down to 0. <code>WAIT 1</code> waits for the next frame of the screen:
+you will see it again in the next chapters.</p>
+<p>An explosion: noise that fades out by itself, thanks to the envelope:</p>
+<pre><code>10 REM An explosion: noise on channel A, with the envelope
+20 SOUND 6,31;7,55;8,16;11,0;12,40;13,0
+30 PAUSE 100
+</code></pre>
+<p>Unlike <code>BEEP</code> and <code>PLAY</code>, <code>SOUND</code> does not wait: the program goes on while
+the chip plays. That is what games need. The sound keeps playing until you
+change it, so remember to silence it with <code>SOUND 8,0</code>. Registers 16 to 31
+are the same ones for the second chip.</p>
+<h2 id="real-music-music-and-sfx">Real music: <code>MUSIC</code> and <code>SFX</code><a class="ancla" href="#real-music-music-and-sfx" aria-hidden="true">#</a></h2>
+<p>The music for a game is made with a <em>tracker</em>, a program for composing like
+the ones Spectrum musicians used. ZX-V comes with one for the PC,
+<a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker"><code>zxv-tracker</code></a>,
+which saves the song in a <code>.pt3</code> file and the sound effects in an <code>.afb</code>.
+BASIC plays them <strong>in the background</strong>, while the program goes on:</p>
+<pre><code>10 LOAD &quot;tune&quot; MUSIC: MUSIC PLAY
+20 LOAD &quot;effects&quot; SFX
+30 IF INKEY$=&quot; &quot; THEN SFX 0
+40 GO TO 30
+</code></pre>
+<p><code>MUSIC STOP</code> stops the music and <code>SFX n</code> plays effect number <code>n</code> without
+silencing it. Everything else is in the reference: <a href="../reference.html#music"><code>MUSIC</code></a>
+and <a href="../reference.html#sfx"><code>SFX</code></a>.</p>
+<h2 id="try-it">Try it<a class="ancla" href="#try-it" aria-hidden="true">#</a></h2>
+<ol>
+<li>Play the beginning of a tune you know with <code>PLAY</code>.</li>
+<li>Make a "coin" sound for a game: two quick high notes, one after the other,
+   with <code>SOUND</code>.</li>
+</ol>
+<details>
+<summary>Hint</summary>
+<p>For the coin, turn on voice A (<code>SOUND 7,62;8,15</code>), set a period such as 60,
+wait a few frames with <code>WAIT 4</code>, set a smaller period (a higher note) such as
+40, wait again, and turn the volume down with <code>SOUND 8,0</code>.</p>
+</details>
+<details>
+<summary>A solution for the second one</summary>
+<pre><code>10 SOUND 7,62;8,15
+20 SOUND 0,60;1,0: WAIT 4
+30 SOUND 0,40;1,0: WAIT 8
+40 SOUND 8,0
+</code></pre>
+</details>
+<hr />
+<p><strong>Reference:</strong> <a href="../reference.html#beep"><code>BEEP</code></a>, <a href="../reference.html#play"><code>PLAY</code></a>,
+<a href="../reference.html#sound"><code>SOUND</code></a>, <a href="../reference.html#wait"><code>WAIT</code></a>,
+<a href="../reference.html#music"><code>MUSIC</code></a>, <a href="../reference.html#sfx"><code>SFX</code></a>.</p>
+<p><strong>Next:</strong> <a href="11-keyboard-and-joystick.html">11. Keyboard and joystick</a> ·
+<strong>Previous:</strong> <a href="09-drawing.html">9. Drawing</a></p>
+<nav class="pasos"><a class="anterior" href="09-drawing.html"><small>Previous</small>← 9. Drawing</a><a class="siguiente" href="11-keyboard-and-joystick.html"><small>Next</small>11. Keyboard and joystick →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

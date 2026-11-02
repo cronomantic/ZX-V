@@ -1,0 +1,3884 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Referencia del BASIC · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../en/basic/reference.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../emulator.html">El emulador</a>
+</li>
+<li><a href="../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="index.html">Aprende BASIC</a>
+</li>
+<li><a href="editor.html">El editor</a>
+</li>
+<li><a href="reference.html" class="aqui">Referencia del BASIC</a>
+<ul>
+</ul>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../hardware/board.html">La placa</a>
+</li>
+<li><a href="../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="referencia-del-basic">Referencia del BASIC</h1>
+<p>Esta página describe todas las órdenes, funciones y operadores del BASIC de
+ZX-V, además de los mensajes de error, el juego de caracteres y los límites
+de la máquina. Es una referencia: para aprender el lenguaje paso a paso,
+empieza por el <a href="index.html">curso de BASIC</a>, y para aprender a teclear y
+cambiar programas, lee <a href="editor.html">el editor</a>.</p>
+<h2 id="cómo-leer-esta-referencia">Cómo leer esta referencia<a class="ancla" href="#cómo-leer-esta-referencia" aria-hidden="true">#</a></h2>
+<p>Cada entrada empieza por su <strong>sintaxis</strong>, en un recuadro:</p>
+<pre><code>PRINT [AT fila, columna;] [elemento] [; elemento]...
+</code></pre>
+<ul>
+<li>Las palabras en MAYÚSCULAS son palabras clave: se teclean tal cual (en
+  mayúsculas o en minúsculas, da igual).</li>
+<li>Las palabras en minúsculas son lo que pones tú: <code>n</code>, <code>x</code>, <code>fila</code> son
+  números o expresiones numéricas; los nombres que acaban en <code>$</code> (<code>a$</code>,
+  <code>nombre$</code>) son cadenas de texto; <code>línea</code> es un número de línea y <code>var</code>, el
+  nombre de una variable.</li>
+<li><code>[</code> <code>]</code> encierran una parte opcional; <code>...</code> quiere decir que lo anterior se
+  puede repetir; <code>|</code> separa alternativas (<code>IN | OUT</code> es «IN u OUT»).</li>
+<li>Los signos como <code>,</code>, <code>;</code>, <code>(</code> y <code>#</code> se teclean tal como aparecen.</li>
+</ul>
+<p>Después viene lo que hace, sus parámetros y sus rangos, un ejemplo corto que
+puedes teclear y las entradas relacionadas (<strong>Ver también</strong>). Cuando un valor
+se sale de su rango, la máquina da un informe de error, que aquí se escribe
+con su código y su mensaje, por ejemplo <code>B Entero fuera de rango</code> (ver
+<a href="#mensajes-de-error">Mensajes de error</a>).</p>
+<p>Una <strong>orden</strong> (o instrucción) hace algo: <code>PRINT</code>, <code>GO TO</code>, <code>BEEP</code>. Una
+<strong>función</strong> devuelve un valor y se usa dentro de una expresión: <code>SQR 16</code>,
+<code>LEN a$</code>, <code>INKEY$</code>. Casi todas las órdenes se pueden teclear en una línea de
+programa (con número de línea, para ejecutarla después) o como <strong>orden
+directa</strong> (sin número, que se ejecuta en cuanto pulsas Enter).</p>
+<blockquote>
+<p><strong>Si conoces el Spectrum:</strong> el BASIC de ZX-V ejecuta los programas en
+Sinclair BASIC del 48K, más el <code>PLAY</code> del 128K, y añade muchas extensiones
+(bucles estructurados, procedimientos, etiquetas, captura de errores,
+sprites, ficheros...). Las palabras clave se teclean letra a letra, como en
+el 128K, no con una sola tecla.</p>
+</blockquote>
+<h2 id="contenido">Contenido<a class="ancla" href="#contenido" aria-hidden="true">#</a></h2>
+<ul>
+<li><a href="#el-lenguaje">El lenguaje</a>: líneas, números, cadenas, variables,
+  matrices, operadores</li>
+<li><a href="#control-del-programa">Control del programa</a>: <code>GO TO</code>, <code>GO SUB</code>, <code>IF</code>,
+  <code>SELECT CASE</code>, <code>FOR</code>, <code>WHILE</code>, <code>REPEAT</code>, procedimientos, etiquetas, <code>RUN</code>,
+  <code>STOP</code>, <code>CONTINUE</code>, <code>TRACE</code>, <code>PAUSE</code>, <code>WAIT</code></li>
+<li><a href="#variables-y-datos">Variables y datos</a>: <code>LET</code>, <code>DIM</code>, <code>READ</code>, <code>DATA</code>,
+  <code>CLEAR</code>, <code>DEF FN</code></li>
+<li><a href="#matemáticas">Matemáticas</a>: <code>SIN</code>, <code>SQR</code>, <code>INT</code>, <code>RND</code>...</li>
+<li><a href="#funciones-de-texto">Funciones de texto</a>: <code>LEN</code>, <code>CHR$</code>, <code>CODE</code>,
+  <code>STR$</code>, <code>VAL</code></li>
+<li><a href="#la-pantalla-y-print">La pantalla y PRINT</a>: <code>PRINT</code>, <code>CLS</code>, <code>SCREEN$</code>,
+  <code>ATTR</code>, <code>LPRINT</code></li>
+<li><a href="#colores">Colores</a>: <code>INK</code>, <code>PAPER</code>, <code>BORDER</code>, <code>BRIGHT</code>, <code>FLASH</code>,
+  <code>INVERSE</code>, <code>OVER</code></li>
+<li><a href="#dibujo-con-plot-y-draw">Dibujo con PLOT y DRAW</a>: <code>PLOT</code>, <code>DRAW</code>,
+  <code>CIRCLE</code>, <code>POINT</code></li>
+<li><a href="#modos-de-vídeo-y-efectos">Modos de vídeo y efectos</a>: <code>MODE</code>, <code>PAGE</code>,
+  <code>SCREEN</code>, <code>SCROLL</code>, <code>REMAP</code>, <code>PALETTE</code>, <code>RASTER</code></li>
+<li><a href="#sprites-mapas-de-tiles-y-gráficos-rápidos">Sprites, mapas de tiles y gráficos rápidos</a>:
+  <code>GRAB</code>, <code>SPRITE</code>, <code>TILE</code>, <code>MAP</code>, <code>FLOOR</code>, <code>BOX</code>, <code>DISC</code>, <code>POLY</code>...</li>
+<li><a href="#sonido-y-música">Sonido y música</a>: <code>BEEP</code>, <code>PLAY</code>, <code>SOUND</code>, <code>MUSIC</code>,
+  <code>SFX</code></li>
+<li><a href="#teclado-mando-y-ratón">Teclado, mando y ratón</a>: <code>INPUT</code>, <code>INKEY$</code>,
+  <code>KEY</code>, <code>JOY</code>, <code>MOUSE</code></li>
+<li><a href="#ficheros-y-la-tarjeta-sd">Ficheros y la tarjeta SD</a>: <code>SAVE</code>, <code>LOAD</code>,
+  <code>CAT</code>, <code>CD</code>, <code>COPY</code>, <code>ERASE</code>...</li>
+<li><a href="#ficheros-de-cinta">Ficheros de cinta</a>: <code>.tap</code> y <code>.tzx</code>, los del Spectrum</li>
+<li><a href="#streams-y-canales">Streams y canales</a>: <code>OPEN #</code>, <code>CLOSE #</code>, ficheros de
+  texto</li>
+<li><a href="#memoria-y-sistema">Memoria y sistema</a>: <code>PEEK</code>, <code>POKE</code>, <code>USR</code>, <code>IN</code>,
+  <code>OUT</code>, <code>TIME</code>, <code>CLOCK</code>, <code>SPEED</code>, <code>LANGUAGE</code></li>
+<li><a href="#órdenes-de-edición">Órdenes de edición</a>: <code>LIST</code>, <code>EDIT</code>, <code>AUTO</code>,
+  <code>RENUM</code>, <code>DELETE</code>, <code>FIND</code>, <code>REPLACE</code>, <code>NEW</code></li>
+<li><a href="#errores">Errores</a>: informes, <code>ON ERROR</code>, <code>ERR</code>, <code>ERL</code></li>
+<li><a href="#mensajes-de-error">Mensajes de error</a></li>
+<li><a href="#juego-de-caracteres">Juego de caracteres</a></li>
+<li><a href="#límites">Límites</a></li>
+<li><a href="#índice-de-palabras-clave">Índice de palabras clave</a></li>
+</ul>
+<h2 id="el-lenguaje">El lenguaje<a class="ancla" href="#el-lenguaje" aria-hidden="true">#</a></h2>
+<h3 id="líneas-y-órdenes">Líneas y órdenes<a class="ancla" href="#líneas-y-órdenes" aria-hidden="true">#</a></h3>
+<p>Un programa es una lista de <strong>líneas</strong>. Cada una empieza por un <strong>número de
+línea</strong> del 1 al 9999, y se guardan ordenadas por su número, las teclees en
+el orden que las teclees. En una línea caben varias órdenes, separadas por dos
+puntos (<code>:</code>):</p>
+<pre><code>10 PRINT &quot;Hola&quot;: PRINT &quot;otra vez&quot;
+20 GO TO 10
+</code></pre>
+<p>Los números suelen ir de diez en diez (10, 20, 30...) para que quede sitio
+para meter líneas en medio; <a href="#renum"><code>RENUM</code></a> los vuelve a ordenar. Una línea
+tecleada sin número es una orden directa y se ejecuta en el momento.</p>
+<p>Cuando algo falla, el informe de error dice dónde: <code>2 Variable no
+encontrada, 20:1</code> es la orden 1 de la línea 20 (ver <a href="#informes">Informes</a>).</p>
+<h3 id="números">Números<a class="ancla" href="#números" aria-hidden="true">#</a></h3>
+<p>Los números se escriben como <code>42</code>, <code>-7</code>, <code>3.25</code>, <code>.5</code> (con punto, no con
+coma) o en notación científica: <code>1E6</code> es 1 000 000 y <code>2.5E-3</code> es 0,0025. Van
+de unos ±2,9E-39 a ±1,7E38; un resultado mayor da <code>6 Número demasiado
+grande</code>, y uno más pequeño se queda en 0. <a href="#bin"><code>BIN</code></a> escribe un número en
+binario.</p>
+<p><code>PRINT</code> enseña hasta 8 cifras significativas, y pasa a la notación científica
+con los números muy grandes o muy pequeños:</p>
+<pre><code>PRINT 1/3, 2^31, 1E10, 0.000001
+</code></pre>
+<p>enseña <code>0.33333333</code>, <code>2.1474836E+9</code>, <code>1E+10</code> y <code>1E-6</code>.</p>
+<p>Las comparaciones (<code>=</code>, <code>&lt;</code>, <code>&gt;</code>...) se hacen con la misma precisión que en
+el Spectrum, así que <code>0.1*3=0.3</code> es cierto.</p>
+<h3 id="cadenas">Cadenas<a class="ancla" href="#cadenas" aria-hidden="true">#</a></h3>
+<p>Una cadena es un trozo de texto entre comillas dobles: <code>"Hola"</code>. Para meter
+unas comillas dentro de una cadena, se escriben dos veces: <code>PRINT "di
+""hola"""</code> enseña <code>di "hola"</code>. La cadena vacía es <code>""</code>. Una cadena puede ser
+tan larga como quepa en la memoria.</p>
+<p><code>+</code> une cadenas: <code>"ZX" + "-V"</code> es <code>"ZX-V"</code>.</p>
+<p>Un <strong>trozo</strong> es una parte de una cadena. Las posiciones de los caracteres
+empiezan en 1:</p>
+<table>
+<thead>
+<tr>
+<th>Expresión</th>
+<th>Resultado</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"hola"(2 TO 3)</code></td>
+<td><code>"ol"</code></td>
+<td>los caracteres 2 a 3</td>
+</tr>
+<tr>
+<td><code>"hola"(3)</code></td>
+<td><code>"l"</code></td>
+<td>el carácter 3</td>
+</tr>
+<tr>
+<td><code>"hola"(TO 2)</code></td>
+<td><code>"ho"</code></td>
+<td>del principio al 2</td>
+</tr>
+<tr>
+<td><code>"hola"(3 TO)</code></td>
+<td><code>"la"</code></td>
+<td>del 3 al final</td>
+</tr>
+</tbody>
+</table>
+<p>Un trozo que empieza después de donde acaba es la cadena vacía; una posición
+fuera de la cadena da <code>3 Subíndice incorrecto</code>. Los trozos valen con
+variables de cadena, con cadenas escritas en el programa y con cualquier
+expresión entre paréntesis: <code>(a$+b$)(2 TO)</code>. También se puede asignar a un
+trozo: <code>LET a$(1)="J"</code> cambia el primer carácter (sin cambiar la longitud
+de <code>a$</code>).</p>
+<p>Las cadenas se comparan carácter a carácter según sus códigos (ver <a href="#juego-de-caracteres">Juego
+de caracteres</a>), así que <code>"B"&lt;"a"</code> es cierto, y
+<code>"ab"&lt;"abc"</code> también.</p>
+<h3 id="variables">Variables<a class="ancla" href="#variables" aria-hidden="true">#</a></h3>
+<p>Una variable guarda un valor con un nombre.</p>
+<ul>
+<li>Las <strong>variables numéricas</strong> tienen nombres de letras y cifras que empiezan
+  por una letra: <code>x</code>, <code>puntos</code>, <code>nivel2</code>. Los nombres pueden ser largos (hasta
+  63 caracteres), no se distinguen mayúsculas y minúsculas (<code>Puntos</code> y
+  <code>PUNTOS</code> son la misma) y se ignoran los espacios de dentro (<code>mis puntos</code> es
+  <code>mispuntos</code>). No admiten letras con tilde ni la ñ (si las tecleas, se
+  escriben sin la tilde: <code>número</code> queda <code>numero</code>).</li>
+<li>Las <strong>variables de cadena</strong> son una sola letra seguida de <code>$</code>: <code>a$</code>, <code>n$</code>.
+  Hay 26.</li>
+<li>La variable de control de <a href="#for-next"><code>FOR</code></a> es una sola letra.</li>
+<li>Un nombre no puede ser una palabra clave: <code>LET print=1</code> es un error. Una
+  palabra clave dentro de un nombre más largo no molesta (<code>total</code>, <code>ink2</code>).</li>
+</ul>
+<p>Una variable se crea la primera vez que recibe un valor (con <code>LET</code>, <code>INPUT</code>,
+<code>READ</code> o <code>FOR</code>). Leer una variable que no existe da <code>2 Variable no
+encontrada</code>. <a href="#run"><code>RUN</code></a> y <a href="#clear"><code>CLEAR</code></a> borran todas las variables.</p>
+<pre><code>10 LET mis puntos=10
+20 LET a$=&quot;Ana&quot;
+30 PRINT a$; &quot; tiene &quot;; MisPuntos; &quot; puntos&quot;
+</code></pre>
+<h3 id="matrices">Matrices<a class="ancla" href="#matrices" aria-hidden="true">#</a></h3>
+<p>Una matriz es una lista numerada de valores (o una tabla, si tiene varias
+dimensiones). Su nombre es una sola letra y se crea con <a href="#dim"><code>DIM</code></a>:</p>
+<pre><code>10 DIM t(5): DIM g(3,3)
+20 LET t(1)=100: LET g(2,3)=7
+30 PRINT t(1); &quot; &quot;; g(2,3); &quot; &quot;; t(5)
+</code></pre>
+<p>Los subíndices empiezan en 1. Las matrices numéricas empiezan llenas de
+ceros. Una matriz numérica y una variable numérica pueden compartir letra
+(<code>a</code> y <code>a(1)</code> son distintas). Una matriz de cadenas <code>a$</code> sustituye a la
+variable de cadena <code>a$</code>.</p>
+<p>Las <strong>matrices de cadenas</strong> son matrices de caracteres: la última dimensión
+es la longitud fija de cada cadena. <code>DIM n$(3,10)</code> crea 3 cadenas de 10
+caracteres, llenas de espacios. <code>n$(2)</code> es la segunda cadena y <code>n$(2,1)</code>, su
+primer carácter. Si se asigna un texto más corto, el resto se rellena con
+espacios; si es más largo, se corta:</p>
+<pre><code>10 DIM n$(2,4)
+20 LET n$(1)=&quot;hola mundo&quot;
+30 PRINT n$(1); &quot;|&quot;; n$(2); &quot;|&quot;
+</code></pre>
+<p>enseña <code>hola|    |</code>.</p>
+<h3 id="expresiones-y-operadores">Expresiones y operadores<a class="ancla" href="#expresiones-y-operadores" aria-hidden="true">#</a></h3>
+<p>Una expresión combina valores con operadores. Cuando hay varios, primero se
+calculan los de más prioridad:</p>
+<table>
+<thead>
+<tr>
+<th>Prioridad</th>
+<th>Operadores</th>
+<th>Qué hacen</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>la más alta</td>
+<td>funciones</td>
+<td><code>SIN x</code>, <code>LEN a$</code>... toman solo el valor que las sigue</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>^</code></td>
+<td>potencia</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>-</code> (delante)</td>
+<td>cambio de signo</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>*</code> <code>/</code></td>
+<td>multiplicación, división</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>+</code> <code>-</code></td>
+<td>suma (y unión de cadenas), resta</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>=</code> <code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code> <code>&lt;&gt;</code></td>
+<td>comparaciones</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>NOT</code></td>
+<td>no lógico</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>AND</code></td>
+<td>y lógico</td>
+</tr>
+<tr>
+<td>la más baja</td>
+<td><code>OR</code></td>
+<td>o lógico</td>
+</tr>
+</tbody>
+</table>
+<p>Los operadores de la misma prioridad se calculan de izquierda a derecha, así
+que <code>2^3^2</code> es <code>(2^3)^2</code> = 64. El cambio de signo va después de la potencia:
+<code>-2^2</code> es -4. Los paréntesis cambian el orden: <code>(1+2)*3</code> es 9.</p>
+<p>Las funciones toman solo el valor que las sigue: <code>SQR 16+9</code> es <code>(SQR 16)+9</code>
+= 13, y <code>SQR (16+9)</code> es 5. Si dudas, pon paréntesis.</p>
+<p>Dividir entre cero da <code>6 Número demasiado grande</code>. Elevar un número negativo
+a una potencia da <code>A Argumento no válido</code>.</p>
+<h3 id="verdadero-y-falso">Verdadero y falso<a class="ancla" href="#verdadero-y-falso" aria-hidden="true">#</a></h3>
+<p>Las comparaciones dan 1 si son ciertas y 0 si son falsas: <code>PRINT 3&gt;2</code> enseña
+1. <code>IF</code>, <code>WHILE</code> y <code>UNTIL</code> admiten cualquier número: el 0 es falso y todo lo
+demás, cierto.</p>
+<table>
+<thead>
+<tr>
+<th>Expresión</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>NOT x</code></td>
+<td>1 si <code>x</code> es 0; si no, 0</td>
+</tr>
+<tr>
+<td><code>x AND y</code></td>
+<td><code>x</code> si <code>y</code> no es 0; si no, 0</td>
+</tr>
+<tr>
+<td><code>x OR y</code></td>
+<td>1 si <code>y</code> no es 0; si no, <code>x</code></td>
+</tr>
+<tr>
+<td><code>a$ AND y</code></td>
+<td><code>a$</code> si <code>y</code> no es 0; si no, <code>""</code></td>
+</tr>
+</tbody>
+</table>
+<p>Así, <code>IF a&gt;0 AND a&lt;10 THEN ...</code> funciona como esperas, y un truco como
+<code>PRINT ("vale" AND ok); ("no vale" AND NOT ok)</code> escribe una cosa o la otra.</p>
+<h3 id="argumentos-enteros">Argumentos enteros<a class="ancla" href="#argumentos-enteros" aria-hidden="true">#</a></h3>
+<p>Muchas órdenes necesitan números enteros (un número de línea, un color, una
+coordenada). Si les das un número con decimales, se redondea al entero más
+cercano (2,5 pasa a 3). Si queda fuera del rango permitido, da <code>B Entero
+fuera de rango</code> (o <code>K Color no válido</code> con los colores).</p>
+<h2 id="control-del-programa">Control del programa<a class="ancla" href="#control-del-programa" aria-hidden="true">#</a></h2>
+<h3 id="go-to">GO TO<a class="ancla" href="#go-to" aria-hidden="true">#</a></h3>
+<pre><code>GO TO línea
+GO TO @etiqueta
+</code></pre>
+<p>Salta a una línea y sigue desde ahí. <code>línea</code> puede ser cualquier expresión
+(<code>GO TO n*100</code>). Si esa línea no existe, va a la siguiente que haya; si no hay
+ninguna, el programa termina. Con una <a href="#etiqueta">etiqueta</a>, salta a esa orden
+exacta.</p>
+<pre><code>10 PRINT &quot;sin parar&quot;
+20 GO TO 10
+</code></pre>
+<p>Pulsa BREAK (Esc) para pararlo.</p>
+<p><strong>Ver también:</strong> <a href="#go-sub-return">GO SUB</a>, <a href="#etiqueta">@etiqueta</a>,
+<a href="#run">RUN</a>.</p>
+<h3 id="go-sub-return">GO SUB, RETURN<a class="ancla" href="#go-sub-return" aria-hidden="true">#</a></h3>
+<pre><code>GO SUB línea
+GO SUB @etiqueta
+RETURN
+</code></pre>
+<p><code>GO SUB</code> salta a una subrutina, como <code>GO TO</code>, pero recuerda de dónde venía;
+<code>RETURN</code> vuelve a la orden que sigue al <code>GO SUB</code>. Una subrutina puede llamar a
+otras (hasta 512 niveles). Un <code>RETURN</code> sin <code>GO SUB</code> da <code>7 RETURN sin GO SUB</code>.</p>
+<pre><code>10 GO SUB 100: GO SUB 100
+20 STOP
+100 PRINT &quot;en la subrutina&quot;
+110 RETURN
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#def-proc-proc-end-proc">DEF PROC</a>, que suele quedar más
+claro.</p>
+<h3 id="if-then-else">IF, THEN, ELSE<a class="ancla" href="#if-then-else" aria-hidden="true">#</a></h3>
+<pre><code>IF condición THEN órdenes
+IF condición THEN órdenes ELSE órdenes
+
+IF condición THEN
+  líneas
+ELSE IF condición THEN
+  líneas
+ELSE
+  líneas
+END IF
+</code></pre>
+<p>Si la condición es cierta (no es 0), se ejecutan las órdenes que siguen a
+<code>THEN</code>. Si es falsa, se saltan: el programa sigue por las órdenes que hay tras
+<code>ELSE</code>, si hay uno en la misma línea, o por la línea siguiente. Un número
+tras <code>THEN</code> es un error (<code>IF a THEN 100</code>; se escribe <code>IF a THEN GO TO 100</code>).</p>
+<pre><code>10 LET n=-5
+20 IF n&lt;0 THEN PRINT &quot;negativo&quot; ELSE PRINT &quot;cero o positivo&quot;
+30 IF n&lt;0 THEN PRINT &quot;a&quot;: PRINT &quot;b&quot; ELSE PRINT &quot;c&quot;: PRINT &quot;d&quot;
+</code></pre>
+<p>La línea 30 escribe <code>a</code> y <code>b</code>. Todo lo que va de <code>THEN</code> a <code>ELSE</code> es la parte
+de cierto, y todo lo que va de <code>ELSE</code> al final de la línea, la de falso. Con
+varios <code>IF</code> en una línea, cada <code>ELSE</code> va con el <code>IF</code> más cercano.</p>
+<p><strong>El IF de bloque.</strong> Si <code>THEN</code> es lo último de la línea, el <code>IF</code> abre un
+bloque de varias líneas, que acaba en <code>END IF</code>. Dentro puede haber partes
+<code>ELSE IF condición THEN</code> (también al final de su línea), que se miran por
+orden si no se cumplió nada antes, y una parte <code>ELSE</code> para cuando no se
+cumple ninguna. Solo se ejecuta una parte; después, el programa sigue tras
+<code>END IF</code>.</p>
+<pre><code>10 INPUT &quot;Edad? &quot;;e
+20 IF e&lt;13 THEN
+30 PRINT &quot;Nino&quot;
+40 ELSE IF e&lt;18 THEN
+50 PRINT &quot;Adolescente&quot;
+60 ELSE
+70 PRINT &quot;Adulto&quot;
+80 IF e&gt;=65 THEN PRINT &quot;Jubilado&quot;
+90 END IF
+</code></pre>
+<ul>
+<li><code>ELSE</code>, <code>ELSE IF</code> y <code>END IF</code> empiezan su línea. Detrás de <code>ELSE</code> pueden ir
+  órdenes en la misma línea (<code>ELSE PRINT "Adulto"</code>), y detrás de <code>END IF</code>,
+  otras separadas por <code>:</code>. Un <code>ELSE</code> que no empieza la línea es el del IF de
+  una línea.</li>
+<li>Los bloques se pueden meter unos dentro de otros, sin límite, y llevar
+  dentro IF de una línea, bucles o <code>GO SUB</code>. Se puede salir de un bloque con
+  <code>GO TO</code>.</li>
+<li>Si a un bloque le falta el <code>END IF</code>, <code>Y Error de estructura</code> cuando se
+  busca. Solo funciona en un programa: como orden directa, <code>IF a THEN</code> no
+  hace nada.</li>
+</ul>
+<p><strong>Ver también:</strong> <a href="#select-case">SELECT CASE</a>, <a href="#while-wend">WHILE</a>,
+<a href="#expresiones-y-operadores">Expresiones</a>.</p>
+<h3 id="select-case">SELECT CASE<a class="ancla" href="#select-case" aria-hidden="true">#</a></h3>
+<pre><code>SELECT CASE valor
+CASE valores
+  líneas
+CASE ELSE
+  líneas
+END SELECT
+</code></pre>
+<p>Elige una parte según <code>valor</code>, un número o una cadena: se ejecuta la del
+primer <code>CASE</code> que le encaja (o la de <code>CASE ELSE</code> si no encaja ninguno), y el
+programa sigue tras <code>END SELECT</code>. Si no encaja ninguno y no hay <code>CASE ELSE</code>,
+no se ejecuta nada. Cada <code>CASE</code> lleva una lista de valores separados por
+comas, que pueden ser:</p>
+<table>
+<thead>
+<tr>
+<th>Valor</th>
+<th>Encaja si</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>5</code>, <code>"si"</code>, <code>a+1</code></td>
+<td><code>valor</code> es igual</td>
+</tr>
+<tr>
+<td><code>1 TO 9</code>, <code>"a" TO "m"</code></td>
+<td><code>valor</code> está entre los dos (ambos incluidos)</td>
+</tr>
+<tr>
+<td><code>&lt; 0</code>, <code>&gt;= 100</code>, <code>&lt;&gt; 7</code></td>
+<td><code>valor</code> cumple la comparación</td>
+</tr>
+</tbody>
+</table>
+<pre><code>10 INPUT &quot;Una tecla? &quot;;t$
+20 SELECT CASE t$
+30 CASE &quot;q&quot;, &quot;Q&quot;: PRINT &quot;Arriba&quot;
+40 CASE &quot;a&quot;, &quot;A&quot;: PRINT &quot;Abajo&quot;
+50 CASE &quot;0&quot; TO &quot;9&quot;
+60 PRINT &quot;Un numero&quot;
+70 CASE ELSE: PRINT &quot;Otra&quot;
+80 END SELECT
+</code></pre>
+<p>Los <code>CASE</code> pueden ir en líneas propias o detrás de <code>:</code>, y las órdenes de cada
+parte, en la misma línea o en las siguientes; todo puede ir incluso en una
+sola línea (<code>SELECT CASE n: CASE 1: PRINT "uno": CASE ELSE: PRINT "otro":
+END SELECT</code>). Los <code>SELECT CASE</code> se pueden meter unos dentro de otros. Si el
+valor y los de un <code>CASE</code> no son del mismo tipo, <code>C Sintaxis incorrecta</code>; si
+falta el <code>END SELECT</code>, <code>Y Error de estructura</code>.</p>
+<p><strong>Ver también:</strong> <a href="#if-then-else">IF</a>.</p>
+<h3 id="for-next">FOR, NEXT<a class="ancla" href="#for-next" aria-hidden="true">#</a></h3>
+<pre><code>FOR var = primero TO último [STEP paso]
+NEXT var
+</code></pre>
+<p>Repite las órdenes que hay entre <code>FOR</code> y <code>NEXT</code>, con la variable yendo de
+<code>primero</code> a <code>último</code> y sumando <code>paso</code> cada vez (1 si no hay <code>STEP</code>). La
+variable es una sola letra. Con un paso negativo cuenta hacia atrás. Si el
+bucle no tiene que ejecutarse ninguna vez (<code>FOR i=1 TO 0</code>), el programa salta
+tras el <code>NEXT</code> que le corresponde; si no lo hay, <code>I FOR sin NEXT</code>.</p>
+<pre><code>10 FOR i=1 TO 10 STEP 3: PRINT i;&quot; &quot;;: NEXT i
+20 PRINT
+30 FOR i=3 TO 1 STEP -1: PRINT i: NEXT i
+</code></pre>
+<p>Al acabar el bucle, la variable se queda con el primer valor que se pasa del
+final (aquí, 0). Un <code>NEXT</code> con una variable que no es de un <code>FOR</code> da <code>1 NEXT
+sin FOR</code>.</p>
+<p><strong>Ver también:</strong> <a href="#while-wend">WHILE</a>, <a href="#repeat-until">REPEAT</a>.</p>
+<h3 id="while-wend">WHILE, WEND<a class="ancla" href="#while-wend" aria-hidden="true">#</a></h3>
+<pre><code>WHILE condición
+WEND
+</code></pre>
+<p>Repite las órdenes que hay entre <code>WHILE</code> y <code>WEND</code> mientras la condición sea
+cierta. La condición se mira al principio, así que si es falsa la primera
+vez, el bucle se salta entero.</p>
+<pre><code>10 LET n=1
+20 WHILE n&lt;100: LET n=n*2: WEND
+30 PRINT n
+</code></pre>
+<p>enseña 128. Los bucles se pueden anidar. Un <code>WEND</code> sin su <code>WHILE</code>, o un
+<code>WHILE</code> sin su <code>WEND</code>, da <code>Y Error de estructura</code>.</p>
+<p><strong>Ver también:</strong> <a href="#repeat-until">REPEAT</a>, <a href="#for-next">FOR</a>.</p>
+<h3 id="repeat-until">REPEAT, UNTIL<a class="ancla" href="#repeat-until" aria-hidden="true">#</a></h3>
+<pre><code>REPEAT
+UNTIL condición
+</code></pre>
+<p>Repite las órdenes que hay entre <code>REPEAT</code> y <code>UNTIL</code> hasta que la condición
+sea cierta. La condición se mira al final, así que el bucle se ejecuta al
+menos una vez.</p>
+<pre><code>10 REPEAT
+20 LET d=INT (RND*6)+1: PRINT d
+30 UNTIL d=6
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#while-wend">WHILE</a>.</p>
+<h3 id="def-proc-proc-end-proc">DEF PROC, PROC, END PROC<a class="ancla" href="#def-proc-proc-end-proc" aria-hidden="true">#</a></h3>
+<pre><code>DEF PROC nombre [(parámetro [, parámetro]...)]
+END PROC
+PROC nombre [(valor [, valor]...)]
+</code></pre>
+<p>Un <strong>procedimiento</strong> es un trozo de programa con nombre. <code>DEF PROC</code> lo empieza
+y <code>END PROC</code> lo acaba; <code>PROC</code> lo ejecuta y luego vuelve. Los parámetros
+reciben los valores que se dan en <code>PROC</code> y son locales: al llegar a
+<code>END PROC</code> recuperan el valor que tenían antes. Un parámetro numérico es un
+nombre de variable numérica; uno de cadena, una letra con <code>$</code>. Un
+procedimiento puede llamarse a sí mismo.</p>
+<p>Cuando el programa llega a un <code>DEF PROC</code> siguiendo su curso normal, se salta
+el procedimiento entero, así que los procedimientos pueden ir en cualquier
+sitio.</p>
+<pre><code>10 PROC saluda(&quot;Ana&quot;, 2)
+20 PROC saluda(&quot;Luis&quot;, 1)
+30 STOP
+100 DEF PROC saluda(n$, veces)
+110 FOR i=1 TO veces: PRINT &quot;Hola, &quot;; n$: NEXT i
+120 END PROC
+</code></pre>
+<p>Los nombres siguen las reglas de las variables numéricas (letras y cifras,
+sin distinguir mayúsculas ni espacios). Hasta 16 parámetros. Errores:
+<code>Z PROC no encontrado</code> (no hay un <code>DEF PROC</code> con ese nombre), <code>Q Error en los
+parámetros</code> (no coinciden el número o el tipo de los valores) e <code>Y Error de
+estructura</code> (<code>END PROC</code> fuera de un procedimiento, o un <code>DEF PROC</code> sin su
+<code>END PROC</code>).</p>
+<p>Un procedimiento no devuelve un valor: para dar un resultado, guárdalo en una
+variable.</p>
+<p><strong>Ver también:</strong> <a href="#local">LOCAL</a>, <a href="#go-sub-return">GO SUB</a>.</p>
+<h3 id="local">LOCAL<a class="ancla" href="#local" aria-hidden="true">#</a></h3>
+<pre><code>LOCAL var [, var]...
+</code></pre>
+<p>Dentro de un procedimiento, hace locales esas variables: empiezan valiendo 0
+(o <code>""</code>) y recuperan su valor anterior en <code>END PROC</code>. Fuera de un
+procedimiento, <code>Y Error de estructura</code>.</p>
+<pre><code>10 LET i=99: PROC cuenta: PRINT &quot;i sigue valiendo &quot;; i
+20 STOP
+100 DEF PROC cuenta
+110 LOCAL i
+120 FOR i=1 TO 3: PRINT i: NEXT i
+130 END PROC
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#def-proc-proc-end-proc">DEF PROC</a>.</p>
+<h3 id="etiqueta">@etiqueta<a class="ancla" href="#etiqueta" aria-hidden="true">#</a></h3>
+<pre><code>@nombre
+</code></pre>
+<p>Una orden formada por <code>@</code> y un nombre marca un sitio del programa. <code>GO TO</code>,
+<code>GO SUB</code>, <code>RUN</code>, <code>RESTORE</code> y <code>ON ERROR GO TO</code> pueden saltar a ella por su
+nombre en vez de por su número de línea, a la orden exacta (no hace falta que
+sea la primera de su línea). Las etiquetas no cambian al renumerar. Una
+etiqueta que no existe da <code>X Etiqueta no encontrada</code>.</p>
+<pre><code>10 GO SUB @hola: GO SUB @hola
+20 STOP
+30 @hola: PRINT &quot;hola&quot;: RETURN
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#go-to">GO TO</a>, <a href="#renum">RENUM</a>.</p>
+<h3 id="run">RUN<a class="ancla" href="#run" aria-hidden="true">#</a></h3>
+<pre><code>RUN [línea | @etiqueta]
+</code></pre>
+<p>Ejecuta el programa desde el principio, o desde esa línea o etiqueta. Antes de
+empezar lo limpia todo como <a href="#clear"><code>CLEAR</code></a>: borra las variables y la
+pantalla, cierra los ficheros abiertos y quita el <code>ON ERROR</code>. Para empezar
+sin perder las variables, usa <code>GO TO</code>.</p>
+<p><strong>Ver también:</strong> <a href="#continue">CONTINUE</a>, <a href="#stop">STOP</a>.</p>
+<h3 id="stop">STOP<a class="ancla" href="#stop" aria-hidden="true">#</a></h3>
+<pre><code>STOP
+</code></pre>
+<p>Para el programa con el informe <code>9 Sentencia STOP</code>. <a href="#continue"><code>CONTINUE</code></a>
+sigue por la orden siguiente. <code>ON ERROR</code> no atrapa <code>STOP</code>.</p>
+<h3 id="continue">CONTINUE<a class="ancla" href="#continue" aria-hidden="true">#</a></h3>
+<pre><code>CONTINUE
+</code></pre>
+<p>Sigue después de una parada: tras <code>STOP</code> o BREAK, por la orden siguiente;
+tras un error, repite la orden que falló (útil cuando ya has arreglado la
+causa, por ejemplo dando valor a una variable que faltaba).</p>
+<h3 id="trace">TRACE<a class="ancla" href="#trace" aria-hidden="true">#</a></h3>
+<pre><code>TRACE ON
+TRACE #stream
+TRACE OFF
+</code></pre>
+<p>Para seguir por dónde va un programa: cada vez que empieza a ejecutarse una
+línea (también al volver a ella con un <code>GO TO</code>, un <code>NEXT</code> o un <code>RETURN</code>), se
+escribe su número entre corchetes, como <code>[10][20][30]</code>. Con <code>TRACE ON</code> sale en
+la pantalla del programa, mezclado con lo que escribe; con <code>TRACE #3</code>, en la
+impresora (el fichero <code>printer.txt</code>), o en el fichero de un stream abierto con
+<code>OPEN #</code>, para no estropear la pantalla. <code>TRACE OFF</code> lo apaga; también se puede
+poner dentro del programa, para seguir solo una parte. <code>NEW</code> lo apaga. Con un
+stream que no está abierto, <code>O Canal no válido</code>.</p>
+<pre><code>TRACE ON: RUN
+</code></pre>
+<p><strong>Ver también:</strong> el <a href="../emulator.html#depuración">depurador del BASIC</a>, para
+parar un programa en una línea y mirar sus variables desde VS Code.</p>
+<h3 id="rem">REM<a class="ancla" href="#rem" aria-hidden="true">#</a></h3>
+<pre><code>REM cualquier texto
+</code></pre>
+<p>Un comentario: todo lo que va detrás de <code>REM</code> hasta el final de la línea se
+ignora.</p>
+<pre><code>10 REM Juego del espacio, por Ana
+</code></pre>
+<h3 id="pause">PAUSE<a class="ancla" href="#pause" aria-hidden="true">#</a></h3>
+<pre><code>PAUSE n
+</code></pre>
+<p>Espera <code>n</code> cincuentavos de segundo (<code>PAUSE 50</code> es un segundo, como en el
+Spectrum), o hasta que se pulse una tecla, lo que llegue antes. <code>PAUSE 0</code> espera una tecla sin límite. Solo cuentan las
+teclas que se pulsan después de empezar el <code>PAUSE</code>. <code>n</code> va de 0 a 65535.</p>
+<pre><code>10 PRINT &quot;Pulsa una tecla&quot;: PAUSE 0: PRINT &quot;Gracias&quot;
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#wait">WAIT</a>, <a href="#inkey">INKEY$</a>.</p>
+<h3 id="wait">WAIT<a class="ancla" href="#wait" aria-hidden="true">#</a></h3>
+<pre><code>WAIT [n]
+</code></pre>
+<p>Espera al frame siguiente, y hasta que hayan pasado <code>n</code> frames (1 si no se
+pone) desde el <code>WAIT</code> anterior. Hay 60 frames por segundo. Así el bucle de un
+juego va a un ritmo fijo aunque unas vueltas tarden más que otras: <code>WAIT 2</code>
+da 30 vueltas por segundo.
+<code>n</code> va de 0 a 65535.</p>
+<pre><code>10 FOR x=0 TO 200: BOX 0,x,80,8,8: WAIT: NEXT x
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#pause">PAUSE</a>, <a href="#time">TIME</a>.</p>
+<h2 id="variables-y-datos">Variables y datos<a class="ancla" href="#variables-y-datos" aria-hidden="true">#</a></h2>
+<h3 id="let">LET<a class="ancla" href="#let" aria-hidden="true">#</a></h3>
+<pre><code>LET var = valor
+</code></pre>
+<p>Da un valor a una variable, y la crea si hace falta. El <code>LET</code> es obligatorio
+(<code>a=1</code> sin más es un error). El valor tiene que ser del tipo de la variable:
+un número para las numéricas y una cadena para las de <code>$</code>.</p>
+<pre><code>10 LET a=5: LET a=a+1: LET b$=&quot;ZX&quot;
+20 LET b$(2)=&quot;-&quot;: PRINT a; b$
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#variables">Variables</a>, <a href="#dim">DIM</a>.</p>
+<h3 id="dim">DIM<a class="ancla" href="#dim" aria-hidden="true">#</a></h3>
+<pre><code>DIM letra(tamaño [, tamaño]...)
+DIM letra$(tamaño [, tamaño]...)
+</code></pre>
+<p>Crea una matriz (ver <a href="#matrices">Matrices</a>), y sustituye a la que tuviera el
+mismo nombre. Hasta 16 dimensiones; cada tamaño va de 1 a 65535. Las matrices
+numéricas empiezan llenas de ceros y las de cadenas, de espacios. Un
+subíndice fuera de rango da <code>3 Subíndice incorrecto</code>.</p>
+<pre><code>10 DIM s(10): LET s(3)=42: PRINT s(3), s(4)
+</code></pre>
+<h3 id="read-data-restore">READ, DATA, RESTORE<a class="ancla" href="#read-data-restore" aria-hidden="true">#</a></h3>
+<pre><code>DATA valor [, valor]...
+READ var [, var]...
+RESTORE [línea | @etiqueta]
+</code></pre>
+<p>Las líneas <code>DATA</code> guardan una lista de valores dentro del programa; <code>READ</code> los
+va cogiendo uno a uno, en orden, y los guarda en variables. Los valores pueden
+ser cualquier expresión del tipo adecuado. <code>RESTORE</code> hace que el siguiente
+<code>READ</code> vuelva a empezar por el primer <code>DATA</code> (o por el primero que haya desde
+esa línea o etiqueta). Leer después del último valor da <code>E No quedan DATA</code>.</p>
+<pre><code>10 FOR i=1 TO 3
+20 READ n$, edad: PRINT n$; &quot; tiene &quot;; edad
+30 NEXT i
+40 DATA &quot;Ana&quot;, 12, &quot;Luis&quot;, 9, &quot;Eva&quot;, 10+1
+</code></pre>
+<p><code>DATA</code> no hace nada cuando el programa pasa por él.</p>
+<h3 id="clear">CLEAR<a class="ancla" href="#clear" aria-hidden="true">#</a></h3>
+<pre><code>CLEAR [dirección]
+</code></pre>
+<p>Borra todas las variables y la pantalla, cierra los ficheros abiertos con
+<code>OPEN #</code>, olvida las vueltas pendientes de <code>GO SUB</code> y de los bucles, quita
+<code>ON ERROR</code> y <code>CLIP</code>, y hace que <code>READ</code> empiece por el primer <code>DATA</code>. Los
+sprites y demás gráficos se conservan. <a href="#run"><code>RUN</code></a> hace primero un
+<code>CLEAR</code>.</p>
+<p>Con una dirección, además mueve un límite de la memoria (solo para programas
+avanzados): por debajo de 65536 pone el «RAMTOP» de la <a href="#la-memoria-del-spectrum-virtual">memoria del Spectrum
+virtual</a> (como poco 23821; si no,
+<code>M RAMTOP no válido</code>); de 65536 en adelante es una dirección real, y el
+almacén de gráficos se coloca justo debajo, de modo que la memoria de encima
+queda libre para lo que quieras.</p>
+<h3 id="def-fn-fn">DEF FN, FN<a class="ancla" href="#def-fn-fn" aria-hidden="true">#</a></h3>
+<pre><code>DEF FN letra([parámetro [, parámetro]...]) = expresión
+DEF FN letra$([parámetro [, parámetro]...]) = expresión de cadena
+FN letra(valores)
+</code></pre>
+<p>Define una función propia, con un nombre de una letra y parámetros de una
+letra (<code>x</code>, o <code>a$</code> para las cadenas). <code>FN</code> la usa. <code>DEF FN</code> puede ir en
+cualquier sitio del programa y no hace nada cuando se llega a él. Usar una
+función que no está definida da <code>P FN sin DEF FN</code>; dar un número o un tipo de
+valores que no encajan, <code>Q Error en los parámetros</code>.</p>
+<pre><code>10 DEF FN h(x,y)=SQR (x*x+y*y)
+20 DEF FN u$(a$)=a$+&quot;!&quot;
+30 PRINT FN h(3,4); &quot; &quot;; FN u$(&quot;hola&quot;)
+</code></pre>
+<p>enseña <code>5 hola!</code>.</p>
+<h2 id="matemáticas">Matemáticas<a class="ancla" href="#matemáticas" aria-hidden="true">#</a></h2>
+<h3 id="sin-cos-tan">SIN, COS, TAN<a class="ancla" href="#sin-cos-tan" aria-hidden="true">#</a></h3>
+<pre><code>SIN x     COS x     TAN x
+</code></pre>
+<p>Seno, coseno y tangente de un ángulo <code>x</code> en <strong>radianes</strong> (una vuelta entera
+es <code>2*PI</code>). Para usar grados, multiplica por <code>PI/180</code>.</p>
+<pre><code>PRINT SIN (PI/2); &quot; &quot;; COS (60*PI/180)
+</code></pre>
+<h3 id="asn-acs-atn">ASN, ACS, ATN<a class="ancla" href="#asn-acs-atn" aria-hidden="true">#</a></h3>
+<pre><code>ASN x     ACS x     ATN x
+</code></pre>
+<p>Arcoseno, arcocoseno y arcotangente: el ángulo, en radianes, cuyo seno,
+coseno o tangente es <code>x</code>. <code>ASN</code> y <code>ACS</code> necesitan una <code>x</code> entre -1 y 1 (si
+no, <code>A Argumento no válido</code>).</p>
+<pre><code>PRINT 4*ATN 1
+</code></pre>
+<h3 id="exp-ln">EXP, LN<a class="ancla" href="#exp-ln" aria-hidden="true">#</a></h3>
+<pre><code>EXP x     LN x
+</code></pre>
+<p><code>EXP x</code> es e (2,7182818...) elevado a <code>x</code>. <code>LN x</code> es el logaritmo neperiano;
+<code>x</code> tiene que ser mayor que 0 (si no, <code>A Argumento no válido</code>). Para el
+logaritmo en base 10, <code>LN x/LN 10</code>.</p>
+<h3 id="sqr">SQR<a class="ancla" href="#sqr" aria-hidden="true">#</a></h3>
+<pre><code>SQR x
+</code></pre>
+<p>Raíz cuadrada. <code>x</code> no puede ser negativo (<code>A Argumento no válido</code>).</p>
+<pre><code>PRINT SQR 2
+</code></pre>
+<h3 id="abs-sgn-int">ABS, SGN, INT<a class="ancla" href="#abs-sgn-int" aria-hidden="true">#</a></h3>
+<pre><code>ABS x     SGN x     INT x
+</code></pre>
+<ul>
+<li><code>ABS x</code>: <code>x</code> sin su signo (<code>ABS -3</code> es 3).</li>
+<li><code>SGN x</code>: -1, 0 o 1 según <code>x</code> sea negativo, cero o positivo.</li>
+<li><code>INT x</code>: el entero igual o inferior a <code>x</code>: <code>INT 2.7</code> es 2 e <code>INT -2.5</code> es
+  -3. Para redondear al más cercano, <code>INT (x+0.5)</code>.</li>
+</ul>
+<h3 id="pi">PI<a class="ancla" href="#pi" aria-hidden="true">#</a></h3>
+<pre><code>PI
+</code></pre>
+<p>El número π, 3.1415927.</p>
+<h3 id="rnd-randomize">RND, RANDOMIZE<a class="ancla" href="#rnd-randomize" aria-hidden="true">#</a></h3>
+<pre><code>RND
+RANDOMIZE [n]
+</code></pre>
+<p><code>RND</code> da un número al azar desde 0 hasta 1 (sin llegar a 1). Para un entero
+del 1 al 6, <code>INT (RND*6)+1</code>.</p>
+<p><code>RANDOMIZE n</code> (de 0 a 65535) empieza la secuencia en un punto fijo, así que
+vuelven a salir los mismos números «al azar». <code>RANDOMIZE</code> o <code>RANDOMIZE 0</code> la
+empiezan según el tiempo que lleva encendida la máquina.</p>
+<pre><code>10 RANDOMIZE
+20 FOR i=1 TO 5: PRINT INT (RND*6)+1;&quot; &quot;;: NEXT i
+</code></pre>
+<blockquote>
+<p><strong>Si conoces el Spectrum:</strong> <code>RND</code> da exactamente la misma secuencia que en
+el 48K.</p>
+</blockquote>
+<h3 id="bin">BIN<a class="ancla" href="#bin" aria-hidden="true">#</a></h3>
+<pre><code>BIN cifras
+</code></pre>
+<p>Escribe un número en binario: <code>BIN 1010</code> es 10. Viene bien para diseñar
+gráficos con <a href="#gráficos-definidos-por-el-usuario-udg"><code>POKE USR</code></a>.</p>
+<h2 id="funciones-de-texto">Funciones de texto<a class="ancla" href="#funciones-de-texto" aria-hidden="true">#</a></h2>
+<h3 id="len">LEN<a class="ancla" href="#len" aria-hidden="true">#</a></h3>
+<pre><code>LEN a$
+</code></pre>
+<p>El número de caracteres de una cadena. <code>LEN ""</code> es 0.</p>
+<pre><code>PRINT LEN &quot;ZX-V&quot;
+</code></pre>
+<h3 id="chr-code">CHR$, CODE<a class="ancla" href="#chr-code" aria-hidden="true">#</a></h3>
+<pre><code>CHR$ n     CODE a$
+</code></pre>
+<p><code>CHR$ n</code> es el carácter de código <code>n</code> (de 0 a 255) y <code>CODE a$</code>, el código del
+primer carácter de <code>a$</code> (0 si está vacía). Ver el <a href="#juego-de-caracteres">Juego de
+caracteres</a>.</p>
+<pre><code>PRINT CHR$ 65; &quot; &quot;; CODE &quot;a&quot;
+</code></pre>
+<p>enseña <code>A 97</code>.</p>
+<h3 id="str-val-val">STR$, VAL, VAL$<a class="ancla" href="#str-val-val" aria-hidden="true">#</a></h3>
+<pre><code>STR$ x     VAL a$     VAL$ a$
+</code></pre>
+<ul>
+<li><code>STR$ x</code> convierte un número en una cadena, tal como lo enseñaría <code>PRINT</code>:
+  <code>STR$ 3.5</code> es <code>"3.5"</code>.</li>
+<li><code>VAL a$</code> calcula la cadena como una expresión numérica: <code>VAL "2*3"</code> es 6.
+  Si el texto no es una expresión válida, <code>C Sintaxis incorrecta</code>.</li>
+<li><code>VAL$ a$</code> calcula la cadena como una expresión de cadena: <code>VAL$ """x"""</code> es
+  <code>"x"</code>.</li>
+</ul>
+<pre><code>10 LET a$=&quot;12&quot;: LET b$=&quot;30&quot;
+20 PRINT a$+b$; &quot; &quot;; VAL a$+VAL b$
+</code></pre>
+<p>enseña <code>1230 42</code>.</p>
+<h2 id="la-pantalla-y-print">La pantalla y PRINT<a class="ancla" href="#la-pantalla-y-print" aria-hidden="true">#</a></h2>
+<p>La pantalla del programa tiene una <strong>parte superior</strong>, donde trabajan <code>PRINT</code>
+y las órdenes de dibujo, y una <strong>parte inferior</strong> de dos líneas, abajo del
+todo, que usan <code>INPUT</code> y los informes. En el modo normal, el 0, la pantalla
+tiene 24 filas de 32 caracteres (256 × 192 píxeles), y <code>PRINT</code> puede usar
+las filas 0 a 21; en el modo 1, 48 filas de 64 caracteres (ver
+<a href="#mode">MODE</a>).</p>
+<p>Cuando lo que se escribe pasa de la última fila, la pantalla sube. Cada vez
+que ha subido una pantalla entera, se para y pregunta <code>scroll?</code>: pulsa N,
+Espacio o BREAK para parar el programa (<code>D BREAK - CONT repite</code>), o
+cualquier otra tecla para seguir.</p>
+<h3 id="print">PRINT<a class="ancla" href="#print" aria-hidden="true">#</a></h3>
+<pre><code>PRINT [elemento] [separador] [elemento]...
+</code></pre>
+<p>Escribe números y textos en la pantalla. Los elementos pueden ser:</p>
+<table>
+<thead>
+<tr>
+<th>Elemento</th>
+<th>Efecto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>una expresión numérica o de cadena</td>
+<td>escribe su valor</td>
+</tr>
+<tr>
+<td><code>AT fila, columna</code></td>
+<td>mueve la posición de escritura (la fila 0 es la de arriba)</td>
+</tr>
+<tr>
+<td><code>TAB columna</code></td>
+<td>avanza hasta esa columna, rellenando con espacios</td>
+</tr>
+<tr>
+<td><code>INK n</code>, <code>PAPER n</code>, <code>FLASH n</code>, <code>BRIGHT n</code>, <code>INVERSE n</code>, <code>OVER n</code></td>
+<td>cambia los colores solo para el resto de este <code>PRINT</code> (ver <a href="#colores">Colores</a>)</td>
+</tr>
+<tr>
+<td><code>#stream</code></td>
+<td>escribe por ese stream (ver <a href="#streams-y-canales">Streams</a>)</td>
+</tr>
+</tbody>
+</table>
+<p>Y entre ellos, los separadores:</p>
+<table>
+<thead>
+<tr>
+<th>Separador</th>
+<th>Efecto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>;</code></td>
+<td>nada: lo siguiente va justo detrás</td>
+</tr>
+<tr>
+<td><code>,</code></td>
+<td>pasa a la siguiente mitad de la línea (a la columna 0 o 16; en el modo 1, cada 16 columnas)</td>
+</tr>
+<tr>
+<td><code>'</code></td>
+<td>pasa a la línea siguiente</td>
+</tr>
+</tbody>
+</table>
+<p>Si el <code>PRINT</code> no acaba en un separador, al final pasa a la línea siguiente.
+<code>PRINT</code> sin nada escribe una línea vacía.</p>
+<pre><code>10 PRINT &quot;Nombre&quot;, &quot;Puntos&quot;
+20 PRINT &quot;Ana&quot;, 120
+30 PRINT AT 10,5; &quot;en la fila 10&quot;; TAB 25; &quot;tab&quot;
+40 PRINT &quot;uno&quot;'&quot;dos&quot;; &quot; y tres&quot;
+50 PRINT INK 2; &quot;rojo&quot;; INK 0; &quot; negro&quot;
+</code></pre>
+<p><code>AT</code> fuera de la pantalla da <code>5 Fuera de la pantalla</code>. <code>TAB</code> da la vuelta
+según el ancho de la línea.</p>
+<p><strong>Ver también:</strong> <a href="#lprint-llist">LPRINT</a>, <a href="#input">INPUT</a>,
+<a href="#colores">Colores</a>.</p>
+<h3 id="cls">CLS<a class="ancla" href="#cls" aria-hidden="true">#</a></h3>
+<pre><code>CLS
+</code></pre>
+<p>Borra la pantalla con el color de <code>PAPER</code> actual y lleva la posición de
+escritura a la esquina superior izquierda.</p>
+<h3 id="screen-attr">SCREEN$, ATTR<a class="ancla" href="#screen-attr" aria-hidden="true">#</a></h3>
+<pre><code>SCREEN$ (fila, columna)
+ATTR (fila, columna)
+</code></pre>
+<p><code>SCREEN$</code> da el carácter escrito en esa posición (<code>""</code> si no lo reconoce, por
+ejemplo un dibujo). <code>ATTR</code> da los colores de esa celda en un solo número:
+<code>FLASH</code>×128 + <code>BRIGHT</code>×64 + <code>PAPER</code>×8 + <code>INK</code>. Las posiciones fuera de la
+pantalla dan <code>B Entero fuera de rango</code>.</p>
+<pre><code>10 PRINT AT 0,0; INK 2; PAPER 6; &quot;A&quot;
+20 PRINT SCREEN$ (0,0); &quot; &quot;; ATTR (0,0)
+</code></pre>
+<p>enseña <code>A 50</code> (6×8 + 2).</p>
+<p><strong>Ver también:</strong> <a href="#point">POINT</a>, <a href="#pixel">PIXEL</a>.</p>
+<h3 id="lprint-llist">LPRINT, LLIST<a class="ancla" href="#lprint-llist" aria-hidden="true">#</a></h3>
+<pre><code>LPRINT [elementos]
+LLIST [línea]
+</code></pre>
+<p>Como <code>PRINT</code> y <code>LIST</code>, pero a la <strong>impresora</strong>. ZX-V no tiene impresora de
+papel: la impresora es el fichero de texto <code>printer.txt</code> de la raíz de la
+tarjeta SD, y todo lo que se imprime se añade al final. Se ignoran los
+colores y <code>AT</code> (salvo su columna). Las líneas tienen hasta 64 caracteres (32
+en el modo 0).</p>
+<pre><code>LPRINT &quot;Lista de la compra&quot;: LPRINT &quot;- leche&quot;
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#copy">COPY</a>, <a href="#streams-y-canales">Streams</a>.</p>
+<h2 id="colores">Colores<a class="ancla" href="#colores" aria-hidden="true">#</a></h2>
+<p>Cada celda de carácter de la pantalla tiene una tinta (<code>INK</code>, el color del
+carácter) y un papel (<code>PAPER</code>, el fondo). Los colores se numeran del 0 al 7, y
+<code>BRIGHT 1</code> los hace más vivos:</p>
+<table>
+<thead>
+<tr>
+<th>Número</th>
+<th>Color</th>
+<th>Con <code>BRIGHT 1</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>negro</td>
+<td>negro</td>
+</tr>
+<tr>
+<td>1</td>
+<td>azul</td>
+<td>azul brillante</td>
+</tr>
+<tr>
+<td>2</td>
+<td>rojo</td>
+<td>rojo brillante</td>
+</tr>
+<tr>
+<td>3</td>
+<td>magenta</td>
+<td>magenta brillante</td>
+</tr>
+<tr>
+<td>4</td>
+<td>verde</td>
+<td>verde brillante</td>
+</tr>
+<tr>
+<td>5</td>
+<td>cian</td>
+<td>cian brillante</td>
+</tr>
+<tr>
+<td>6</td>
+<td>amarillo</td>
+<td>amarillo brillante</td>
+</tr>
+<tr>
+<td>7</td>
+<td>blanco (gris claro)</td>
+<td>blanco brillante</td>
+</tr>
+</tbody>
+</table>
+<p>Las <a href="#sprites-mapas-de-tiles-y-gráficos-rápidos">órdenes de sprites y gráficos
+rápidos</a>, <a href="#raster"><code>RASTER
+BORDER</code></a> y <a href="#remap"><code>REMAP</code></a> usan directamente los 16 colores, del
+0 al 15: del 0 al 7 son los de la tabla y del 8 al 15, sus versiones
+brillantes (el 10 es el rojo brillante). El 8 también es negro, y en los
+sprites se usa como «transparente». Con <a href="#palette"><code>PALETTE</code></a>, cada uno de
+los 16 puede ser el color que quieras.</p>
+<p>En ZX-V cada píxel tiene su propio color: dibujar un píxel solo cambia el
+color de ese píxel, nunca el de sus vecinos.</p>
+<blockquote>
+<p><strong>Si conoces el Spectrum:</strong> no hay <em>clash</em> de colores. <code>PLOT</code>, <code>DRAW</code> y
+<code>CIRCLE</code> pintan solo con la tinta, píxel a píxel; <code>ATTR</code> sigue dando los
+últimos colores escritos en cada celda.</p>
+</blockquote>
+<p><code>INK</code>, <code>PAPER</code>, <code>FLASH</code>, <code>BRIGHT</code>, <code>INVERSE</code> y <code>OVER</code> se usan de dos maneras:</p>
+<ul>
+<li>Como órdenes, cambian los colores de todo lo que se escribe y se dibuja a
+  partir de ese momento (colores permanentes).</li>
+<li>Como elementos dentro de <code>PRINT</code>, <code>INPUT</code>, <code>PLOT</code>, <code>DRAW</code> y <code>CIRCLE</code>,
+  seguidos de <code>;</code>, valen solo para esa orden (colores temporales).</li>
+</ul>
+<pre><code>10 PAPER 1: INK 6: CLS
+20 PRINT &quot;amarillo sobre azul&quot;
+30 PRINT PAPER 2; INK 7; &quot;blanco sobre rojo, solo esta vez&quot;
+40 PRINT &quot;otra vez amarillo sobre azul&quot;
+</code></pre>
+<h3 id="ink-paper">INK, PAPER<a class="ancla" href="#ink-paper" aria-hidden="true">#</a></h3>
+<pre><code>INK n     PAPER n
+</code></pre>
+<p>El color de la tinta y del papel, del 0 al 7 (ver la tabla), o:</p>
+<ul>
+<li><strong>8</strong>, transparente: conserva el color que ya tiene cada celda;</li>
+<li><strong>9</strong>, contraste: blanco o negro, el que mejor se vea sobre el otro color.</li>
+</ul>
+<p>Otros valores dan <code>K Color no válido</code>. <code>PAPER</code> llega a toda la pantalla con el
+siguiente <code>CLS</code>.</p>
+<h3 id="border">BORDER<a class="ancla" href="#border" aria-hidden="true">#</a></h3>
+<pre><code>BORDER n
+</code></pre>
+<p>El color del borde que rodea la pantalla, del 0 al 7. La parte inferior de la
+pantalla (las dos líneas de <code>INPUT</code> y de los informes) usa el color del borde
+como papel.</p>
+<pre><code>BORDER 0: PAPER 0: INK 4: CLS
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#raster">RASTER BORDER</a>, para hacer franjas de colores.</p>
+<h3 id="bright-flash">BRIGHT, FLASH<a class="ancla" href="#bright-flash" aria-hidden="true">#</a></h3>
+<pre><code>BRIGHT n     FLASH n
+</code></pre>
+<p><code>BRIGHT 1</code> usa la versión brillante de la tinta y del papel; <code>BRIGHT 0</code>, la
+normal. <code>FLASH 1</code> hace que la celda intercambie su tinta y su papel cada
+tercio de segundo, más o menos. El 8 es transparente (conserva lo que tenía
+la celda). Otros valores dan <code>K Color no válido</code>.</p>
+<pre><code>PRINT FLASH 1; &quot;FIN DE LA PARTIDA&quot;
+</code></pre>
+<h3 id="inverse-over">INVERSE, OVER<a class="ancla" href="#inverse-over" aria-hidden="true">#</a></h3>
+<pre><code>INVERSE n     OVER n
+</code></pre>
+<p><code>INVERSE 1</code> escribe con la tinta y el papel intercambiados. <code>OVER 1</code> escribe
+encima de lo que ya hay, cambiando cada píxel del carácter entre la tinta y
+el papel (si escribes dos veces lo mismo con <code>OVER 1</code>, se borra). El 0 los
+quita; otros valores dan <code>K Color no válido</code>.</p>
+<pre><code>10 PRINT AT 5,5; &quot;X&quot;: PRINT AT 5,5; OVER 1; &quot;O&quot;
+</code></pre>
+<h2 id="dibujo-con-plot-y-draw">Dibujo con PLOT y DRAW<a class="ancla" href="#dibujo-con-plot-y-draw" aria-hidden="true">#</a></h2>
+<p>Estas órdenes dibujan en la pantalla del programa con el color de la tinta.
+Sus coordenadas son píxeles, con el <strong>(0, 0) en la esquina inferior
+izquierda</strong>: <code>x</code> va del 0 al 255 hacia la derecha e <code>y</code> del 0 al 175 hacia
+arriba (las dos filas de abajo son de la parte inferior de la pantalla). En
+el modo 1, <code>x</code> llega a 511 e <code>y</code> a 367. Un punto fuera de la pantalla da
+<code>B Entero fuera de rango</code>.</p>
+<p>Al principio se pueden poner elementos de color, como en <code>PLOT INK 2; 10,10</code>.</p>
+<blockquote>
+<p>Las <a href="#sprites-mapas-de-tiles-y-gráficos-rápidos">órdenes de gráficos rápidos</a>
+(<code>BOX</code>, <code>SPRITE</code>...) cuentan la <code>y</code> desde arriba, como <code>PRINT AT</code>.</p>
+</blockquote>
+<h3 id="plot">PLOT<a class="ancla" href="#plot" aria-hidden="true">#</a></h3>
+<pre><code>PLOT [colores;] x, y
+</code></pre>
+<p>Dibuja un punto, que será el de partida del siguiente <code>DRAW</code>.</p>
+<pre><code>10 FOR x=0 TO 255 STEP 4: PLOT x, 88+40*SIN (x/20): NEXT x
+</code></pre>
+<h3 id="draw">DRAW<a class="ancla" href="#draw" aria-hidden="true">#</a></h3>
+<pre><code>DRAW [colores;] dx, dy [, ángulo]
+</code></pre>
+<p>Dibuja una línea desde el último punto hasta el que está <code>dx</code> píxeles a la
+derecha y <code>dy</code> píxeles más arriba (los valores negativos van a la izquierda y
+hacia abajo). Con <code>ángulo</code> (en radianes) dibuja un arco, que gira eso por el
+camino: <code>PI</code> dibuja media circunferencia, y un ángulo positivo curva en el
+sentido contrario a las agujas del reloj.</p>
+<pre><code>10 PLOT 50,50: DRAW 100,0: DRAW 0,100: DRAW -100,-100
+20 PLOT 150,60: DRAW 60,0,PI
+</code></pre>
+<h3 id="circle">CIRCLE<a class="ancla" href="#circle" aria-hidden="true">#</a></h3>
+<pre><code>CIRCLE [colores;] x, y, radio
+</code></pre>
+<p>Dibuja una circunferencia con el centro en <code>x</code>, <code>y</code>.</p>
+<pre><code>10 FOR r=10 TO 80 STEP 10: CIRCLE INK r/10; 128,88,r: NEXT r
+</code></pre>
+<h3 id="point">POINT<a class="ancla" href="#point" aria-hidden="true">#</a></h3>
+<pre><code>POINT (x, y)
+</code></pre>
+<p>1 si el píxel de <code>x</code>, <code>y</code> está pintado con la tinta, 0 si es papel. Ve lo que
+dibujan <code>PRINT</code>, <code>PLOT</code>, <code>DRAW</code> y <code>CIRCLE</code>, pero no las órdenes de gráficos
+rápidos (para esas, <a href="#pixel"><code>PIXEL</code></a>).</p>
+<pre><code>10 PLOT 10,10: PRINT POINT (10,10); POINT (11,10)
+</code></pre>
+<h2 id="modos-de-vídeo-y-efectos">Modos de vídeo y efectos<a class="ancla" href="#modos-de-vídeo-y-efectos" aria-hidden="true">#</a></h2>
+<h3 id="mode">MODE<a class="ancla" href="#mode" aria-hidden="true">#</a></h3>
+<pre><code>MODE n
+MODE 0, ancho, alto
+</code></pre>
+<p>Elige el modo de la pantalla y la borra:</p>
+<table>
+<thead>
+<tr>
+<th>Modo</th>
+<th>Píxeles</th>
+<th>Texto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>256 × 192</td>
+<td>32 columnas × 24 filas (el del arranque)</td>
+</tr>
+<tr>
+<td>1</td>
+<td>512 × 384</td>
+<td>64 columnas × 48 filas</td>
+</tr>
+</tbody>
+</table>
+<p><code>MODE</code> borra las dos páginas, enseña la 0 y quita el scroll, <code>REMAP</code>,
+<code>PALETTE</code>, <code>RASTER</code> y <code>CLIP</code>. En el modo 0, la página puede ser además más grande que la
+pantalla, que es entonces una ventana que se mueve por ella con
+<a href="#scroll"><code>SCROLL</code></a>: <code>MODE 0, 512, 384</code>, <code>MODE 0, 1024, 192</code> o
+<code>MODE 0, 256, 768</code>. Así, <code>PRINT AT</code>, <code>PLOT</code> y las demás cubren toda la página
+(<code>PRINT AT</code> llega a la columna 127 en una página de 1024 píxeles de ancho).
+Otros tamaños dan <code>A Argumento no válido</code>.</p>
+<pre><code>10 MODE 1: CIRCLE 256,184,150: PRINT AT 24,26; &quot;Modo 1&quot;
+</code></pre>
+<h3 id="page-screen">PAGE, SCREEN<a class="ancla" href="#page-screen" aria-hidden="true">#</a></h3>
+<pre><code>PAGE n
+SCREEN n
+</code></pre>
+<p>ZX-V tiene dos páginas de pantalla, la 0 y la 1. <code>PAGE</code> elige la que se ve;
+<code>SCREEN</code>, aquella en la que dibujan <code>PRINT</code>, <code>CLS</code>, <code>PLOT</code>, los sprites y las
+demás. Dibujar en la página oculta y luego enseñarla da animaciones suaves,
+sin parpadeo (el doble buffer). Los valores que no son 0 ni 1 dan
+<code>A Argumento no válido</code>.</p>
+<pre><code>10 LET s=1
+20 SCREEN s: CLS: CIRCLE 128,88,RND*80
+30 PAGE s: LET s=1-s: WAIT 10: GO TO 20
+</code></pre>
+<p>Los informes de error e <code>INPUT</code> salen siempre en la página que se ve. El
+editor también usa la página 1: cuando un programa vuelve a usarla, se
+recuperan el texto y los dibujos de <code>PLOT</code> y <code>DRAW</code>, pero se pierden los
+gráficos rápidos (sprites, mapas...) que hubiera en ella.</p>
+<h3 id="scroll">SCROLL<a class="ancla" href="#scroll" aria-hidden="true">#</a></h3>
+<pre><code>SCROLL x, y
+SCROLL
+</code></pre>
+<p>Desplaza la imagen sin volver a dibujarla: el píxel (<code>x</code>, <code>y</code>) de la página
+se ve en la esquina superior izquierda de la pantalla, y la página da la
+vuelta por los bordes. <code>SCROLL</code> sin nada la deja como estaba. Así es como un
+juego recorre una página grande de <a href="#mode"><code>MODE 0</code></a>.</p>
+<pre><code>10 MODE 0,1024,192: CIRCLE 600,100,50
+20 FOR x=0 TO 1023 STEP 2: SCROLL x,0: WAIT: NEXT x
+</code></pre>
+<h3 id="remap">REMAP<a class="ancla" href="#remap" aria-hidden="true">#</a></h3>
+<pre><code>REMAP color, nuevo [; color, nuevo]...
+REMAP #tabla; color, nuevo [; color, nuevo]...
+REMAP #tabla
+REMAP
+</code></pre>
+<p>Hace que un color se vea como otro en toda la pantalla, al instante y sin
+volver a dibujar nada: tras <code>REMAP 1,10</code>, todo lo azul se ve rojo brillante.
+Los colores van del 0 al 15 (si no, <code>K Color no válido</code>). Sirve para
+fundidos, destellos y ciclos de color.</p>
+<p>Hay tres tablas de cambio, de la 0 a la 2. Sin <code>#</code>, <code>REMAP</code> cambia la tabla
+0, que es la que se usa normalmente. <code>REMAP #t; ...</code> cambia la tabla <code>t</code> sin
+enseñarla; <code>REMAP #t</code> hace que toda la pantalla use la tabla <code>t</code> (y así todos
+sus cambios aparecen de golpe); <a href="#raster"><code>RASTER REMAP</code></a> usa una tabla solo
+en algunas líneas. <code>REMAP</code> sin nada deja las tres tablas como al principio y
+vuelve a la 0.</p>
+<pre><code>10 PRINT INK 1; &quot;parpadeo&quot;
+20 REMAP 1,10: PAUSE 25: REMAP 1,1: PAUSE 25: GO TO 20
+</code></pre>
+<p><code>REMAP</code> cambia un color por otro de los 16; qué color es cada uno lo dice
+<a href="#palette"><code>PALETTE</code></a>.</p>
+<h3 id="palette">PALETTE<a class="ancla" href="#palette" aria-hidden="true">#</a></h3>
+<pre><code>PALETTE color, r, g, b [; color, r, g, b]...
+PALETTE #tabla; color, r, g, b [; color, r, g, b]...
+PALETTE #tabla
+PALETTE
+</code></pre>
+<p>Cambia cómo se ve uno de los 16 colores: <code>r</code>, <code>g</code> y <code>b</code> son su rojo, su
+verde y su azul, de 0 a 255. Todo lo que está dibujado con ese color cambia
+al instante. Tras <code>PALETTE 1, 255, 128, 0</code>, el azul se ve naranja. El color
+va del 0 al 15 (si no, <code>K Color no válido</code>), y <code>r</code>, <code>g</code> y <code>b</code>, de 0 a 255
+(si no, <code>B Entero fuera de rango</code>).</p>
+<p>Los colores de siempre tienen 215 de cada componente (255 los brillantes):
+el rojo es <code>PALETTE 2, 215, 0, 0</code>. La pantalla tiene 65.536 colores
+posibles, y se toma el más cercano.</p>
+<p>Cada tabla de <a href="#remap"><code>REMAP</code></a> tiene su paleta. Sin <code>#</code>, <code>PALETTE</code> cambia
+la de la tabla 0, la que se usa normalmente; <code>PALETTE #t; ...</code>, la de la
+tabla <code>t</code> (de 0 a 2). Así, con <a href="#raster"><code>RASTER REMAP</code></a>, cada franja de la
+pantalla puede tener sus 16 colores. <code>PALETTE #t</code> sin más devuelve sus
+colores de siempre a la tabla <code>t</code>, y <code>PALETTE</code> sin nada, a las tres.
+<a href="#mode"><code>MODE</code></a> también los devuelve.</p>
+<p>El color 8 sigue siendo transparente en los sprites y los tiles (no se
+dibuja), aunque tenga otro color en la paleta.</p>
+<pre><code>10 FOR i=0 TO 15: BOX i, i*16, 0, 16, 176: NEXT i
+20 FOR v=0 TO 255 STEP 5: PALETTE 7, v, v, 255-v: WAIT: NEXT v
+</code></pre>
+<h3 id="raster">RASTER<a class="ancla" href="#raster" aria-hidden="true">#</a></h3>
+<pre><code>RASTER BORDER y1, y2, color
+RASTER REMAP y1, y2, tabla
+RASTER SCROLL y1, y2, x [, y]
+RASTER
+</code></pre>
+<p>Cambia cosas línea a línea en la pantalla, sin gastar nada de tiempo del
+procesador mientras el programa sigue:</p>
+<ul>
+<li><code>RASTER BORDER</code>: las líneas de <code>y1</code> a <code>y2</code> tienen el borde de ese color
+  (del 0 al 15).</li>
+<li><code>RASTER REMAP</code>: esas líneas usan la tabla de cambio de color 0 a 2 (ver
+  <a href="#remap">REMAP</a>).</li>
+<li><code>RASTER SCROLL</code>: esas líneas tienen su propio scroll horizontal <code>x</code> y, si se
+  da <code>y</code>, enseñan las líneas de la página a partir de la <code>y</code> (para pantallas
+  partidas con scroll independiente, y para el <em>parallax</em>).</li>
+<li><code>RASTER</code> sin nada lo quita todo.</li>
+</ul>
+<p>Las líneas son filas de píxeles contadas desde arriba de la pantalla (la 0).
+Las del borde de arriba son negativas (hasta -24 en el modo 0 y -48 en el
+modo 1) y las de abajo pasan del alto (hasta 215 en el modo 0 y 431 en el
+modo 1). <code>MODE</code> lo quita.</p>
+<pre><code>10 FOR y=-24 TO 215 STEP 4: RASTER BORDER y,y+1,2: RASTER BORDER y+2,y+3,6: NEXT y
+</code></pre>
+<h2 id="sprites-mapas-de-tiles-y-gráficos-rápidos">Sprites, mapas de tiles y gráficos rápidos<a class="ancla" href="#sprites-mapas-de-tiles-y-gráficos-rápidos" aria-hidden="true">#</a></h2>
+<p>Estas órdenes usan el motor gráfico de la ROM para dibujar juegos deprisa:
+sprites con transparencia, mapas de tiles con scroll, un suelo en perspectiva
+(el «modo 7») y figuras rellenas. Se diferencian de <code>PLOT</code> y <code>DRAW</code> en
+algunas cosas:</p>
+<ul>
+<li>Las <strong>coordenadas</strong> son píxeles desde la esquina <strong>superior izquierda</strong> de
+  la página, con la <code>y</code> hacia abajo, como <code>PRINT AT</code>. Pueden ser negativas o
+  salirse de la página: lo que cae fuera simplemente no se dibuja.</li>
+<li>Los <strong>colores</strong> son los 16 colores por su número, del 0 al 15 (ver la
+  <a href="#colores">tabla de colores</a>); un número mayor que 15 da <code>K Color no
+  válido</code>. En los sprites y los tiles, el color 8 es transparente.</li>
+<li>Dibujan en la página de dibujo que elige <a href="#page-screen"><code>SCREEN</code></a>. Para
+  animar sin parpadeo, dibuja en la página oculta, enséñala con <code>PAGE</code> y
+  espera con <a href="#wait"><code>WAIT</code></a>.</li>
+<li><code>POINT</code>, <code>ATTR</code> y <code>SCREEN$</code> no ven lo que dibujan; <a href="#pixel"><code>PIXEL</code></a> sí.
+  Una celda con <code>FLASH</code> deja de parpadear cuando una de estas órdenes dibuja
+  encima.</li>
+</ul>
+<p>Los sprites, los tiles, los mapas y las texturas se guardan por número en un
+<strong>almacén de gráficos</strong> en la memoria. Se conservan con <code>RUN</code>, <code>CLEAR</code> y
+<code>LOAD</code> (así un cargador puede preparar los gráficos y después cargar el
+juego), y <code>NEW</code> los borra. Definir otra vez un número lo sustituye.
+<code>SAVE "nombre" GRAPHICS</code> graba el almacén entero en un fichero <code>.gfx</code>, y
+<code>LOAD "nombre" GRAPHICS</code> lo carga (ver <a href="#save">SAVE</a> y <a href="#load">LOAD</a>).
+También puedes dibujarlos en el PC con el editor de gráficos <code>zxv-gfx</code>,
+que viene con el emulador, o en la propia máquina con <code>LOAD "ROM:gfxedit"</code>,
+o crear ficheros <code>.gfx</code> a partir de imágenes PNG con la herramienta
+<code>png2gfx</code> del SDK (ver la <a href="../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">guía de gráficos del
+SDK</a>).</p>
+<p>Un sprite, juego de tiles, mapa o textura que no existe da <code>A Argumento no
+válido</code>; los números fuera de rango, <code>B Entero fuera de rango</code>, y si los
+gráficos no caben en la memoria, <code>4 Sin memoria</code>.</p>
+<h3 id="grab">GRAB<a class="ancla" href="#grab" aria-hidden="true">#</a></h3>
+<pre><code>GRAB n, x, y, ancho, alto [, t]
+GRAB n, ancho, a$
+</code></pre>
+<p>Define el sprite <code>n</code> (del 0 al 255).</p>
+<ul>
+<li>La primera forma copia un rectángulo de la página de dibujo, con su esquina
+  superior izquierda en <code>x</code>, <code>y</code> (hasta 1024 × 1024 píxeles). Si se da <code>t</code>,
+  ese color pasa a ser transparente.</li>
+<li>La segunda toma los píxeles de una cadena, un carácter por píxel, fila a
+  fila y <code>ancho</code> píxeles por fila: las cifras hexadecimales <code>0</code>–<code>9</code> y <code>a</code>–<code>f</code>
+  son los colores del 0 al 15, y cualquier otro carácter (<code>.</code>, un espacio...)
+  es transparente.</li>
+</ul>
+<pre><code>10 GRAB 0,8,&quot;..2222..22222222.222222...2222...&quot;
+20 FOR x=0 TO 240 STEP 16: SPRITE 0,x,80: NEXT x
+</code></pre>
+<h3 id="sprite">SPRITE<a class="ancla" href="#sprite" aria-hidden="true">#</a></h3>
+<pre><code>SPRITE n, x, y [, espejo [, c$ [, ancho, alto]]]
+</code></pre>
+<p>Dibuja el sprite <code>n</code> con su esquina superior izquierda en <code>x</code>, <code>y</code>. Sus
+píxeles transparentes dejan ver el fondo.</p>
+<ul>
+<li><code>espejo</code>: 0 normal, 1 de izquierda a derecha, 2 boca abajo, 3 las dos cosas.</li>
+<li><code>c$</code> cambia los colores: el color <code>i</code> se dibuja con el color que dice el
+  carácter <code>i</code> de la cadena (contando desde 0), una cifra hexadecimal. Un
+  carácter que no es una cifra hexadecimal (o una cadena demasiado corta)
+  deja ese color como está: <code>"0a"</code> dibuja el color 1 como el 10 y deja los
+  demás. <code>""</code> no cambia nada.</li>
+<li><code>ancho</code>, <code>alto</code> (de 1 a 4096): lo dibuja estirado o encogido a ese tamaño,
+  para las cosas que se acercan o se alejan.</li>
+</ul>
+<pre><code>10 GRAB 0,4,&quot;1111122112211111&quot;
+20 SPRITE 0,10,10: SPRITE 0,30,10,0,&quot;0a&quot;: SPRITE 0,50,10,0,&quot;&quot;,32,32
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#hit">HIT</a>, <a href="#grab">GRAB</a>.</p>
+<h3 id="hit">HIT<a class="ancla" href="#hit" aria-hidden="true">#</a></h3>
+<pre><code>HIT(a, ax, ay, b, bx, by)
+</code></pre>
+<p>Comprueba un choque: 1 si algún píxel sólido (no transparente) del sprite
+<code>a</code> dibujado en <code>ax</code>, <code>ay</code> caería sobre un píxel sólido del sprite <code>b</code>
+dibujado en <code>bx</code>, <code>by</code>; si no, 0. No dibuja nada.</p>
+<pre><code>10 GRAB 0,4,&quot;1111111111111111&quot;
+20 PRINT HIT(0,0,0,0,3,3); HIT(0,0,0,0,4,0)
+</code></pre>
+<p>enseña <code>10</code>.</p>
+<h3 id="tile">TILE<a class="ancla" href="#tile" aria-hidden="true">#</a></h3>
+<pre><code>TILE lado, n, x, y [, ancho, alto [, t]]
+TILE lado, n, a$
+</code></pre>
+<p>Define tiles para los mapas. Hay dos juegos de tiles, uno de 8 × 8 píxeles y
+otro de 16 × 16 (<code>lado</code> es 8 o 16; si no, <code>A Argumento no válido</code>), cada uno
+con tiles del 0 al 4095.</p>
+<ul>
+<li>La primera forma copia el tile <code>n</code> de la página de dibujo en <code>x</code>, <code>y</code>. Con
+  <code>ancho</code> y <code>alto</code>, corta ese rectángulo en tiles, numerados desde <code>n</code> fila a
+  fila. El color <code>t</code>, si se da, pasa a ser transparente.</li>
+<li>La segunda toma los píxeles de una cadena, como <a href="#grab"><code>GRAB</code></a> (lado × lado
+  caracteres por tile; una cadena más larga define los tiles siguientes).</li>
+</ul>
+<p>Un juego de tiles crece al definir un tile más alto; los nuevos empiezan
+negros.</p>
+<pre><code>10 BOX 2,0,0,8,8: POLY 7,0,3,7,3: TILE 8,1,0,0
+</code></pre>
+<h3 id="map-dim-map-poke">MAP DIM, MAP POKE<a class="ancla" href="#map-dim-map-poke" aria-hidden="true">#</a></h3>
+<pre><code>MAP DIM m, ancho, alto [, lado [, repetir]]
+MAP POKE m, x, y, valor
+MAP POKE m, x, y, a$
+</code></pre>
+<p><code>MAP DIM</code> crea el mapa de tiles <code>m</code> (del 0 al 15) con <code>ancho</code> × <code>alto</code>
+celdas, todas con el tile 0. <code>lado</code> es el tamaño de los tiles, 8 (el de por
+defecto) o 16. Con <code>repetir</code> = 1, el mapa se repite sin fin en las dos
+direcciones.</p>
+<p><code>MAP POKE</code> pone la celda de la columna <code>x</code> y la fila <code>y</code> (contando desde 0).
+El valor es el número del tile, más lo que haga falta de esto:</p>
+<table>
+<thead>
+<tr>
+<th>Suma</th>
+<th>Efecto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4096</td>
+<td>tile al revés de izquierda a derecha</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>tile boca abajo</td>
+</tr>
+<tr>
+<td>16384</td>
+<td>el color 8 del tile es transparente (deja ver lo de detrás)</td>
+</tr>
+<tr>
+<td>32768</td>
+<td>prioridad (ver el filtro de <a href="#map">MAP</a>)</td>
+</tr>
+</tbody>
+</table>
+<p>Con una cadena, llena las celdas desde <code>x</code> hacia la derecha usando el código
+de cada carácter como número de tile: <code>"  ##.."</code> usa los tiles 32, 35 y 46.
+Así es fácil dibujar los niveles con texto.</p>
+<p><strong>Ver también:</strong> <a href="#map">MAP</a>, <a href="#cell">CELL</a>.</p>
+<h3 id="map">MAP<a class="ancla" href="#map" aria-hidden="true">#</a></h3>
+<pre><code>MAP m [, mx, my [, x, y, ancho, alto [, filtro]]]
+</code></pre>
+<p>Dibuja el mapa <code>m</code> a partir de su píxel <code>mx</code>, <code>my</code> (0, 0 si no se ponen), en
+toda la página o en el rectángulo <code>x</code>, <code>y</code>, <code>ancho</code>, <code>alto</code>. Cambiando <code>mx</code> y
+<code>my</code>, el mapa se desplaza. <code>filtro</code>: 0 dibuja todas las celdas, 1 solo las que
+no tienen prioridad y 2 solo las que la tienen (así se puede dibujar el
+fondo, después los sprites y por último las partes del escenario que van
+delante). Tienen que existir todos los tiles que usa el mapa (si no,
+<code>A Argumento no válido</code>).</p>
+<pre><code>10 BOX 5,0,0,8,8: TILE 8,32,0,0
+20 BOX 2,0,0,8,8: POLY 7,0,3,7,3: TILE 8,35,0,0
+30 MAP DIM 0,40,1: MAP POKE 0,0,0,&quot;####  ####   ######  #########   ####&quot;
+40 FOR x=0 TO 64: MAP 0,x,0,0,100,256,8: WAIT: NEXT x
+</code></pre>
+<h3 id="cell">CELL<a class="ancla" href="#cell" aria-hidden="true">#</a></h3>
+<pre><code>CELL(m, x, y)
+</code></pre>
+<p>El valor de la celda de la columna <code>x</code> y la fila <code>y</code> del mapa <code>m</code>, con los
+bits de espejo, transparencia y prioridad. Fuera de un mapa que no se repite,
+0. Sirve para saber qué hay en el escenario en un sitio: la celda que hay
+bajo un sprite en el píxel <code>px</code>, <code>py</code> es <code>CELL(m, INT (px/8), INT (py/8))</code> con
+tiles de 8 píxeles.</p>
+<h3 id="texture">TEXTURE<a class="ancla" href="#texture" aria-hidden="true">#</a></h3>
+<pre><code>TEXTURE n, x, y, lado [, c]
+</code></pre>
+<p>Define la textura <code>n</code> (de la 0 a la 3) para <a href="#floor"><code>FLOOR</code></a>: el cuadrado de
+<code>lado</code> × <code>lado</code> píxeles (una potencia de 2 de 2 a 256: 2, 4, 8... 256; otro
+tamaño da <code>A Argumento no válido</code>) de la página de dibujo con su esquina
+superior izquierda en <code>x</code>, <code>y</code>. La textura se repite sin fin; si se da el
+color <code>c</code>, todo lo que queda fuera de ella es de ese color.</p>
+<h3 id="floor">FLOOR<a class="ancla" href="#floor" aria-hidden="true">#</a></h3>
+<pre><code>FLOOR n, x, y, altura, ángulo, horizonte [, focal]
+</code></pre>
+<p>Dibuja un suelo en perspectiva con la textura <code>n</code>, visto desde el punto <code>x</code>,
+<code>y</code> de la textura a esa <code>altura</code>, mirando en la dirección <code>ángulo</code> (en
+radianes; 0 mira hacia donde crece <code>x</code>). El horizonte está en la línea
+<code>horizonte</code> de la página, y el suelo ocupa desde la línea de debajo hasta el
+final de la página. <code>focal</code> es la distancia focal (media página si no se
+pone): con valores más pequeños se ve más ancho. Es el efecto «modo 7» de
+los juegos de carreras y de vuelo.</p>
+<pre><code>10 FOR i=0 TO 7: BOX i,i*8,0,8,64: NEXT i: TEXTURE 0,0,0,64
+20 FOR a=0 TO 2*PI STEP .05: FLOOR 0,32,32,20,a,80: WAIT: NEXT a
+</code></pre>
+<h3 id="poly">POLY<a class="ancla" href="#poly" aria-hidden="true">#</a></h3>
+<pre><code>POLY color, x1, y1 [, x2, y2]...
+</code></pre>
+<p>Con un punto, dibuja un píxel; con dos, una línea; con tres o más (hasta 64),
+un polígono relleno.</p>
+<pre><code>POLY 4, 128,20, 200,150, 56,150
+</code></pre>
+<h3 id="box">BOX<a class="ancla" href="#box" aria-hidden="true">#</a></h3>
+<pre><code>BOX color, x, y, ancho, alto
+</code></pre>
+<p>Un rectángulo relleno con su esquina superior izquierda en <code>x</code>, <code>y</code>.</p>
+<pre><code>BOX 2, 10,10, 100,50
+</code></pre>
+<h3 id="disc">DISC<a class="ancla" href="#disc" aria-hidden="true">#</a></h3>
+<pre><code>DISC color, x, y, radio
+</code></pre>
+<p>Un círculo relleno con el centro en <code>x</code>, <code>y</code>.</p>
+<pre><code>DISC 6, 128,96, 40
+</code></pre>
+<h3 id="clip">CLIP<a class="ancla" href="#clip" aria-hidden="true">#</a></h3>
+<pre><code>CLIP x, y, ancho, alto
+CLIP
+</code></pre>
+<p>A partir de ese momento, las órdenes de esta sección solo dibujan dentro de
+ese rectángulo. <code>CLIP</code> sin nada quita el límite (también lo quitan <code>MODE</code>,
+<code>RUN</code> y <code>CLEAR</code>).</p>
+<pre><code>10 CLIP 50,50,100,50: DISC 2,100,75,60: CLIP
+</code></pre>
+<h3 id="pixel">PIXEL<a class="ancla" href="#pixel" aria-hidden="true">#</a></h3>
+<pre><code>PIXEL(x, y)
+</code></pre>
+<p>El color (del 0 al 15) del píxel de <code>x</code>, <code>y</code> de la página de dibujo, contando
+desde arriba a la izquierda, lo haya dibujado quien lo haya dibujado; -1
+fuera de la página. No tiene en cuenta <code>REMAP</code>. Sirve para los choques con
+cualquier cosa dibujada en la pantalla.</p>
+<pre><code>10 BOX 4,10,10,20,20: PRINT PIXEL(15,15); &quot; &quot;; PIXEL(5,5); &quot; &quot;; PIXEL(-1,0)
+</code></pre>
+<h2 id="sonido-y-música">Sonido y música<a class="ancla" href="#sonido-y-música" aria-hidden="true">#</a></h2>
+<p>ZX-V tiene un <em>beeper</em> (un altavoz sencillo, el que usa <code>BEEP</code>) y dos chips
+de sonido AY de tres canales cada uno (los que usan <code>PLAY</code>, <code>SOUND</code>, <code>MUSIC</code>
+y <code>SFX</code>).</p>
+<h3 id="beep">BEEP<a class="ancla" href="#beep" aria-hidden="true">#</a></h3>
+<pre><code>BEEP duración, tono
+</code></pre>
+<p>Toca una nota con el beeper. <code>duración</code> va en segundos (de 0 a 10); <code>tono</code>,
+en semitonos por encima del do central (0 es el do central, 12 el do de
+arriba y -12 el de abajo), de -60 a 69, y puede llevar decimales. El programa
+espera a que acabe la nota.</p>
+<pre><code>10 FOR n=0 TO 12: BEEP 0.1,n: NEXT n
+</code></pre>
+<h3 id="play">PLAY<a class="ancla" href="#play" aria-hidden="true">#</a></h3>
+<pre><code>PLAY a$ [, b$]...
+</code></pre>
+<p>Toca música escrita como texto, con hasta seis voces a la vez: las tres
+primeras cadenas suenan en los tres canales del primer chip AY y las tres
+siguientes, en los del segundo. El programa espera a que acaben todas;
+BREAK las corta. Una cadena mal escrita da <code>A Argumento no válido</code>, y un
+número fuera de rango, <code>B Entero fuera de rango</code>; se comprueban todas antes
+de que empiece a sonar nada.</p>
+<p>Dentro de cada cadena:</p>
+<table>
+<thead>
+<tr>
+<th>Texto</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>c d e f g a b</code></td>
+<td>una nota (do, re, mi, fa, sol, la, si); en mayúsculas, <code>C</code>...<code>B</code>, una octava más arriba</td>
+</tr>
+<tr>
+<td><code>#</code>, <code>$</code></td>
+<td>sostenido y bemol (delante de la nota): <code>#f</code>, <code>$b</code></td>
+</tr>
+<tr>
+<td><code>&amp;</code></td>
+<td>un silencio</td>
+</tr>
+<tr>
+<td><code>1</code> a <code>9</code></td>
+<td>la duración de las notas siguientes: 1 semicorchea, 2 semicorchea con puntillo, 3 corchea, 4 corchea con puntillo, 5 negra (la de partida), 6 negra con puntillo, 7 blanca, 8 blanca con puntillo, 9 redonda</td>
+</tr>
+<tr>
+<td><code>10</code> <code>11</code> <code>12</code></td>
+<td>tresillos de semicorcheas, corcheas y negras: valen para las tres notas siguientes</td>
+</tr>
+<tr>
+<td><code>n_m</code></td>
+<td>duraciones ligadas: la nota siguiente dura las dos</td>
+</tr>
+<tr>
+<td><code>O n</code></td>
+<td>octava, de 0 a 8 (por defecto 5, en la que <code>c</code> es el do central)</td>
+</tr>
+<tr>
+<td><code>T n</code></td>
+<td>tempo en negras por minuto, de 60 a 240 (por defecto 120); solo en la primera cadena</td>
+</tr>
+<tr>
+<td><code>V n</code></td>
+<td>volumen, de 0 a 15 (por defecto 15)</td>
+</tr>
+<tr>
+<td><code>U</code></td>
+<td>usar la envolvente de volumen</td>
+</tr>
+<tr>
+<td><code>W n</code></td>
+<td>forma de la envolvente, de 0 a 7</td>
+</tr>
+<tr>
+<td><code>X n</code></td>
+<td>periodo de la envolvente, de 0 a 65535</td>
+</tr>
+<tr>
+<td><code>M n</code></td>
+<td>mezclador: los bits 0–2 encienden el tono de los canales A, B y C, y los bits 3–5 su ruido</td>
+</tr>
+<tr>
+<td><code>N</code></td>
+<td>separador (no hace nada)</td>
+</tr>
+<tr>
+<td><code>(</code> <code>)</code></td>
+<td>repite una vez lo que hay dentro (hasta 4 niveles); un <code>)</code> sin su <code>(</code> repite la cadena entera sin fin (hasta BREAK)</td>
+</tr>
+<tr>
+<td><code>!...!</code></td>
+<td>un comentario</td>
+</tr>
+<tr>
+<td><code>H</code></td>
+<td>para todas las voces</td>
+</tr>
+<tr>
+<td><code>Y n</code>, <code>Z n</code></td>
+<td>MIDI en el 128K: se ignoran</td>
+</tr>
+</tbody>
+</table>
+<p>Los espacios se ignoran. La envolvente y el mezclador son de cada chip, así
+que los comparten sus tres voces.</p>
+<pre><code>10 PLAY &quot;T140 O4 5cdec 5cdec 5efg&amp;&quot;
+20 PLAY &quot;O4 3cegC&quot;, &quot;O3 9c&quot;, &quot;O5 V10 3(gfed)&quot;
+</code></pre>
+<h3 id="sound">SOUND<a class="ancla" href="#sound" aria-hidden="true">#</a></h3>
+<pre><code>SOUND registro, valor [; registro, valor]...
+</code></pre>
+<p>Escribe directamente en los registros de los chips AY, para hacer efectos de
+sonido. Los registros del 0 al 15 son los del primer chip y del 16 al 31, los
+del segundo (con el mismo significado, 16 más arriba); los valores van de 0 a
+255. Un registro mayor que 31 da <code>B Entero fuera de rango</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Registro</th>
+<th>Uso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0–1, 2–3, 4–5</td>
+<td>periodo del tono de los canales A, B y C (byte bajo, byte alto de 0 a 15); la frecuencia es 110 840 / periodo Hz</td>
+</tr>
+<tr>
+<td>6</td>
+<td>periodo del ruido, de 0 a 31</td>
+</tr>
+<tr>
+<td>7</td>
+<td>mezclador: un bit a <strong>0</strong> enciende: bits 0–2 tono de A, B y C; bits 3–5 ruido de A, B y C</td>
+</tr>
+<tr>
+<td>8, 9, 10</td>
+<td>volumen de A, B y C, de 0 a 15; 16 usa la envolvente</td>
+</tr>
+<tr>
+<td>11–12</td>
+<td>periodo de la envolvente (bajo, alto)</td>
+</tr>
+<tr>
+<td>13</td>
+<td>forma de la envolvente (escribirlo la vuelve a empezar)</td>
+</tr>
+</tbody>
+</table>
+<pre><code>10 SOUND 7,62; 8,15; 0,200; 1,0
+20 PAUSE 25: SOUND 8,0
+</code></pre>
+<p>toca un tono en el canal A durante medio segundo.</p>
+<p><strong>Ver también:</strong> <a href="#in-out"><code>IN</code> y <code>OUT</code></a>, para los puertos del 128K.</p>
+<h3 id="music">MUSIC<a class="ancla" href="#music" aria-hidden="true">#</a></h3>
+<pre><code>LOAD nombre$ MUSIC
+MUSIC PLAY
+MUSIC STOP
+MUSIC PAUSE
+MUSIC CONTINUE
+MUSIC                          (función)
+</code></pre>
+<p>Toca música hecha con un tracker, de fondo: el programa sigue mientras
+suena, como en los juegos. <code>LOAD nombre$ MUSIC</code> carga un módulo (sin
+extensión, <code>nombre.pt3</code>): de Pro Tracker 3 o Vortex Tracker II (<code>.pt3</code>, el
+que guarda el tracker de ZX-V, <a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker"><code>zxv-tracker</code></a>),
+un TurboSound (dos módulos, uno en cada chip AY: seis voces), de Pro
+Tracker 2, Sound Tracker, ASC Sound Master o un volcado PSG. Un fichero que
+no es ninguno de esos da <code>R Error al cargar</code>.</p>
+<ul>
+<li><code>MUSIC PLAY</code> lo toca desde el principio, y al acabar vuelve a la
+  posición de vuelta del módulo, sin fin. Sin un módulo cargado, <code>A
+  Argumento no válido</code>.</li>
+<li><code>MUSIC STOP</code> lo para; <code>MUSIC PAUSE</code> lo deja en silencio y <code>MUSIC
+  CONTINUE</code> sigue donde estaba.</li>
+<li>La función <code>MUSIC</code> vale 1 mientras suena y 0 si no.</li>
+</ul>
+<p>Suena en el primer chip AY (un TurboSound, en los dos), con el mismo código
+que el tracker y que los programas en C. Se para con <code>MUSIC STOP</code>, BREAK,
+<code>RUN</code>, <code>NEW</code>, <code>PLAY</code> (que usa los chips a su manera) y al cargar un
+programa nativo; si el programa acaba o da un error, sigue sonando. Lo que
+escriba <code>SOUND</code> en el chip de la música dura hasta que la música vuelve a
+escribir ese registro.</p>
+<p>El módulo ocupa lo que pesa su fichero (de 2 a 15 KB uno normal) y va con
+los gráficos: se conserva con <code>RUN</code> y <code>CLEAR</code> y <code>NEW</code> lo borra.</p>
+<pre><code>10 LOAD &quot;tema&quot; MUSIC: MUSIC PLAY
+20 PRINT &quot;Suena...&quot;
+30 IF INKEY$=&quot;&quot; THEN GO TO 30
+40 MUSIC STOP
+</code></pre>
+<h3 id="sfx">SFX<a class="ancla" href="#sfx" aria-hidden="true">#</a></h3>
+<pre><code>LOAD nombre$ SFX
+SFX n [, canal]
+SFX STOP
+SFX                            (función)
+</code></pre>
+<p>Efectos de sonido como los de los juegos: un banco de efectos AYFX (<code>.afb</code>,
+el que guarda la pestaña de efectos de <code>zxv-tracker</code> o el AY Sound FX Editor;
+sin extensión, <code>nombre.afb</code>) o un efecto suelto (<code>.afx</code>). Un fichero que no
+es un banco da <code>R Error al cargar</code>.</p>
+<ul>
+<li><code>SFX n</code> toca el efecto <code>n</code> del banco (el primero es el 0) sin esperar,
+  en un canal libre del chip que no usa la música (si no hay ninguno, en el
+  que lleva más tiempo sonando). Con <code>canal</code>, en ese: del 0 al 2, los A, B y
+  C del primer chip, y del 3 al 5, los del segundo; un efecto en un canal de
+  la música lo tapa mientras suena. Un efecto que no está en el banco da <code>B
+  Entero fuera de rango</code>, y sin banco, <code>A Argumento no válido</code>.</li>
+<li><code>SFX STOP</code> para todos los efectos.</li>
+<li>La función <code>SFX</code> vale 1 mientras suena algún efecto.</li>
+</ul>
+<p>Suenan a la vez que la música, <code>BEEP</code> y lo demás. BREAK, <code>RUN</code> y <code>NEW</code> los
+paran; el banco se conserva como el módulo.</p>
+<pre><code>10 LOAD &quot;efectos&quot; SFX
+20 IF INKEY$=&quot; &quot; THEN SFX 0
+30 GO TO 20
+</code></pre>
+<h2 id="teclado-mando-y-ratón">Teclado, mando y ratón<a class="ancla" href="#teclado-mando-y-ratón" aria-hidden="true">#</a></h2>
+<h3 id="input">INPUT<a class="ancla" href="#input" aria-hidden="true">#</a></h3>
+<pre><code>INPUT [elementos de aviso] var [, var]...
+INPUT ... LINE a$
+</code></pre>
+<p>Para el programa y deja que el usuario teclee los valores de unas variables,
+en la parte inferior de la pantalla. Los elementos son como los de <code>PRINT</code>:
+las cadenas escritas en el programa y las expresiones entre paréntesis se
+enseñan como aviso, <code>AT</code>, <code>TAB</code> y los colores funcionan, y cada variable
+espera un valor.</p>
+<ul>
+<li>Para un <strong>número</strong>, el usuario teclea un número o una expresión numérica
+  (vale incluso <code>2*3</code>) y pulsa Enter. Si no es válido, un <code>?</code> marca el error
+  para que lo corrija.</li>
+<li>Para una <strong>cadena</strong>, la entrada empieza con unas comillas y el cursor
+  dentro, porque lo que se teclea se toma como una expresión de cadena.</li>
+<li><code>LINE a$</code> toma el texto tal como se teclea, sin comillas.</li>
+<li>Teclear <code>STOP</code> (para un número), o pulsar BREAK, para el programa con
+  <code>H STOP en INPUT</code>.</li>
+</ul>
+<p>El cursor enseña una <code>L</code>, o una <code>C</code> si está activado el bloqueo de
+mayúsculas.</p>
+<pre><code>10 INPUT &quot;Tu nombre? &quot;; LINE n$
+20 INPUT &quot;Tu edad? &quot;; a
+30 PRINT &quot;Hola, &quot;; n$; &quot;. Pronto cumples &quot;; a+1
+</code></pre>
+<p>Los textos del programa no pueden llevar tildes, eñes ni <code>¿</code>, y lo que se
+teclea en el <code>INPUT</code> tampoco: las letras pierden la tilde, así que <code>Peña</code>
+llega como <code>Pena</code> (ver <a href="#juego-de-caracteres">Juego de caracteres</a>).</p>
+<p><code>INPUT #n</code> lee de un fichero (ver <a href="#leer-y-escribir-ficheros-de-texto">Streams</a>).</p>
+<h3 id="inkey">INKEY$<a class="ancla" href="#inkey" aria-hidden="true">#</a></h3>
+<pre><code>INKEY$
+</code></pre>
+<p>La tecla que está pulsada en ese momento, como una cadena de un carácter, o
+<code>""</code> si no hay ninguna. No espera. Las letras salen en minúscula (en
+mayúscula con Mayúsculas o con el bloqueo de mayúsculas), las cifras como
+cifras, Enter como <code>CHR$ 13</code> y los cursores como <code>CHR$ 8</code> (izquierda),
+<code>CHR$ 9</code> (derecha), <code>CHR$ 10</code> (abajo) y <code>CHR$ 11</code> (arriba). La tecla
+Mayúsculas hace de CAPS SHIFT del Spectrum, y Ctrl, de SYMBOL SHIFT. También
+cuenta un mando que se presenta como teclas con <a href="#joy"><code>JOY</code></a>.</p>
+<p>Lo que se pulsa mientras un programa lee así el teclado (con <code>INKEY$</code>, <code>IN</code> o
+<a href="#key"><code>KEY</code></a>) no se queda guardado para después: al acabar el programa no
+sale escrito en el editor, y un <code>INPUT</code> empieza vacío.</p>
+<pre><code>10 LET k$=INKEY$: IF k$=&quot;&quot; THEN GO TO 10
+20 PRINT &quot;Has pulsado &quot;; k$: IF k$&lt;&gt;&quot;q&quot; THEN GO TO 10
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#key">KEY</a>, mejor para los juegos, y <a href="#pause">PAUSE</a>.</p>
+<h3 id="key">KEY<a class="ancla" href="#key" aria-hidden="true">#</a></h3>
+<pre><code>KEY n
+</code></pre>
+<p>1 si la tecla <code>n</code> está pulsada ahora mismo, 0 si no. Se pueden mirar varias
+teclas pulsadas a la vez, así que es la forma de leer el teclado en los
+juegos. <code>n</code> es:</p>
+<table>
+<thead>
+<tr>
+<th><code>n</code></th>
+<th>Tecla</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>de <code>CODE "a"</code> a <code>CODE "z"</code> (o en mayúsculas)</td>
+<td>una letra</td>
+</tr>
+<tr>
+<td>de <code>CODE "0"</code> a <code>CODE "9"</code></td>
+<td>una cifra</td>
+</tr>
+<tr>
+<td>8, 9, 10, 11</td>
+<td>los cursores izquierda, derecha, abajo, arriba</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Retroceso</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Enter</td>
+</tr>
+<tr>
+<td>32</td>
+<td>Espacio</td>
+</tr>
+<tr>
+<td>256 + código</td>
+<td>cualquier otra tecla, por su código de teclado USB: 298 Retroceso, 299 Tab, de 314 a 325 F1 a F12, 480 Ctrl izquierdo, 481 Mayúsculas izquierda, 482 Alt izquierdo</td>
+</tr>
+</tbody>
+</table>
+<p>Otros valores dan <code>A Argumento no válido</code>.</p>
+<pre><code>10 LET x=128
+20 LET x=x+KEY 9-KEY 8: PLOT x,88: WAIT: GO TO 20
+</code></pre>
+<h3 id="joy">JOY<a class="ancla" href="#joy" aria-hidden="true">#</a></h3>
+<pre><code>JOY n
+JOY n, modo
+</code></pre>
+<p>La función <code>JOY n</code> da el estado del mando <code>n</code> (0 para el primero que se
+conecta y 1 para el segundo) como un número formado por estos bits; 0 si no
+está conectado:</p>
+<table>
+<thead>
+<tr>
+<th>Bit</th>
+<th>Valor</th>
+<th>Botón</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>derecha</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>izquierda</td>
+</tr>
+<tr>
+<td>2</td>
+<td>4</td>
+<td>abajo</td>
+</tr>
+<tr>
+<td>3</td>
+<td>8</td>
+<td>arriba</td>
+</tr>
+<tr>
+<td>4</td>
+<td>16</td>
+<td>fuego 1</td>
+</tr>
+<tr>
+<td>5</td>
+<td>32</td>
+<td>fuego 2</td>
+</tr>
+<tr>
+<td>6</td>
+<td>64</td>
+<td>fuego 3</td>
+</tr>
+<tr>
+<td>7</td>
+<td>128</td>
+<td>start</td>
+</tr>
+<tr>
+<td>8</td>
+<td>256</td>
+<td>select</td>
+</tr>
+</tbody>
+</table>
+<p>Para mirar un botón, divide y quédate con el resto: por ejemplo,
+<code>INT (JOY 0/16)-2*INT (JOY 0/32)</code> vale 1 mientras se pulsa el fuego 1.</p>
+<p>La orden <code>JOY n, modo</code> hace que el mando <code>n</code> funcione además como teclas, para
+los programas que leen el teclado con <code>INKEY$</code> o con <code>IN</code> (cualquier botón de
+fuego cuenta como fuego):</p>
+<table>
+<thead>
+<tr>
+<th>Modo</th>
+<th>Izquierda</th>
+<th>Derecha</th>
+<th>Abajo</th>
+<th>Arriba</th>
+<th>Fuego</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>(no hace de teclas)</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>1 Sinclair 1</td>
+<td>6</td>
+<td>7</td>
+<td>8</td>
+<td>9</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2 Sinclair 2</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td>5</td>
+</tr>
+<tr>
+<td>3 Cursor</td>
+<td>5</td>
+<td>8</td>
+<td>6</td>
+<td>7</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>Al arrancar, el mando 0 es Sinclair 1 y el mando 1, Sinclair 2. <code>KEY</code> no ve
+estas teclas. Un mando que no sea el 0 o el 1, o un modo que no sea del 0 al
+3, da <code>B Entero fuera de rango</code>, igual que en la función.</p>
+<pre><code>10 PRINT AT 0,0; JOY 0; &quot;   &quot;: GO TO 10
+</code></pre>
+<h3 id="mouse">MOUSE<a class="ancla" href="#mouse" aria-hidden="true">#</a></h3>
+<pre><code>MOUSE n
+MOUSE x, y
+</code></pre>
+<p>La función <code>MOUSE n</code> lee el ratón:</p>
+<table>
+<thead>
+<tr>
+<th><code>n</code></th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>la x del puntero, en píxeles desde la izquierda de la pantalla</td>
+</tr>
+<tr>
+<td>1</td>
+<td>la y del puntero, en píxeles desde arriba</td>
+</tr>
+<tr>
+<td>2</td>
+<td>los botones: 1 izquierdo, 2 derecho, 4 central (sumados)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>la rueda: crece al girarla hacia arriba y baja al girarla hacia abajo</td>
+</tr>
+</tbody>
+</table>
+<p>El puntero empieza en el centro de la pantalla y no sale de ella (0–255 y
+0–191 en el modo 0). La orden <code>MOUSE x, y</code> coloca el puntero. ZX-V no dibuja
+el puntero: lo dibuja tu programa, por ejemplo con un sprite.</p>
+<pre><code>10 GRAB 0,3,&quot;ff.f.f..f&quot;
+20 CLS: SPRITE 0,MOUSE 0,MOUSE 1: IF MOUSE 2 THEN PRINT &quot;clic&quot;
+30 WAIT: GO TO 20
+</code></pre>
+<h2 id="ficheros-y-la-tarjeta-sd">Ficheros y la tarjeta SD<a class="ancla" href="#ficheros-y-la-tarjeta-sd" aria-hidden="true">#</a></h2>
+<p>Los programas y los datos se guardan en la tarjeta SD. Hay además una unidad
+de solo lectura, <code>ROM:</code>, con los ejemplos que trae la máquina.</p>
+<h3 id="nombres-de-fichero-y-unidades">Nombres de fichero y unidades<a class="ancla" href="#nombres-de-fichero-y-unidades" aria-hidden="true">#</a></h3>
+<ul>
+<li>Un nombre tiene hasta 63 caracteres, sin <code>\ : * ? " &lt; &gt; |</code>, sin letras con
+  tilde ni eñes, y no acaba en espacio ni en punto. No se distinguen
+  mayúsculas y minúsculas.</li>
+<li>Las carpetas se separan con <code>/</code>. Una ruta que empieza por <code>/</code> parte de la
+  raíz de la unidad; si no, de la carpeta actual (ver <a href="#cd-dir">CD</a>). <code>..</code>
+  es la carpeta de arriba.</li>
+<li><code>ROM:</code> y <code>SD:</code> al principio eligen la unidad, desde su raíz:
+  <code>LOAD "ROM:hello"</code>, <code>CAT "SD:/juegos"</code>. Sin unidad, se usa la de la carpeta
+  actual. Escribir en <code>ROM:</code> (<code>SAVE</code>, <code>ERASE</code>, <code>MKDIR</code>...) da <code>V Error de
+  disco (no se puede)</code>.</li>
+<li><strong>Comodines</strong> en <code>CAT</code>, <code>ERASE</code>, <code>MOVE</code> y <code>COPY</code>: <code>*</code> vale por cualquier
+  grupo de caracteres (también ninguno) y <code>?</code> por uno, solo en la última parte
+  de la ruta: <code>"*.zvb"</code>, <code>"juegos/nivel?.dat"</code>. Si no encaja nada,
+  <code>T Fichero no encontrado</code>.</li>
+</ul>
+<p>Los errores de ficheros más corrientes son <code>F Nombre de fichero no válido</code>,
+<code>T Fichero no encontrado</code>, <code>U No hay tarjeta SD</code> y <code>V Error de disco</code>, que
+añade el motivo cuando se sabe: <code>(ya existe)</code>, <code>(la carpeta no está vacía)</code>,
+<code>(es una carpeta)</code>, <code>(no es una carpeta)</code>, <code>(la tarjeta está llena)</code> o
+<code>(no se puede)</code>.</p>
+<h3 id="save">SAVE<a class="ancla" href="#save" aria-hidden="true">#</a></h3>
+<pre><code>SAVE nombre$ [LINE línea [SCREEN$] [PROTECT]]
+SAVE nombre$ CODE inicio, longitud
+SAVE nombre$ SCREEN$
+SAVE nombre$ DATA letra()
+SAVE nombre$ DATA letra$()
+SAVE nombre$ GRAPHICS
+</code></pre>
+<p>Graba en la tarjeta SD:</p>
+<ul>
+<li>El <strong>programa</strong> (sin más palabras) y sus variables, en un fichero <code>.zvb</code>,
+  el formato de los programas de ZX-V: los dos tal como están en la memoria,
+  sin más límite que la memoria. Con <code>LINE</code>, el programa arranca solo desde
+  esa línea al cargarlo, con sus variables. Con <code>LINE</code> y <code>SCREEN$</code>, lleva
+  además la pantalla que se ve como <strong>pantalla de carga</strong>: <code>LOAD</code> la pone
+  antes que nada, y el programa empieza con ella. Con <code>PROTECT</code> al final, se
+  graba <strong>protegido</strong> (ver abajo).</li>
+<li><code>CODE</code>: <code>longitud</code> bytes de la memoria desde la dirección <code>inicio</code>, en un
+  fichero <code>.bin</code> (los bytes sin más).</li>
+<li><code>SCREEN$</code>: la pantalla del programa, tal como se ve (su modo, su borde y el
+  color de cada píxel; si no son los colores de siempre, también los colores
+  con que se ve, ver <a href="#palette"><code>PALETTE</code></a>), en un fichero <code>.gfx</code> con una
+  pantalla (que se edita en <code>zxv-gfx</code>). Con la extensión <code>.scr</code>, la del Spectrum (<code>CODE 16384,6912</code>: la
+  sombra de tinta y papel de cada celda, sin lo que se dibuja con los colores
+  de ZX-V), en el formato de sus herramientas.</li>
+<li><code>DATA</code>: una matriz (de números o de caracteres), en un fichero <code>.zvd</code>, el
+  formato de los datos de ZX-V: como está en la memoria, sin más límite que
+  la memoria.</li>
+<li><code>GRAPHICS</code>: el almacén de gráficos (sprites, tiles, mapas, texturas) en un
+  fichero <code>.gfx</code>.</li>
+</ul>
+<p>Si el nombre no tiene extensión, se le añade la de cada cosa: <code>.zvb</code>,
+<code>.bin</code>, <code>.zvd</code> o <code>.gfx</code> (<code>GRAPHICS</code> y <code>SCREEN$</code>). Con otra extensión, <code>CODE</code>
+se graba igual, como bytes sin más, y un programa, una matriz o una pantalla
+en su formato.
+Si el fichero ya existe, se sustituye.</p>
+<p>Con la extensión <code>.tap</code>, se graba como <strong>cinta del Spectrum</strong>, para llevarlo a
+un emulador del Spectrum: el programa y sus variables, el bloque <code>CODE</code> (con
+su dirección, para que <code>LOAD</code> lo devuelva a su sitio), la pantalla (la del
+Spectrum, como con <code>.scr</code>) o la matriz, en el formato del Spectrum. La
+pantalla de carga solo va en un <code>.zvb</code>. Las palabras clave propias de ZX-V salen
+allí como caracteres raros, y un bloque no pasa de 64 KB, ni una cadena de
+65535 caracteres (<code>B Entero fuera de rango</code>). Un <code>.tzx</code> no se graba.</p>
+<p>Con la extensión <code>.bas</code>, el programa se graba como <strong>listado en texto</strong> (ver
+<a href="#listados-en-texto">Listados en texto</a>): <code>SAVE "juego.bas"</code>. Un listado no
+lleva las variables ni la línea de arranque: <code>SAVE "juego.bas" LINE 10</code> da
+<code>C Sintaxis incorrecta</code>.</p>
+<pre><code>10 PRINT &quot;Me grabaron&quot;
+SAVE &quot;hola&quot; LINE 10
+</code></pre>
+<h3 id="load">LOAD<a class="ancla" href="#load" aria-hidden="true">#</a></h3>
+<pre><code>LOAD nombre$
+LOAD nombre$ CODE [inicio [, longitud]]
+LOAD nombre$ SCREEN$
+LOAD nombre$ DATA letra()
+LOAD nombre$ DATA letra$()
+LOAD nombre$ GRAPHICS
+LOAD nombre$ MUSIC
+LOAD nombre$ SFX
+</code></pre>
+<p>Carga de la tarjeta SD (o de la unidad <code>ROM:</code>):</p>
+<ul>
+<li>Un <strong>programa</strong>: sustituye al que hay en la memoria, y sus variables a las
+  que había. Si se grabó con <code>LINE</code>, se ejecuta desde esa línea sin borrarlas,
+  como con <code>GO TO</code>. Sin extensión, ZX-V prueba <code>nombre.zvb</code>, después
+  <code>nombre.tap</code>, después <code>nombre.zxv</code> (un <a href="#programas-nativos">programa
+  nativo</a>, que se ejecuta), después <code>nombre.bas</code> (un
+  <a href="#listados-en-texto">listado en texto</a>) y por último el nombre tal cual. Los
+  <code>.tap</code> y <code>.tzx</code> del Spectrum con programas en BASIC se cargan directamente,
+  con sus variables (ver <a href="#ficheros-de-cinta">Ficheros de cinta</a>); los <code>.tap</code>
+  de ZX-V de antes de la 0.7 no llevan variables.</li>
+<li><code>CODE</code>: un fichero de bytes (sin extensión, <code>nombre.bin</code> y luego
+  <code>nombre.tap</code>), en <code>inicio</code> y como mucho <code>longitud</code> bytes. Un fichero que no
+  es <code>.tap</code> no sabe dónde va, así que hace falta <code>inicio</code>: <code>LOAD "datos"
+  CODE 40000</code>; el bloque <code>CODE</code> de un <code>.tap</code> vuelve sin ella a la dirección
+  desde la que se grabó.</li>
+<li><code>SCREEN$</code>: una pantalla (sin extensión, <code>nombre.gfx</code> y luego un bloque de
+  <code>nombre.tap</code>). La de un <code>.gfx</code> se pone tal cual, con su modo (si no es el
+  de ahora, cambia como con <code>MODE</code>) y su borde; si trae sus colores, se
+  ponen en la paleta de la tabla 0, sin cambios de <code>REMAP</code>, y esa tabla pasa
+  a ser la que se usa (como con <code>REMAP #0</code>). <code>SCREEN$()</code> no reconoce el texto
+  que lleve. Un <code>.scr</code> o un <code>.tap</code> es una pantalla del Spectrum, que se ve
+  como era.</li>
+<li><code>DATA</code>: una matriz (sin extensión, <code>nombre.zvd</code> y luego <code>nombre.tap</code>), que
+  sustituye a la que tenga ese nombre, como <code>DIM</code>. El tipo tiene que
+  coincidir.</li>
+<li><code>GRAPHICS</code>: los objetos de un fichero <code>.gfx</code> sustituyen a los que tienen el
+  mismo número; los demás se quedan, así que puedes cargar los sprites de un
+  fichero y un nivel de otro. Un fichero que no es válido da <code>R Error al
+  cargar</code>.</li>
+<li><code>MUSIC</code> y <code>SFX</code>: un módulo de música o un banco de efectos (ver
+  <a href="#music"><code>MUSIC</code></a> y <a href="#sfx"><code>SFX</code></a>).</li>
+</ul>
+<p><code>LOAD ""</code> (con el nombre vacío) carga el bloque siguiente de la cinta puesta
+(ver <a href="#ficheros-de-cinta">Ficheros de cinta</a>).</p>
+<p><strong>La carpeta del programa.</strong> ZX-V se acuerda de la carpeta de la que se
+cargó el programa. Un nombre sin unidad ni <code>/</code> delante se busca primero en
+la carpeta actual y, si ahí no está, en la del programa. Así, un juego que
+se carga con <code>LOAD "ROM:juego"</code> encuentra sus gráficos y su música con
+<code>LOAD "juego" GRAPHICS</code>, sin escribir <code>ROM:</code>; y uno con el mismo nombre en
+la carpeta actual de la tarjeta va antes, para cambiarlos sin tocar el
+juego. Vale también para <code>VERIFY</code>, <code>MERGE</code> y <code>OPEN #</code> para leer (no para
+grabar: <code>SAVE</code> va siempre a la carpeta actual). <code>NEW</code> la olvida.</p>
+<pre><code>LOAD &quot;hola&quot;
+LOAD &quot;ROM:graphics&quot;
+</code></pre>
+<h3 id="verify">VERIFY<a class="ancla" href="#verify" aria-hidden="true">#</a></h3>
+<pre><code>VERIFY nombre$ [CODE ... | SCREEN$ | DATA ... | GRAPHICS]
+</code></pre>
+<p>Comprueba que un fichero es igual que lo que hay en la memoria, con las
+mismas formas que <code>LOAD</code> y sin cambiar nada. Si hay diferencias, <code>R Error al
+cargar</code>.</p>
+<h3 id="merge">MERGE<a class="ancla" href="#merge" aria-hidden="true">#</a></h3>
+<pre><code>MERGE nombre$
+</code></pre>
+<p>Añade las líneas de un programa grabado al que hay en la memoria; las líneas
+con el mismo número se sustituyen. Con las variables pasa lo mismo, como en
+el Spectrum: las del fichero sustituyen a las que tienen el mismo nombre y las
+demás se quedan. También vale con un <a href="#listados-en-texto">listado en texto</a>
+(<code>.bas</code>), que no lleva variables. Un programa protegido no se puede mezclar
+(<code>R Error al cargar</code>).</p>
+<h3 id="programas-protegidos">Programas protegidos<a class="ancla" href="#programas-protegidos" aria-hidden="true">#</a></h3>
+<pre><code>SAVE nombre$ LINE línea [SCREEN$] PROTECT
+</code></pre>
+<p>Si no quieres que quien juegue a tu programa vea cómo está hecho, grábalo
+con <code>PROTECT</code>. El programa que tienes en la memoria no cambia: puedes seguir
+con él y grabarlo también sin proteger, para ti.</p>
+<ul>
+<li>Un programa protegido arranca solo al cargarlo, por eso necesita <code>LINE</code>.
+  Solo se graba en un <code>.zvb</code> (en un <code>.tap</code> o un <code>.bas</code>, <code>C Sintaxis
+  incorrecta</code>).</li>
+<li>Mientras funciona, es como cualquier otro: <code>ON ERROR</code> atrapa los errores y
+  BREAK.</li>
+<li>Cuando se para, por lo que sea (un error, BREAK, <code>STOP</code> o porque acaba),
+  sale su informe y <strong>se borra</strong>, con sus variables, como con <code>NEW</code>. No se
+  puede listar, ni deshacer el borrado, ni mirar con el depurador.</li>
+<li><code>MERGE</code> no lo admite, y si él mismo graba el programa, se graba
+  protegido.</li>
+</ul>
+<p>Es una protección como las del Spectrum: frena a los curiosos, pero el
+formato de los ficheros es abierto, y quien sepa puede leerlo en un PC. Las
+herramientas de ZX-V tampoco enseñan su listado.</p>
+<h3 id="listados-en-texto">Listados en texto<a class="ancla" href="#listados-en-texto" aria-hidden="true">#</a></h3>
+<p>Un programa también puede estar en un fichero de texto con la extensión
+<code>.bas</code>, una línea del programa por línea, cada una con su número, como lo
+saca <code>LIST</code>. Se puede escribir con cualquier editor de texto del ordenador,
+copiarlo a la tarjeta y cargarlo con <code>LOAD "juego.bas"</code> (o <code>MERGE</code>);
+<code>SAVE "juego.bas"</code> escribe el que hay en la memoria.</p>
+<pre><code>10 REM Escrito fuera de ZX-V
+20 for i = 1 to 10: print i: next i
+</code></pre>
+<ul>
+<li>Cada línea se lee como si la tecleases en el editor: las palabras clave en
+  mayúsculas o no, y la misma comprobación de sintaxis. Una línea con un error
+  para la carga con su informe y su número de línea
+  (<code>C Sintaxis incorrecta, 20:1</code>); las de antes se quedan en la memoria.</li>
+<li>Una línea con solo el número borra esa línea, y las líneas en blanco no
+  cuentan. Una línea sin número da un error en la de antes: un <code>.bas</code> es un
+  programa, no una lista de órdenes (no pongas <code>RUN</code>).</li>
+<li>El texto va en UTF-8. Las letras con tilde la pierden, como al teclearlas
+  (<code>año</code> queda <code>ano</code>); <code>£</code> y <code>©</code> son las del Spectrum, y los gráficos de
+  bloque se escriben con los caracteres de cuadrantes de Unicode
+  (<code>▘ ▝ ▀ ▖ ▌ ▞ ▛ ▗ ▚ ▐ ▜ ▄ ▙ ▟ █</code>). Los caracteres UDG se graban como un byte
+  suelto, que un editor de texto puede enseñar raro pero que se vuelve a
+  cargar bien.</li>
+<li>Las líneas pueden acabar en LF (Linux, macOS) o en CR LF (Windows); una
+  línea puede tener hasta 1024 caracteres.</li>
+</ul>
+<h3 id="cat">CAT<a class="ancla" href="#cat" aria-hidden="true">#</a></h3>
+<pre><code>CAT [nombre$]
+</code></pre>
+<p>Lista una carpeta: primero el nombre de la carpeta, después cada fichero con
+su tamaño en bytes, y cada carpeta con <code>/</code> y <code>&lt;DIR&gt;</code>. Sin nombre, la carpeta
+actual. Con comodines o con el nombre de un fichero, solo lo que encaja.</p>
+<pre><code>CAT &quot;ROM:&quot;
+CAT &quot;*.zvb&quot;
+</code></pre>
+<h3 id="cd-dir">CD, DIR$<a class="ancla" href="#cd-dir" aria-hidden="true">#</a></h3>
+<pre><code>CD carpeta$
+DIR$
+</code></pre>
+<p><code>CD</code> cambia la carpeta actual: <code>CD "juegos"</code>, <code>CD ".."</code> (la de arriba),
+<code>CD "/"</code> (la raíz de la unidad), <code>CD "ROM:"</code> (la unidad de los ejemplos) y
+<code>CD "SD:"</code> (vuelta a la tarjeta). La función <code>DIR$</code> da la carpeta actual,
+como <code>"/juegos"</code> o <code>"ROM:/"</code>.</p>
+<pre><code>CD &quot;ROM:&quot;: PRINT DIR$: CAT
+</code></pre>
+<p>Un programa que carga más ficheros (como el juego de plataformas) los busca
+en la carpeta actual y, si no están, en la suya (ver <a href="#load">LOAD</a>): con
+<code>LOAD "ROM:platformer"</code> encuentra sus gráficos sin cambiar de carpeta.</p>
+<h3 id="mkdir-rmdir">MKDIR, RMDIR<a class="ancla" href="#mkdir-rmdir" aria-hidden="true">#</a></h3>
+<pre><code>MKDIR carpeta$
+RMDIR carpeta$
+</code></pre>
+<p><code>MKDIR</code> crea una carpeta; <code>RMDIR</code> borra una carpeta vacía (si no lo está,
+<code>V Error de disco (la carpeta no está vacía)</code>).</p>
+<h3 id="erase">ERASE<a class="ancla" href="#erase" aria-hidden="true">#</a></h3>
+<pre><code>ERASE nombre$
+</code></pre>
+<p>Borra un fichero, o con comodines todos los que encajan (<code>ERASE "*.bak"</code>).
+Las carpetas no se borran (para eso, <code>RMDIR</code>). No se puede deshacer.</p>
+<h3 id="move">MOVE<a class="ancla" href="#move" aria-hidden="true">#</a></h3>
+<pre><code>MOVE de$ TO a$
+</code></pre>
+<p>Cambia el nombre de un fichero o de una carpeta, o lo lleva a otra carpeta:
+si <code>a$</code> es una carpeta, va dentro con el mismo nombre. Con comodines, <code>a$</code>
+tiene que ser una carpeta y se mueven todos los ficheros que encajan.</p>
+<pre><code>MOVE &quot;juego.zvb&quot; TO &quot;juego viejo.zvb&quot;
+MOVE &quot;*.zvb&quot; TO &quot;juegos&quot;
+</code></pre>
+<h3 id="copy">COPY<a class="ancla" href="#copy" aria-hidden="true">#</a></h3>
+<pre><code>COPY de$ TO a$
+COPY
+</code></pre>
+<p>Con dos nombres, copia un fichero (si <code>a$</code> existe, lo sustituye; si es una
+carpeta, la copia va dentro). Con comodines, <code>a$</code> tiene que ser una carpeta.
+Copiar un fichero sobre sí mismo da <code>V Error de disco (ya existe)</code>. Para
+copiar un ejemplo a la tarjeta: <code>COPY "ROM:hello.zxv" TO "hello.zxv"</code>.</p>
+<p><code>COPY</code> sin nada manda el texto de la pantalla a la impresora (el fichero
+<code>printer.txt</code>, ver <a href="#lprint-llist">LPRINT</a>).</p>
+<h3 id="programas-nativos">Programas nativos<a class="ancla" href="#programas-nativos" aria-hidden="true">#</a></h3>
+<p>Los programas escritos en C con el <a href="../sdk/index.html">SDK</a> son ficheros
+<code>.zxv</code>. <code>LOAD "nombre"</code> los ejecuta (la extensión no hace falta). Un programa
+nativo usa la memoria del BASIC: <strong>cuando acaba, el programa BASIC y sus
+variables han desaparecido</strong>, así que graba antes tu programa en BASIC.</p>
+<pre><code>LOAD &quot;ROM:hello&quot;
+</code></pre>
+<p>Cuando el programa acaba, el BASIC enseña un informe, como tras una orden:</p>
+<ul>
+<li><code>0 OK, 0:1</code> si ha acabado bien.</li>
+<li><code>W Error en el código nativo (3), 0:1</code> si ha acabado con un código de error
+  (el 3 en este ejemplo), o <code>W</code> seguido del mensaje del propio programa, si
+  da uno: <code>W Fichero dañado (5), 0:1</code>.</li>
+<li><code>W Error en el código nativo, 0:1</code> si ha fallado (por ejemplo, al leer de
+  una dirección prohibida).</li>
+<li><code>L BREAK en el programa, 0:1</code> si lo has parado con Ctrl+Alt+Supr.</li>
+</ul>
+<p>El informe es del programa nativo: tu programa BASIC ha desaparecido en todos
+los casos.</p>
+<h2 id="ficheros-de-cinta">Ficheros de cinta<a class="ancla" href="#ficheros-de-cinta" aria-hidden="true">#</a></h2>
+<p>ZX-V lee los ficheros de cinta de los emuladores del Spectrum, <code>.tap</code> y
+<code>.tzx</code> (sus bloques de velocidad normal: programas, <code>CODE</code>, pantallas y
+matrices), para usar el código BASIC hecho para el Spectrum. El código
+máquina del Spectrum que contengan no se puede ejecutar. Los programas de ZX-V
+se graban en su propio formato, <code>.zvb</code> (ver <a href="#save">SAVE</a>); un <code>.tap</code> solo se
+graba si se pide, para llevar un programa a un emulador del Spectrum.</p>
+<p>Un fichero de cinta que se ha cargado se queda <strong>puesto</strong>, como una cinta en
+la casetera, así que funcionan los programas de varias partes:</p>
+<ul>
+<li><code>LOAD ""</code> (y <code>LOAD "" SCREEN$</code>, <code>LOAD "" CODE</code>, <code>LOAD "" DATA a()</code>,
+  <code>VERIFY ""</code>, <code>MERGE ""</code>) lee el siguiente bloque de ese tipo desde donde se
+  quedó la cinta. Al llegar al final, se rebobina una vez. Sin cinta puesta, o
+  sin ningún bloque de ese tipo, <code>R Error al cargar</code>.</li>
+<li><code>LOAD "nombre"</code> usa el fichero <code>nombre</code> si existe en la tarjeta (y pasa a
+  ser la cinta puesta); si no, busca en la cinta puesta un bloque con ese
+  nombre, y si tampoco está, <code>T Fichero no encontrado</code>.</li>
+<li>La cinta sigue puesta después de <code>NEW</code> y de <code>CD</code>, hasta que se carga otro
+  fichero de cinta o se reinicia la máquina.</li>
+</ul>
+<p>Así, <code>LOAD "juego"</code> carga el cargador de <code>juego.tap</code>, que puede traer su
+pantalla de presentación y el programa con <code>LOAD "" SCREEN$: LOAD ""</code>.</p>
+<h2 id="streams-y-canales">Streams y canales<a class="ancla" href="#streams-y-canales" aria-hidden="true">#</a></h2>
+<p>El texto entra y sale por unos <strong>streams</strong> (flujos) numerados del 0 al 15.
+Los streams 0 a 3 están listos desde el principio:</p>
+<table>
+<thead>
+<tr>
+<th>Stream</th>
+<th>Va a</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0, 1</td>
+<td>la parte inferior de la pantalla (el canal <code>"k"</code>)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>la parte superior de la pantalla (el canal <code>"s"</code>), la de <code>PRINT</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>la impresora, el fichero <code>printer.txt</code> (el canal <code>"p"</code>), la de <code>LPRINT</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>PRINT</code>, <code>LIST</code> e <code>INPUT</code> admiten un stream con <code>#</code>: <code>PRINT #1; "abajo"</code>
+escribe en la parte inferior y <code>LIST #3</code> lista en la impresora. Los streams 4
+a 15 se pueden conectar a ficheros de texto de la tarjeta. Un stream que no
+está abierto da <code>O Canal no válido</code>.</p>
+<h3 id="open-close">OPEN, CLOSE<a class="ancla" href="#open-close" aria-hidden="true">#</a></h3>
+<pre><code>OPEN #stream, nombre$ IN
+OPEN #stream, nombre$ OUT
+OPEN #stream, canal$
+CLOSE #stream
+</code></pre>
+<p><code>OPEN # ... OUT</code> crea un fichero de texto (y lo vacía si ya existe) para
+escribir en él; <code>OPEN # ... IN</code> abre uno para leer. Los ficheros solo pueden
+usar los streams 4 a 15, y puede haber hasta 8 abiertos a la vez (si no,
+<code>O Canal no válido</code>). Abrir un stream que ya tiene un fichero lo cierra antes.</p>
+<p><code>OPEN #stream, "k"</code>, <code>"s"</code> o <code>"p"</code> conecta un stream a la pantalla inferior,
+a la superior o a la impresora; otro canal da <code>J Dispositivo no válido</code>.</p>
+<p><code>CLOSE #stream</code> cierra el fichero (escribiendo lo que quedaba pendiente) y
+deja libre el stream; los streams 0 a 3 vuelven a sus canales de siempre.
+<code>RUN</code>, <code>CLEAR</code> y <code>NEW</code> cierran todos los ficheros.</p>
+<h3 id="leer-y-escribir-ficheros-de-texto">Leer y escribir ficheros de texto<a class="ancla" href="#leer-y-escribir-ficheros-de-texto" aria-hidden="true">#</a></h3>
+<pre><code>PRINT #stream; elementos
+LIST #stream
+INPUT #stream; var [, var]... [LINE a$]
+INKEY$ #stream
+</code></pre>
+<ul>
+<li><code>PRINT #n</code> escribe como <code>PRINT</code>, sin colores ni <code>AT</code>; <code>TAB</code> escribe
+  espacios. En un fichero, <strong>la coma empieza una línea nueva</strong>, para que lo
+  que escribe <code>PRINT #n; a, b$</code> se pueda leer después con
+  <code>INPUT #n; a, b$</code>.</li>
+<li><code>LIST #n</code> escribe el programa como texto.</li>
+<li><code>INPUT #n</code> lee una línea por cada variable (las líneas pueden acabar en LF,
+  CR o CR LF). Una variable de cadena se queda con la línea entera; un número
+  se calcula como una expresión (si no es válida, <code>C Sintaxis incorrecta</code>). Al
+  final del fichero, <code>8 Fin del fichero</code>.</li>
+<li><code>INKEY$ #n</code> da el siguiente carácter del fichero, o <code>""</code> al final.</li>
+</ul>
+<p>Escribir en un fichero abierto con <code>IN</code>, o leer de uno abierto con <code>OUT</code>, da
+<code>J Dispositivo no válido</code>.</p>
+<pre><code>10 OPEN #4, &quot;records.txt&quot; OUT: PRINT #4; &quot;Ana&quot;, 120: CLOSE #4
+20 OPEN #4, &quot;records.txt&quot; IN: INPUT #4; n$, p: CLOSE #4
+30 PRINT n$; &quot; hizo &quot;; p; &quot; puntos&quot;
+</code></pre>
+<p>Para leer un fichero cuya longitud no conoces, atrapa el final del fichero
+con <a href="#on-error"><code>ON ERROR</code></a>:</p>
+<pre><code>10 ON ERROR GO TO 50: OPEN #5, &quot;records.txt&quot; IN
+20 INPUT #5; LINE l$: PRINT l$: GO TO 20
+50 CLOSE #5: IF ERR&lt;&gt;8 THEN PRINT &quot;Error &quot;; ERR
+</code></pre>
+<h3 id="format">FORMAT<a class="ancla" href="#format" aria-hidden="true">#</a></h3>
+<p><code>FORMAT</code> solo existe por compatibilidad con programas antiguos del Spectrum, y
+da <code>O Canal no válido</code>.</p>
+<h2 id="memoria-y-sistema">Memoria y sistema<a class="ancla" href="#memoria-y-sistema" aria-hidden="true">#</a></h2>
+<h3 id="peek-poke">PEEK, POKE<a class="ancla" href="#peek-poke" aria-hidden="true">#</a></h3>
+<pre><code>PEEK dirección
+POKE dirección, valor
+</code></pre>
+<p><code>PEEK</code> lee un byte (de 0 a 255) de la memoria y <code>POKE</code> escribe uno (un valor
+negativo, de -255 a -1, se escribe como 256 más ese valor).</p>
+<ul>
+<li>Las direcciones <strong>por debajo de 65536</strong> van a una <strong>memoria de Spectrum
+  virtual</strong>, para que sigan funcionando los programas del Spectrum que hacen
+  <code>PEEK</code> y <code>POKE</code> en la pantalla, en los colores o en las variables del
+  sistema (ver la tabla de abajo).</li>
+<li>Las direcciones <strong>de 65536 en adelante</strong> leen y escriben la memoria real de
+  ZX-V, byte a byte (por ejemplo, los <a href="../machine.html">registros de la
+  máquina</a>). <code>POKE</code> solo escribe en la RAM; las direcciones
+  fuera de la memoria, y la zona protegida del sistema, dan <code>B Entero fuera de
+  rango</code>.</li>
+</ul>
+<pre><code>PRINT PEEK 536872704
+</code></pre>
+<p>escribe el byte bajo del contador de frames de ZX-V (60 por segundo; el del
+Spectrum, <code>FRAMES</code>, está en la 23672).</p>
+<h3 id="la-memoria-del-spectrum-virtual">La memoria del Spectrum virtual<a class="ancla" href="#la-memoria-del-spectrum-virtual" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Direcciones</th>
+<th>Contenido</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0–16383</td>
+<td>la ROM del Spectrum: se lee como 0, salvo el juego de caracteres en 15616</td>
+</tr>
+<tr>
+<td>16384–22527</td>
+<td>los píxeles de la pantalla, ordenados como en el Spectrum (<code>POKE</code> dibuja con los colores de cada celda)</td>
+</tr>
+<tr>
+<td>22528–23295</td>
+<td>los colores de cada celda (<code>POKE</code> los cambia)</td>
+</tr>
+<tr>
+<td>23552–23733</td>
+<td>variables del sistema (ver abajo)</td>
+</tr>
+<tr>
+<td>23296–65535</td>
+<td>memoria normal: lo que escribes con <code>POKE</code> lo lees con <code>PEEK</code></td>
+</tr>
+<tr>
+<td>65368–65535</td>
+<td>los gráficos definidos por el usuario, de la A a la U</td>
+</tr>
+</tbody>
+</table>
+<p>En estas direcciones solo se ven los primeros 256 × 192 píxeles de la
+pantalla.</p>
+<p>Variables del sistema que funcionan: <code>LAST K</code> (23560, la última tecla),
+<code>CHARS</code> (23606, dónde está el juego de caracteres; puedes apuntarla a una
+fuente tuya en la memoria virtual), <code>BORDCR</code> (23624), <code>PROG</code> (23635),
+<code>FLAGS2</code> (23658, el bit 3 es el bloqueo de mayúsculas), <code>DF SZ</code> (23659),
+<code>SEED</code> (23670, la semilla de <code>RND</code>), <code>FRAMES</code> (23672, tres bytes que cuentan
+cincuentavos de segundo, como los frames del Spectrum), <code>UDG</code> (23675), <code>COORDS</code> (23677, el último punto de <code>PLOT</code>), <code>S POSN</code>
+(23688), <code>SCR CT</code> (23692), <code>ATTR P</code>, <code>MASK P</code>, <code>ATTR T</code>, <code>MASK T</code> y <code>P FLAG</code>
+(de 23693 a 23697) y <code>RAMTOP</code> (23730).</p>
+<h3 id="gráficos-definidos-por-el-usuario-udg">Gráficos definidos por el usuario (UDG)<a class="ancla" href="#gráficos-definidos-por-el-usuario-udg" aria-hidden="true">#</a></h3>
+<p>Los códigos de carácter del 144 al 164 son 21 caracteres, de la A a la U, que
+puedes dibujar tú. <code>USR "a"</code> da la dirección del primer byte del carácter A (y
+así hasta <code>USR "u"</code>); cada carácter son 8 bytes, uno por fila empezando por
+arriba, y cada bit es un píxel (1 = tinta). Al principio se ven como las
+letras de la A a la U.</p>
+<pre><code>10 FOR i=0 TO 7: READ b: POKE USR &quot;a&quot;+i, b: NEXT i
+20 PRINT CHR$ 144; CHR$ 144; CHR$ 144
+30 DATA BIN 00111100, BIN 01111110, BIN 11011011, BIN 11111111
+40 DATA BIN 11111111, BIN 10111101, BIN 11000011, BIN 01111110
+</code></pre>
+<p>En el editor no se pueden teclear estos caracteres: usa <code>CHR$</code>.</p>
+<h3 id="usr">USR<a class="ancla" href="#usr" aria-hidden="true">#</a></h3>
+<pre><code>USR dirección
+USR &quot;letra&quot;
+</code></pre>
+<p>Con una dirección de 65536 o más, llama al código máquina nativo RISC-V de esa
+dirección y devuelve el valor que da (en el registro <code>a0</code>). Si el código falla,
+<code>W Error en el código nativo</code>. El código máquina Z80 del Spectrum no se puede
+ejecutar: una dirección por debajo de 65536 da <code>S Código Z80 no admitido</code>.
+Para llamar a un código sin usar el resultado, <code>RANDOMIZE USR dirección</code>.</p>
+<p>De <code>USR "a"</code> a <code>USR "u"</code> dan la dirección de un <a href="#gráficos-definidos-por-el-usuario-udg">gráfico definido por el
+usuario</a>; otra letra da <code>A Argumento no
+válido</code>.</p>
+<h3 id="in-out">IN, OUT<a class="ancla" href="#in-out" aria-hidden="true">#</a></h3>
+<pre><code>IN puerto
+OUT puerto, valor
+</code></pre>
+<p>Leen y escriben los puertos del Spectrum, tal como los imita ZX-V:</p>
+<table>
+<thead>
+<tr>
+<th>Puerto</th>
+<th><code>IN</code></th>
+<th><code>OUT</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>254 (y cualquier puerto par)</td>
+<td>las semifilas del teclado que elige el byte alto, como en el Spectrum (bits a 0 = pulsada)</td>
+<td>bits 0–2 color del borde, bit 4 beeper</td>
+</tr>
+<tr>
+<td>31</td>
+<td>joystick Kempston (el mando 0)</td>
+<td></td>
+</tr>
+<tr>
+<td>64479, 65503</td>
+<td>ratón Kempston: contadores de x e y</td>
+<td></td>
+</tr>
+<tr>
+<td>64223</td>
+<td>botones del ratón Kempston (0 = pulsado)</td>
+<td></td>
+</tr>
+<tr>
+<td>65533</td>
+<td>lee el registro del AY elegido</td>
+<td>elige un registro del AY; 255 elige el primer chip y 254 el segundo</td>
+</tr>
+<tr>
+<td>49149</td>
+<td></td>
+<td>escribe en el registro del AY elegido</td>
+</tr>
+</tbody>
+</table>
+<p>Los demás puertos leen 255 y no hacen caso de lo que se escribe. Para los
+programas hechos para ZX-V es mejor <code>KEY</code>, <code>JOY</code>, <code>MOUSE</code>, <code>BORDER</code> y <code>SOUND</code>.</p>
+<h3 id="time">TIME<a class="ancla" href="#time" aria-hidden="true">#</a></h3>
+<pre><code>TIME
+</code></pre>
+<p>El número de frames desde que se encendió la máquina, 60 por segundo. Para
+medir un tiempo, resta dos lecturas:</p>
+<pre><code>10 LET t=TIME: PAUSE 100: PRINT (TIME-t)/60; &quot; segundos&quot;
+</code></pre>
+<h3 id="clock">CLOCK<a class="ancla" href="#clock" aria-hidden="true">#</a></h3>
+<pre><code>CLOCK n
+CLOCK año, mes, día, hora, minutos [, segundos]
+</code></pre>
+<p>La función <code>CLOCK n</code> lee la fecha y la hora: 0 el año, 1 el mes, 2 el día, 3
+la hora, 4 los minutos, 5 los segundos y 6 el día de la semana (1 lunes ...
+7 domingo). Da 0 si el reloj no está en hora. La orden pone el reloj en hora
+(años de 2000 a 2099); una fecha que no existe da <code>A Argumento no válido</code>. Los
+ficheros que se graban en la tarjeta llevan esa fecha.</p>
+<pre><code>PRINT CLOCK 2; &quot;/&quot;; CLOCK 1; &quot;/&quot;; CLOCK 0; &quot; &quot;; CLOCK 3; &quot;:&quot;; CLOCK 4
+</code></pre>
+<h3 id="speed">SPEED<a class="ancla" href="#speed" aria-hidden="true">#</a></h3>
+<pre><code>SPEED n
+</code></pre>
+<p><code>SPEED 1</code> (el de partida) ejecuta el BASIC a toda velocidad, unas 200 veces
+más deprisa que un Spectrum. <code>SPEED 0</code> hace que cada orden tarde más o menos
+lo que tardaría en un Spectrum 48K, para los programas antiguos que usan
+bucles como pausa o que serían injugables a toda velocidad. Otros valores dan
+<code>A Argumento no válido</code>. Las órdenes nuevas (sprites, mapas...) no se frenan.</p>
+<h3 id="language">LANGUAGE<a class="ancla" href="#language" aria-hidden="true">#</a></h3>
+<pre><code>LANGUAGE código$
+</code></pre>
+<p>Elige el idioma de la máquina con un código de dos letras: <code>"en"</code> inglés o
+<code>"es"</code> español. Los informes de error y la barra y el menú del editor lo usan
+desde ese momento, y la máquina lo recuerda (en el hardware de verdad, en
+su reloj con pila; en el emulador, en sus ajustes). Se admite cualquier
+otro código de dos letras, que saca los textos en inglés (un programa puede
+leerlo para elegir los suyos: <code>PEEK 536872736</code> y <code>PEEK 536872737</code> son los
+códigos de las dos letras). Algo que no son dos letras da <code>A Argumento no
+válido</code>.</p>
+<pre><code>LANGUAGE &quot;es&quot;
+</code></pre>
+<h3 id="monitor">MONITOR<a class="ancla" href="#monitor" aria-hidden="true">#</a></h3>
+<pre><code>MONITOR
+</code></pre>
+<p>Abre el monitor de pruebas, una pantalla para comprobar el hardware (teclado,
+mando, modos de vídeo, sonido). Para salir, reinicia la máquina
+(Ctrl+Alt+Supr).</p>
+<h2 id="órdenes-de-edición">Órdenes de edición<a class="ancla" href="#órdenes-de-edición" aria-hidden="true">#</a></h2>
+<p>Estas órdenes se usan sobre todo como órdenes directas, mientras escribes un
+programa. En <a href="editor.html">el editor</a> está todo lo demás.</p>
+<h3 id="list">LIST<a class="ancla" href="#list" aria-hidden="true">#</a></h3>
+<pre><code>LIST [línea]
+LIST #stream [, línea]
+</code></pre>
+<p>Como orden directa, <code>LIST</code> te lleva al editor con el cursor en esa línea (o
+en la siguiente que haya), lista para cambiarla. Dentro de un programa, o con
+un stream, escribe el listado desde esa línea: <code>LIST #2</code> en la pantalla del
+programa, <code>LIST #3</code> en la impresora, <code>LIST #4</code> en un fichero. El listado sale
+sangrado: lo que va dentro de un bucle, un procedimiento o un bloque, dos
+espacios más a la derecha por nivel (los espacios no se guardan).</p>
+<p><strong>Ver también:</strong> <a href="#lprint-llist">LLIST</a>, <a href="#edit">EDIT</a>.</p>
+<h3 id="edit">EDIT<a class="ancla" href="#edit" aria-hidden="true">#</a></h3>
+<pre><code>EDIT [línea]
+</code></pre>
+<p>Pone el cursor del editor en esa línea (sin número, en la línea actual). No
+hay que confundirla con la tecla EDIT (Tab), que abre el menú de opciones del
+editor.</p>
+<h3 id="auto">AUTO<a class="ancla" href="#auto" aria-hidden="true">#</a></h3>
+<pre><code>AUTO [primera [, paso]]
+</code></pre>
+<p>Números de línea automáticos: cada línea nueva del editor empieza con el
+número siguiente. Sin valores, empieza en la última línea más 10 y va de diez
+en diez. Se acaba al pulsar Enter en una línea que solo tiene el número, al
+pulsar Esc o al pasar a otra línea. Solo como orden directa (en un programa,
+<code>C Sintaxis incorrecta</code>).</p>
+<pre><code>AUTO 100, 5
+</code></pre>
+<h3 id="renum">RENUM<a class="ancla" href="#renum" aria-hidden="true">#</a></h3>
+<pre><code>RENUM [primera [, paso]]
+</code></pre>
+<p>Renumera el programa (desde 10 y de diez en diez si no se dice otra cosa), y
+corrige los números de línea que van detrás de <code>GO TO</code>, <code>GO SUB</code>, <code>RESTORE</code>,
+<code>RUN</code>, <code>LIST</code>, <code>LLIST</code> y <code>LINE</code>. Solo se corrigen los números escritos tal
+cual: en <code>GO TO n*10</code> la expresión no cambia. Las etiquetas no hace falta
+corregirlas. Si los números pasaran de 9999, <code>B Entero fuera de rango</code>. Solo
+como orden directa. El menú de opciones del editor tiene lo mismo.</p>
+<pre><code>RENUM 100, 10
+</code></pre>
+<h3 id="delete">DELETE<a class="ancla" href="#delete" aria-hidden="true">#</a></h3>
+<pre><code>DELETE primera [, última]
+</code></pre>
+<p>Borra las líneas de <code>primera</code> a <code>última</code> (o solo la <code>primera</code>). Solo como
+orden directa.</p>
+<pre><code>DELETE 100, 190
+</code></pre>
+<h3 id="find">FIND<a class="ancla" href="#find" aria-hidden="true">#</a></h3>
+<pre><code>FIND [texto]
+</code></pre>
+<p>Lleva el cursor del editor a la siguiente línea del programa donde aparece
+<code>texto</code>, desde la línea que va detrás de la del cursor y dando la vuelta al
+final, con el cursor sobre el texto. No distingue mayúsculas de minúsculas, y
+busca en el listado tal como se ve (no en los números de línea). Sin texto,
+busca lo mismo que la última vez, como la tecla F3. Si no está, la línea de
+estado dice <code>No encontrado</code>. Solo como orden directa.</p>
+<pre><code>FIND &quot;puntos&quot;
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#replace">REPLACE</a>.</p>
+<h3 id="replace">REPLACE<a class="ancla" href="#replace" aria-hidden="true">#</a></h3>
+<pre><code>REPLACE viejo, nuevo
+</code></pre>
+<p>Cambia el texto <code>viejo</code> por <code>nuevo</code> en todo el programa, sin distinguir
+mayúsculas de minúsculas. Cada línea cambiada se comprueba como si se
+tecleara, y las que quedarían con un error no se tocan. La línea de estado
+dice cuántos cambios ha hecho y cuántas líneas se quedaron sin cambiar. Con
+<code>viejo</code> vacío, <code>A Argumento no válido</code>. Solo como orden directa.</p>
+<pre><code>REPLACE &quot;vidas&quot;, &quot;energia&quot;
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#find">FIND</a>.</p>
+<h3 id="new">NEW<a class="ancla" href="#new" aria-hidden="true">#</a></h3>
+<pre><code>NEW
+</code></pre>
+<p>Borra el programa, las variables y el almacén de gráficos, y empieza de cero
+(la cinta puesta se queda). No se puede deshacer: graba antes.</p>
+<h2 id="errores">Errores<a class="ancla" href="#errores" aria-hidden="true">#</a></h2>
+<h3 id="informes">Informes<a class="ancla" href="#informes" aria-hidden="true">#</a></h3>
+<p>Cuando un programa se para, sale un informe abajo, en la pantalla del
+programa:</p>
+<pre><code>2 Variable no encontrada, 20:1
+</code></pre>
+<p>Tiene un código (una cifra o una letra), el mensaje y dónde ha pasado: el
+número de línea y la orden dentro de la línea (<code>20:1</code> es la primera orden de
+la línea 20; la línea 0 es una orden directa). <code>0 OK</code> quiere decir que el
+programa ha acabado bien. Pulsa una tecla para volver al editor.</p>
+<p>Los informes salen en el idioma de la máquina (ver <a href="#language">LANGUAGE</a>).</p>
+<h3 id="on-error">ON ERROR<a class="ancla" href="#on-error" aria-hidden="true">#</a></h3>
+<pre><code>ON ERROR GO TO línea | @etiqueta
+ON ERROR GO TO 0
+</code></pre>
+<p>A partir de ese momento, si un error para el programa, salta a esa línea o
+etiqueta. Ahí, <code>ERR</code> y <code>ERL</code> dicen qué ha pasado. <code>ON ERROR GO TO 0</code> lo quita,
+y también <code>RUN</code> y <code>CLEAR</code>.</p>
+<ul>
+<li>La trampa se quita sola al usarse, para que un error dentro del manejador no
+  se repita sin fin: escribe otra vez <code>ON ERROR</code> para seguir atrapando
+  errores.</li>
+<li><code>CONTINUE</code> repite la orden que falló (tras un BREAK, sigue por la
+  siguiente).</li>
+<li>Atrapa todos los errores, BREAK incluido, salvo <code>STOP</code> y los de las órdenes
+  directas.</li>
+</ul>
+<pre><code>10 ON ERROR GO TO @fallo
+20 PRINT 1/0
+30 PRINT &quot;sigo&quot;
+40 STOP
+50 @fallo: PRINT &quot;Error &quot;; ERR; &quot; en la linea &quot;; ERL
+60 ON ERROR GO TO @fallo: GO TO 30
+</code></pre>
+<h3 id="err-erl">ERR, ERL<a class="ancla" href="#err-erl" aria-hidden="true">#</a></h3>
+<pre><code>ERR
+ERL
+</code></pre>
+<p>Tras un error atrapado con <code>ON ERROR</code>, <code>ERR</code> es el código del error como número
+(las cifras son ellas mismas y las letras siguen contando desde el 10: la <code>A</code>
+es el 10, la <code>B</code> el 11... la <code>Z</code> el 35; la tabla de abajo los da todos) y
+<code>ERL</code>, la línea en la que pasó.</p>
+<h2 id="mensajes-de-error">Mensajes de error<a class="ancla" href="#mensajes-de-error" aria-hidden="true">#</a></h2>
+<p>Los informes en español y en inglés, con el número que da <code>ERR</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Código</th>
+<th><code>ERR</code></th>
+<th>Español</th>
+<th>Inglés</th>
+<th>Por qué suele salir</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>OK</td>
+<td>OK</td>
+<td>No es un error: el programa o la orden han acabado bien.</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>NEXT sin FOR</td>
+<td>NEXT without FOR</td>
+<td><code>NEXT</code> con una variable que no es la de un <code>FOR</code>.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2</td>
+<td>Variable no encontrada</td>
+<td>Variable not found</td>
+<td>Usar una variable antes de darle valor, o una matriz antes de su <code>DIM</code>.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>3</td>
+<td>Subíndice incorrecto</td>
+<td>Subscript wrong</td>
+<td>Un subíndice fuera del tamaño de la matriz, un número de subíndices que no es el suyo o un trozo fuera de la cadena.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>4</td>
+<td>Sin memoria</td>
+<td>Out of memory</td>
+<td>No hay memoria, hay demasiados <code>GO SUB</code> (512) o bucles y procedimientos (64) uno dentro de otro, o una expresión demasiado anidada.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>5</td>
+<td>Fuera de la pantalla</td>
+<td>Out of screen</td>
+<td><code>PRINT AT</code> o <code>INPUT</code> fuera de la pantalla.</td>
+</tr>
+<tr>
+<td>6</td>
+<td>6</td>
+<td>Número demasiado grande</td>
+<td>Number too big</td>
+<td>Un resultado mayor que 1,7E38; muchas veces, una división entre cero.</td>
+</tr>
+<tr>
+<td>7</td>
+<td>7</td>
+<td>RETURN sin GO SUB</td>
+<td>RETURN without GOSUB</td>
+<td><code>RETURN</code> sin un <code>GO SUB</code> al que volver.</td>
+</tr>
+<tr>
+<td>8</td>
+<td>8</td>
+<td>Fin del fichero</td>
+<td>End of file</td>
+<td><code>INPUT #</code> después de la última línea de un fichero.</td>
+</tr>
+<tr>
+<td>9</td>
+<td>9</td>
+<td>Sentencia STOP</td>
+<td>STOP statement</td>
+<td>El programa ha llegado a un <code>STOP</code>. <code>CONTINUE</code> sigue.</td>
+</tr>
+<tr>
+<td>A</td>
+<td>10</td>
+<td>Argumento no válido</td>
+<td>Invalid argument</td>
+<td>Un valor que una función no admite (<code>SQR -1</code>, <code>LN 0</code>), un sprite o un mapa que no existe, una cadena de <code>PLAY</code> mal escrita, una fecha imposible.</td>
+</tr>
+<tr>
+<td>B</td>
+<td>11</td>
+<td>Entero fuera de rango</td>
+<td>Integer out of range</td>
+<td>Un número entero fuera de su rango: una coordenada fuera de la pantalla, <code>CHR$ 300</code>, <code>POKE</code> con 256...</td>
+</tr>
+<tr>
+<td>C</td>
+<td>12</td>
+<td>Sintaxis incorrecta</td>
+<td>Nonsense in BASIC</td>
+<td>La línea no es BASIC válido (una errata, un paréntesis que falta), o un valor del tipo equivocado.</td>
+</tr>
+<tr>
+<td>D</td>
+<td>13</td>
+<td>BREAK - CONT repite</td>
+<td>BREAK - CONT repeats</td>
+<td>Has contestado N, Espacio o BREAK a <code>scroll?</code>. <code>CONTINUE</code> repite.</td>
+</tr>
+<tr>
+<td>E</td>
+<td>14</td>
+<td>No quedan DATA</td>
+<td>Out of DATA</td>
+<td><code>READ</code> sin <code>DATA</code> por leer.</td>
+</tr>
+<tr>
+<td>F</td>
+<td>15</td>
+<td>Nombre de fichero no válido</td>
+<td>Invalid file name</td>
+<td>Un nombre vacío, demasiado largo o con caracteres no permitidos.</td>
+</tr>
+<tr>
+<td>G</td>
+<td>16</td>
+<td>No cabe la línea</td>
+<td>No room for line</td>
+<td>La línea es demasiado larga, o la memoria está llena.</td>
+</tr>
+<tr>
+<td>H</td>
+<td>17</td>
+<td>STOP en INPUT</td>
+<td>STOP in INPUT</td>
+<td>Se ha tecleado <code>STOP</code>, o pulsado BREAK, en un <code>INPUT</code>.</td>
+</tr>
+<tr>
+<td>I</td>
+<td>18</td>
+<td>FOR sin NEXT</td>
+<td>FOR without NEXT</td>
+<td>Un bucle <code>FOR</code> que no se ejecuta ninguna vez y no tiene un <code>NEXT</code> al que saltar.</td>
+</tr>
+<tr>
+<td>J</td>
+<td>19</td>
+<td>Dispositivo no válido</td>
+<td>Invalid I/O device</td>
+<td>Escribir en un fichero abierto para leer (o al revés), o un canal desconocido en <code>OPEN #</code>.</td>
+</tr>
+<tr>
+<td>K</td>
+<td>20</td>
+<td>Color no válido</td>
+<td>Invalid colour</td>
+<td>Un color fuera de rango (<code>INK 10</code>, <code>BORDER 8</code>, <code>BOX 16,...</code>).</td>
+</tr>
+<tr>
+<td>L</td>
+<td>21</td>
+<td>BREAK en el programa</td>
+<td>BREAK into program</td>
+<td>Has pulsado BREAK (Esc). <code>CONTINUE</code> sigue por la orden siguiente.</td>
+</tr>
+<tr>
+<td>M</td>
+<td>22</td>
+<td>RAMTOP no válido</td>
+<td>RAMTOP no good</td>
+<td>Una dirección de <code>CLEAR</code> demasiado baja o demasiado alta.</td>
+</tr>
+<tr>
+<td>N</td>
+<td>23</td>
+<td>Sentencia perdida</td>
+<td>Statement lost</td>
+<td>Un salto de vuelta a una orden que ya no existe (por ejemplo, tras cambiar la línea).</td>
+</tr>
+<tr>
+<td>O</td>
+<td>24</td>
+<td>Canal no válido</td>
+<td>Invalid stream</td>
+<td>Un stream sin abrir, un fichero en los streams 0–3, más de 8 ficheros abiertos, o <code>FORMAT</code>.</td>
+</tr>
+<tr>
+<td>P</td>
+<td>25</td>
+<td>FN sin DEF FN</td>
+<td>FN without DEF</td>
+<td><code>FN</code> de una función sin <code>DEF FN</code> en el programa.</td>
+</tr>
+<tr>
+<td>Q</td>
+<td>26</td>
+<td>Error en los parámetros</td>
+<td>Parameter error</td>
+<td>El número o el tipo de los valores de <code>FN</code> o de <code>PROC</code> no encajan, o son demasiados.</td>
+</tr>
+<tr>
+<td>R</td>
+<td>27</td>
+<td>Error al cargar</td>
+<td>Tape loading error</td>
+<td>Un fichero que no es válido o no es del tipo pedido, <code>LOAD ""</code> sin cinta puesta, o <code>VERIFY</code> ha encontrado diferencias.</td>
+</tr>
+<tr>
+<td>S</td>
+<td>28</td>
+<td>Código Z80 no admitido</td>
+<td>Z80 code not supported</td>
+<td><code>USR</code> con una dirección por debajo de 65536: código máquina del Spectrum.</td>
+</tr>
+<tr>
+<td>T</td>
+<td>29</td>
+<td>Fichero no encontrado</td>
+<td>File not found</td>
+<td>No hay un fichero o una carpeta con ese nombre, o nada encaja con los comodines.</td>
+</tr>
+<tr>
+<td>U</td>
+<td>30</td>
+<td>No hay tarjeta SD</td>
+<td>No SD card</td>
+<td>No hay tarjeta en la ranura.</td>
+</tr>
+<tr>
+<td>V</td>
+<td>31</td>
+<td>Error de disco</td>
+<td>Disk error</td>
+<td>La tarjeta ha fallado o la operación no se puede hacer; el motivo va detrás, entre paréntesis.</td>
+</tr>
+<tr>
+<td>W</td>
+<td>32</td>
+<td>Error en el código nativo</td>
+<td>Native code error</td>
+<td>Ha fallado el código nativo llamado con <code>USR</code>, o un programa nativo (<code>.zxv</code>) ha acabado con un error. Puede llevar el código del programa o su propio mensaje (ver <a href="#programas-nativos">Programas nativos</a>).</td>
+</tr>
+<tr>
+<td>X</td>
+<td>33</td>
+<td>Etiqueta no encontrada</td>
+<td>Label not found</td>
+<td><code>GO TO @nombre</code> (o parecido) sin un <code>@nombre</code> en el programa.</td>
+</tr>
+<tr>
+<td>Y</td>
+<td>34</td>
+<td>Error de estructura</td>
+<td>Structure error</td>
+<td><code>WEND</code>, <code>UNTIL</code>, <code>END PROC</code> o <code>LOCAL</code> sin su principio, o un bloque (<code>WHILE</code>, <code>IF</code>, <code>SELECT CASE</code>...) sin su final.</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>35</td>
+<td>PROC no encontrado</td>
+<td>PROC not found</td>
+<td><code>PROC</code> de un procedimiento sin <code>DEF PROC</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Los motivos de <code>V Error de disco</code>: <code>ya existe</code> / <code>already exists</code>, <code>la carpeta
+no está vacía</code> / <code>folder not empty</code>, <code>es una carpeta</code> / <code>it is a folder</code>,
+<code>no es una carpeta</code> / <code>not a folder</code>, <code>la tarjeta está llena</code> / <code>card full</code>,
+<code>no se puede</code> / <code>not allowed</code>.</p>
+<h2 id="juego-de-caracteres">Juego de caracteres<a class="ancla" href="#juego-de-caracteres" aria-hidden="true">#</a></h2>
+<p>Cada carácter tiene un código del 0 al 255 (<code>CODE</code> y <code>CHR$</code> pasan de uno a
+otro):</p>
+<table>
+<thead>
+<tr>
+<th>Códigos</th>
+<th>Caracteres</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0–31</td>
+<td>códigos de control (ver abajo); los demás se escriben como <code>?</code></td>
+</tr>
+<tr>
+<td>32–126</td>
+<td>letras, cifras y signos, como en ASCII, salvo el 96, que es <code>£</code></td>
+</tr>
+<tr>
+<td>127</td>
+<td><code>©</code></td>
+</tr>
+<tr>
+<td>128–143</td>
+<td>gráficos de bloques: las 16 combinaciones de las cuatro cuartas partes de una celda</td>
+</tr>
+<tr>
+<td>144–164</td>
+<td>los <a href="#gráficos-definidos-por-el-usuario-udg">gráficos definidos por el usuario</a>, de la A a la U</td>
+</tr>
+<tr>
+<td>165–255</td>
+<td>las palabras clave: <code>PRINT CHR$ 245</code> escribe <code>PRINT</code></td>
+</tr>
+</tbody>
+</table>
+<p>Los códigos de control que hacen algo al escribirlos:</p>
+<table>
+<thead>
+<tr>
+<th>Código</th>
+<th>Efecto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6</td>
+<td>como una coma en <code>PRINT</code></td>
+</tr>
+<tr>
+<td>8</td>
+<td>una columna hacia atrás</td>
+</tr>
+<tr>
+<td>13</td>
+<td>línea nueva</td>
+</tr>
+<tr>
+<td>16 a 21</td>
+<td><code>INK</code>, <code>PAPER</code>, <code>FLASH</code>, <code>BRIGHT</code>, <code>INVERSE</code>, <code>OVER</code>: el carácter siguiente es el valor</td>
+</tr>
+<tr>
+<td>22</td>
+<td><code>AT</code>: los dos caracteres siguientes son la fila y la columna</td>
+</tr>
+<tr>
+<td>23</td>
+<td><code>TAB</code>: los dos caracteres siguientes son la columna (byte bajo y alto)</td>
+</tr>
+</tbody>
+</table>
+<p>Por ejemplo, <code>PRINT CHR$ 22; CHR$ 5; CHR$ 10; "X"</code> es lo mismo que
+<code>PRINT AT 5,10; "X"</code>.</p>
+<p><strong>Gráficos de bloques.</strong> Los códigos del 128 al 143 dividen la celda del
+carácter en cuatro cuartos. El código de un dibujo es 128 más los valores de
+los cuartos que van en tinta: 1 arriba a la derecha, 2 arriba a la izquierda,
+4 abajo a la derecha y 8 abajo a la izquierda. Por ejemplo, 128 + 2 + 8 = 138
+es la mitad izquierda.</p>
+<table>
+<thead>
+<tr>
+<th>Código</th>
+<th>Carácter</th>
+<th>Código</th>
+<th>Carácter</th>
+<th>Código</th>
+<th>Carácter</th>
+<th>Código</th>
+<th>Carácter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>128</td>
+<td>(vacío)</td>
+<td>132</td>
+<td>▗</td>
+<td>136</td>
+<td>▖</td>
+<td>140</td>
+<td>▄</td>
+</tr>
+<tr>
+<td>129</td>
+<td>▝</td>
+<td>133</td>
+<td>▐</td>
+<td>137</td>
+<td>▞</td>
+<td>141</td>
+<td>▟</td>
+</tr>
+<tr>
+<td>130</td>
+<td>▘</td>
+<td>134</td>
+<td>▚</td>
+<td>138</td>
+<td>▌</td>
+<td>142</td>
+<td>▙</td>
+</tr>
+<tr>
+<td>131</td>
+<td>▀</td>
+<td>135</td>
+<td>▜</td>
+<td>139</td>
+<td>▛</td>
+<td>143</td>
+<td>█</td>
+</tr>
+</tbody>
+</table>
+<p>Los cuartos van en el color de la tinta y el resto de la celda en el del
+papel, como en cualquier otro carácter. Los códigos son los mismos que en el
+Spectrum.</p>
+<p>En el editor se pueden teclear los códigos del 32 al 127 (también <code>£</code> y <code>©</code>,
+si tu teclado los tiene). Las letras con tilde, la <code>ñ</code>, <code>¿</code> y <code>¡</code> <strong>no</strong> son
+caracteres del BASIC, así que en los textos de tus programas hay que pasarse
+sin ellas. Si las tecleas, en el editor o en un <code>INPUT</code>, las letras con
+tilde, diéresis o cedilla salen sin ella (<code>á</code> sale <code>a</code>, <code>Ñ</code> sale <code>N</code>, <code>ç</code> sale
+<code>c</code>), <code>¿</code> y <code>¡</code> salen <code>?</code> y <code>!</code>, y los demás caracteres no hacen nada. La ROM
+sí las usa en sus propios mensajes, como los informes de error en español,
+pero tus programas no pueden. Los gráficos de bloques y los definidos por el
+usuario se escriben con <code>CHR$</code>.</p>
+<h2 id="límites">Límites<a class="ancla" href="#límites" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Qué</th>
+<th>Límite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Números de línea</td>
+<td>del 1 al 9999</td>
+</tr>
+<tr>
+<td>Longitud de una línea en el editor</td>
+<td>1024 caracteres</td>
+</tr>
+<tr>
+<td>Números</td>
+<td>de unos ±2,9E-39 a ±1,7E38, con 8 cifras a la vista</td>
+</tr>
+<tr>
+<td>Nombres de variables numéricas</td>
+<td>hasta 63 letras y cifras</td>
+</tr>
+<tr>
+<td>Variables de cadena, matrices, variables de <code>FOR</code>, <code>DEF FN</code></td>
+<td>una letra (26 de cada)</td>
+</tr>
+<tr>
+<td>Cadenas</td>
+<td>tan largas como quepa en la memoria</td>
+</tr>
+<tr>
+<td>Dimensiones de una matriz</td>
+<td>hasta 16, cada una hasta 65535</td>
+</tr>
+<tr>
+<td><code>GO SUB</code> uno dentro de otro</td>
+<td>512</td>
+</tr>
+<tr>
+<td><code>WHILE</code>, <code>REPEAT</code> y <code>PROC</code> uno dentro de otro</td>
+<td>64</td>
+</tr>
+<tr>
+<td>IF de bloque y <code>SELECT CASE</code> uno dentro de otro</td>
+<td>sin límite</td>
+</tr>
+<tr>
+<td>Parámetros de un procedimiento</td>
+<td>16</td>
+</tr>
+<tr>
+<td>Paréntesis anidados en una expresión</td>
+<td>unos 150 (unas 25 <code>FN</code> una dentro de otra)</td>
+</tr>
+<tr>
+<td>Memoria para el programa y las variables</td>
+<td>unos 94 KB (se ve en la barra del editor)</td>
+</tr>
+<tr>
+<td>Ficheros abiertos</td>
+<td>8, en los streams 4 a 15</td>
+</tr>
+<tr>
+<td>Sprites</td>
+<td>256 (0–255), cada uno de hasta 1024 × 1024 píxeles</td>
+</tr>
+<tr>
+<td>Tiles</td>
+<td>4096 de 8 × 8 y 4096 de 16 × 16</td>
+</tr>
+<tr>
+<td>Mapas de tiles</td>
+<td>16 (0–15), de hasta 32767 × 32767 celdas</td>
+</tr>
+<tr>
+<td>Texturas</td>
+<td>4 (0–3)</td>
+</tr>
+<tr>
+<td>Vértices de un polígono</td>
+<td>64</td>
+</tr>
+<tr>
+<td><code>PLAY</code></td>
+<td>8 cadenas (suenan 6), 4 niveles de paréntesis</td>
+</tr>
+<tr>
+<td>Nombres de fichero</td>
+<td>63 caracteres; rutas de 255</td>
+</tr>
+</tbody>
+</table>
+<h2 id="índice-de-palabras-clave">Índice de palabras clave<a class="ancla" href="#índice-de-palabras-clave" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Palabra clave</th>
+<th>Tipo</th>
+<th>Entrada</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@</code></td>
+<td>orden</td>
+<td><a href="#etiqueta">@etiqueta</a></td>
+</tr>
+<tr>
+<td><code>ABS</code></td>
+<td>función</td>
+<td><a href="#abs-sgn-int">ABS, SGN, INT</a></td>
+</tr>
+<tr>
+<td><code>ACS</code></td>
+<td>función</td>
+<td><a href="#asn-acs-atn">ASN, ACS, ATN</a></td>
+</tr>
+<tr>
+<td><code>AND</code></td>
+<td>operador</td>
+<td><a href="#verdadero-y-falso">Verdadero y falso</a></td>
+</tr>
+<tr>
+<td><code>ASN</code></td>
+<td>función</td>
+<td><a href="#asn-acs-atn">ASN, ACS, ATN</a></td>
+</tr>
+<tr>
+<td><code>AT</code></td>
+<td>en <code>PRINT</code>, <code>INPUT</code></td>
+<td><a href="#print">PRINT</a></td>
+</tr>
+<tr>
+<td><code>ATN</code></td>
+<td>función</td>
+<td><a href="#asn-acs-atn">ASN, ACS, ATN</a></td>
+</tr>
+<tr>
+<td><code>ATTR</code></td>
+<td>función</td>
+<td><a href="#screen-attr">SCREEN$, ATTR</a></td>
+</tr>
+<tr>
+<td><code>AUTO</code></td>
+<td>orden</td>
+<td><a href="#auto">AUTO</a></td>
+</tr>
+<tr>
+<td><code>BEEP</code></td>
+<td>orden</td>
+<td><a href="#beep">BEEP</a></td>
+</tr>
+<tr>
+<td><code>BIN</code></td>
+<td>número</td>
+<td><a href="#bin">BIN</a></td>
+</tr>
+<tr>
+<td><code>BORDER</code></td>
+<td>orden</td>
+<td><a href="#border">BORDER</a></td>
+</tr>
+<tr>
+<td><code>BOX</code></td>
+<td>orden</td>
+<td><a href="#box">BOX</a></td>
+</tr>
+<tr>
+<td><code>BRIGHT</code></td>
+<td>orden, elemento</td>
+<td><a href="#bright-flash">BRIGHT, FLASH</a></td>
+</tr>
+<tr>
+<td><code>CAT</code></td>
+<td>orden</td>
+<td><a href="#cat">CAT</a></td>
+</tr>
+<tr>
+<td><code>CASE</code></td>
+<td>en <code>SELECT CASE</code></td>
+<td><a href="#select-case">SELECT CASE</a></td>
+</tr>
+<tr>
+<td><code>CD</code></td>
+<td>orden</td>
+<td><a href="#cd-dir">CD, DIR$</a></td>
+</tr>
+<tr>
+<td><code>CELL</code></td>
+<td>función</td>
+<td><a href="#cell">CELL</a></td>
+</tr>
+<tr>
+<td><code>CHR$</code></td>
+<td>función</td>
+<td><a href="#chr-code">CHR$, CODE</a></td>
+</tr>
+<tr>
+<td><code>CIRCLE</code></td>
+<td>orden</td>
+<td><a href="#circle">CIRCLE</a></td>
+</tr>
+<tr>
+<td><code>CLEAR</code></td>
+<td>orden</td>
+<td><a href="#clear">CLEAR</a></td>
+</tr>
+<tr>
+<td><code>CLIP</code></td>
+<td>orden</td>
+<td><a href="#clip">CLIP</a></td>
+</tr>
+<tr>
+<td><code>CLOCK</code></td>
+<td>función, orden</td>
+<td><a href="#clock">CLOCK</a></td>
+</tr>
+<tr>
+<td><code>CLOSE #</code></td>
+<td>orden</td>
+<td><a href="#open-close">OPEN, CLOSE</a></td>
+</tr>
+<tr>
+<td><code>CLS</code></td>
+<td>orden</td>
+<td><a href="#cls">CLS</a></td>
+</tr>
+<tr>
+<td><code>CODE</code></td>
+<td>función; en <code>SAVE</code>, <code>LOAD</code></td>
+<td><a href="#chr-code">CHR$, CODE</a>, <a href="#save">SAVE</a></td>
+</tr>
+<tr>
+<td><code>CONTINUE</code></td>
+<td>orden</td>
+<td><a href="#continue">CONTINUE</a></td>
+</tr>
+<tr>
+<td><code>COPY</code></td>
+<td>orden</td>
+<td><a href="#copy">COPY</a></td>
+</tr>
+<tr>
+<td><code>COS</code></td>
+<td>función</td>
+<td><a href="#sin-cos-tan">SIN, COS, TAN</a></td>
+</tr>
+<tr>
+<td><code>DATA</code></td>
+<td>orden; en <code>SAVE</code>, <code>LOAD</code></td>
+<td><a href="#read-data-restore">READ, DATA, RESTORE</a>, <a href="#save">SAVE</a></td>
+</tr>
+<tr>
+<td><code>DEF FN</code></td>
+<td>orden</td>
+<td><a href="#def-fn-fn">DEF FN, FN</a></td>
+</tr>
+<tr>
+<td><code>DEF PROC</code></td>
+<td>orden</td>
+<td><a href="#def-proc-proc-end-proc">DEF PROC, PROC, END PROC</a></td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td>orden</td>
+<td><a href="#delete">DELETE</a></td>
+</tr>
+<tr>
+<td><code>DIM</code></td>
+<td>orden</td>
+<td><a href="#dim">DIM</a></td>
+</tr>
+<tr>
+<td><code>DIR$</code></td>
+<td>función</td>
+<td><a href="#cd-dir">CD, DIR$</a></td>
+</tr>
+<tr>
+<td><code>DISC</code></td>
+<td>orden</td>
+<td><a href="#disc">DISC</a></td>
+</tr>
+<tr>
+<td><code>DRAW</code></td>
+<td>orden</td>
+<td><a href="#draw">DRAW</a></td>
+</tr>
+<tr>
+<td><code>EDIT</code></td>
+<td>orden</td>
+<td><a href="#edit">EDIT</a></td>
+</tr>
+<tr>
+<td><code>ELSE</code></td>
+<td>en <code>IF</code></td>
+<td><a href="#if-then-else">IF, THEN, ELSE</a></td>
+</tr>
+<tr>
+<td><code>END IF</code></td>
+<td>orden</td>
+<td><a href="#if-then-else">IF, THEN, ELSE</a></td>
+</tr>
+<tr>
+<td><code>END PROC</code></td>
+<td>orden</td>
+<td><a href="#def-proc-proc-end-proc">DEF PROC, PROC, END PROC</a></td>
+</tr>
+<tr>
+<td><code>END SELECT</code></td>
+<td>orden</td>
+<td><a href="#select-case">SELECT CASE</a></td>
+</tr>
+<tr>
+<td><code>ERASE</code></td>
+<td>orden</td>
+<td><a href="#erase">ERASE</a></td>
+</tr>
+<tr>
+<td><code>ERL</code></td>
+<td>función</td>
+<td><a href="#err-erl">ERR, ERL</a></td>
+</tr>
+<tr>
+<td><code>ERR</code></td>
+<td>función</td>
+<td><a href="#err-erl">ERR, ERL</a></td>
+</tr>
+<tr>
+<td><code>EXP</code></td>
+<td>función</td>
+<td><a href="#exp-ln">EXP, LN</a></td>
+</tr>
+<tr>
+<td><code>FIND</code></td>
+<td>orden</td>
+<td><a href="#find">FIND</a></td>
+</tr>
+<tr>
+<td><code>FLASH</code></td>
+<td>orden, elemento</td>
+<td><a href="#bright-flash">BRIGHT, FLASH</a></td>
+</tr>
+<tr>
+<td><code>FLOOR</code></td>
+<td>orden</td>
+<td><a href="#floor">FLOOR</a></td>
+</tr>
+<tr>
+<td><code>FN</code></td>
+<td>función</td>
+<td><a href="#def-fn-fn">DEF FN, FN</a></td>
+</tr>
+<tr>
+<td><code>FOR</code></td>
+<td>orden</td>
+<td><a href="#for-next">FOR, NEXT</a></td>
+</tr>
+<tr>
+<td><code>FORMAT</code></td>
+<td>orden</td>
+<td><a href="#format">FORMAT</a></td>
+</tr>
+<tr>
+<td><code>GO SUB</code></td>
+<td>orden</td>
+<td><a href="#go-sub-return">GO SUB, RETURN</a></td>
+</tr>
+<tr>
+<td><code>GO TO</code></td>
+<td>orden</td>
+<td><a href="#go-to">GO TO</a></td>
+</tr>
+<tr>
+<td><code>GRAB</code></td>
+<td>orden</td>
+<td><a href="#grab">GRAB</a></td>
+</tr>
+<tr>
+<td><code>GRAPHICS</code></td>
+<td>en <code>SAVE</code>, <code>LOAD</code>, <code>VERIFY</code></td>
+<td><a href="#save">SAVE</a>, <a href="#load">LOAD</a></td>
+</tr>
+<tr>
+<td><code>HIT</code></td>
+<td>función</td>
+<td><a href="#hit">HIT</a></td>
+</tr>
+<tr>
+<td><code>IF</code></td>
+<td>orden</td>
+<td><a href="#if-then-else">IF, THEN, ELSE</a></td>
+</tr>
+<tr>
+<td><code>IN</code></td>
+<td>función; en <code>OPEN #</code></td>
+<td><a href="#in-out">IN, OUT</a>, <a href="#open-close">OPEN, CLOSE</a></td>
+</tr>
+<tr>
+<td><code>INK</code></td>
+<td>orden, elemento</td>
+<td><a href="#ink-paper">INK, PAPER</a></td>
+</tr>
+<tr>
+<td><code>INKEY$</code></td>
+<td>función</td>
+<td><a href="#inkey">INKEY$</a></td>
+</tr>
+<tr>
+<td><code>INPUT</code></td>
+<td>orden</td>
+<td><a href="#input">INPUT</a></td>
+</tr>
+<tr>
+<td><code>INT</code></td>
+<td>función</td>
+<td><a href="#abs-sgn-int">ABS, SGN, INT</a></td>
+</tr>
+<tr>
+<td><code>INVERSE</code></td>
+<td>orden, elemento</td>
+<td><a href="#inverse-over">INVERSE, OVER</a></td>
+</tr>
+<tr>
+<td><code>JOY</code></td>
+<td>función, orden</td>
+<td><a href="#joy">JOY</a></td>
+</tr>
+<tr>
+<td><code>KEY</code></td>
+<td>función</td>
+<td><a href="#key">KEY</a></td>
+</tr>
+<tr>
+<td><code>LANGUAGE</code></td>
+<td>orden</td>
+<td><a href="#language">LANGUAGE</a></td>
+</tr>
+<tr>
+<td><code>LEN</code></td>
+<td>función</td>
+<td><a href="#len">LEN</a></td>
+</tr>
+<tr>
+<td><code>LET</code></td>
+<td>orden</td>
+<td><a href="#let">LET</a></td>
+</tr>
+<tr>
+<td><code>LINE</code></td>
+<td>en <code>INPUT</code>, <code>SAVE</code></td>
+<td><a href="#input">INPUT</a>, <a href="#save">SAVE</a></td>
+</tr>
+<tr>
+<td><code>LIST</code></td>
+<td>orden</td>
+<td><a href="#list">LIST</a></td>
+</tr>
+<tr>
+<td><code>LLIST</code></td>
+<td>orden</td>
+<td><a href="#lprint-llist">LPRINT, LLIST</a></td>
+</tr>
+<tr>
+<td><code>LN</code></td>
+<td>función</td>
+<td><a href="#exp-ln">EXP, LN</a></td>
+</tr>
+<tr>
+<td><code>LOAD</code></td>
+<td>orden</td>
+<td><a href="#load">LOAD</a></td>
+</tr>
+<tr>
+<td><code>LOCAL</code></td>
+<td>orden</td>
+<td><a href="#local">LOCAL</a></td>
+</tr>
+<tr>
+<td><code>LPRINT</code></td>
+<td>orden</td>
+<td><a href="#lprint-llist">LPRINT, LLIST</a></td>
+</tr>
+<tr>
+<td><code>MAP</code></td>
+<td>orden</td>
+<td><a href="#map">MAP</a>, <a href="#map-dim-map-poke">MAP DIM, MAP POKE</a></td>
+</tr>
+<tr>
+<td><code>MERGE</code></td>
+<td>orden</td>
+<td><a href="#merge">MERGE</a></td>
+</tr>
+<tr>
+<td><code>MKDIR</code></td>
+<td>orden</td>
+<td><a href="#mkdir-rmdir">MKDIR, RMDIR</a></td>
+</tr>
+<tr>
+<td><code>MODE</code></td>
+<td>orden</td>
+<td><a href="#mode">MODE</a></td>
+</tr>
+<tr>
+<td><code>MONITOR</code></td>
+<td>orden</td>
+<td><a href="#monitor">MONITOR</a></td>
+</tr>
+<tr>
+<td><code>MOUSE</code></td>
+<td>función, orden</td>
+<td><a href="#mouse">MOUSE</a></td>
+</tr>
+<tr>
+<td><code>MOVE</code></td>
+<td>orden</td>
+<td><a href="#move">MOVE</a></td>
+</tr>
+<tr>
+<td><code>MUSIC</code></td>
+<td>función, orden; en <code>LOAD</code></td>
+<td><a href="#music">MUSIC</a>, <a href="#load">LOAD</a></td>
+</tr>
+<tr>
+<td><code>NEW</code></td>
+<td>orden</td>
+<td><a href="#new">NEW</a></td>
+</tr>
+<tr>
+<td><code>NEXT</code></td>
+<td>orden</td>
+<td><a href="#for-next">FOR, NEXT</a></td>
+</tr>
+<tr>
+<td><code>NOT</code></td>
+<td>operador</td>
+<td><a href="#verdadero-y-falso">Verdadero y falso</a></td>
+</tr>
+<tr>
+<td><code>ON ERROR</code></td>
+<td>orden</td>
+<td><a href="#on-error">ON ERROR</a></td>
+</tr>
+<tr>
+<td><code>OPEN #</code></td>
+<td>orden</td>
+<td><a href="#open-close">OPEN, CLOSE</a></td>
+</tr>
+<tr>
+<td><code>OR</code></td>
+<td>operador</td>
+<td><a href="#verdadero-y-falso">Verdadero y falso</a></td>
+</tr>
+<tr>
+<td><code>OUT</code></td>
+<td>orden; en <code>OPEN #</code></td>
+<td><a href="#in-out">IN, OUT</a>, <a href="#open-close">OPEN, CLOSE</a></td>
+</tr>
+<tr>
+<td><code>OVER</code></td>
+<td>orden, elemento</td>
+<td><a href="#inverse-over">INVERSE, OVER</a></td>
+</tr>
+<tr>
+<td><code>PAGE</code></td>
+<td>orden</td>
+<td><a href="#page-screen">PAGE, SCREEN</a></td>
+</tr>
+<tr>
+<td><code>PALETTE</code></td>
+<td>orden</td>
+<td><a href="#palette">PALETTE</a></td>
+</tr>
+<tr>
+<td><code>PAPER</code></td>
+<td>orden, elemento</td>
+<td><a href="#ink-paper">INK, PAPER</a></td>
+</tr>
+<tr>
+<td><code>PAUSE</code></td>
+<td>orden</td>
+<td><a href="#pause">PAUSE</a></td>
+</tr>
+<tr>
+<td><code>PEEK</code></td>
+<td>función</td>
+<td><a href="#peek-poke">PEEK, POKE</a></td>
+</tr>
+<tr>
+<td><code>PI</code></td>
+<td>función</td>
+<td><a href="#pi">PI</a></td>
+</tr>
+<tr>
+<td><code>PIXEL</code></td>
+<td>función</td>
+<td><a href="#pixel">PIXEL</a></td>
+</tr>
+<tr>
+<td><code>PLAY</code></td>
+<td>orden</td>
+<td><a href="#play">PLAY</a></td>
+</tr>
+<tr>
+<td><code>PLOT</code></td>
+<td>orden</td>
+<td><a href="#plot">PLOT</a></td>
+</tr>
+<tr>
+<td><code>POINT</code></td>
+<td>función</td>
+<td><a href="#point">POINT</a></td>
+</tr>
+<tr>
+<td><code>POKE</code></td>
+<td>orden; en <code>MAP</code></td>
+<td><a href="#peek-poke">PEEK, POKE</a>, <a href="#map-dim-map-poke">MAP DIM, MAP POKE</a></td>
+</tr>
+<tr>
+<td><code>POLY</code></td>
+<td>orden</td>
+<td><a href="#poly">POLY</a></td>
+</tr>
+<tr>
+<td><code>PRINT</code></td>
+<td>orden</td>
+<td><a href="#print">PRINT</a></td>
+</tr>
+<tr>
+<td><code>PROC</code></td>
+<td>orden</td>
+<td><a href="#def-proc-proc-end-proc">DEF PROC, PROC, END PROC</a></td>
+</tr>
+<tr>
+<td><code>PROTECT</code></td>
+<td>en <code>SAVE</code></td>
+<td><a href="#programas-protegidos">Programas protegidos</a></td>
+</tr>
+<tr>
+<td><code>RANDOMIZE</code></td>
+<td>orden</td>
+<td><a href="#rnd-randomize">RND, RANDOMIZE</a></td>
+</tr>
+<tr>
+<td><code>RASTER</code></td>
+<td>orden</td>
+<td><a href="#raster">RASTER</a></td>
+</tr>
+<tr>
+<td><code>READ</code></td>
+<td>orden</td>
+<td><a href="#read-data-restore">READ, DATA, RESTORE</a></td>
+</tr>
+<tr>
+<td><code>REM</code></td>
+<td>orden</td>
+<td><a href="#rem">REM</a></td>
+</tr>
+<tr>
+<td><code>REMAP</code></td>
+<td>orden</td>
+<td><a href="#remap">REMAP</a></td>
+</tr>
+<tr>
+<td><code>RENUM</code></td>
+<td>orden</td>
+<td><a href="#renum">RENUM</a></td>
+</tr>
+<tr>
+<td><code>REPEAT</code></td>
+<td>orden</td>
+<td><a href="#repeat-until">REPEAT, UNTIL</a></td>
+</tr>
+<tr>
+<td><code>REPLACE</code></td>
+<td>orden</td>
+<td><a href="#replace">REPLACE</a></td>
+</tr>
+<tr>
+<td><code>RESTORE</code></td>
+<td>orden</td>
+<td><a href="#read-data-restore">READ, DATA, RESTORE</a></td>
+</tr>
+<tr>
+<td><code>RETURN</code></td>
+<td>orden</td>
+<td><a href="#go-sub-return">GO SUB, RETURN</a></td>
+</tr>
+<tr>
+<td><code>RMDIR</code></td>
+<td>orden</td>
+<td><a href="#mkdir-rmdir">MKDIR, RMDIR</a></td>
+</tr>
+<tr>
+<td><code>RND</code></td>
+<td>función</td>
+<td><a href="#rnd-randomize">RND, RANDOMIZE</a></td>
+</tr>
+<tr>
+<td><code>RUN</code></td>
+<td>orden</td>
+<td><a href="#run">RUN</a></td>
+</tr>
+<tr>
+<td><code>SAVE</code></td>
+<td>orden</td>
+<td><a href="#save">SAVE</a></td>
+</tr>
+<tr>
+<td><code>SCREEN</code></td>
+<td>orden</td>
+<td><a href="#page-screen">PAGE, SCREEN</a></td>
+</tr>
+<tr>
+<td><code>SCREEN$</code></td>
+<td>función; en <code>SAVE</code>, <code>LOAD</code></td>
+<td><a href="#screen-attr">SCREEN$, ATTR</a>, <a href="#save">SAVE</a></td>
+</tr>
+<tr>
+<td><code>SCROLL</code></td>
+<td>orden</td>
+<td><a href="#scroll">SCROLL</a></td>
+</tr>
+<tr>
+<td><code>SELECT CASE</code></td>
+<td>orden</td>
+<td><a href="#select-case">SELECT CASE</a></td>
+</tr>
+<tr>
+<td><code>SFX</code></td>
+<td>función, orden; en <code>LOAD</code></td>
+<td><a href="#sfx">SFX</a>, <a href="#load">LOAD</a></td>
+</tr>
+<tr>
+<td><code>SGN</code></td>
+<td>función</td>
+<td><a href="#abs-sgn-int">ABS, SGN, INT</a></td>
+</tr>
+<tr>
+<td><code>SIN</code></td>
+<td>función</td>
+<td><a href="#sin-cos-tan">SIN, COS, TAN</a></td>
+</tr>
+<tr>
+<td><code>SOUND</code></td>
+<td>orden</td>
+<td><a href="#sound">SOUND</a></td>
+</tr>
+<tr>
+<td><code>SPEED</code></td>
+<td>orden</td>
+<td><a href="#speed">SPEED</a></td>
+</tr>
+<tr>
+<td><code>SPRITE</code></td>
+<td>orden</td>
+<td><a href="#sprite">SPRITE</a></td>
+</tr>
+<tr>
+<td><code>SQR</code></td>
+<td>función</td>
+<td><a href="#sqr">SQR</a></td>
+</tr>
+<tr>
+<td><code>STEP</code></td>
+<td>en <code>FOR</code></td>
+<td><a href="#for-next">FOR, NEXT</a></td>
+</tr>
+<tr>
+<td><code>STOP</code></td>
+<td>orden</td>
+<td><a href="#stop">STOP</a></td>
+</tr>
+<tr>
+<td><code>STR$</code></td>
+<td>función</td>
+<td><a href="#str-val-val">STR$, VAL, VAL$</a></td>
+</tr>
+<tr>
+<td><code>TAB</code></td>
+<td>en <code>PRINT</code>, <code>INPUT</code></td>
+<td><a href="#print">PRINT</a></td>
+</tr>
+<tr>
+<td><code>TAN</code></td>
+<td>función</td>
+<td><a href="#sin-cos-tan">SIN, COS, TAN</a></td>
+</tr>
+<tr>
+<td><code>TEXTURE</code></td>
+<td>orden</td>
+<td><a href="#texture">TEXTURE</a></td>
+</tr>
+<tr>
+<td><code>THEN</code></td>
+<td>en <code>IF</code></td>
+<td><a href="#if-then-else">IF, THEN, ELSE</a></td>
+</tr>
+<tr>
+<td><code>TILE</code></td>
+<td>orden</td>
+<td><a href="#tile">TILE</a></td>
+</tr>
+<tr>
+<td><code>TIME</code></td>
+<td>función</td>
+<td><a href="#time">TIME</a></td>
+</tr>
+<tr>
+<td><code>TO</code></td>
+<td>en <code>FOR</code>, trozos, <code>MOVE</code>, <code>COPY</code></td>
+<td><a href="#for-next">FOR, NEXT</a>, <a href="#cadenas">Cadenas</a></td>
+</tr>
+<tr>
+<td><code>TRACE</code></td>
+<td>orden</td>
+<td><a href="#trace">TRACE</a></td>
+</tr>
+<tr>
+<td><code>UNTIL</code></td>
+<td>orden</td>
+<td><a href="#repeat-until">REPEAT, UNTIL</a></td>
+</tr>
+<tr>
+<td><code>USR</code></td>
+<td>función</td>
+<td><a href="#usr">USR</a></td>
+</tr>
+<tr>
+<td><code>VAL</code></td>
+<td>función</td>
+<td><a href="#str-val-val">STR$, VAL, VAL$</a></td>
+</tr>
+<tr>
+<td><code>VAL$</code></td>
+<td>función</td>
+<td><a href="#str-val-val">STR$, VAL, VAL$</a></td>
+</tr>
+<tr>
+<td><code>VERIFY</code></td>
+<td>orden</td>
+<td><a href="#verify">VERIFY</a></td>
+</tr>
+<tr>
+<td><code>WAIT</code></td>
+<td>orden</td>
+<td><a href="#wait">WAIT</a></td>
+</tr>
+<tr>
+<td><code>WEND</code></td>
+<td>orden</td>
+<td><a href="#while-wend">WHILE, WEND</a></td>
+</tr>
+<tr>
+<td><code>WHILE</code></td>
+<td>orden</td>
+<td><a href="#while-wend">WHILE, WEND</a></td>
+</tr>
+</tbody>
+</table>
+<nav class="pasos"><a class="anterior" href="editor.html"><small>Anterior</small>← El editor</a><a class="siguiente" href="../sdk/index.html"><small>Siguiente</small>Programas nativos (SDK) →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

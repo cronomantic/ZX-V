@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3. Texto y preguntas · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../en/basic/tutorial/03-text-and-input.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../../emulator.html">El emulador</a>
+</li>
+<li><a href="../../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../index.html">Aprende BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. Primeros pasos</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables y cuentas</a></li>
+<li><a href="03-text-and-input.html" class="aqui">3. Texto y preguntas</a></li>
+<li><a href="04-decisions.html">4. Decisiones</a></li>
+<li><a href="05-loops.html">5. Bucles</a></li>
+<li><a href="06-arrays-and-data.html">6. Matrices y datos</a></li>
+<li><a href="07-procedures.html">7. Procedimientos</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Los colores y la pantalla</a></li>
+<li><a href="09-drawing.html">9. Dibujar</a></li>
+<li><a href="10-sound-and-music.html">10. Sonido y música</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Teclado y mando</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites y mapas de tiles</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a></li>
+<li><a href="14-a-complete-game.html">14. Un juego completo</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">El editor</a>
+</li>
+<li><a href="../reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../../hardware/board.html">La placa</a>
+</li>
+<li><a href="../../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="3-texto-y-preguntas">3. Texto y preguntas</h1>
+<p><strong>En este capítulo aprenderás</strong> a guardar texto en <strong>variables de cadena</strong>,
+a juntar y cortar textos, y a preguntar a quien está al teclado con <code>INPUT</code>.</p>
+<h2 id="cadenas">Cadenas<a class="ancla" href="#cadenas" aria-hidden="true">#</a></h2>
+<p>A un trozo de texto se le llama <strong>cadena</strong>. Ya has usado cadenas: todo lo que
+va entre comillas dobles, como <code>"Hola"</code>. Las cadenas también se pueden
+guardar en variables, cuyo nombre es una sola letra seguida de <code>$</code> (se lee
+"a dólar"): <code>a$</code>, <code>n$</code>, <code>t$</code>.</p>
+<pre><code>10 LET a$=&quot;ZX&quot;
+20 LET b$=&quot;Spectrum&quot;
+30 LET c$=a$+&quot; &quot;+b$
+40 PRINT c$
+50 PRINT LEN c$
+60 PRINT c$(1 TO 2)
+70 PRINT c$(4 TO )
+80 PRINT c$(4)
+</code></pre>
+<p>Esto escribe:</p>
+<pre><code>ZX Spectrum
+11
+ZX
+Spectrum
+S
+</code></pre>
+<ul>
+<li><code>+</code> <strong>junta</strong> cadenas: la línea 30 forma <code>"ZX Spectrum"</code>.</li>
+<li><code>LEN</code> da la <strong>longitud</strong>, el número de caracteres (los espacios cuentan).</li>
+<li><code>c$(1 TO 2)</code> saca un <strong>trozo</strong>: del carácter 1 al 2. <code>c$(4 TO )</code> va del 4
+  al final, y <code>c$(4)</code> es solo el carácter 4.</li>
+</ul>
+<p>Solo hay 26 variables de cadena, una por letra, así que elige letras que te
+recuerden lo que guardan: <code>n$</code> para un nombre, <code>p$</code> para una palabra.</p>
+<h2 id="números-y-textos">Números y textos<a class="ancla" href="#números-y-textos" aria-hidden="true">#</a></h2>
+<p>Un número y una cadena son cosas distintas: <code>"42"</code> son dos caracteres y <code>42</code>
+es un número. Estas funciones pasan de uno a otro:</p>
+<table>
+<thead>
+<tr>
+<th>Función</th>
+<th>Qué hace</th>
+<th>Ejemplo</th>
+<th>Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>STR$</code></td>
+<td>de número a cadena</td>
+<td><code>STR$ 42</code></td>
+<td><code>"42"</code></td>
+</tr>
+<tr>
+<td><code>VAL</code></td>
+<td>de cadena a número</td>
+<td><code>VAL "2*3+1"</code></td>
+<td><code>7</code></td>
+</tr>
+<tr>
+<td><code>CODE</code></td>
+<td>el código del primer carácter</td>
+<td><code>CODE "A"</code></td>
+<td><code>65</code></td>
+</tr>
+<tr>
+<td><code>CHR$</code></td>
+<td>el carácter con ese código</td>
+<td><code>CHR$ 66</code></td>
+<td><code>"B"</code></td>
+</tr>
+</tbody>
+</table>
+<pre><code>10 LET n=42
+20 LET t$=STR$ n
+30 PRINT &quot;El numero tiene &quot;;LEN t$;&quot; cifras&quot;
+40 PRINT VAL &quot;2*3+1&quot;
+50 PRINT CODE &quot;A&quot;,CHR$ 66
+</code></pre>
+<p>Cada carácter tiene un código: la <code>A</code> es el 65, la <code>B</code> el 66, y así
+sucesivamente. Volverás a usar <code>CODE</code> para leer el teclado en el capítulo 11.</p>
+<h2 id="hacer-preguntas-input">Hacer preguntas: <code>INPUT</code><a class="ancla" href="#hacer-preguntas-input" aria-hidden="true">#</a></h2>
+<p><code>INPUT</code> para el programa y espera a que la persona teclee algo y pulse Enter.
+Lo que teclee va a una variable:</p>
+<pre><code>10 INPUT &quot;Como te llamas? &quot;;n$
+20 INPUT &quot;Que edad tienes? &quot;;e
+30 PRINT &quot;Hola, &quot;;n$
+40 PRINT &quot;Dentro de una decada tendras &quot;;e+10
+</code></pre>
+<p>La pregunta sale abajo de la pantalla, seguida de un cursor que parpadea:</p>
+<p><img alt="INPUT espera abajo de la pantalla" src="../../../images/tutorial-input-es.png" /></p>
+<p>Si la variable es una cadena (<code>n$</code>), el cursor sale entre comillas, para
+recordarte que la respuesta es texto: escríbela sin comillas, que ya están
+puestas. Vale cualquier texto. Si es un número
+(<code>e</code>), teclea un número: la máquina calcula lo que escribes como si fuera una
+cuenta, así que <code>30+6</code> también da 36. Las palabras son un problema: si
+tecleas <code>diez</code>, por ejemplo, el programa se para con
+<code>2 Variable no encontrada</code>, porque la máquina cree que <code>diez</code> es el nombre de
+una variable.</p>
+<h2 id="pruébalo">Pruébalo<a class="ancla" href="#pruébalo" aria-hidden="true">#</a></h2>
+<ol>
+<li>Pide un nombre y un apellido y escribe las iniciales: con "Grace" y
+   "Hopper", el programa escribe <code>Tus iniciales: GH</code>.</li>
+<li>Pide una palabra y escribe cuántas letras tiene.</li>
+</ol>
+<details>
+<summary>Pista</summary>
+<p>El carácter 1 de <code>f$</code> es <code>f$(1)</code>. Para el segundo ejercicio, <code>LEN</code> hace la
+cuenta.</p>
+</details>
+<details>
+<summary>Una solución para el primero</summary>
+<pre><code>10 INPUT &quot;Nombre? &quot;;f$
+20 INPUT &quot;Apellido? &quot;;s$
+30 PRINT &quot;Tus iniciales: &quot;;f$(1);s$(1)
+</code></pre>
+</details>
+<hr />
+<p><strong>Referencia:</strong> <a href="../reference.html#cadenas">Cadenas</a>,
+<a href="../reference.html#len"><code>LEN</code></a>, <a href="../reference.html#str-val-val"><code>STR$</code>, <code>VAL</code></a>,
+<a href="../reference.html#chr-code"><code>CHR$</code>, <code>CODE</code></a>,
+<a href="../reference.html#input"><code>INPUT</code></a>.</p>
+<p><strong>Siguiente:</strong> <a href="04-decisions.html">4. Decisiones</a> ·
+<strong>Anterior:</strong> <a href="02-variables-and-maths.html">2. Variables y cuentas</a></p>
+<nav class="pasos"><a class="anterior" href="02-variables-and-maths.html"><small>Anterior</small>← 2. Variables y cuentas</a><a class="siguiente" href="04-decisions.html"><small>Siguiente</small>4. Decisiones →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

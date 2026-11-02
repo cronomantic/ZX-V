@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>6. Arrays and data · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../es/basic/tutorial/06-arrays-and-data.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../../getting-started.html">Getting started</a>
+</li>
+<li><a href="../../emulator.html">The emulator</a>
+</li>
+<li><a href="../../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../index.html">Learn BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. First steps</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables and maths</a></li>
+<li><a href="03-text-and-input.html">3. Text and input</a></li>
+<li><a href="04-decisions.html">4. Decisions</a></li>
+<li><a href="05-loops.html">5. Loops</a></li>
+<li><a href="06-arrays-and-data.html" class="aqui">6. Arrays and data</a></li>
+<li><a href="07-procedures.html">7. Procedures</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Colours and the screen</a></li>
+<li><a href="09-drawing.html">9. Drawing</a></li>
+<li><a href="10-sound-and-music.html">10. Sound and music</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Keyboard and joystick</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Files and the SD card</a></li>
+<li><a href="14-a-complete-game.html">14. A complete game</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">The editor</a>
+</li>
+<li><a href="../reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../../hardware/board.html">The board</a>
+</li>
+<li><a href="../../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="6-arrays-and-data">6. Arrays and data</h1>
+<p><strong>In this chapter you will learn</strong> to keep many values under one name with
+<strong>arrays</strong> (<code>DIM</code>), and to store lists of values inside the program with
+<code>READ</code>, <code>DATA</code> and <code>RESTORE</code>.</p>
+<h2 id="arrays-a-row-of-boxes">Arrays: a row of boxes<a class="ancla" href="#arrays-a-row-of-boxes" aria-hidden="true">#</a></h2>
+<p>Suppose you want to keep five scores. Five variables (<code>s1</code>, <code>s2</code>...) would
+work, but they cannot be used in a loop. An <strong>array</strong> is a row of numbered
+boxes that share one name. You create it with <code>DIM</code>, saying how many boxes
+it has:</p>
+<pre><code>10 DIM s(5)
+20 FOR i=1 TO 5
+30 INPUT &quot;Score? &quot;;s(i)
+40 NEXT i
+50 LET total=0
+60 FOR i=1 TO 5: LET total=total+s(i): NEXT i
+70 PRINT &quot;Scores: &quot;;
+80 FOR i=1 TO 5: PRINT s(i);&quot; &quot;;: NEXT i
+90 PRINT: PRINT &quot;Average: &quot;;total/5
+</code></pre>
+<p><code>DIM s(5)</code> makes the boxes <code>s(1)</code> to <code>s(5)</code>, all starting at 0. The number in
+brackets is the <strong>index</strong>, and it can be a variable: <code>s(i)</code> is "box number
+<code>i</code>". That is what makes arrays so useful with <code>FOR</code>.</p>
+<p>Some rules:</p>
+<ul>
+<li>The name of an array is a single letter: <code>s</code>, <code>a</code>, <code>b</code>.</li>
+<li>The boxes are numbered from 1. Asking for a box that does not exist, like
+  <code>s(6)</code> or <code>s(0)</code>, gives <code>3 Subscript wrong</code>.</li>
+<li>An array can have more dimensions: <code>DIM b(8,8)</code> is a board of 8 × 8 boxes,
+  and <code>b(2,3)</code> is row 2, column 3.</li>
+</ul>
+<p>Here an array counts how many times each face of a dice comes up in 600
+throws:</p>
+<pre><code>10 RANDOMIZE
+20 DIM c(6)
+30 FOR i=1 TO 600
+40 LET d=INT (RND*6)+1
+50 LET c(d)=c(d)+1
+60 NEXT i
+70 FOR d=1 TO 6: PRINT d;&quot;: &quot;;c(d): NEXT d
+</code></pre>
+<p>Each face comes up about 100 times.</p>
+<h2 id="arrays-of-strings">Arrays of strings<a class="ancla" href="#arrays-of-strings" aria-hidden="true">#</a></h2>
+<p>String arrays need one more number: how long each string is. <code>DIM d$(7,9)</code>
+makes 7 strings of exactly 9 characters each. A shorter text is filled with
+spaces at the end, and a longer one is cut.</p>
+<h2 id="read-and-data-lists-inside-the-program"><code>READ</code> and <code>DATA</code>: lists inside the program<a class="ancla" href="#read-and-data-lists-inside-the-program" aria-hidden="true">#</a></h2>
+<p><code>DATA</code> lines hold a list of values. <code>READ</code> takes the next value from the list
+and puts it in a variable:</p>
+<pre><code>10 DIM d$(7,9)
+20 FOR i=1 TO 7: READ d$(i): NEXT i
+30 FOR i=1 TO 7: PRINT i;&quot; &quot;;d$(i);&quot;|&quot;: NEXT i
+40 DATA &quot;Monday&quot;,&quot;Tuesday&quot;,&quot;Wednesday&quot;,&quot;Thursday&quot;
+50 DATA &quot;Friday&quot;,&quot;Saturday&quot;,&quot;Sunday&quot;
+</code></pre>
+<p>The <code>|</code> at the end shows the spaces that fill each day up to 9 characters.</p>
+<p><code>DATA</code> lines can be anywhere in the program; the machine skips them when it
+runs it. Values are read in order, line after line. A <code>DATA</code> line can mix
+numbers and strings, as long as each <code>READ</code> uses the right kind of variable:</p>
+<pre><code>10 FOR i=1 TO 3
+20 READ n$,age
+30 PRINT n$;&quot; is &quot;;age
+40 NEXT i
+50 RESTORE
+60 READ n$: PRINT &quot;First again: &quot;;n$
+70 DATA &quot;Ada&quot;,36,&quot;Alan&quot;,41,&quot;Grace&quot;,85
+</code></pre>
+<p><code>RESTORE</code> goes back to the beginning of the list, so the next <code>READ</code> takes
+the first value again. <code>RESTORE 100</code> (or <code>RESTORE @label</code>) goes to the
+<code>DATA</code> in that line. Reading more values than there are gives
+<code>E Out of DATA</code>.</p>
+<h2 id="try-it">Try it<a class="ancla" href="#try-it" aria-hidden="true">#</a></h2>
+<ol>
+<li>Keep the names of the months in <code>DATA</code>, and write a program that asks for
+   a number from 1 to 12 and prints the name of that month.</li>
+<li>Fill an array with 10 random numbers from 1 to 100 and print the largest.</li>
+</ol>
+<details>
+<summary>Hint</summary>
+<p>For the first, read the months into <code>DIM m$(12,9)</code> with a loop, then print
+<code>m$(n)</code>. For the second, keep the largest so far in a variable, start it at
+0 and compare each number with it: <code>IF a(i)&gt;big THEN LET big=a(i)</code>.</p>
+</details>
+<details>
+<summary>A solution for the second one</summary>
+<pre><code>10 RANDOMIZE
+20 DIM a(10): LET big=0
+30 FOR i=1 TO 10
+40 LET a(i)=INT (RND*100)+1: PRINT a(i);&quot; &quot;;
+50 IF a(i)&gt;big THEN LET big=a(i)
+60 NEXT i
+70 PRINT: PRINT &quot;The largest is &quot;;big
+</code></pre>
+</details>
+<hr />
+<p><strong>Reference:</strong> <a href="../reference.html#dim"><code>DIM</code></a>,
+<a href="../reference.html#arrays">Arrays</a>,
+<a href="../reference.html#read-data-restore"><code>READ</code>, <code>DATA</code>, <code>RESTORE</code></a>.</p>
+<p><strong>Next:</strong> <a href="07-procedures.html">7. Procedures</a> ·
+<strong>Previous:</strong> <a href="05-loops.html">5. Loops</a></p>
+<nav class="pasos"><a class="anterior" href="05-loops.html"><small>Previous</small>← 5. Loops</a><a class="siguiente" href="07-procedures.html"><small>Next</small>7. Procedures →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

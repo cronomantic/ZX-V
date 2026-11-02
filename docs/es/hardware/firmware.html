@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El firmware · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../en/hardware/firmware.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../emulator.html">El emulador</a>
+</li>
+<li><a href="../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Aprende BASIC</a>
+</li>
+<li><a href="../basic/editor.html">El editor</a>
+</li>
+<li><a href="../basic/reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="index.html">Construir el hardware</a>
+</li>
+<li><a href="board.html">La placa</a>
+</li>
+<li><a href="firmware.html" class="aqui">El firmware</a>
+<ul>
+</ul>
+</li>
+<li><a href="protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="el-firmware">El firmware</h1>
+<p>Cada Pico necesita su propio programa, su firmware. Viene en un fichero <code>.uf2</code>
+que se copia en la Pico como un fichero en un pendrive: no hace falta ningún
+programa especial.</p>
+<table>
+<thead>
+<tr>
+<th>Pico</th>
+<th>Fichero</th>
+<th>Qué lleva</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pico CPU</td>
+<td><code>zxv_cpu.uf2</code></td>
+<td>La máquina: el BASIC, los servicios (USB, tarjeta SD, reloj) y la unidad <code>ROM:</code> con los ejemplos de serie</td>
+</tr>
+<tr>
+<td>Pico ULA</td>
+<td><code>zxv_ula_link.uf2</code></td>
+<td>La imagen y el sonido, que recibe de la Pico CPU</td>
+</tr>
+</tbody>
+</table>
+<p>Ojo con el de la ULA: es <code>zxv_ula_link.uf2</code>, <strong>no</strong> <code>zxv_ula.uf2</code>. El segundo
+es una prueba que enseña unas demos ella sola, sin la Pico CPU.</p>
+<h2 id="dónde-están-los-ficheros">Dónde están los ficheros<a class="ancla" href="#dónde-están-los-ficheros" aria-hidden="true">#</a></h2>
+<ol>
+<li>Ve a la página de <strong>Releases</strong> del proyecto en GitHub
+   (<a href="https://github.com/cronomantic/ZX-V/releases">https://github.com/cronomantic/ZX-V/releases</a>).</li>
+<li>En la última versión, baja <strong><code>zxv-uf2.zip</code></strong> y descomprímelo. Lleva todos
+   los <code>.uf2</code>: los que necesitas son <code>zxv_cpu.uf2</code> y <code>zxv_ula_link.uf2</code>. Los
+   demás son pruebas (ver <a href="#programas-de-prueba">Programas de prueba</a>).</li>
+</ol>
+<h2 id="cómo-se-carga-en-una-pico">Cómo se carga en una Pico<a class="ancla" href="#cómo-se-carga-en-una-pico" aria-hidden="true">#</a></h2>
+<ol>
+<li><strong>Mantén pulsado el botón BOOTSEL</strong> de la Pico (el único que tiene) y, sin
+   soltarlo, conecta su micro-USB al ordenador. Luego suéltalo.</li>
+<li>En el ordenador aparece una unidad llamada <strong><code>RP2350</code></strong>.</li>
+<li><strong>Copia el <code>.uf2</code> a esa unidad</strong> (arrastrándolo). Al terminar la copia, la
+   Pico se reinicia sola con el firmware nuevo y la unidad desaparece.</li>
+</ol>
+<p>Una vez para cada Pico, cada una con su fichero.</p>
+<ul>
+<li><strong>Antes de soldarlas.</strong> En la placa de ZX-V lo más cómodo es cargar cada
+  Pico antes de soldarla, y marcarla (CPU o ULA): son iguales. Recuerda: la
+  <strong>Pico ULA va a la izquierda</strong> y la <strong>Pico CPU a la derecha</strong>, vistas desde
+  delante.</li>
+<li><strong>Ya en la placa.</strong> El micro-USB y el botón BOOTSEL siguen a mano. Conéctala
+  al ordenador <strong>con la placa encendida</strong>: los diodos de la placa
+  separan las dos alimentaciones. Con la placa apagada, una Pico sola por USB
+  alimentaría a la otra por los pines del enlace, y el RESET que comparten
+  podría dejarla parada.</li>
+<li><strong>En una protoboard</strong> en la que tu fuente de 5 V va al pin VBUS de una Pico
+  (el 40), <strong>desconecta antes la fuente</strong>, o sus 5 V llegarían a tu ordenador
+  por el cable USB (<a href="protoboard.html#la-alimentación">En una protoboard</a>).</li>
+</ul>
+<h2 id="cómo-se-actualiza">Cómo se actualiza<a class="ancla" href="#cómo-se-actualiza" aria-hidden="true">#</a></h2>
+<p>Baja el <code>zxv-uf2.zip</code> nuevo y repite lo de arriba con <strong>las dos</strong> Pico. Usa
+siempre los dos ficheros de la misma versión: si la CPU y la ULA llevan
+versiones distintas del enlace, la CPU lo dice en su informe (ver abajo), y
+puede que no salga la imagen.</p>
+<p><strong>Sin tocar BOOTSEL.</strong> Si tienes <code>picotool</code> (viene con la extensión Raspberry
+Pi Pico de VS Code), una Pico que ya lleva un firmware de ZX-V se puede
+actualizar por su cable USB, sin tocar BOOTSEL:</p>
+<pre><code class="language-sh">picotool load -f -x zxv_cpu.uf2
+</code></pre>
+<p><code>-f</code> reinicia la Pico en modo de carga y <code>-x</code> arranca el firmware nuevo al
+acabar. Si la Pico está colgada, o nunca ha llevado el firmware de ZX-V, usa
+BOOTSEL.</p>
+<h2 id="el-puerto-serie-y-el-informe">El puerto serie y el informe<a class="ancla" href="#el-puerto-serie-y-el-informe" aria-hidden="true">#</a></h2>
+<p>El micro-USB de la Pico CPU es también un <strong>puerto serie</strong>. Ábrelo con
+cualquier terminal (por ejemplo el <em>Serial Monitor</em> de VS Code, PuTTY en
+Windows o <code>screen /dev/ttyACM0</code> en Linux; la velocidad da igual). Ahí pasan
+dos cosas:</p>
+<ul>
+<li><strong>Lo que escribes en el terminal le llega a ZX-V</strong> como si lo tecleases en
+  su teclado. Viene bien para probar la máquina antes de tener un teclado USB.</li>
+<li><strong>Cada 5 segundos la Pico CPU escribe un informe</strong>, en el idioma de la
+  máquina (el que elige <code>LANGUAGE</code>), sobre el enlace, el
+  sonido, la tarjeta, los aparatos USB, el reloj y la ULA. Es lo primero que
+  hay que mirar cuando algo no va.</li>
+</ul>
+<p>Los mismos mensajes salen también por la tira <code>UART</code> de la placa (J5), a
+921600 baudios. La Pico ULA escribe los suyos por su micro-USB.</p>
+<h2 id="si-no-hay-imagen-o-no-hay-sonido">Si no hay imagen o no hay sonido<a class="ancla" href="#si-no-hay-imagen-o-no-hay-sonido" aria-hidden="true">#</a></h2>
+<h3 id="no-hay-imagen">No hay imagen<a class="ancla" href="#no-hay-imagen" aria-hidden="true">#</a></h3>
+<p>Fíjate en el <strong>LED rojo del enlace</strong> (<code>ENLACE</code> en la placa) al encender.</p>
+<ul>
+<li><strong>No parpadea nunca.</strong> La Pico ULA no está ejecutando su firmware: mira que
+  lleve <code>zxv_ula_link.uf2</code> y que le llegue corriente.</li>
+<li><strong>Parpadea y luego se queda apagado.</strong> La ULA funciona, pero no le llega
+  nada de la Pico CPU. Mira que la CPU lleve <code>zxv_cpu.uf2</code> (y que no le hayas
+  puesto a la ULA el de la CPU por error). En una protoboard, revisa los cables
+  del enlace.</li>
+<li><strong>Parpadea y luego se queda encendido.</strong> Las imágenes llegan bien: el
+  problema está entre la ULA y la pantalla. Prueba el modo seguro (abajo),
+  otra entrada HDMI o un cable más corto y sin adaptadores. En la placa, el
+  informe del puerto serie dice si se ve el monitor (<code>monitor: conectado</code>): si
+  se queda en <code>no se sabe</code> con la pantalla enchufada y encendida, mira el cable
+  y el conector HDMI.</li>
+<li><strong>No deja de parpadear.</strong> Llegan imágenes, pero algunas con errores. En una
+  protoboard, acorta los cables del enlace, pon las resistencias de 33 Ω y más
+  cables de masa.</li>
+</ul>
+<p>Las veces que parpadea al arrancar son el modo de vídeo más uno (una vez en el
+modo 0, dos en el 1).</p>
+<p><strong>El modo seguro.</strong> Mantén apretado <strong>MODO</strong> mientras enciendes: la ULA arranca
+en DVI, que lo acepta cualquier pantalla. Dura solo hasta el siguiente
+reinicio. Para quedarte con un modo, pulsa MODO brevemente con la máquina en
+marcha: cada pulsación corta pasa de HDMI a DVI o al revés, lo guarda y
+reinicia la ULA. Si tu pantalla solo se ve en el modo seguro, pulsa MODO hasta
+que el LED del enlace parpadee <strong>dos veces</strong> al arrancar: es el modo 1, el
+mismo que el seguro, y se queda guardado.</p>
+<table>
+<thead>
+<tr>
+<th>Modo</th>
+<th>Salida</th>
+<th>Sonido en la pantalla</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>HDMI 640 × 480, 60 Hz (el de partida)</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>1</td>
+<td>DVI 640 × 480, 60 Hz (el modo seguro)</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Se ven unas demos en lugar del BASIC</strong> (un juego que se desplaza, rayas de
+colores, círculos): la Pico ULA lleva <code>zxv_ula.uf2</code>, la prueba. Cárgale
+<code>zxv_ula_link.uf2</code>.</p>
+<p><strong>Puntos que bailan sobre una imagen que se reconoce</strong> son errores de
+transmisión entre la ULA y la pantalla. En una protoboard, busca un cable
+suelto y deja los del HDMI cortos y por parejas. Algunas teles necesitan
+además 5 V en el pin 18 del conector HDMI
+(<a href="protoboard.html#el-hdmi">En una protoboard</a>).</p>
+<h3 id="no-hay-sonido">No hay sonido<a class="ancla" href="#no-hay-sonido" aria-hidden="true">#</a></h3>
+<ul>
+<li><strong>En el modo 1 (DVI) la pantalla no tiene sonido.</strong> Pasa al modo 0 con
+  MODO, o usa el jack de audio.</li>
+<li><strong>El jack da nivel de línea</strong>: necesita unos altavoces con amplificador, un
+  amplificador o la entrada de audio de una tele. Unos auriculares necesitan
+  un amplificador.</li>
+<li><strong>Prueba un sonido desde el BASIC:</strong> <code>BEEP 1,0</code> o <code>PLAY "cdefgab"</code>.</li>
+<li><strong>En una protoboard</strong>, el sonido va por su propio cable, de GP20 de la Pico
+  CPU (pin 26) a GP21 de la Pico ULA (pin 27). Sin él hay imagen pero no
+  sonido.</li>
+<li>Un poco de soplido en el jack es normal.</li>
+</ul>
+<h3 id="otras-cosas">Otras cosas<a class="ancla" href="#otras-cosas" aria-hidden="true">#</a></h3>
+<ul>
+<li><strong>El teclado no hace nada.</strong> Mira el informe del puerto serie: la parte
+  <code>USB:</code> dice cuántos teclados, ratones y mandos ve. Prueba sin el hub, o con
+  un hub con alimentación.</li>
+<li><strong>La tarjeta no va.</strong> Tiene que estar en FAT, FAT32 o exFAT. El informe dice
+  <code>sin tarjeta</code> hasta el primer acceso (por ejemplo, <code>CAT</code>), o si la tarjeta no
+  responde. En la placa, la tarjeta se monta en cuanto entra.</li>
+<li><strong>El informe dice <code>sin ULA: temporizador</code></strong>: a la Pico CPU no le llega la
+  señal de imagen de la ULA. En una protoboard, mira el cable entre los dos
+  GP27 (pin 32).</li>
+<li><strong>El informe dice <code>sin canal de vuelta</code></strong>: falta el cable de GP20 de la ULA
+  (pin 26) a GP18 de la CPU (pin 24). Todo funciona sin él, salvo que a los
+  programas siempre se les dice que la salida es HDMI.</li>
+</ul>
+<h3 id="la-página-de-diagnóstico">La página de diagnóstico<a class="ancla" href="#la-página-de-diagnóstico" aria-hidden="true">#</a></h3>
+<p><strong>Una pulsación larga de MODO</strong> (de 1 a 5 segundos) o <strong>Ctrl+Alt+F12</strong> en el
+teclado enseñan una franja azul en el centro de la pantalla con cómo van las
+dos Pico, al día cada segundo: arriba la ULA (su modo, las imágenes por
+segundo, los errores del enlace, el CRC de las paletas que le llegan, el
+sonido); abajo la CPU (enlace, sonido,
+tarjeta, USB, reloj). Si lo de la CPU no llega en 2,5 segundos, la página lo
+dice. Lo mismo otra vez la quita. Sale sin tildes: la fuente de la página solo
+tiene ASCII. Va en el idioma de la máquina, que la CPU le manda a la ULA con
+cada imagen. Los mensajes de la Pico ULA por su micro-USB también, en cuanto
+funciona el enlace.</p>
+<h2 id="programas-de-prueba">Programas de prueba<a class="ancla" href="#programas-de-prueba" aria-hidden="true">#</a></h2>
+<p>En <code>zxv-uf2.zip</code> vienen también unas pruebas. Dos son útiles al montarla:</p>
+<table>
+<thead>
+<tr>
+<th>Fichero</th>
+<th>En</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>zxv_ula.uf2</code></td>
+<td>Una Pico 2 sola</td>
+<td>La imagen y el sonido de la ULA con unas demos, sin la Pico CPU. Comprueba la salida HDMI y el jack. El pulsador MODO va igual</td>
+</tr>
+<tr>
+<td><code>zxv_hdmi.uf2</code></td>
+<td>Una Pico 2 sola</td>
+<td>Barras de colores y un tono de prueba a cada lado (izquierda, derecha y centro) por el HDMI. <code>zxv_dvi.uf2</code> es lo mismo en DVI, sin sonido</td>
+</tr>
+</tbody>
+</table>
+<p>Los demás (<code>zxv_linktx</code>, <code>zxv_bench</code>, <code>zxv_bench_ram</code>, <code>zxv_isatest</code>) son para
+quien desarrolla el firmware. Acuérdate de volver a cargar el firmware de
+verdad después.</p>
+<nav class="pasos"><a class="anterior" href="board.html"><small>Anterior</small>← La placa</a><a class="siguiente" href="protoboard.html"><small>Siguiente</small>En una protoboard →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

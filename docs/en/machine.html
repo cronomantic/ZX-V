@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The machine · ZX-V</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" type="image/png" href="../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../es/machine.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="getting-started.html">Getting started</a>
+</li>
+<li><a href="emulator.html">The emulator</a>
+</li>
+<li><a href="machine.html" class="aqui">The machine</a>
+<ul>
+</ul>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="basic/index.html">Learn BASIC</a>
+</li>
+<li><a href="basic/editor.html">The editor</a>
+</li>
+<li><a href="basic/reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="hardware/board.html">The board</a>
+</li>
+<li><a href="hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="the-machine">The machine</h1>
+<p>This page describes what ZX-V is like: what you see on the screen, what you
+hear, how you control it, and how much room your programs have. It is the same
+machine in the emulator and in the real hardware.</p>
+<h2 id="at-a-glance">At a glance<a class="ancla" href="#at-a-glance" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>ZX-V</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Processor</td>
+<td>32-bit RISC-V at 144 MHz</td>
+</tr>
+<tr>
+<td>Memory</td>
+<td>520 KB of RAM in total; about 94 KB free for a BASIC program, and up to 248 KB for a native program</td>
+</tr>
+<tr>
+<td>Screen</td>
+<td>256 × 192 or 512 × 384 pixels, with a border</td>
+</tr>
+<tr>
+<td>Colours</td>
+<td>15 as standard; with palettes, 16 per line out of 65,536 (up to 64 on screen), any colour on any pixel</td>
+</tr>
+<tr>
+<td>Video pages</td>
+<td>Two, to draw one while you show the other</td>
+</tr>
+<tr>
+<td>Sound</td>
+<td>Two AY-3-8912 music chips (6 voices) and a beeper, in stereo</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>SD card, plus the built-in <code>ROM:</code> drive with the examples</td>
+</tr>
+<tr>
+<td>Input</td>
+<td>USB keyboard, mouse and up to two gamepads</td>
+</tr>
+<tr>
+<td>Clock</td>
+<td>Date and time, kept while the machine is off</td>
+</tr>
+<tr>
+<td>Languages</td>
+<td>English and Spanish</td>
+</tr>
+<tr>
+<td>Rhythm</td>
+<td>60 frames per second</td>
+</tr>
+<tr>
+<td>Picture output</td>
+<td>HDMI or DVI, 640 × 480 at 60 Hz</td>
+</tr>
+</tbody>
+</table>
+<p>It starts straight into BASIC, and it also runs <strong>native programs</strong> written in
+C for its processor (see the <a href="sdk/index.html">SDK</a>).</p>
+<h2 id="the-screen">The screen<a class="ancla" href="#the-screen" aria-hidden="true">#</a></h2>
+<h3 id="two-resolutions">Two resolutions<a class="ancla" href="#two-resolutions" aria-hidden="true">#</a></h3>
+<p>The screen has two <strong>modes</strong>. Each shows a rectangle of pixels (the <em>paper</em>)
+surrounded by a coloured <strong>border</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Pixels</th>
+<th>Text (8 × 8 characters)</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>256 × 192</td>
+<td>32 columns × 24 rows</td>
+<td>Programs and games: the classic resolution, with big pixels</td>
+</tr>
+<tr>
+<td>1</td>
+<td>512 × 384</td>
+<td>64 columns × 48 rows</td>
+<td>Detailed graphics and lots of text. The BASIC editor uses it (it can also use mode 0)</td>
+</tr>
+</tbody>
+</table>
+<p>Both fill the same area of your TV: a mode 1 pixel is half the width and half
+the height of a mode 0 pixel. In BASIC, <code>MODE 0</code> and <code>MODE 1</code> switch between
+them. Your programs start in mode 0.</p>
+<p>The screen is 640 × 480: around the paper there is a border of 64 pixels at
+each side and 48 lines above and below.</p>
+<h3 id="colours">Colours<a class="ancla" href="#colours" aria-hidden="true">#</a></h3>
+<p>ZX-V has <strong>15 colours</strong>: eight colours at normal brightness and the same ones
+bright (black is the same in both).</p>
+<p><img alt="The 15 colours" src="../images/machine-palette.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Number</th>
+<th>Colour</th>
+<th>Number</th>
+<th>Colour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Black</td>
+<td>8</td>
+<td>Black (bright)</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Blue</td>
+<td>9</td>
+<td>Bright blue</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Red</td>
+<td>10</td>
+<td>Bright red</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Magenta</td>
+<td>11</td>
+<td>Bright magenta</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Green</td>
+<td>12</td>
+<td>Bright green</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Cyan</td>
+<td>13</td>
+<td>Bright cyan</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Yellow</td>
+<td>14</td>
+<td>Bright yellow</td>
+</tr>
+<tr>
+<td>7</td>
+<td>White</td>
+<td>15</td>
+<td>Bright white</td>
+</tr>
+</tbody>
+</table>
+<p>Every pixel can have any of these colours, independently of its neighbours.</p>
+<p>In BASIC, <code>INK</code> (the colour of text and drawings) and <code>PAPER</code> (the
+background) take the colours 0 to 7 (8 and 9 have special meanings, explained
+in the <a href="basic/reference.html">reference</a>), and <code>BRIGHT 1</code> makes them bright; the
+graphics commands for games (<code>BOX</code>, <code>DISC</code>, <code>SPRITE</code>...) use the numbers 0 to
+15 directly. In those graphics, colour 8 means <strong>transparent</strong>: the pixels of a
+sprite drawn in colour 8 let the background show through.</p>
+<p><strong>Colour tables.</strong> The machine can also <em>change how colours look</em> without
+redrawing anything: a table says, for each of the 16 numbers, which colour is
+shown. Programs use this for fades, flashing and colour-cycling effects (in
+BASIC, <code>REMAP</code>). There are four such tables, and different parts of the screen
+can use different ones.</p>
+<p><strong>Palettes.</strong> The 15 colours are the usual ones, but not the only ones: each
+table has its own <strong>palette</strong>, which says what colour each of the 16 numbers
+is, out of 65,536 (in BASIC, <code>PALETTE</code>). So each line of the screen can have
+16 colours of your choice, and the whole screen up to 64.</p>
+<h3 id="two-pages">Two pages<a class="ancla" href="#two-pages" aria-hidden="true">#</a></h3>
+<p>The machine has <strong>two video pages</strong>, two complete screens in memory. One is
+shown while the other can be drawn on, and switching between them is instant.
+Games use this to draw each frame on the hidden page and then show it all at
+once, without flicker (in BASIC, <code>SCREEN</code> chooses the page to draw on and
+<code>PAGE</code> the one shown).</p>
+<p>BASIC uses the two pages in its own way: page 0, in mode 0, is your program's
+screen, and page 1 is the editor (in mode 1, or in mode 0 if you choose it
+in its menu). That is why a program's output and your listing do not mix:
+when you run a program you see its screen, and when it ends a key takes you
+back to the editor.</p>
+<h3 id="sprites-tile-maps-and-layers">Sprites, tile maps and layers<a class="ancla" href="#sprites-tile-maps-and-layers" aria-hidden="true">#</a></h3>
+<p>There are no hardware sprites: a <strong>graphics engine</strong> built into the ROM draws
+everything into the page, very quickly. It can draw:</p>
+<ul>
+<li><strong>sprites</strong> of any size, with transparent parts, mirrored, recoloured or
+  scaled up and down;</li>
+<li><strong>tile maps</strong>: screens or whole levels built from small square tiles (8 × 8
+  or 16 × 16 pixels);</li>
+<li><strong>mode 7 floors</strong>: a flat picture seen in perspective, for racing games or
+  3D landscapes;</li>
+<li>lines, filled rectangles, circles, triangles and polygons.</li>
+</ul>
+<p>Layers come from the order of drawing: a typical game draws the background of
+the map, then the sprites, then the parts of the map marked as <em>in front</em>,
+which can cover the sprites (a tree the player walks behind, for example).</p>
+<p>All this is available from BASIC (<a href="basic/reference.html">the BASIC reference</a>)
+and from C (<a href="sdk/index.html">the SDK</a>).</p>
+<h3 id="the-virtual-playfield-and-scrolling">The virtual playfield and scrolling<a class="ancla" href="#the-virtual-playfield-and-scrolling" aria-hidden="true">#</a></h3>
+<p>In mode 0 a page can be <strong>larger than the screen</strong>. The screen is then a
+window that moves over a bigger picture:</p>
+<table>
+<thead>
+<tr>
+<th>Page size</th>
+<th>Screens</th>
+<th>Good for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>256 × 192</td>
+<td>1</td>
+<td>Normal use</td>
+</tr>
+<tr>
+<td>512 × 384</td>
+<td>2 × 2</td>
+<td>Scrolling in all directions</td>
+</tr>
+<tr>
+<td>1024 × 192</td>
+<td>4 wide</td>
+<td>Side-scrolling games</td>
+</tr>
+<tr>
+<td>256 × 768</td>
+<td>4 tall</td>
+<td>Vertical scrolling games</td>
+</tr>
+</tbody>
+</table>
+<p>In BASIC, <code>MODE 0, 1024, 192</code> chooses the size, and <code>SCROLL x, y</code> moves the
+window. <strong>Scrolling is done by the video hardware</strong>, without redrawing: the
+picture moves for free, and a game only draws the column or row of scenery
+that is about to come into view. The page wraps round at its edges, so a game
+can scroll for ever.</p>
+<p>The machine can also change some settings <strong>line by line</strong> down the screen:
+the border colour, the colour table, and which part of the page each line
+shows. This gives split screens (a scoreboard that stays still while the game
+scrolls), parallax (distant scenery moving slower), border stripes like those
+of old tape loaders, and water or road effects. In BASIC this is <code>RASTER</code>.</p>
+<h2 id="text-and-characters">Text and characters<a class="ancla" href="#text-and-characters" aria-hidden="true">#</a></h2>
+<p>Text is written in characters of 8 × 8 pixels: 32 × 24 in mode 0 and 64 × 48 in
+mode 1. In mode 0, BASIC keeps the bottom two rows for typing answers to
+<code>INPUT</code> and for its messages, so a program has 22 rows for its text.</p>
+<p><img alt="The character set" src="../images/machine-charset.png" /></p>
+<p>The character set has the letters, digits and symbols of a computer keyboard
+(including <code>£</code> and <code>©</code>), sixteen <strong>block graphics</strong> for simple drawings made of
+quarter-squares (codes 128 to 143: an empty cell, then ▝ ▘ ▀ ▗ ▐ ▚ ▜ ▖ ▞ ▌ ▛ ▄ ▟ ▙ █, the same
+as on the Spectrum; the <a href="basic/reference.html#character-set">character set</a>
+explains how they are numbered), and 21 <strong>user-defined graphics</strong> (UDGs),
+characters whose shape your program can change. They start out as the letters
+A to U.</p>
+<p>The machine's own messages also have the Spanish letters (<code>á é í ó ú ü ñ ¿ ¡</code>
+and their capitals), but they are not part of BASIC's character set. In your
+programs you type the standard characters only: a letter with an accent, a
+diaeresis, a tilde or a cedilla typed on the keyboard comes out without it
+(<code>é</code> as <code>e</code>, <code>ñ</code> as <code>n</code>), <code>¿</code> and <code>¡</code> come out as <code>?</code> and <code>!</code>, and other
+characters are ignored.</p>
+<h2 id="sound">Sound<a class="ancla" href="#sound" aria-hidden="true">#</a></h2>
+<p>ZX-V has three sound sources, mixed in <strong>stereo</strong>:</p>
+<ul>
+<li><strong>The beeper</strong>: a simple speaker that is either on or off, like the one in
+  the first home computers. With clever programming it can play surprisingly
+  rich music. In BASIC, <code>BEEP</code>.</li>
+<li><strong>Two AY-3-8912 music chips</strong>, the chip of the Spectrum 128 and many other
+  computers and arcade machines of the 1980s. Each one has <strong>three voices</strong>
+  (called A, B and C) that play notes, plus a <strong>noise</strong> generator for drums and
+  explosions and an <strong>envelope</strong> that shapes the volume of a note. With two
+  chips there are six voices at once: music on one chip and sound effects on
+  the other, for example. The second chip starts silent, so music written for
+  one chip plays exactly as on the original.</li>
+</ul>
+<p>The voices are spread across the stereo picture (A on the left, B in the
+centre, C on the right). In BASIC, <code>PLAY</code> plays music written as notes, with
+up to six voices, and <code>SOUND</code> controls the chips directly. Native programs can
+also play digitised samples (see the <code>digital</code> example).</p>
+<p>The sound comes out through HDMI with the picture and, on the real machine,
+also through an analogue line output.</p>
+<h2 id="input-devices">Input devices<a class="ancla" href="#input-devices" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>Keyboard.</strong> Any USB keyboard. You type as on a PC, with the keys of its
+  layout. On the real machine, <strong>Ctrl+Alt+F1</strong>, <strong>F2</strong> and <strong>F3</strong> choose the
+  Spanish, UK and US layouts (the choice is remembered); the emulator uses the
+  layout of your PC.</li>
+<li><strong>Mouse.</strong> A USB mouse with three buttons and a wheel. BASIC and C programs
+  get a pointer position in screen pixels (in BASIC, <code>MOUSE</code>).</li>
+<li><strong>Gamepads.</strong> Up to two USB gamepads: generic ones and PlayStation
+  DualShock 4 and DualSense (in the emulator, any gamepad your PC
+  recognises). Each has the directions, three fire buttons,
+  Start and Select. The first gamepad also works as a <em>Kempston joystick</em> for
+  programs written for the Spectrum, and BASIC can present a gamepad as keys
+  (<code>JOY</code>).</li>
+</ul>
+<p>On the real machine, the keyboard, mouse and gamepads plug into a USB hub.</p>
+<p><strong>Ctrl+Alt+Del</strong> is the emergency reset: whatever is running, even a program
+that has hung, the machine goes back to BASIC. A BASIC program is kept; a
+native program is not.</p>
+<h2 id="memory">Memory<a class="ancla" href="#memory" aria-hidden="true">#</a></h2>
+<p>The processor has 520 KB of RAM. Most of it is shared like this:</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Size</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Video pages</td>
+<td>2 × 96 KB</td>
+<td>The two screens</td>
+</tr>
+<tr>
+<td>User memory</td>
+<td>248 KB</td>
+<td>Your program and its data</td>
+</tr>
+<tr>
+<td>System</td>
+<td>80 KB</td>
+<td>The machine's own variables and buffers</td>
+</tr>
+</tbody>
+</table>
+<p><strong>From BASIC</strong>, about 94 KB are free for your program, its variables and its
+graphics (sprites, tiles and maps): the editor shows the exact number,
+93,856 bytes when the machine starts. The rest of the user memory is BASIC's
+own working space.</p>
+<p><strong>A native program</strong> takes over the user memory: it can use nearly all of the
+248 KB. In mode 0 each video page only needs 24 KB for the screen, so a
+program that does not use a large virtual playfield can also use the other
+72 KB of each page.</p>
+<p>The ROM, with the BASIC, takes 512 KB, and the <code>ROM:</code> drive up to 3.25 MB;
+both are read-only and are not part of the RAM.</p>
+<h2 id="storage-and-files">Storage and files<a class="ancla" href="#storage-and-files" aria-hidden="true">#</a></h2>
+<h3 id="the-sd-card-and-the-rom-drive">The SD card and the <code>ROM:</code> drive<a class="ancla" href="#the-sd-card-and-the-rom-drive" aria-hidden="true">#</a></h3>
+<p>The machine has two <strong>drives</strong>:</p>
+<ul>
+<li><strong><code>SD:</code></strong>, the <strong>SD card</strong>, where you load and save. It can be formatted as
+  FAT, FAT32 or exFAT, so you can also use it in your PC. In the emulator, a
+  folder of your PC plays the card.</li>
+<li><strong><code>ROM:</code></strong>, a read-only disk built into the machine, with the examples. It
+  cannot be written to: trying it gives <code>V Disk error (not allowed)</code>.</li>
+</ul>
+<p>You use them with the usual BASIC commands: <code>CAT</code> lists a folder, <code>CD</code> changes
+folder, <code>MKDIR</code> and <code>RMDIR</code> create and remove folders, and <code>COPY</code>, <code>MOVE</code> and
+<code>ERASE</code> copy, move and delete files (also with wildcards like <code>*.zvb</code>). A path
+can start with the drive: <code>LOAD "ROM:graphics"</code>, <code>CAT "SD:/games"</code>. <code>CD "ROM:"</code>
+enters the <code>ROM:</code> drive and <code>CD "SD:"</code> goes back to the card.</p>
+<p>File names can be up to 63 characters long, with unaccented letters, digits
+and symbols; capitals and small letters count as the same name. Folders are
+separated with <code>/</code>.</p>
+<h3 id="file-types">File types<a class="ancla" href="#file-types" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Extension</th>
+<th>What it holds</th>
+<th>How to use it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.zvb</code></td>
+<td>A ZX-V BASIC program with its variables, as they are in memory. It is the format of programs. It can carry a loading screen</td>
+<td><code>SAVE "name"</code>, <code>LOAD "name"</code>; with a loading screen, <code>SAVE "name" LINE n SCREEN$</code></td>
+</tr>
+<tr>
+<td><code>.zvd</code></td>
+<td>A BASIC array (numbers or characters), as it is in memory</td>
+<td><code>SAVE "name" DATA a()</code>, <code>LOAD "name" DATA a()</code></td>
+</tr>
+<tr>
+<td><code>.bin</code></td>
+<td>Bytes of memory, nothing else</td>
+<td><code>SAVE "name" CODE start, length</code>, <code>LOAD "name" CODE start</code></td>
+</tr>
+<tr>
+<td><code>.tap</code></td>
+<td>Spectrum tape file: BASIC programs, blocks of memory (<code>CODE</code>), screens and arrays. For code made for the Spectrum, and to take things to its emulators</td>
+<td><code>LOAD "name"</code>, <code>SAVE "name.tap"</code></td>
+</tr>
+<tr>
+<td><code>.tzx</code></td>
+<td>Spectrum tape file (another format); its BASIC programs, code, screens and arrays load</td>
+<td><code>LOAD "name.tzx"</code></td>
+</tr>
+<tr>
+<td><code>.bas</code></td>
+<td>A BASIC listing as plain text, to write or share programs with a text editor</td>
+<td><code>LOAD "name.bas"</code>, <code>SAVE "name.bas"</code>, <code>MERGE</code>; the emulator opens it too</td>
+</tr>
+<tr>
+<td><code>.zxv</code></td>
+<td>A native program, compiled from C or assembler. It can carry a loading screen, shown while it loads</td>
+<td><code>LOAD "name"</code></td>
+</tr>
+<tr>
+<td><code>.zxvs</code></td>
+<td>A snapshot: the whole state of the machine, to continue later (emulator only)</td>
+<td>File &gt; Open in the emulator</td>
+</tr>
+<tr>
+<td><code>.gfx</code></td>
+<td>Graphics: sprites, tiles, maps, textures and screens (those of <code>SCREEN$</code>)</td>
+<td><code>SAVE "name" GRAPHICS</code>, <code>LOAD "name" GRAPHICS</code>; screens, <code>SAVE "name" SCREEN$</code>, <code>LOAD "name" SCREEN$</code>. They can also be made from PNG images on your PC (see the <a href="sdk/index.html">SDK</a>)</td>
+</tr>
+<tr>
+<td><code>.pt3</code></td>
+<td>Music made with a tracker (also Pro Tracker 2, Sound Tracker, ASC, PSG and TurboSound)</td>
+<td><code>LOAD "name" MUSIC</code></td>
+</tr>
+<tr>
+<td><code>.afb</code>, <code>.afx</code></td>
+<td>AYFX sound effects: a bank or a single effect</td>
+<td><code>LOAD "name" SFX</code></td>
+</tr>
+<tr>
+<td><code>.scr</code></td>
+<td>A Spectrum screen (6,912 bytes), shown as it was, colour limitations included</td>
+<td><code>LOAD "name.scr" SCREEN$</code>, <code>SAVE "name.scr" SCREEN$</code></td>
+</tr>
+<tr>
+<td>any</td>
+<td>Raw data and text files</td>
+<td><code>LOAD "name.dat" CODE address</code>; text files with <code>OPEN #</code>, <code>PRINT #</code> and <code>INPUT #</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>LPRINT</code>, <code>LLIST</code> and <code>COPY</code> (the printer commands) write to the text file
+<code>printer.txt</code> at the root of the card.</p>
+<p><strong>Spectrum tapes.</strong> A <code>.tap</code> or <code>.tzx</code> that you load stays "in the tape recorder": later
+<code>LOAD ""</code> commands read the next blocks from it, as on a real tape. That is how
+programs in several parts (a loader, a title screen, the game) load as they
+did on the Spectrum.</p>
+<h2 id="the-clock">The clock<a class="ancla" href="#the-clock" aria-hidden="true">#</a></h2>
+<p>ZX-V knows the <strong>date and time</strong>. On the real machine a clock chip with a
+battery keeps it while the machine is off; the emulator uses your PC's clock.
+Files are dated when they are saved, and programs can read the time (in BASIC,
+<code>PRINT CLOCK 3;":";CLOCK 4</code> shows the hour and minutes). <code>CLOCK</code> with a date
+sets it.</p>
+<p>If the clock has never been set, the machine works normally and files are
+dated 1 January 2026.</p>
+<p>For measuring time inside a program, the machine counts <strong>frames</strong>: 60 per
+second, the same as the screen (in BASIC, <code>TIME</code>). What imitates the
+Spectrum keeps the Spectrum's time, fiftieths of a second: <code>PAUSE 50</code> is one
+second, and the Spectrum's <code>FRAMES</code> variable (<code>PEEK 23672</code>) counts 50 per
+second, so Spectrum programs time things as they always did.</p>
+<h2 id="languages">Languages<a class="ancla" href="#languages" aria-hidden="true">#</a></h2>
+<p>The machine speaks <strong>English</strong> and <strong>Spanish</strong>: BASIC's messages (<code>0 OK</code>,
+<code>2 Variable not found</code> / <code>2 Variable no encontrada</code>), the editor's bar and
+its menu. <code>LANGUAGE "en"</code> or <code>LANGUAGE "es"</code> changes it, and it is remembered
+(on the real machine, in the clock chip). Keywords are the same in both
+languages: <code>PRINT</code> is always <code>PRINT</code>.</p>
+<p>Programs can read the language and choose their own texts; the <em>Estela</em> game
+does.</p>
+<h2 id="compared-with-the-zx-spectrum">Compared with the ZX Spectrum<a class="ancla" href="#compared-with-the-zx-spectrum" aria-hidden="true">#</a></h2>
+<p>This section is optional reading, for those who know the Spectrum or are
+curious about it.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>ZX Spectrum 48K / 128K</th>
+<th>ZX-V</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Processor</td>
+<td>Z80, 8 bits, 3.5 MHz</td>
+<td>RISC-V, 32 bits, 144 MHz</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>48 KB / 128 KB</td>
+<td>520 KB</td>
+</tr>
+<tr>
+<td>Free for BASIC</td>
+<td>About 41 KB</td>
+<td>About 94 KB</td>
+</tr>
+<tr>
+<td>Screen</td>
+<td>256 × 192</td>
+<td>256 × 192 or 512 × 384</td>
+</tr>
+<tr>
+<td>Colour</td>
+<td>2 colours per 8 × 8 cell (<em>colour clash</em>)</td>
+<td>Any of 16 colours on any pixel, from a palette of 65,536</td>
+</tr>
+<tr>
+<td>Video pages</td>
+<td>1 (2 on the 128K)</td>
+<td>2, plus hardware scrolling and a virtual playfield</td>
+</tr>
+<tr>
+<td>Sound</td>
+<td>Beeper / beeper and one AY</td>
+<td>Beeper and two AY chips, stereo</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>Cassette tape</td>
+<td>SD card and the <code>ROM:</code> drive; reads the Spectrum's <code>.tap</code> and <code>.tzx</code></td>
+</tr>
+<tr>
+<td>BASIC</td>
+<td>Sinclair BASIC, keywords with one key</td>
+<td>Compatible Sinclair BASIC, typed letter by letter, with a full-screen editor like the 128's and many extensions</td>
+</tr>
+<tr>
+<td>Machine code</td>
+<td>Z80</td>
+<td>RISC-V (native programs in C or assembler)</td>
+</tr>
+</tbody>
+</table>
+<p>What carries over from the Spectrum:</p>
+<ul>
+<li><strong>BASIC programs.</strong> The BASIC follows Sinclair BASIC closely: the same
+  numbers, random sequences, error messages and drawing algorithms. Spectrum
+  BASIC programs in <code>.tap</code> or <code>.tzx</code> files load and run, and a program saved
+  as a tape (<code>SAVE "name.tap"</code>) loads on a real Spectrum. <code>PEEK</code> and <code>POKE</code> on
+  the Spectrum's screen, attributes and system variables work, and <code>SPEED 0</code>
+  makes BASIC run at the
+  speed of a 48K for programs that depend on it.</li>
+<li><strong>Screens</strong> (<code>.scr</code> and <code>SCREEN$</code> blocks) load and look as they did, colour
+  clash included.</li>
+<li><strong>Keyboard and joysticks.</strong> Programs that read the keyboard with <code>IN</code> see the
+  Spectrum's keys, and the gamepad works as a Kempston joystick or as the
+  Sinclair and Cursor joysticks.</li>
+<li><strong>Sound.</strong> <code>BEEP</code>, and <code>PLAY</code> with the 128's syntax, work as on the
+  original; <code>OUT</code> to the AY ports works as on the 128.</li>
+</ul>
+<p>What does not: <strong>Z80 machine code</strong> cannot run, so most commercial games, and
+BASIC programs that rely on machine-code routines, will not work. ZX-V's own
+native programs take that role, and they are much more powerful.</p>
+<p>The full list of differences, statement by statement, is in the
+<a href="basic/reference.html">BASIC reference</a>.</p>
+<nav class="pasos"><a class="anterior" href="emulator.html"><small>Previous</small>← The emulator</a><a class="siguiente" href="basic/index.html"><small>Next</small>Learn BASIC →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

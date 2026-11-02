@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>11. Teclado y mando · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../en/basic/tutorial/11-keyboard-and-joystick.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../../emulator.html">El emulador</a>
+</li>
+<li><a href="../../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../index.html">Aprende BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. Primeros pasos</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables y cuentas</a></li>
+<li><a href="03-text-and-input.html">3. Texto y preguntas</a></li>
+<li><a href="04-decisions.html">4. Decisiones</a></li>
+<li><a href="05-loops.html">5. Bucles</a></li>
+<li><a href="06-arrays-and-data.html">6. Matrices y datos</a></li>
+<li><a href="07-procedures.html">7. Procedimientos</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Los colores y la pantalla</a></li>
+<li><a href="09-drawing.html">9. Dibujar</a></li>
+<li><a href="10-sound-and-music.html">10. Sonido y música</a></li>
+<li><a href="11-keyboard-and-joystick.html" class="aqui">11. Teclado y mando</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites y mapas de tiles</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a></li>
+<li><a href="14-a-complete-game.html">14. Un juego completo</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">El editor</a>
+</li>
+<li><a href="../reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../../hardware/board.html">La placa</a>
+</li>
+<li><a href="../../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="11-teclado-y-mando">11. Teclado y mando</h1>
+<p><strong>En este capítulo aprenderás</strong> a leer el teclado sin parar el programa, con
+<code>INKEY$</code> y <code>KEY</code>, a leer un mando (joystick) con <code>JOY</code>, y a llevar una
+velocidad fija con <code>WAIT</code> y <code>TIME</code>. Son los controles de cualquier juego.</p>
+<p><code>INPUT</code> va bien para hacer preguntas, pero un juego no puede pararse a
+esperar un Enter: tiene que mirar el teclado y seguir.</p>
+<h2 id="inkey-qué-tecla-está-pulsada"><code>INKEY$</code>: ¿qué tecla está pulsada?<a class="ancla" href="#inkey-qué-tecla-está-pulsada" aria-hidden="true">#</a></h2>
+<p><code>INKEY$</code> da la tecla que se está pulsando en ese momento, como una cadena, o
+<code>""</code> (una cadena vacía) si no hay ninguna. Nunca espera.</p>
+<pre><code>10 PRINT &quot;Pulsa teclas (Q para salir)&quot;
+20 REPEAT
+30 REPEAT: UNTIL INKEY$=&quot;&quot;
+40 REPEAT: LET k$=INKEY$: UNTIL k$&lt;&gt;&quot;&quot;
+50 PRINT &quot;Has pulsado &quot;;k$
+60 UNTIL k$=&quot;q&quot;
+70 PAUSE 0
+</code></pre>
+<p>La línea 30 espera a que no haya ninguna tecla pulsada, y la 40 a que haya
+una. ¿Por qué las dos? Porque el programa es muy rápido: mientras tienes el
+dedo en una tecla, <code>INKEY$</code> da esa tecla una y otra vez. Sin la línea 30, una
+sola pulsación llenaría la pantalla.</p>
+<p>Un bucle se puede escribir en una sola línea, como en las líneas 30 y 40:
+<code>REPEAT: UNTIL INKEY$=""</code> no repite nada, solo espera.</p>
+<h3 id="por-qué-los-programas-acaban-con-pause-0">Por qué los programas acaban con <code>PAUSE 0</code><a class="ancla" href="#por-qué-los-programas-acaban-con-pause-0" aria-hidden="true">#</a></h3>
+<p>Al acabar, el programa deja abajo su informe (<code>0 OK...</code>) hasta que pulsas
+una tecla. Si acaba con <code>PAUSE 0</code> ("pulsa una tecla para terminar"), la
+pantalla se queda limpia, sin el informe. <code>PAUSE</code> se olvida de las teclas
+pulsadas antes y espera una nueva. Todos los programas de este capítulo que
+leen el teclado acaban así.</p>
+<h2 id="key-varias-teclas-a-la-vez"><code>KEY</code>: varias teclas a la vez<a class="ancla" href="#key-varias-teclas-a-la-vez" aria-hidden="true">#</a></h2>
+<p>En un juego puedes tener pulsadas "derecha" y "disparo" a la vez. <code>KEY n</code> da
+1 si la tecla <code>n</code> está pulsada ahora mismo, y 0 si no. Puedes preguntar por
+todas las teclas que quieras:</p>
+<table>
+<thead>
+<tr>
+<th><code>n</code></th>
+<th>Tecla</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CODE "a"</code> ... <code>CODE "z"</code>, <code>CODE "0"</code> ... <code>CODE "9"</code></td>
+<td>Letras y cifras</td>
+</tr>
+<tr>
+<td>8, 9, 10, 11</td>
+<td>Los cursores: izquierda, derecha, abajo, arriba</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Enter</td>
+</tr>
+<tr>
+<td>32</td>
+<td>Espacio</td>
+</tr>
+</tbody>
+</table>
+<p>Este programa mueve una <code>@</code> por la pantalla. Usa <strong>O</strong>, <strong>P</strong>, <strong>Q</strong> y
+<strong>A</strong>, o los cursores, y <strong>Espacio</strong> para parar:</p>
+<pre><code>10 BORDER 0: PAPER 0: INK 7: CLS
+20 PRINT AT 21,0;&quot;Mueve con OPQA o los cursores&quot;
+30 LET x=15: LET y=10
+40 REPEAT
+50 PRINT AT y,x;&quot; &quot;
+60 IF (KEY CODE &quot;o&quot; OR KEY 8) AND x&gt;0 THEN LET x=x-1
+70 IF (KEY CODE &quot;p&quot; OR KEY 9) AND x&lt;31 THEN LET x=x+1
+80 IF (KEY CODE &quot;q&quot; OR KEY 11) AND y&gt;0 THEN LET y=y-1
+90 IF (KEY CODE &quot;a&quot; OR KEY 10) AND y&lt;20 THEN LET y=y+1
+100 PRINT AT y,x; INK 6;&quot;@&quot;
+110 WAIT 3
+120 UNTIL KEY 32
+130 PAUSE 0
+</code></pre>
+<p>En cada vuelta del bucle, borra la <code>@</code> (línea 50), cambia <code>x</code> e <code>y</code> según las
+teclas y la vuelve a escribir en su sitio nuevo. Si pulsas dos teclas a la
+vez, se mueve en diagonal. Las condiciones <code>x&gt;0</code>, <code>x&lt;31</code>... la paran en los
+bordes.</p>
+<h2 id="una-velocidad-fija-wait-y-time">Una velocidad fija: <code>WAIT</code> y <code>TIME</code><a class="ancla" href="#una-velocidad-fija-wait-y-time" aria-hidden="true">#</a></h2>
+<p>La pantalla se redibuja 60 veces por segundo; cada vez es un <strong>frame</strong>.
+<code>WAIT n</code> espera a que hayan pasado <code>n</code> frames desde el último <code>WAIT</code>. En el
+programa de arriba, <code>WAIT 3</code> hace que cada vuelta del bucle dure justo tres
+frames, así que la <code>@</code> va a la misma velocidad tenga el bucle mucho o poco
+que hacer. Eso es lo que quieres en un juego.</p>
+<p><code>TIME</code> da el número de frames desde que se encendió la máquina. Sirve para
+medir el tiempo. Este juego mide tus reflejos:</p>
+<pre><code>10 RANDOMIZE
+20 BORDER 2: PAPER 0: INK 7: CLS
+30 PRINT &quot;Espera al verde y pulsa ESPACIO&quot;
+40 PAUSE 50+INT (RND*150)
+50 BORDER 4: LET t=TIME
+60 REPEAT: UNTIL KEY 32
+70 LET t=TIME-t
+80 PRINT &quot;Tu tiempo: &quot;;INT (t*1000/60);&quot; milisegundos&quot;
+90 PAUSE 0
+</code></pre>
+<p>Cada frame dura un sesentavo de segundo; de ahí el <code>t*1000/60</code>. (<code>PAUSE</code>
+cuenta en cincuentavos de segundo, como en el Spectrum: <code>PAUSE 50</code> es un
+segundo.) Gracias al <code>PAUSE 0</code> de la línea 90, el tiempo se queda en la
+pantalla hasta que pulses otra tecla.</p>
+<h2 id="el-mando-joy">El mando: <code>JOY</code><a class="ancla" href="#el-mando-joy" aria-hidden="true">#</a></h2>
+<p><code>JOY 0</code> lee el primer mando (joystick o gamepad) y <code>JOY 1</code> el segundo. Da 0
+si no se pulsa nada (o no hay nada conectado), y si no, un número que suma
+estos valores:</p>
+<table>
+<thead>
+<tr>
+<th>Valor</th>
+<th>Dirección o botón</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>derecha</td>
+</tr>
+<tr>
+<td>2</td>
+<td>izquierda</td>
+</tr>
+<tr>
+<td>4</td>
+<td>abajo</td>
+</tr>
+<tr>
+<td>8</td>
+<td>arriba</td>
+</tr>
+<tr>
+<td>16</td>
+<td>disparo</td>
+</tr>
+</tbody>
+</table>
+<p>Por ejemplo, arriba y disparo a la vez dan 8 + 16 = 24. Para saber si uno de
+esos valores está dentro del número, viene bien esta función: <code>FN b(j,n)</code>
+vale 1 cuando el valor 2^n está incluido en <code>j</code> (n = 0 para derecha, 1
+izquierda, 2 abajo, 3 arriba, 4 disparo):</p>
+<pre><code>10 DEF FN b(j,n)=INT (j/2^n)-2*INT (j/2^(n+1))
+20 CLS
+30 REPEAT
+40 LET j=JOY 0
+50 PRINT AT 0,0;&quot;Derecha &quot;;FN b(j,0);&quot; Izquierda &quot;;FN b(j,1);&quot; Disparo &quot;;FN b(j,4)
+60 WAIT 5
+70 UNTIL INKEY$&lt;&gt;&quot;&quot;
+80 PAUSE 0
+</code></pre>
+<p>Para manejar un juego con el teclado y con el mando, júntalos con <code>OR</code>:
+<code>IF KEY 9 OR FN b(j,0) THEN ...</code>. En el emulador, un mando conectado al PC
+funciona como el mando 0.</p>
+<p><strong>Si conoces el Spectrum:</strong> el mando también se ve como las teclas de los
+números, como hacía el interfaz de Sinclair (6 izquierda, 7 derecha, 8 abajo,
+9 arriba, 0 disparo), así que los programas antiguos que leen el teclado con
+<code>INKEY$</code> o <code>IN</code> se pueden jugar con él. <code>KEY</code> solo ve el teclado de verdad.
+El ratón se lee con <code>MOUSE</code>; mira la referencia.</p>
+<h2 id="pruébalo">Pruébalo<a class="ancla" href="#pruébalo" aria-hidden="true">#</a></h2>
+<ol>
+<li>En el programa de la <code>@</code>, deja un rastro: en vez de borrar la <code>@</code>, escribe
+   un <code>.</code> donde estaba.</li>
+<li>Convierte el juego de los reflejos en un concurso: juega cinco rondas y
+   escribe el mejor tiempo.</li>
+</ol>
+<details>
+<summary>Pista</summary>
+<p>Para el primero, cambia el <code>" "</code> de la línea 50. Para el segundo, mete las
+líneas 20 a 80 dentro de un bucle <code>FOR</code>, guarda el mejor tiempo en una
+variable que empiece muy grande (<code>LET mejor=1000</code>) y actualízala con
+<code>IF t&lt;mejor THEN LET mejor=t</code>.</p>
+</details>
+<hr />
+<p><strong>Referencia:</strong> <a href="../reference.html#inkey"><code>INKEY$</code></a>, <a href="../reference.html#key"><code>KEY</code></a>,
+<a href="../reference.html#joy"><code>JOY</code></a>, <a href="../reference.html#wait"><code>WAIT</code></a>,
+<a href="../reference.html#time"><code>TIME</code></a>, <a href="../reference.html#pause"><code>PAUSE</code></a>,
+<a href="../reference.html#mouse"><code>MOUSE</code></a>.</p>
+<p><strong>Siguiente:</strong> <a href="12-sprites-and-tile-maps.html">12. Sprites y mapas de tiles</a> ·
+<strong>Anterior:</strong> <a href="10-sound-and-music.html">10. Sonido y música</a></p>
+</details>
+<nav class="pasos"><a class="anterior" href="10-sound-and-music.html"><small>Anterior</small>← 10. Sonido y música</a><a class="siguiente" href="12-sprites-and-tile-maps.html"><small>Siguiente</small>12. Sprites y mapas de tiles →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

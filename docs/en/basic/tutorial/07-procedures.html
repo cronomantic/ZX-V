@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>7. Procedures · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../es/basic/tutorial/07-procedures.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../../getting-started.html">Getting started</a>
+</li>
+<li><a href="../../emulator.html">The emulator</a>
+</li>
+<li><a href="../../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../index.html">Learn BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. First steps</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables and maths</a></li>
+<li><a href="03-text-and-input.html">3. Text and input</a></li>
+<li><a href="04-decisions.html">4. Decisions</a></li>
+<li><a href="05-loops.html">5. Loops</a></li>
+<li><a href="06-arrays-and-data.html">6. Arrays and data</a></li>
+<li><a href="07-procedures.html" class="aqui">7. Procedures</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Colours and the screen</a></li>
+<li><a href="09-drawing.html">9. Drawing</a></li>
+<li><a href="10-sound-and-music.html">10. Sound and music</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Keyboard and joystick</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Files and the SD card</a></li>
+<li><a href="14-a-complete-game.html">14. A complete game</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">The editor</a>
+</li>
+<li><a href="../reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../../hardware/board.html">The board</a>
+</li>
+<li><a href="../../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="7-procedures">7. Procedures</h1>
+<p><strong>In this chapter you will learn</strong> to split a program into named pieces
+with <code>DEF PROC</code> and <code>PROC</code>, to give them values to work with, to keep their
+variables to themselves with <code>LOCAL</code>, and to make your own functions with
+<code>DEF FN</code>. You will also meet <code>GO SUB</code>, the classic way to do it.</p>
+<h2 id="why-split-a-program">Why split a program<a class="ancla" href="#why-split-a-program" aria-hidden="true">#</a></h2>
+<p>As programs grow, it is easy to get lost among line numbers. The answer is
+to give names to the pieces: "draw the board", "move the player", "show the
+score". Each piece is a <strong>procedure</strong>. The main program becomes a short list
+of names, and each procedure can be written and tested on its own.</p>
+<p><strong>If you know the Spectrum:</strong> procedures, <code>LOCAL</code> and labels are ZX-V
+extensions. <code>GO SUB</code> and <code>DEF FN</code> work as on the 48K.</p>
+<h2 id="def-proc-and-proc"><code>DEF PROC</code> and <code>PROC</code><a class="ancla" href="#def-proc-and-proc" aria-hidden="true">#</a></h2>
+<pre><code>10 PROC title(&quot;ZX-V&quot;)
+20 PROC title(&quot;BASIC&quot;)
+30 PRINT &quot;Done&quot;
+40 DEF PROC title(t$)
+50 PRINT &quot;*** &quot;;t$;&quot; ***&quot;
+60 END PROC
+</code></pre>
+<ul>
+<li><code>DEF PROC title(t$)</code> starts the definition of a procedure called <code>title</code>,
+  and <code>END PROC</code> ends it.</li>
+<li><code>PROC title("ZX-V")</code> <strong>calls</strong> it: the program jumps to the procedure, with
+  <code>t$</code> set to <code>"ZX-V"</code>, runs it and, at <code>END PROC</code>, comes back to the
+  statement after the call.</li>
+<li>When the program reaches a <code>DEF PROC</code> by itself (line 40, after line 30),
+  it skips the whole procedure. That is why you can place procedures after
+  the main program without anything strange happening.</li>
+</ul>
+<p>The values in brackets are <strong>parameters</strong>. A procedure can have several,
+numbers or strings, separated by commas: <code>DEF PROC box(n,c$)</code>. A string
+parameter is a single letter followed by <code>$</code>. A procedure can also have no
+parameters at all: <code>DEF PROC banner</code> and <code>PROC banner</code>.</p>
+<p>Procedure names follow the same rules as number variables, so a name that is
+exactly a keyword does not work: call it <code>dashes</code>, not <code>line</code>. Calling a
+procedure that does not exist gives <code>Z PROC not found</code>.</p>
+<h2 id="local-variables-of-your-own"><code>LOCAL</code>: variables of your own<a class="ancla" href="#local-variables-of-your-own" aria-hidden="true">#</a></h2>
+<p>The parameters only exist inside the procedure: when it ends, a variable
+with the same name outside gets its old value back. To have more variables
+like that, list them after <code>LOCAL</code>:</p>
+<pre><code>10 LET i=99
+20 PROC dashes(10)
+30 PRINT &quot;i is still &quot;;i
+40 DEF PROC dashes(n)
+50 LOCAL i
+60 FOR i=1 TO n: PRINT &quot;-&quot;;: NEXT i
+70 PRINT
+80 END PROC
+</code></pre>
+<p>The procedure uses <code>i</code> for its loop, but the <code>i</code> of the main program is
+still 99. Without <code>LOCAL i</code>, it would be 11.</p>
+<h2 id="a-program-made-of-procedures">A program made of procedures<a class="ancla" href="#a-program-made-of-procedures" aria-hidden="true">#</a></h2>
+<p>This is the shape of a well-organised program: the main part at the top,
+which reads almost like a description, and the procedures below.</p>
+<pre><code>10 REM Main program
+20 PROC banner
+30 FOR i=1 TO 3: PROC stars(i*3): NEXT i
+40 PROC banner
+50 REM Procedures
+60 DEF PROC banner
+70 PRINT &quot;==========&quot;
+80 END PROC
+90 DEF PROC stars(n)
+100 LOCAL i
+110 FOR i=1 TO n: PRINT &quot;*&quot;;: NEXT i
+120 PRINT
+130 END PROC
+</code></pre>
+<h2 id="a-procedure-that-calls-itself">A procedure that calls itself<a class="ancla" href="#a-procedure-that-calls-itself" aria-hidden="true">#</a></h2>
+<p>A procedure can call other procedures, and even itself. That is called
+<strong>recursion</strong>, and it solves some problems in a surprisingly short way. The
+classic example is the Tower of Hanoi: move a pile of discs from peg 1 to peg
+3, one disc at a time, never putting a big disc on a smaller one.</p>
+<pre><code>10 PROC hanoi(3,1,3,2)
+20 DEF PROC hanoi(n,f,t,v)
+30 IF n=0 THEN GO TO 70
+40 PROC hanoi(n-1,f,v,t)
+50 PRINT &quot;Move a disc from &quot;;f;&quot; to &quot;;t
+60 PROC hanoi(n-1,v,t,f)
+70 END PROC
+</code></pre>
+<p>To move <code>n</code> discs from <code>f</code> to <code>t</code>, using <code>v</code> as the spare peg: move <code>n-1</code>
+discs out of the way to <code>v</code>, move the biggest one to <code>t</code>, and move the <code>n-1</code>
+discs from <code>v</code> on top of it. It prints the 7 moves for 3 discs. Try
+<code>PROC hanoi(4,1,3,2)</code>.</p>
+<h2 id="your-own-functions-def-fn">Your own functions: <code>DEF FN</code><a class="ancla" href="#your-own-functions-def-fn" aria-hidden="true">#</a></h2>
+<p>A procedure does something; a <strong>function</strong> gives back a value. <code>DEF FN</code>
+defines a function in one line. Its name is a single letter (with <code>$</code> if it
+gives back a string), and you use it with <code>FN</code>:</p>
+<pre><code>10 DEF FN a(r)=PI*r*r
+20 DEF FN m$(a$,b$)=a$+&quot; &amp; &quot;+b$
+30 PRINT FN a(10)
+40 PRINT FN m$(&quot;salt&quot;,&quot;pepper&quot;)
+</code></pre>
+<h2 id="the-classic-way-go-sub">The classic way: <code>GO SUB</code><a class="ancla" href="#the-classic-way-go-sub" aria-hidden="true">#</a></h2>
+<p>Before procedures existed, BASIC programs used <strong>subroutines</strong>. <code>GO SUB</code>
+jumps to a line, and <code>RETURN</code> comes back to just after the <code>GO SUB</code>:</p>
+<pre><code>10 GO SUB 100
+20 PRINT &quot;Back in the main program&quot;
+30 STOP
+100 PRINT &quot;In the subroutine&quot;
+110 RETURN
+</code></pre>
+<p>Here the <code>STOP</code> in line 30 is needed: without it, the program would carry on
+into the subroutine. A subroutine has no name and no parameters, and all its
+variables are shared, so for new programs procedures are easier. You will
+find <code>GO SUB</code> in many old Spectrum programs.</p>
+<h2 id="try-it">Try it<a class="ancla" href="#try-it" aria-hidden="true">#</a></h2>
+<ol>
+<li>Write a procedure <code>square(n)</code> that prints a square of <code>n</code> × <code>n</code> stars,
+   and call it with 3 and with 5.</li>
+<li>Write a function <code>FN c(f)</code> that turns degrees Fahrenheit into Celsius
+   (C = (F − 32) × 5 / 9) and print the value for 212.</li>
+</ol>
+<details>
+<summary>Hint</summary>
+<p>For the first, use two <code>FOR</code> loops inside the procedure (like the triangle
+of chapter 5), and declare their variables with <code>LOCAL</code>. For the second:
+<code>DEF FN c(f)=(f-32)*5/9</code>.</p>
+</details>
+<details>
+<summary>A solution for the first one</summary>
+<pre><code>10 PROC square(3): PRINT
+20 PROC square(5)
+30 DEF PROC square(n)
+40 LOCAL r,c
+50 FOR r=1 TO n
+60 FOR c=1 TO n: PRINT &quot;*&quot;;: NEXT c
+70 PRINT
+80 NEXT r
+90 END PROC
+</code></pre>
+</details>
+<hr />
+<p><strong>Reference:</strong> <a href="../reference.html#def-proc-proc-end-proc"><code>DEF PROC</code>, <code>PROC</code>, <code>END PROC</code></a>,
+<a href="../reference.html#local"><code>LOCAL</code></a>, <a href="../reference.html#def-fn-fn"><code>DEF FN</code>, <code>FN</code></a>,
+<a href="../reference.html#go-sub-return"><code>GO SUB</code>, <code>RETURN</code></a>.</p>
+<p><strong>Next:</strong> <a href="08-colours-and-the-screen.html">8. Colours and the screen</a> ·
+<strong>Previous:</strong> <a href="06-arrays-and-data.html">6. Arrays and data</a></p>
+<nav class="pasos"><a class="anterior" href="06-arrays-and-data.html"><small>Previous</small>← 6. Arrays and data</a><a class="siguiente" href="08-colours-and-the-screen.html"><small>Next</small>8. Colours and the screen →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

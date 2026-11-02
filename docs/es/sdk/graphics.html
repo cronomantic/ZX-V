@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gráficos · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../en/sdk/graphics.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../emulator.html">El emulador</a>
+</li>
+<li><a href="../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Aprende BASIC</a>
+</li>
+<li><a href="../basic/editor.html">El editor</a>
+</li>
+<li><a href="../basic/reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="graphics.html" class="aqui">Gráficos</a>
+<ul>
+</ul>
+</li>
+<li><a href="reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../hardware/board.html">La placa</a>
+</li>
+<li><a href="../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="gráficos">Gráficos</h1>
+<p>ZX-V no tiene hardware de sprites ni de tiles. En su lugar, la ROM trae un
+<strong>motor gráfico</strong>: rutinas que funcionan en el procesador principal y
+dibujan sprites, mapas de tiles, figuras y suelos con textura en la memoria
+de vídeo, muy deprisa. El hardware de vídeo pone lo que el software no
+puede hacer bien: dos páginas de pantalla, scroll por hardware, efectos por
+línea y remapeo de colores.</p>
+<p>Esta página lo explica todo con programas completos. Cada función se
+describe en detalle en la <a href="reference.html#motor-gráfico">referencia de la API</a>.
+Para empezar con C en ZX-V, lee antes la <a href="index.html">guía del SDK</a>.</p>
+<p><strong>Contenido</strong></p>
+<ul>
+<li><a href="#cómo-dibuja-el-motor">Cómo dibuja el motor</a></li>
+<li><a href="#la-memoria-de-vídeo">La memoria de vídeo</a></li>
+<li><a href="#las-páginas-y-el-doble-buffer">Las páginas y el doble buffer</a></li>
+<li><a href="#dibujar-en-memoria">Dibujar en memoria</a></li>
+<li><a href="#sprites">Sprites</a></li>
+<li><a href="#mapas-de-tiles">Mapas de tiles</a></li>
+<li><a href="#scroll-por-hardware">Scroll por hardware</a></li>
+<li><a href="#efectos-por-línea-y-remapeo-de-colores">Efectos por línea y remapeo de colores</a></li>
+<li><a href="#modo-7">Modo 7</a></li>
+<li><a href="#imágenes-desde-ficheros-png-png2gfxpy">Imágenes desde ficheros PNG: <code>png2gfx.py</code></a></li>
+<li><a href="#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos para el PC: <code>zxv-gfx</code></a></li>
+<li><a href="#el-editor-de-gráficos-de-la-máquina-gfxedit">El editor de gráficos de la máquina: <code>gfxedit</code></a></li>
+<li><a href="#cuánto-cuesta">¿Cuánto cuesta?</a></li>
+</ul>
+<h2 id="cómo-dibuja-el-motor">Cómo dibuja el motor<a class="ancla" href="#cómo-dibuja-el-motor" aria-hidden="true">#</a></h2>
+<p>Incluye <code>zxv_gfx.h</code>. Todas las funciones de dibujo dibujan en el <strong>destino
+actual</strong>:</p>
+<ul>
+<li>Por defecto, la <strong>página de dibujo</strong>: una de las dos páginas de vídeo,
+  que se elige con <code>zxv_gfx_draw_page(página)</code>. Al empezar un programa es
+  la página 0, la visible.</li>
+<li>O un <strong>bitmap</strong> en memoria, que se elige con <code>zxv_gfx_target(&amp;bitmap)</code>.
+  <code>zxv_gfx_target(0)</code> vuelve a la página de dibujo.</li>
+</ul>
+<p>Hay unas reglas que valen para todo:</p>
+<ul>
+<li>Los <strong>colores</strong> van del 0 al 15. En los sprites, los tiles y las copias
+  con transparencia, el color 8 (<code>ZXV_TRANSPARENT</code>) es <strong>transparente</strong>:
+  deja ver lo que había debajo.</li>
+<li>Las <strong>coordenadas</strong> llevan signo y empiezan arriba a la izquierda. Todo
+  se <strong>recorta</strong> contra el destino, así que puedes dibujar en parte (o del
+  todo) fuera de él sin problema.</li>
+<li><code>zxv_gfx_clip(x0, y0, x1, y1)</code> limita el dibujo a un rectángulo más
+  pequeño (sin incluir <code>x1</code> ni <code>y1</code>). Cambiar el destino con
+  <code>zxv_gfx_target</code> quita el rectángulo de recorte; cambiar la página de
+  dibujo con <code>zxv_gfx_draw_page</code> lo conserva.</li>
+<li><strong>El orden de dibujo es el orden de profundidad</strong>: lo último que dibujas
+  queda delante.</li>
+<li>El motor da los mismos píxeles en el emulador y en la máquina real,
+  porque es el mismo código.</li>
+</ul>
+<p>Las rutinas sencillas <code>zxv_cls</code>, <code>zxv_plot</code> y las de texto también dibujan
+en la página de dibujo, pero no en bitmaps.</p>
+<h2 id="la-memoria-de-vídeo">La memoria de vídeo<a class="ancla" href="#la-memoria-de-vídeo" aria-hidden="true">#</a></h2>
+<p>Cada página es un bloque de memoria normal: la página 0 empieza en
+<code>ZXV_VRAM0_BASE</code> (<code>0x2000_4000</code>) y la 1 en <code>ZXV_VRAM1_BASE</code>
+(<code>0x2001_C000</code>). Los píxeles ocupan <strong>4 bits</strong>, dos por byte, línea tras
+línea:</p>
+<table>
+<thead>
+<tr>
+<th>Modo</th>
+<th>Píxeles</th>
+<th>Bytes por línea</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>256 × 192</td>
+<td>128</td>
+</tr>
+<tr>
+<td>1</td>
+<td>512 × 384</td>
+<td>256</td>
+</tr>
+</tbody>
+</table>
+<p>El píxel (x, y) está en el byte <code>y × bytes_por_línea + x / 2</code>: en los 4
+bits <strong>bajos</strong> si x es par y en los altos si es impar. Vista en palabras
+de 32 bits, cada palabra tiene 8 píxeles seguidos, el píxel x en los bits
+4·(x mod 8) a 4·(x mod 8)+3.</p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+
+/* Pinta el píxel (x, y) de la página 0 en el modo 0: 128 bytes por línea,
+ * dos píxeles por byte, el de la izquierda (x par) en los 4 bits bajos. */
+static void pset(int x, int y, int c)
+{
+    volatile uint8_t *p = (volatile uint8_t *)(uintptr_t)ZXV_VRAM0_BASE + y * 128 + x / 2;
+    if (x &amp; 1)
+        *p = (uint8_t)((*p &amp; 0x0F) | c &lt;&lt; 4);
+    else
+        *p = (uint8_t)((*p &amp; 0xF0) | c);
+}
+
+int main(void)
+{
+    zxv_wait_vblank();                          /* acaba de empezar un frame... */
+    while (*(volatile uint32_t *)(uintptr_t)ZXV_SV_SYSFLAGS &amp; ZXV_SYSF_LINK_BUSY)
+        ;                                       /* ...espera a que se haya enviado */
+    for (int y = 0; y &lt; 192; y++)
+        for (int x = 0; x &lt; 256; x++)
+            pset(x, y, (x ^ y) &amp; 15);           /* un dibujo con todos los colores */
+    while (zxv_key_get() &lt; 0)
+        zxv_wait_vblank();
+    return 0;
+}
+</code></pre>
+<p>En el modo 0 solo se ven los primeros 24 KB de cada página de 96 KB; el
+resto es memoria libre para tu programa (salvo con los campos de scroll
+grandes de <a href="#scroll-por-hardware">Scroll por hardware</a>).</p>
+<p><strong>Si conoces el Spectrum:</strong> no hay atributos ni tercios: cada píxel tiene
+su propio color y las líneas van en orden.</p>
+<h2 id="las-páginas-y-el-doble-buffer">Las páginas y el doble buffer<a class="ancla" href="#las-páginas-y-el-doble-buffer" aria-hidden="true">#</a></h2>
+<p>Al empezar cada frame (el VBLANK), el sistema toma la <strong>página visible</strong> y
+la envía a la pantalla, junto con los registros de vídeo. Esa copia se ve
+durante el frame siguiente. Dos consecuencias:</p>
+<ul>
+<li>Escribir en la página que <strong>no</strong> es la visible siempre es seguro.</li>
+<li>Justo después de un VBLANK, mientras el bit <code>ZXV_SYSF_LINK_BUSY</code> de
+  <code>ZXV_SV_SYSFLAGS</code> vale 1, el sistema todavía está leyendo la página
+  visible (hasta 1,5 ms en el modo 0 y 6 ms en el modo 1). Si escribes en
+  ella entonces, una parte del cambio puede salir en este frame y otra en
+  el siguiente. El ejemplo de arriba espera a que el bit se ponga a 0 antes
+  de dibujar.</li>
+</ul>
+<p>Para animar, lo limpio es el <strong>doble buffer</strong>: dibuja el frame siguiente
+en la página oculta, hazla visible y espera al VBLANK.</p>
+<pre><code class="language-c">int visible = 0;
+for (;;) {
+    int hidden = 1 - visible;
+    zxv_gfx_draw_page(hidden);          /* 1. dibuja en la página que nadie ve */
+    draw_everything();
+    zxv_set_page(hidden);               /* 2. será la visible desde el frame siguiente */
+    zxv_wait_vblank();                  /* 3. espera a ese frame */
+    visible = hidden;
+}
+</code></pre>
+<p>El <a href="index.html#los-mandos">programa que mueve un sprite</a> de la guía es un
+ejemplo completo. Antes de volver al BASIC, deja la página 0 visible y como
+página de dibujo (<code>zxv_set_page(0); zxv_gfx_draw_page(0);</code>).</p>
+<p><code>zxv_set_page</code> cambia el registro <code>ZXV_V_PAGE</code>. Todos los registros de
+vídeo funcionan igual: los escribes cuando quieras y se aplican en el
+siguiente VBLANK.</p>
+<h2 id="dibujar-en-memoria">Dibujar en memoria<a class="ancla" href="#dibujar-en-memoria" aria-hidden="true">#</a></h2>
+<p>Un <strong>bitmap</strong> (<code>zxv_bitmap</code>) describe una imagen en memoria, con el mismo
+formato que la memoria de vídeo:</p>
+<pre><code class="language-c">typedef struct {
+    uint8_t *pix;           /* primer píxel, alineado a 4 bytes */
+    uint16_t stride;        /* bytes por línea, múltiplo de 4 */
+    uint16_t w, h;          /* tamaño en píxeles */
+    uint16_t reserved;
+} zxv_bitmap;
+</code></pre>
+<p>Puedes hacerlo destino y dibujar en él con todas las funciones del motor, y
+luego copiar trozos a la pantalla con <code>zxv_gfx_blit</code> o convertirlos en
+sprites. Es la forma fácil de hacer gráficos sin ficheros de imagen:
+Estela dibuja así sus rocas, minas, explosiones y jefes al arrancar.
+Declara los píxeles como un vector de <code>uint32_t</code> para que queden
+alineados:</p>
+<pre><code class="language-c">static uint32_t pix[32 * 16 / 8];                   /* 32x16 píxeles: 16 bytes por línea */
+zxv_bitmap b = { (uint8_t *)pix, 16, 32, 16, 0 };
+</code></pre>
+<p><code>zxv_gfx_blit(&amp;b, sx, sy, w, h, x, y, opciones)</code> copia el rectángulo
+(sx, sy, w, h) de un bitmap en (x, y) del destino. Las opciones pueden
+ponerle espejo (<code>ZXV_FLIP_H</code>, <code>ZXV_FLIP_V</code>) y saltarse el color 8
+(<code>ZXV_BLIT_TRANSPARENT</code>).</p>
+<h2 id="sprites">Sprites<a class="ancla" href="#sprites" aria-hidden="true">#</a></h2>
+<p>Un <strong>sprite</strong> es un trozo de un bitmap convertido con <code>zxv_spr_prepare</code> en
+un formato que se dibuja deprisa, con su máscara de transparencia ya
+calculada. Preparas cada sprite una vez y lo dibujas tantas veces como
+quieras:</p>
+<ul>
+<li><strong>Tamaño del buffer:</strong> 8 + h × ⌈w / 8⌉ × 8 bytes. <code>zxv_spr_prepare</code> con
+  el buffer a <code>NULL</code> devuelve ese número. Hasta 1024 × 1024 píxeles.</li>
+<li><code>zxv_spr_draw(sprite, x, y, opciones, colores)</code> lo dibuja, con espejo si
+  pones <code>ZXV_FLIP_H</code> o <code>ZXV_FLIP_V</code>. <code>colores</code>, si no es <code>NULL</code>, es una
+  tabla de 16 bytes que lo <strong>recolorea</strong>: el color <em>c</em> se dibuja como
+  <code>colores[c]</code>. Los píxeles transparentes siguen siéndolo.</li>
+<li><code>zxv_spr_draw_scaled(sprite, x, y, w, h, opciones, colores)</code> lo dibuja
+  estirado o encogido a w × h píxeles: para lo que se acerca o se aleja.
+  Cuesta unas tres veces lo que un sprite normal del tamaño final.</li>
+<li><code>zxv_spr_collide(a, ax, ay, b, bx, by)</code> devuelve 1 si algún píxel
+  <strong>opaco</strong> del sprite <em>a</em> en (ax, ay) coincide con uno de <em>b</em> en (bx, by):
+  colisiones píxel a píxel.</li>
+</ul>
+<pre><code class="language-c">#include &quot;zxv_gfx.h&quot;
+
+static uint32_t sheet_pix[32 * 16 / 8];         /* una hoja de 32x16: dos dibujos de 16x16 */
+static uint32_t face[(8 + 16 * 2 * 8) / 4];     /* 8 + h * ceil(w/8) * 8 bytes */
+static uint32_t ball[(8 + 16 * 2 * 8) / 4];
+
+static void make_sheet(void)
+{
+    zxv_bitmap b = { (uint8_t *)sheet_pix, 16, 32, 16, 0 };    /* 16 bytes por línea = 32 px */
+    zxv_gfx_target(&amp;b);
+    zxv_gfx_rect(0, 0, 32, 16, ZXV_TRANSPARENT);
+    zxv_gfx_circle(7, 7, 7, 6, 1);              /* dibujo 0: una cara mirando a la derecha */
+    zxv_gfx_rect(9, 4, 2, 3, 0);
+    zxv_gfx_line(8, 11, 12, 10, 2);
+    zxv_gfx_circle(23, 7, 6, 10, 1);            /* dibujo 1: una pelota */
+    zxv_gfx_target(0);
+    zxv_spr_prepare(&amp;b, 0, 0, 16, 16, face);
+    zxv_spr_prepare(&amp;b, 16, 0, 16, 16, ball);
+}
+
+int main(void)
+{
+    make_sheet();
+    zxv_gfx_rect(0, 0, 256, 192, 1);
+    zxv_spr_draw(face, 16, 16, 0, 0);                           /* tal cual */
+    zxv_spr_draw(face, 40, 16, ZXV_FLIP_H, 0);                  /* con espejo */
+    zxv_spr_draw(face, 64, 16, ZXV_FLIP_V, 0);                  /* boca abajo */
+
+    static const uint8_t green[16] = { 0, 1, 2, 3, 4, 5, 12, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+    zxv_spr_draw(face, 88, 16, 0, green);                       /* el color 6 sale como 12 */
+
+    zxv_spr_draw_scaled(face, 16, 48, 64, 64, 0, 0);            /* cuatro veces mayor */
+    zxv_spr_draw_scaled(face, 96, 48, 8, 8, 0, 0);              /* a la mitad */
+
+    /* Colisión píxel a píxel: los rectángulos se solapan en los dos casos,
+     * pero solo en el primero se tocan píxeles opacos. */
+    int a = zxv_spr_collide(face, 150, 60, ball, 158, 66);
+    int b = zxv_spr_collide(face, 150, 100, ball, 163, 113);
+    zxv_spr_draw(face, 150, 60, 0, 0);
+    zxv_spr_draw(ball, 158, 66, 0, 0);
+    zxv_spr_draw(face, 150, 100, 0, 0);
+    zxv_spr_draw(ball, 163, 113, 0, 0);
+    zxv_gfx_rect(190, 64, 8, 8, a ? 12 : 2);    /* verde = se tocan, rojo = no */
+    zxv_gfx_rect(190, 108, 8, 8, b ? 12 : 2);
+
+    while (zxv_key_get() &lt; 0)
+        zxv_wait_vblank();
+    return 0;
+}
+</code></pre>
+<ul>
+<li>Un sprite preparado no depende de su bitmap: puedes reutilizar el bitmap
+  para dibujar el siguiente sprite.</li>
+<li>Lleva las posiciones en coma fija (por ejemplo, en 1/16 de píxel) para
+  que el movimiento lento sea suave, y desplaza a la derecha al dibujar: lo
+  hacen Estela y <code>graphics</code>.</li>
+<li>Las colisiones con el escenario se miran mejor con
+  <a href="#mapas-de-tiles"><code>zxv_map_cell</code></a>.</li>
+</ul>
+<h2 id="mapas-de-tiles">Mapas de tiles<a class="ancla" href="#mapas-de-tiles" aria-hidden="true">#</a></h2>
+<p>Un <strong>mapa de tiles</strong> (mosaico) construye una escena grande con piezas
+cuadradas pequeñas, los <strong>tiles</strong>, de 8 × 8 o 16 × 16 píxeles. El mapa es
+una cuadrícula de celdas; cada celda (16 bits) dice qué tile va ahí y
+cómo:</p>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0–11 (<code>ZXV_CELL_TILE</code>)</td>
+<td>Número de tile, de 0 a 4095</td>
+</tr>
+<tr>
+<td>12 (<code>ZXV_CELL_FLIP_H</code>)</td>
+<td>Espejo horizontal</td>
+</tr>
+<tr>
+<td>13 (<code>ZXV_CELL_FLIP_V</code>)</td>
+<td>Espejo vertical</td>
+</tr>
+<tr>
+<td>14 (<code>ZXV_CELL_TRANSP</code>)</td>
+<td>El color 8 es transparente (si no, el tile es opaco y se dibuja más deprisa)</td>
+</tr>
+<tr>
+<td>15 (<code>ZXV_CELL_PRIO</code>)</td>
+<td>Prioridad: el tile va delante de los sprites</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-c">typedef struct {
+    const uint16_t *cells;  /* las celdas, fila a fila */
+    uint16_t w, h;          /* tamaño en celdas */
+    const uint8_t *tiles;   /* los gráficos de los tiles, seguidos (32 o 128 bytes cada uno) */
+    uint8_t size;           /* 8 o 16 */
+    uint8_t flags;          /* ZXV_MAP_WRAP: el mapa se repite en las dos direcciones */
+} zxv_tilemap;
+</code></pre>
+<p>Un tile son simplemente sus píxeles en el formato de la memoria de vídeo,
+línea a línea: un tile de 8 × 8 ocupa 32 bytes (4 por línea) y uno de
+16 × 16, 128 bytes. Por eso una columna de tiles de 8 × 8 dibujada en un
+bitmap de 8 píxeles de ancho (4 bytes por línea) son justo los datos de
+tiles que necesita el mapa.</p>
+<ul>
+<li><code>zxv_map_draw(mapa, mx, my, x, y, w, h, filtro)</code> llena el rectángulo
+  (x, y, w, h) del destino con el mapa, empezando por el <strong>píxel</strong> (mx, my)
+  del mapa. Moviendo mx y my se desplaza la escena, píxel a píxel. Las
+  celdas de fuera de un mapa que no se repite no se dibujan.</li>
+<li><code>filtro</code> elige las celdas: <code>ZXV_MAP_ALL</code>, <code>ZXV_MAP_BACK</code> (sin prioridad)
+  o <code>ZXV_MAP_FRONT</code> (con prioridad). Un frame con escenario por delante de
+  los sprites es: el mapa con <code>ZXV_MAP_BACK</code>, los sprites y el mapa con
+  <code>ZXV_MAP_FRONT</code>.</li>
+<li><code>zxv_map_cell(mapa, px, py)</code> devuelve la celda que hay en el píxel
+  (px, py) del mapa: la forma de saber si hay una pared donde quiere ir tu
+  personaje.</li>
+</ul>
+<pre><code class="language-c">#include &quot;zxv_gfx.h&quot;
+
+#define MAP_W 64                                /* celdas: 64 x 24 de 8x8 píxeles */
+#define MAP_H 24
+
+static uint32_t tile_pix[3 * 8];                /* 3 tiles de 8x8: 32 bytes cada uno */
+static uint16_t cells[MAP_W * MAP_H];
+static const zxv_tilemap level = { cells, MAP_W, MAP_H, (const uint8_t *)tile_pix, 8, ZXV_MAP_WRAP };
+
+enum { SKY, BRICK, GRASS };
+
+static void make_level(void)
+{
+    zxv_bitmap b = { (uint8_t *)tile_pix, 4, 8, 3 * 8, 0 };     /* los tiles, uno debajo de otro */
+    zxv_gfx_target(&amp;b);
+    zxv_gfx_rect(0, 0, 8, 8, 5);                                /* SKY: cian */
+    zxv_gfx_rect(0, 8, 8, 8, 2);                                /* BRICK: rojo con argamasa */
+    zxv_gfx_line(0, 11, 7, 11, 7);
+    zxv_gfx_line(3, 8, 3, 11, 7);
+    zxv_gfx_line(7, 12, 7, 15, 7);
+    zxv_gfx_rect(0, 16, 8, 8, 4);                               /* GRASS: verde */
+    zxv_gfx_line(0, 16, 7, 16, 12);
+    zxv_gfx_target(0);
+
+    for (int y = 0; y &lt; MAP_H; y++)
+        for (int x = 0; x &lt; MAP_W; x++) {
+            uint16_t t = SKY;
+            if (y &gt;= 20)
+                t = BRICK;
+            else if (y == 19)
+                t = GRASS;
+            else if (y == 12 &amp;&amp; (x / 6) % 3 == 0)
+                t = BRICK;                                      /* plataformas en el aire */
+            cells[y * MAP_W + x] = t;
+        }
+}
+
+int main(void)
+{
+    make_level();
+    int scroll = 0, visible = 0;
+    while (zxv_key_get() &lt; 0) {
+        int hidden = 1 - visible;
+        zxv_gfx_draw_page(hidden);
+        /* La ventana de 256x192 del mapa que empieza en el píxel (scroll, 0). */
+        zxv_map_draw(&amp;level, scroll, 0, 0, 0, 256, 192, ZXV_MAP_ALL);
+        /* ¿Hay un ladrillo en el centro de la pantalla, en la fila de las plataformas? */
+        uint16_t c = zxv_map_cell(&amp;level, scroll + 128, 12 * 8 + 4);
+        zxv_gfx_rect(124, 80, 8, 8, (c &amp; ZXV_CELL_TILE) == BRICK ? 15 : 0);
+        zxv_set_page(hidden);
+        zxv_wait_vblank();
+        visible = hidden;
+        scroll++;                               /* el mapa se repite: no se acaba nunca */
+    }
+    zxv_set_page(0);
+    zxv_gfx_draw_page(0);
+    return 0;
+}
+</code></pre>
+<p>Redibujar la pantalla entera de tiles en cada frame está bien en el modo 0
+(cerca del 11 % del frame si el mapa no cae en tiles enteros). Para
+escenas grandes, y en el modo 1, es mejor dejar el scroll al hardware.</p>
+<h2 id="scroll-por-hardware">Scroll por hardware<a class="ancla" href="#scroll-por-hardware" aria-hidden="true">#</a></h2>
+<p>Los registros <code>ZXV_V_SCROLL_X</code> y <code>ZXV_V_SCROLL_Y</code> (de 16 bits) mueven la
+imagen dentro de la página <strong>de forma circular</strong>: lo que sale por un lado
+entra por el otro. No cuestan nada: lo hace el hardware de vídeo.</p>
+<p>En el modo 0, la página puede ser además <strong>más grande que la pantalla</strong>, y
+la pantalla pasa a ser una ventana que mueves sobre ella. El registro
+<code>ZXV_V_VSIZE</code> elige el tamaño de las dos páginas:</p>
+<table>
+<thead>
+<tr>
+<th><code>ZXV_V_VSIZE</code></th>
+<th>Página</th>
+<th>Bytes por línea</th>
+<th>Para</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_VSIZE_SCREEN</code> (0)</td>
+<td>256 × 192</td>
+<td>128</td>
+<td>Lo normal</td>
+</tr>
+<tr>
+<td><code>ZXV_VSIZE_2X2</code> (1)</td>
+<td>512 × 384</td>
+<td>256</td>
+<td>Scroll en las dos direcciones</td>
+</tr>
+<tr>
+<td><code>ZXV_VSIZE_WIDE</code> (2)</td>
+<td>1024 × 192</td>
+<td>512</td>
+<td>Scroll horizontal</td>
+</tr>
+<tr>
+<td><code>ZXV_VSIZE_TALL</code> (3)</td>
+<td>256 × 768</td>
+<td>128</td>
+<td>Scroll vertical</td>
+</tr>
+</tbody>
+</table>
+<p>Con una página grande se usan los 96 KB enteros, y el sistema tarda en
+enviarla lo mismo que en el modo 1 (<code>ZXV_SYSF_LINK_BUSY</code> dura hasta 6 ms).
+Las funciones de dibujo siguen al nuevo tamaño: tras cambiar
+<code>ZXV_V_VSIZE</code>, la página de dibujo mide 512 × 384, 1024 × 192, etc.</p>
+<pre><code class="language-c">#include &quot;zxv_gfx.h&quot;
+
+#define REG8(a)  (*(volatile uint8_t *)(uintptr_t)(a))
+#define REG16(a) (*(volatile uint16_t *)(uintptr_t)(a))
+
+int main(void)
+{
+    REG8(ZXV_V_VSIZE) = ZXV_VSIZE_2X2;          /* página de 512 x 384 en el modo 0 */
+    zxv_gfx_draw_page(0);                       /* el motor sigue al nuevo tamaño */
+    zxv_gfx_rect(0, 0, 512, 384, 1);
+    for (int i = 0; i &lt; 40; i++)                /* dibuja el campo entero una vez */
+        zxv_gfx_circle((i * 97) % 512, (i * 61) % 384, 10 + i % 20, 2 + i % 13, 1);
+
+    int x = 0, y = 0;
+    while (zxv_key_get() &lt; 0) {
+        zxv_wait_vblank();
+        x = (x + 1) % 512;                      /* la ventana da la vuelta al campo */
+        y = (y + 1) % 384;
+        REG16(ZXV_V_SCROLL_X) = (uint16_t)x;    /* sin redibujar: lo hace el vídeo */
+        REG16(ZXV_V_SCROLL_Y) = (uint16_t)y;
+    }
+    REG16(ZXV_V_SCROLL_X) = 0;
+    REG16(ZXV_V_SCROLL_Y) = 0;
+    REG8(ZXV_V_VSIZE) = ZXV_VSIZE_SCREEN;
+    return 0;
+}
+</code></pre>
+<p>Para un nivel más largo que la página, usa el truco de las consolas: como
+el scroll es circular, dibuja solo la columna de tiles que va a aparecer,
+justo fuera de la ventana, y sigue avanzando. El ejemplo
+<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/scroll/scroll.c"><code>scroll</code></a> hace exactamente eso en
+una página de 1024 × 192: cada columna nueva de 8 × 144 píxeles cuesta
+menos del 1 % de un frame.</p>
+<h2 id="efectos-por-línea-y-remapeo-de-colores">Efectos por línea y remapeo de colores<a class="ancla" href="#efectos-por-línea-y-remapeo-de-colores" aria-hidden="true">#</a></h2>
+<h3 id="la-tabla-por-línea">La tabla por línea<a class="ancla" href="#la-tabla-por-línea" aria-hidden="true">#</a></h3>
+<p>La <strong>tabla por línea</strong> (<code>ZXV_LINE_TABLE</code>) deja que cada línea de la imagen
+tenga su propio color de borde, su tabla de colores, su scroll horizontal
+e incluso que elija qué línea de la página enseña. Con ella se hacen el
+parallax (cada franja del escenario se desplaza a su velocidad), las
+pantallas partidas, el agua, las carreteras y las rayas del borde, sin
+cambiar registros a mitad de frame.</p>
+<p>Tiene una entrada de 8 bytes por cada línea del cuadro entero, <strong>borde
+incluido</strong>: 240 líneas en el modo 0 (las 24 primeras son el borde de
+arriba, así que la línea <em>y</em> de la pantalla es la entrada 24 + <em>y</em>) y 480
+en el modo 1 (48 de borde arriba). En <code>zxv.h</code>, <code>ZXV_FRAME_LINES(modo)</code> y
+<code>ZXV_BORDER_LINES(modo)</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Desplazamiento</th>
+<th>Tamaño</th>
+<th>Campo</th>
+<th>Valor «como siempre»</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_LT_BORDER</code> (0)</td>
+<td>8 bits</td>
+<td>Color del borde de esta línea</td>
+<td><code>0xFF</code></td>
+</tr>
+<tr>
+<td><code>ZXV_LT_REMAP</code> (1)</td>
+<td>8 bits</td>
+<td>Tabla de colores de esta línea (0–3)</td>
+<td><code>0xFF</code></td>
+</tr>
+<tr>
+<td><code>ZXV_LT_SCROLL_X</code> (2)</td>
+<td>16 bits</td>
+<td>Scroll horizontal de esta línea</td>
+<td><code>0xFFFF</code></td>
+</tr>
+<tr>
+<td><code>ZXV_LT_SRC_LINE</code> (4)</td>
+<td>16 bits</td>
+<td>Línea de la página que se ve aquí</td>
+<td><code>0xFFFF</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>16 bits</td>
+<td>Reservado: escribe 0</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>La tabla se usa mientras esté a 1 el bit <code>ZXV_VFLAG_LINETAB</code> de
+<code>ZXV_V_FLAGS</code>. Como la página visible, se lee justo después de cada
+VBLANK: cámbiala cuando <code>ZXV_SYSF_LINK_BUSY</code> se ponga a 0.</p>
+<h3 id="el-remapeo-de-colores">El remapeo de colores<a class="ancla" href="#el-remapeo-de-colores" aria-hidden="true">#</a></h3>
+<p>Hay cuatro <strong>tablas de remapeo</strong> de 16 bytes en <code>ZXV_REMAP_TABLES</code>. El
+registro <code>ZXV_V_REMAP</code> elige por cuál pasa la pantalla: un píxel de color
+<em>v</em> se ve del color <code>tabla[v]</code>. La tabla 0 se suele dejar como está (cada
+color como él mismo). Cambiar una tabla cambia los colores de toda la
+pantalla de golpe, sin tocar la memoria de vídeo: fundidos, destellos,
+ciclos de color.</p>
+<p>Cada tabla tiene además su <strong>paleta</strong>: los 16 colores RGB565 que se ven para
+cada índice, en <code>ZXV_PALETTE(t)</code>. Al empezar son los de siempre; cambiar uno
+da cualquier color (<code>ZXV_RGB(r, g, b)</code>, de 0 a 255 por componente) a todo lo
+que está dibujado con él. Con la tabla por línea, cada franja de la pantalla
+puede tener sus 16 colores:</p>
+<pre><code class="language-c">volatile uint16_t *pal1 = (volatile uint16_t *)(uintptr_t)ZXV_PALETTE(1);
+pal1[2] = ZXV_RGB(255, 128, 0);                 /* el rojo de la tabla 1, naranja */
+</code></pre>
+<p>El índice 8 sigue siendo transparente para los sprites y los tiles aunque la
+paleta le dé otro color.</p>
+<p>Este programa enseña las dos cosas: rayas en el borde con la tabla por
+línea, y seis franjas cuyos colores giran a través de la tabla 1:</p>
+<pre><code class="language-c">#include &quot;zxv_gfx.h&quot;
+
+#define REG8(a)  (*(volatile uint8_t *)(uintptr_t)(a))
+#define REG32(a) (*(volatile uint32_t *)(uintptr_t)(a))
+
+/* Tras un VBLANK el sistema todavía lee un momento la página visible, la
+ * tabla por línea y las de remapeo: espera a que termine. */
+static void wait_frame(void)
+{
+    zxv_wait_vblank();
+    while (REG32(ZXV_SV_SYSFLAGS) &amp; ZXV_SYSF_LINK_BUSY)
+        ;
+}
+
+int main(void)
+{
+    volatile uint8_t *remap1 = (volatile uint8_t *)(uintptr_t)(ZXV_REMAP_TABLES + 16);
+    volatile uint8_t *lines = (volatile uint8_t *)(uintptr_t)ZXV_LINE_TABLE;
+
+    zxv_gfx_rect(0, 0, 256, 192, 0);
+    for (int i = 0; i &lt; 6; i++)                 /* seis franjas de los colores 1 a 6 */
+        zxv_gfx_rect(0, 40 + i * 16, 256, 16, 1 + i);
+
+    /* Tabla por línea: cada línea del cuadro de 240 (primero 24 de borde)
+     * tiene su color de borde; el resto de la entrada es «como siempre». */
+    for (int l = 0; l &lt; ZXV_FRAME_LINES(0); l++) {
+        volatile uint8_t *e = lines + l * ZXV_LINE_ENTRY_SIZE;
+        e[ZXV_LT_BORDER] = (uint8_t)(9 + (l / 8) % 7);     /* rayas brillantes */
+        e[ZXV_LT_REMAP] = 0xFF;
+        e[ZXV_LT_SCROLL_X] = e[ZXV_LT_SCROLL_X + 1] = 0xFF;
+        e[ZXV_LT_SRC_LINE] = e[ZXV_LT_SRC_LINE + 1] = 0xFF;
+    }
+    REG8(ZXV_V_FLAGS) = ZXV_VFLAG_LINETAB;
+    REG8(ZXV_V_REMAP) = 1;                      /* la pantalla pasa por la tabla 1 */
+
+    int frame = 0;
+    while (zxv_key_get() &lt; 0) {
+        wait_frame();
+        if (frame % 8 == 0)                     /* gira los colores 1..6: las franjas se mueven */
+            for (int v = 1; v &lt;= 6; v++)
+                remap1[v] = (uint8_t)(1 + (v - 1 + frame / 8) % 6);
+        frame++;
+    }
+
+    wait_frame();                               /* recoge antes de volver */
+    REG8(ZXV_V_FLAGS) = 0;
+    REG8(ZXV_V_REMAP) = 0;
+    for (int v = 0; v &lt; 16; v++)
+        remap1[v] = (uint8_t)v;
+    return 0;
+}
+</code></pre>
+<p>El ejemplo <a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/scroll/scroll.c"><code>scroll</code></a> usa el campo
+de scroll de la tabla por línea para el parallax: las montañas de arriba
+van a la mitad de velocidad que el suelo.</p>
+<h2 id="modo-7">Modo 7<a class="ancla" href="#modo-7" aria-hidden="true">#</a></h2>
+<p>El <strong>modo 7</strong> (se llama así por el modo de la SNES que lo hizo famoso)
+dibuja una <strong>textura</strong> en cada línea con su propia posición y su paso:
+girada, ampliada o en perspectiva, como un suelo visto desde arriba.</p>
+<ul>
+<li>La textura (<code>zxv_m7tex</code>) es un cuadrado de 2^<code>log2size</code> texels de lado,
+  de 2 × 2 (<code>log2size</code> 1) a 1024 × 1024 (10), con <strong>un byte por texel</strong>
+  (0–15). Como un programa tiene 248 KB de RAM de usuario, en la práctica
+  una textura en la RAM llega hasta 256 × 256 (<code>log2size</code> 8, 64 KB). Con
+  <code>wrap</code> = 1 se repite sin fin; con 0, fuera de ella se ve el color <code>out</code>.</li>
+<li>Cada línea (<code>zxv_m7line</code>) lleva la posición en la textura (u, v) de su
+  primer píxel y el paso (du, dv) por píxel, en <strong>coma fija</strong> 16.16
+  (65536 = un texel).</li>
+<li><code>zxv_m7_camera(líneas, n, &amp;cámara)</code> calcula las líneas de un suelo visto
+  desde una cámara: posición, altura, ángulo (0x10000 es una vuelta
+  entera), distancia focal y la línea de la pantalla donde está el
+  horizonte. Las líneas por encima del horizonte quedan vacías.</li>
+<li><code>zxv_m7_draw(&amp;textura, líneas, y, n)</code> dibuja <code>n</code> líneas en el destino a
+  partir de la línea <code>y</code>.</li>
+</ul>
+<pre><code class="language-c">#include &quot;zxv_gfx.h&quot;
+
+static uint8_t texels[64 * 64];                 /* una textura de 64x64, un byte por texel */
+static zxv_m7line rows[192];                    /* una transformación por línea de pantalla */
+
+int main(void)
+{
+    for (int y = 0; y &lt; 64; y++)                /* un tablero de ajedrez */
+        for (int x = 0; x &lt; 64; x++)
+            texels[y * 64 + x] = ((x / 8) ^ (y / 8)) &amp; 1 ? 12 : 4;
+    const zxv_m7tex tex = { texels, 6, 1, 0, 0 };   /* 2^6 = 64, se repite */
+
+    int visible = 0;
+    for (int frame = 0; zxv_key_get() &lt; 0; frame++) {
+        int hidden = 1 - visible;
+        zxv_gfx_draw_page(hidden);
+        zxv_gfx_rect(0, 0, 256, 72, 9);         /* el cielo */
+        zxv_m7cam cam = {
+            .x = frame &lt;&lt; 15, .y = 0,           /* coma fija 16.16: avanza por x */
+            .height = 16 &lt;&lt; 16,
+            .angle = frame * 64,                /* 0x10000 es una vuelta entera */
+            .focal = 128 &lt;&lt; 16,
+            .horizon = 64,                      /* línea de la pantalla del horizonte */
+        };
+        zxv_m7_camera(rows, 192, &amp;cam);         /* las líneas 0..64 quedan vacías */
+        zxv_m7_draw(&amp;tex, rows + 72, 72, 120);  /* dibuja las líneas 72..191 */
+        zxv_set_page(hidden);
+        zxv_wait_vblank();
+        visible = hidden;
+    }
+    zxv_set_page(0);
+    zxv_gfx_draw_page(0);
+    return 0;
+}
+</code></pre>
+<p>El modo 7 cuesta unas 15 instrucciones por píxel: la pantalla entera en el
+modo 0 es un cuarto del frame, y en el modo 1 no cabe en un frame, así que
+dibuja solo el suelo. El ejemplo <a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/graphics/graphics.c"><code>graphics</code></a>
+pone objetos sobre el suelo con sprites escalados, proyectados con la
+misma cámara.</p>
+<h2 id="imágenes-desde-ficheros-png-png2gfxpy">Imágenes desde ficheros PNG: <code>png2gfx.py</code><a class="ancla" href="#imágenes-desde-ficheros-png-png2gfxpy" aria-hidden="true">#</a></h2>
+<p>Dibujar todo con código va bien para las figuras, pero para el pixel art
+de verdad querrás un programa de dibujo. <code>sdk/tools/png2gfx.py</code> convierte
+imágenes PNG en un <strong>fichero <code>.gfx</code></strong>: sprites, tiles, niveles enteros
+(cortados en tiles, aprovechando los repetidos) y texturas del modo 7. Es
+el formato que carga el BASIC con <code>LOAD "nombre" GRAPHICS</code>, y tu programa
+en C también puede leerlo. Solo necesita Python 3.</p>
+<pre><code class="language-sh">python3 sdk/tools/png2gfx.py art.gfx --sprites 0 sheet.png 16,16 --level 0 8 level.png --wrap 0
+python3 sdk/tools/png2gfx.py --list art.gfx
+</code></pre>
+<p>La primera línea corta <code>sheet.png</code> en sprites de 16 × 16 numerados desde
+el 0, y convierte <code>level.png</code> en el mapa 0 de tiles de 8 × 8, que se
+repite. La segunda enseña lo que hay en el fichero: <code>sprite 0: 16 x 16</code>,
+<code>tiles de 8 x 8: 4</code>, <code>mapa 0: 8 x 4 celdas...</code>. Habla en español si tu
+sistema está en español, y si no, en inglés.</p>
+<table>
+<thead>
+<tr>
+<th>Orden</th>
+<th>Efecto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--sprite N IMAGEN [X,Y,AN,AL]</code></td>
+<td>El sprite N es la imagen, o ese rectángulo de ella</td>
+</tr>
+<tr>
+<td><code>--sprites N IMAGEN AN,AL</code></td>
+<td>Una hoja de sprites: los sprites N, N+1... de AN × AL, fila a fila</td>
+</tr>
+<tr>
+<td><code>--tiles S N IMAGEN [X,Y,AN,AL]</code></td>
+<td>La imagen (o el rectángulo) cortada en tiles de S × S (8 o 16), numerados desde N</td>
+</tr>
+<tr>
+<td><code>--level M S IMAGEN</code></td>
+<td>Un nivel entero: se corta en tiles de S × S aprovechando los repetidos (con <code>--flip</code>, también los espejados); el mapa M queda con su distribución. Las celdas de los tiles con píxeles transparentes llevan el bit de transparencia</td>
+</tr>
+<tr>
+<td><code>--map M S FICHERO.csv</code></td>
+<td>El mapa M a partir de un CSV con el valor de cada celda</td>
+</tr>
+<tr>
+<td><code>--texture N IMAGEN [C]</code></td>
+<td>La textura N (un cuadrado de lado potencia de 2, de 2 a 256); se repite o, con C, fuera es del color C</td>
+</tr>
+<tr>
+<td><code>--wrap M</code></td>
+<td>El mapa M se repite</td>
+</tr>
+<tr>
+<td><code>--screen N IMAGEN [B]</code></td>
+<td>La pantalla N (como las de <code>SAVE "x" SCREEN$</code> y las pantallas de carga): de 256 × 192 (modo 0) o 512 × 384 (modo 1), o el cuadro entero (320 × 240 o 640 × 480) con el borde del color de su esquina; B, el color del borde. Con colores que no son los de siempre (16 como mucho), lleva su paleta</td>
+</tr>
+<tr>
+<td><code>--flip</code></td>
+<td><code>--level</code> aprovecha también los tiles espejados</td>
+</tr>
+<tr>
+<td><code>--key RRGGBB</code></td>
+<td>Ese color es transparente (además de los píxeles con alfa menor que 128)</td>
+</tr>
+</tbody>
+</table>
+<p>Cada píxel toma el color de ZX-V más cercano, con un aviso si no era
+exacto. Dibuja con los 15 colores exactos: cada componente a 00, D7 o FF
+(por ejemplo, <code>D70000</code> es el rojo y <code>FF0000</code> el rojo brillante). Las
+pantallas conservan sus colores: con colores que no son los de siempre (16
+como mucho), la pantalla lleva su paleta.</p>
+<h3 id="leer-un-fichero-gfx-en-c">Leer un fichero <code>.gfx</code> en C<a class="ancla" href="#leer-un-fichero-gfx-en-c" aria-hidden="true">#</a></h3>
+<p>Un fichero <code>.gfx</code> empieza con las 4 letras <code>ZXVG</code>, un byte de versión (1),
+un byte a cero y el número de objetos (16 bits). Cada objeto tiene una
+cabecera de 8 bytes (tipo, 0, número en 16 bits y longitud de sus datos en
+32 bits) seguida de sus datos:</p>
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Objeto</th>
+<th>Datos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sprite</td>
+<td>ancho y alto (16 bits cada uno), y sus píxeles: ⌈ancho / 2⌉ bytes por línea</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tiles de S × S (S es el número del objeto)</td>
+<td>cuántos (16 bits), 0 (16 bits) y los tiles (32 o 128 bytes cada uno)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Mapa</td>
+<td>ancho y alto (16 bits cada uno), lado del tile y repetición (bytes), 0 (16 bits) y las celdas (16 bits cada una)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Textura</td>
+<td>log2 del lado, repetición, color de fuera, 0 (bytes) y los texels (un byte cada uno)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Pantalla</td>
+<td>modo (0 o 1), color del borde, marcas (bit 0: lleva paleta) y 0 (bytes); si lleva paleta, sus 16 colores RGB565 (32 bytes); y los píxeles de la página, como en la VRAM (24.576 bytes en modo 0, 98.304 en modo 1)</td>
+</tr>
+</tbody>
+</table>
+<p>Todos los números van con el byte bajo primero. Para leerlos, el SDK trae
+una pequeña biblioteca, <strong><code>zxv_gfxfile.h</code></strong> (con <code>gfxfile.c</code>). El fichero
+puede estar donde sea: leído de la tarjeta con <code>zxv_file_load</code> o dentro del
+programa. Como los objetos de dentro del fichero no van alineados, cada
+función copia el suyo en un buffer del programa, alineado como lo quiere el
+motor, y devuelve los bytes que necesita ese buffer (0 si el objeto no está;
+con el buffer a <code>NULL</code>, solo lo dice):</p>
+<table>
+<thead>
+<tr>
+<th>Función</th>
+<th>Lo que hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>zxv_gfxf_open(&amp;f, datos, tamaño)</code></td>
+<td>1 si es un <code>.gfx</code> bien formado (mira todos los objetos); deja <code>f</code> listo</td>
+</tr>
+<tr>
+<td><code>zxv_gfxf_sprite(&amp;f, n, &amp;bitmap, buf, sitio)</code></td>
+<td>El sprite <code>n</code> como bitmap, para <code>zxv_spr_prepare</code>, <code>zxv_gfx_blit</code> o <code>zxv_gfx_target</code></td>
+</tr>
+<tr>
+<td><code>zxv_gfxf_tiles(&amp;f, lado, buf, sitio, &amp;cuántos)</code></td>
+<td>Los tiles de 8 o de 16</td>
+</tr>
+<tr>
+<td><code>zxv_gfxf_map(&amp;f, n, &amp;mapa, tiles, buf, sitio)</code></td>
+<td>El mapa <code>n</code>: sus celdas en <code>buf</code> y, en el <code>zxv_tilemap</code>, los tiles que se le den</td>
+</tr>
+<tr>
+<td><code>zxv_gfxf_texture(&amp;f, n, &amp;textura, buf, sitio)</code></td>
+<td>La textura <code>n</code> de modo 7</td>
+</tr>
+<tr>
+<td><code>zxv_gfxf_screen(&amp;f, n, &amp;modo, &amp;borde, buf, sitio)</code></td>
+<td>La pantalla <code>n</code>: sus píxeles en <code>buf</code>, como una página de la VRAM (por ejemplo, la que no se ve, para cambiar de página en el VBLANK)</td>
+</tr>
+<tr>
+<td><code>zxv_gfxf_screen_palette(&amp;f, n, pal)</code></td>
+<td>Los 16 colores RGB565 con que se veía la pantalla <code>n</code>, para ponerlos en una paleta (<code>ZXV_PALETTE(t)</code>): 1 si los lleva; si no, 0 y los de siempre</td>
+</tr>
+<tr>
+<td><code>zxv_gfxf_find(&amp;f, clase, n, &amp;longitud)</code></td>
+<td>Los datos de un objeto tal cual están en el fichero (<code>clase</code>: <code>ZXV_GFXF_SPRITE</code> 1, <code>ZXV_GFXF_TILES</code> 2, <code>ZXV_GFXF_MAP</code> 3, <code>ZXV_GFXF_TEXTURE</code> 4, <code>ZXV_GFXF_SCREEN</code> 5)</td>
+</tr>
+</tbody>
+</table>
+<p>Este programa carga <code>art.gfx</code> de la carpeta actual, prepara los dos sprites
+y el mapa (con tiles de 8), y los desplaza:</p>
+<pre><code class="language-c">#include &quot;zxv_gfxfile.h&quot;
+
+static uint8_t file[16 * 1024];                 /* el fichero .gfx entero */
+static uint32_t pix[4096];                      /* un sprite, alineado, para prepararlo */
+static uint32_t face[1024], ball[1024];         /* los sprites preparados */
+static uint32_t tiles[64 * 32 / 4];             /* hasta 64 tiles de 8x8 */
+static uint16_t cells[1024];
+
+/* El sprite num del fichero, preparado en out. */
+static int load_sprite(const zxv_gfxfile *f, int num, void *out, uint32_t room)
+{
+    zxv_bitmap b;
+    uint32_t n = zxv_gfxf_sprite(f, num, &amp;b, pix, sizeof(pix));
+    if (!n || n &gt; sizeof(pix) || zxv_spr_prepare(&amp;b, 0, 0, b.w, b.h, NULL) &gt; room)
+        return 0;
+    zxv_spr_prepare(&amp;b, 0, 0, b.w, b.h, out);
+    return 1;
+}
+
+int main(void)
+{
+    zxv_gfxfile f;
+    zxv_tilemap level;
+    int n = zxv_file_load(&quot;art.gfx&quot;, file, sizeof(file));     /* si cabe en 'file' */
+    if (n &lt; 0 || !zxv_gfxf_open(&amp;f, file, (uint32_t)n) ||
+        !load_sprite(&amp;f, 0, face, sizeof(face)) || !load_sprite(&amp;f, 1, ball, sizeof(ball)))
+        zxv_report_error(0, &quot;No se puede cargar art.gfx&quot;);  /* vuelve al BASIC con este informe */
+    uint32_t t = zxv_gfxf_tiles(&amp;f, 8, tiles, sizeof(tiles), NULL);
+    uint32_t c = zxv_gfxf_map(&amp;f, 0, &amp;level, tiles, cells, sizeof(cells));
+    if (!t || t &gt; sizeof(tiles) || !c || c &gt; sizeof(cells))
+        zxv_report_error(0, &quot;El mapa de art.gfx no cabe&quot;);
+    int visible = 0;
+    for (int frame = 0; zxv_key_get() &lt; 0; frame++) {
+        int hidden = 1 - visible;
+        zxv_gfx_draw_page(hidden);
+        zxv_map_draw(&amp;level, frame, 0, 0, 0, 256, 192, ZXV_MAP_ALL);
+        zxv_spr_draw(face, 60, 120, 0, NULL);
+        zxv_spr_draw(ball, 100 + frame % 100, 60, 0, NULL);
+        zxv_set_page(hidden);
+        zxv_wait_vblank();
+        visible = hidden;
+    }
+    zxv_set_page(0);
+    zxv_gfx_draw_page(0);
+    return 0;
+}
+</code></pre>
+<p>Para compilarlo, añade <code>$(SDK)/gfxfile.c</code> a los ficheros del programa (en
+el Makefile de arriba, <code>SOURCES := hello.c $(SDK)/gfxfile.c</code>), y pon
+<code>art.gfx</code> en la misma carpeta de la tarjeta SD que el programa. Los juegos
+<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/route128/art.c">Route 128</a> y
+<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/estela/draw.c">Estela</a> de los ejemplos leen así sus
+gráficos: llevan su <code>.gfx</code> dentro del programa y, si en la tarjeta hay
+otro, usan ese.</p>
+<h2 id="el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos para el PC: <code>zxv-gfx</code><a class="ancla" href="#el-editor-de-gráficos-para-el-pc-zxv-gfx" aria-hidden="true">#</a></h2>
+<p>Para dibujar en el PC, los paquetes del emulador traen <strong><code>zxv-gfx</code></strong>, un
+editor de los mismos ficheros <code>.gfx</code> para Windows y Linux (en la AppImage,
+<code>./ZX-V-x86_64.AppImage zxv-gfx</code>). Es software libre con la licencia MIT: su
+código está en <a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/tools/gfx"><code>sdk/tools/gfx</code></a>, y se compila solo
+con Qt 6 (<code>cmake -S sdk/tools/gfx -B build-gfx</code>). Habla español o inglés,
+el del sistema (o el que se le pida: <code>zxv-gfx --lang en</code>).</p>
+<p><img alt="zxv-gfx con el nivel del juego de plataformas de los ejemplos" src="../../images/sdk-gfx-editor-es.png" /></p>
+<ul>
+<li><strong>Una pestaña por clase de objeto</strong> (sprites, tiles de 8 y de 16, mapas,
+  texturas y pantallas) y, a la izquierda, sus miniaturas; doble clic en un hueco vacío
+  lo crea. A la derecha, la paleta, las propiedades (el tamaño, la
+  repetición, el color de fuera…) y una vista previa: los sprites animados
+  con los siguientes, los tiles repetidos 3 × 3 para ver si casan, y las
+  texturas también como suelo del modo 7 (Ver &gt; La textura en el modo 7).</li>
+<li><strong>Para dibujar:</strong> lápiz, línea, caja, elipse (vacías o llenas), rellenar,
+  coger un color y seleccionar. Lo seleccionado se mueve arrastrándolo, se
+  espeja, se gira y se desplaza; Enter lo deja y Esc lo devuelve a su sitio.
+  El botón izquierdo pinta con un color y el derecho con otro (X los cambia).</li>
+<li><strong>Los mapas</strong> se pintan con el tile elegido en el panel <em>Tiles para pintar</em>
+  y sus atributos (los dos espejos, transparente y delante); el botón
+  derecho pone el 0. Doble clic en un tile del panel lo abre para editarlo.</li>
+<li><strong>Las pantallas</strong> pueden tener sus propios colores: doble clic en un color
+  de la paleta lo cambia por cualquier otro, y la pantalla pasa a llevar su
+  paleta.</li>
+<li><strong>Copiar y pegar</strong> con el portapapeles del sistema: lo copiado se pega en
+  otros programas como imagen, y una imagen de otro programa se pega con los
+  colores de ZX-V (el más cercano a cada píxel).</li>
+<li><strong>Importar una imagen</strong> (Archivo &gt; Importar, o arrastrándola a la ventana):
+  un sprite, una hoja de sprites, tiles, un nivel entero (los tiles,
+  aprovechando los repetidos y, si se quiere, los espejados, y el mapa), una
+  textura o una pantalla. Da lo mismo que <code>png2gfx.py</code> con las mismas
+  órdenes.
+  <strong>Exportar como PNG</strong> guarda el objeto, el juego de tiles o el mapa
+  dibujado.</li>
+<li><strong>Deshacer y rehacer</strong> sin límite, zoom con Ctrl y la rueda, y el botón
+  central para arrastrar la vista. La barra de estado dice lo que ocuparía
+  todo en la máquina.</li>
+</ul>
+<h2 id="el-editor-de-gráficos-de-la-máquina-gfxedit">El editor de gráficos de la máquina: <code>gfxedit</code><a class="ancla" href="#el-editor-de-gráficos-de-la-máquina-gfxedit" aria-hidden="true">#</a></h2>
+<p>Sin salir de la máquina: <code>LOAD "ROM:gfxedit"</code> (o el <code>gfxedit.zxv</code> de
+<code>sdk/build</code>) abre un editor de los mismos ficheros <code>.gfx</code>, que se usa con
+el ratón. Arriba hay una pestaña por cada clase de gráfico:</p>
+<table>
+<thead>
+<tr>
+<th>Pestaña</th>
+<th>Qué edita</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sprites</td>
+<td>Los 256 sprites, de 1 × 1 a 1024 × 1024 píxeles (el color 8 es el transparente)</td>
+</tr>
+<tr>
+<td>Tiles 8, Tiles 16</td>
+<td>Los dos juegos de tiles: el tile ampliado, el mismo repetido 3 × 3 para ver si casa con sus vecinos y debajo todo el juego, para elegir</td>
+</tr>
+<tr>
+<td>Mapas</td>
+<td>Los 16 mapas: se pintan con el tile elegido y sus atributos (los dos espejos, el 8 transparente y delante), como con <code>MAP POKE</code></td>
+</tr>
+<tr>
+<td>Texturas</td>
+<td>Las 4 texturas del modo 7: su lado, si se repiten y el color de fuera</td>
+</tr>
+</tbody>
+</table>
+<p>Las pantallas (las de <code>SAVE "x" SCREEN$</code> y las pantallas de carga) no se
+editan aquí, sino en <code>zxv-gfx</code>: al cargar un fichero se las salta, y al
+grabarlo no las lleva.</p>
+<ul>
+<li><strong>Para dibujar:</strong> lápiz, línea, caja, caja llena, rellenar y coger un
+  color de la imagen. El botón izquierdo pinta con un color de la paleta y
+  el derecho, con otro.</li>
+<li><strong>Con la imagen entera:</strong> los espejos, girarla, moverla (lo que sale por
+  un lado entra por el otro), vaciarla, copiarla y pegarla.</li>
+<li><strong>Los sprites se animan:</strong> el panel enseña el sprite y los siguientes,
+  uno tras otro, para ver una animación hecha con sprites seguidos.</li>
+<li><strong>Deshacer</strong> con U (o Ctrl+Z); el zoom, con la rueda o con + y -;
+  RePág y AvPág, el objeto anterior y el siguiente; Tab, la pestaña
+  siguiente.</li>
+<li><strong>Cargar</strong> y <strong>Grabar</strong> usan la tarjeta. Si se arranca desde <code>ROM:</code>, graba
+  en <code>SD:</code>.</li>
+</ul>
+<p>Caben unos 112 KB de gráficos a la vez. Su código está en
+<a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/gfxedit"><code>sdk/examples/gfxedit</code></a>: <code>store.c</code> lee y
+escribe los <code>.gfx</code> y tu programa puede usarlo tal cual.</p>
+<h2 id="cuánto-cuesta">¿Cuánto cuesta?<a class="ancla" href="#cuánto-cuesta" aria-hidden="true">#</a></h2>
+<p>A 60 frames por segundo el procesador tiene unos <strong>2,4 millones de ciclos
+por frame</strong>. Estas cifras se midieron en la máquina real:</p>
+<table>
+<thead>
+<tr>
+<th>Operación</th>
+<th>Modo 0 (256 × 192)</th>
+<th>Modo 1 (512 × 384)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Borrar la página</td>
+<td>1,2 % de un frame</td>
+<td>2,7 %</td>
+</tr>
+<tr>
+<td>Pantalla entera de tiles de 8 × 8, alineada</td>
+<td>3,9 %</td>
+<td>11,7 %</td>
+</tr>
+<tr>
+<td>Pantalla entera de tiles de 8 × 8, desplazada cualquier número de píxeles</td>
+<td>13,1 %</td>
+<td>48 %</td>
+</tr>
+<tr>
+<td>Pantalla entera de tiles de 16 × 16, alineada</td>
+<td>2,2 %</td>
+<td>6,4 %</td>
+</tr>
+<tr>
+<td>100 sprites de 16 × 16</td>
+<td>6,1 %</td>
+<td>5,6 %</td>
+</tr>
+<tr>
+<td>100 sprites de 16 × 16 escalados a 32 × 32</td>
+<td>63 %</td>
+<td>62 %</td>
+</tr>
+<tr>
+<td>100 sprites de 16 × 16 escalados a 12 × 12</td>
+<td>28 %</td>
+<td>27 %</td>
+</tr>
+<tr>
+<td>Modo 7, pantalla entera</td>
+<td>31 %</td>
+<td>121 %</td>
+</tr>
+<tr>
+<td>100 triángulos de unos 470 píxeles</td>
+<td>29 %</td>
+<td>28 %</td>
+</tr>
+<tr>
+<td>100 líneas al azar</td>
+<td>14 %</td>
+<td>25 %</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Con el <a href="#scroll-por-hardware">scroll por hardware</a> el escenario no se
+  redibuja: una columna nueva de 8 × 144 píxeles cuesta el 0,8 % en el modo</li>
+<li>En el modo 1 es casi obligatorio.</li>
+<li>Los tiles opacos (sin el bit de transparencia) se dibujan más deprisa que
+  los transparentes.</li>
+<li>Los sprites escalados son para unos pocos objetos que se acercan, no
+  para todos.</li>
+</ul>
+<nav class="pasos"><a class="anterior" href="index.html"><small>Anterior</small>← Programas nativos (SDK)</a><a class="siguiente" href="reference.html"><small>Siguiente</small>Referencia de la API →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

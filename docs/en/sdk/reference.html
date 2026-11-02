@@ -1,0 +1,2456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SDK reference · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../es/sdk/reference.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../getting-started.html">Getting started</a>
+</li>
+<li><a href="../emulator.html">The emulator</a>
+</li>
+<li><a href="../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Learn BASIC</a>
+</li>
+<li><a href="../basic/editor.html">The editor</a>
+</li>
+<li><a href="../basic/reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="index.html">Native programs (SDK)</a>
+</li>
+<li><a href="graphics.html">Graphics</a>
+</li>
+<li><a href="reference.html" class="aqui">API reference</a>
+<ul>
+</ul>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../hardware/board.html">The board</a>
+</li>
+<li><a href="../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="sdk-reference">SDK reference</h1>
+<p>Everything the SDK offers, grouped by topic: the functions of the system
+(the API), the graphics engine, the registers and constants of the
+machine, the memory map and the file formats. To learn how to use them,
+read the <a href="index.html">SDK guide</a> and <a href="graphics.html">Graphics</a>.</p>
+<p><strong>Contents</strong></p>
+<ul>
+<li><a href="#the-files-of-the-sdk">The files of the SDK</a></li>
+<li><a href="#conventions">Conventions</a></li>
+<li><a href="#system-and-timing">System and timing</a></li>
+<li><a href="#screen-and-text">Screen and text</a></li>
+<li><a href="#keyboard-joystick-and-mouse">Keyboard, joystick and mouse</a></li>
+<li><a href="#sound">Sound</a></li>
+<li><a href="#music-and-effects">Music and effects</a></li>
+<li><a href="#files-and-folders">Files and folders</a></li>
+<li><a href="#clock-and-language">Clock and language</a></li>
+<li><a href="#ending-a-program-and-running-others">Ending a program and running others</a></li>
+<li><a href="#graphics-engine">Graphics engine</a></li>
+<li><a href="#gfx-graphics-files"><code>.gfx</code> graphics files</a></li>
+<li><a href="#video-registers">Video registers</a></li>
+<li><a href="#input-registers">Input registers</a></li>
+<li><a href="#sound-registers">Sound registers</a></li>
+<li><a href="#system-variables">System variables</a></li>
+<li><a href="#error-codes">Error codes</a></li>
+<li><a href="#api-function-numbers">API function numbers</a></li>
+<li><a href="#memory-map">Memory map</a></li>
+<li><a href="#the-zxv-file-format">The <code>.zxv</code> file format</a></li>
+<li><a href="#tools">Tools</a></li>
+<li><a href="#the-standard-c-library-picolibc">The standard C library (picolibc)</a></li>
+<li><a href="#internal-definitions">Internal definitions</a></li>
+</ul>
+<h2 id="the-files-of-the-sdk">The files of the SDK<a class="ancla" href="#the-files-of-the-sdk" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>include/zxv_api.h</code></td>
+<td>The API as <code>static inline</code> C functions; the mouse pointer (<code>zxv_mouse_t</code>); types <code>zxv_dirent_t</code> and <code>zxv_clock_t</code>. Includes <code>zxv.h</code>, <code>&lt;stdint.h&gt;</code> and <code>&lt;stddef.h&gt;</code> (so <code>NULL</code> and <code>size_t</code> are available)</td>
+</tr>
+<tr>
+<td><code>include/zxv_gfx.h</code></td>
+<td>The graphics engine: types, constants and functions. Includes <code>zxv_api.h</code> (define <code>ZXV_GFX_NO_API</code> to get only the types and constants)</td>
+</tr>
+<tr>
+<td><code>include/zxv.h</code></td>
+<td>Addresses, registers and constants, as <code>#define</code> only, so it also works in assembly (<code>.S</code> files)</td>
+</tr>
+<tr>
+<td><code>include/sys/dirent.h</code></td>
+<td><code>struct dirent</code> and <code>DIR</code> for picolibc's <code>&lt;dirent.h&gt;</code></td>
+</tr>
+<tr>
+<td><code>crt0.S</code></td>
+<td>Start-up code: sets the <code>tp</code> register (thread variables, used by picolibc's <code>errno</code>) and jumps to <code>main</code></td>
+</tr>
+<tr>
+<td><code>zxv.ld</code></td>
+<td>Linker script: everything at the start of the user RAM, contiguous; heap for picolibc</td>
+</tr>
+<tr>
+<td><code>zxvlib.c</code></td>
+<td><code>memcpy</code>, <code>memmove</code>, <code>memset</code>, <code>memcmp</code>, for programs without the C library</td>
+</tr>
+<tr>
+<td><code>include/zxv_gfxfile.h</code>, <code>gfxfile.c</code></td>
+<td>Reads <code>.gfx</code> graphics files (from <code>zxv-gfx</code>, <code>gfxedit</code> and <code>png2gfx.py</code>): sprites, tiles, maps and textures, in the <code>zxv_gfx.h</code> formats, and screens</td>
+</tr>
+<tr>
+<td><code>include/zxv_music.h</code>, <code>music/</code></td>
+<td>Music and effects for the two AY chips: PT3, TurboSound, PT2, STC, ASC and PSG modules and AYFX effects</td>
+</tr>
+<tr>
+<td><code>include/zxv_version.h</code></td>
+<td>The ZX-V version (<code>ZXV_VERSION</code>, for example <code>"0.7.2"</code>)</td>
+</tr>
+<tr>
+<td><code>zxvc.c</code></td>
+<td>The glue between picolibc and the API (files, folders, console, heap, time, exit)</td>
+</tr>
+<tr>
+<td><code>tools/elf2zxv.py</code></td>
+<td>Converts the linked <code>.elf</code> into a <code>.zxv</code></td>
+</tr>
+<tr>
+<td><code>tools/gfx/</code></td>
+<td><code>zxv-gfx</code>, the graphics editor for the PC</td>
+</tr>
+<tr>
+<td><code>tools/tracker/</code></td>
+<td><code>zxv-tracker</code>, the tracker for the PC: PT3 music and AYFX effects</td>
+</tr>
+<tr>
+<td><code>tools/png2gfx.py</code></td>
+<td>Converts PNG images into a <code>.gfx</code> graphics file</td>
+</tr>
+<tr>
+<td><code>tools/mkweb.py</code></td>
+<td>The web page of a single game (see <a href="web.html">Publishing your game on the web</a>)</td>
+</tr>
+<tr>
+<td><code>Makefile</code></td>
+<td>Builds the examples (<code>make</code>, <code>make run SD=folder</code>, <code>make debug SD=folder</code>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="conventions">Conventions<a class="ancla" href="#conventions" aria-hidden="true">#</a></h2>
+<ul>
+<li>All functions follow the standard RISC-V <code>ilp32</code> calling convention; the
+  inline functions of the headers call the ROM through the
+  <a href="#api-function-numbers">API table</a>.</li>
+<li>Functions that can fail return an <code>int</code>: <strong>0 or more</strong> on success and a
+  <strong>negative</strong> <a href="#error-codes">error code</a> on failure.</li>
+<li>"The drawing page" is the video page chosen with <code>zxv_gfx_draw_page</code> (0
+  at the start of a program); "the visible page" is the one chosen with
+  <code>zxv_set_page</code>.</li>
+<li>Registers are memory: read and write them through <code>volatile</code> pointers,
+  for example <code>*(volatile uint8_t *)(uintptr_t)ZXV_V_BORDER = 2;</code>. Video
+  registers take effect at the next VBLANK.</li>
+</ul>
+<h2 id="system-and-timing">System and timing<a class="ancla" href="#system-and-timing" aria-hidden="true">#</a></h2>
+<h3 id="zxv_wait_vblank"><code>zxv_wait_vblank</code><a class="ancla" href="#zxv_wait_vblank" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_wait_vblank(void);
+</code></pre>
+<p>Waits for the next VBLANK, the start of a frame (60 per second). It turns
+interrupts on if they were off. Do not call it from a frame hook.</p>
+<h3 id="zxv_set_frame_hook"><code>zxv_set_frame_hook</code><a class="ancla" href="#zxv_set_frame_hook" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_set_frame_hook(void (*fn)(void));
+</code></pre>
+<p>Makes the system call <code>fn</code> at every VBLANK, with interrupts off; <code>0</code>
+removes it. The function must be short and cannot call
+<code>zxv_wait_vblank</code>. Remove it before your program ends. Variables shared
+with the hook must be <code>volatile</code>.</p>
+<h3 id="zxv_time_us"><code>zxv_time_us</code><a class="ancla" href="#zxv_time_us" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">uint32_t zxv_time_us(void);
+</code></pre>
+<p>A microsecond counter. It wraps round every 2³² µs (about 71 minutes):
+compare times by subtracting them as unsigned numbers.</p>
+<pre><code class="language-c">uint32_t t0 = zxv_time_us();
+do_something();
+uint32_t elapsed = zxv_time_us() - t0;
+</code></pre>
+<h3 id="zxv_api_version"><code>zxv_api_version</code><a class="ancla" href="#zxv_api_version" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">uint32_t zxv_api_version(void);
+</code></pre>
+<p>The version of the machine specification, as <code>major &lt;&lt; 16 | minor</code>
+(currently 1, version 0.1); the same as <code>ZXV_SPEC_VERSION</code> and the system
+variable <code>ZXV_SV_VERSION</code>.</p>
+<h3 id="constants">Constants<a class="ancla" href="#constants" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_FRAME_HZ</code></td>
+<td>60</td>
+<td>Frames per second</td>
+</tr>
+<tr>
+<td><code>ZXV_CPU_HZ_REF</code></td>
+<td>144000000</td>
+<td>Reference speed of the processor (Hz)</td>
+</tr>
+<tr>
+<td><code>ZXV_SPEC_VERSION</code></td>
+<td>1</td>
+<td>Version of the specification (0.1)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="screen-and-text">Screen and text<a class="ancla" href="#screen-and-text" aria-hidden="true">#</a></h2>
+<h3 id="zxv_set_mode"><code>zxv_set_mode</code><a class="ancla" href="#zxv_set_mode" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_set_mode(int mode);
+</code></pre>
+<p>Changes the video mode (0: 256 × 192; 1: 512 × 384) and clears the
+drawing page with the paper colour of the text (see
+<a href="#zxv_text_colors-zxv_text_at"><code>zxv_text_colors</code></a>). Only bit 0 of <code>mode</code>
+counts.</p>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_MODE0_W</code>, <code>ZXV_MODE0_H</code></td>
+<td>256, 192</td>
+</tr>
+<tr>
+<td><code>ZXV_MODE1_W</code>, <code>ZXV_MODE1_H</code></td>
+<td>512, 384</td>
+</tr>
+</tbody>
+</table>
+<h3 id="zxv_set_page"><code>zxv_set_page</code><a class="ancla" href="#zxv_set_page" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_set_page(int page);
+</code></pre>
+<p>Makes page 0 or 1 visible from the next VBLANK (writes <code>ZXV_V_PAGE</code>).</p>
+<h3 id="zxv_cls"><code>zxv_cls</code><a class="ancla" href="#zxv_cls" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_cls(int colour);
+</code></pre>
+<p>Fills the drawing page with a colour (0–15) and moves the text cursor to
+the top left.</p>
+<h3 id="zxv_plot"><code>zxv_plot</code><a class="ancla" href="#zxv_plot" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_plot(int x, int y, int colour);
+</code></pre>
+<p>Sets one pixel of the drawing page. Points outside the page are ignored.</p>
+<h3 id="zxv_print_char-zxv_print_str"><code>zxv_print_char</code>, <code>zxv_print_str</code><a class="ancla" href="#zxv_print_char-zxv_print_str" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_print_char(int c);
+void zxv_print_str(const char *s);
+</code></pre>
+<p>Print a character or a zero-terminated string at the text cursor of the
+drawing page, in cells of 8 × 8 pixels, with the colours of
+<code>zxv_text_colors</code>. <code>'\n'</code> and <code>'\r'</code> go to the start of the next line,
+<code>'\b'</code> deletes the previous character, and the screen scrolls up when the
+text reaches the bottom.</p>
+<p><code>zxv_print_char</code> takes a Unicode code point and <code>zxv_print_str</code> a string in
+UTF-8 (the encoding of C source files, so you can write <code>"¡Hola!"</code> in your
+program). They draw the ASCII characters 32 to 126, <code>©</code>, and the Spanish
+letters of the ROM's font: <code>á é í ó ú ü ñ</code>, their capitals <code>Á É Í Ó Ú Ü Ñ</code>,
+<code>¿</code> and <code>¡</code>. Any other character prints as <code>?</code>.</p>
+<h3 id="zxv_text_colors-zxv_text_at"><code>zxv_text_colors</code>, <code>zxv_text_at</code><a class="ancla" href="#zxv_text_colors-zxv_text_at" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_text_colors(int ink, int paper);
+void zxv_text_at(int col, int row);
+</code></pre>
+<p><code>zxv_text_colors</code> sets the colours (0–15) of the text that
+<code>zxv_print_char</code> and <code>zxv_print_str</code> write from then on: each cell is
+filled with <code>paper</code> and the character drawn in <code>ink</code>. Every program
+starts with black on white (0 and 7), whatever the previous one left.</p>
+<p><code>zxv_text_at</code> moves the text cursor to column <code>col</code> and row <code>row</code>, counted
+from 0 at the top left: 32 × 24 cells in mode 0, 64 × 48 in mode 1.
+<code>zxv_cls</code> and <code>zxv_set_mode</code> also put the cursor back at the top left.</p>
+<pre><code class="language-c">zxv_text_colors(14, 1);                 /* bright yellow on blue */
+zxv_text_at(8, 10);
+zxv_print_str(&quot;¡Hola, señor Núñez!&quot;);
+</code></pre>
+<h3 id="palette">Palette<a class="ancla" href="#palette" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Number</th>
+<th>Colour</th>
+<th>RGB</th>
+<th>Number</th>
+<th>Colour</th>
+<th>RGB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Black</td>
+<td><code>000000</code></td>
+<td>8</td>
+<td>Black (transparent in the engine)</td>
+<td><code>000000</code></td>
+</tr>
+<tr>
+<td>1</td>
+<td>Blue</td>
+<td><code>0000D7</code></td>
+<td>9</td>
+<td>Bright blue</td>
+<td><code>0000FF</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Red</td>
+<td><code>D70000</code></td>
+<td>10</td>
+<td>Bright red</td>
+<td><code>FF0000</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Magenta</td>
+<td><code>D700D7</code></td>
+<td>11</td>
+<td>Bright magenta</td>
+<td><code>FF00FF</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Green</td>
+<td><code>00D700</code></td>
+<td>12</td>
+<td>Bright green</td>
+<td><code>00FF00</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Cyan</td>
+<td><code>00D7D7</code></td>
+<td>13</td>
+<td>Bright cyan</td>
+<td><code>00FFFF</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Yellow</td>
+<td><code>D7D700</code></td>
+<td>14</td>
+<td>Bright yellow</td>
+<td><code>FFFF00</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td>White</td>
+<td><code>D7D7D7</code></td>
+<td>15</td>
+<td>Bright white</td>
+<td><code>FFFFFF</code></td>
+</tr>
+</tbody>
+</table>
+<p>The bits of the number are bright, green, red, blue (from bit 3 to bit 0).</p>
+<p>These are the palettes' colours at start. Each remapping table has its own
+palette of 16 RGB565 colours (u16: red in bits 15–11, green in 10–5 and blue
+in 4–0) at <code>ZXV_PALETTE(t)</code>, which can be changed: see <a href="#video-registers">Video
+registers</a>. <code>ZXV_RGB(r, g, b)</code> gives the RGB565 of a colour
+with components from 0 to 255 (215, <code>D7</code>, is the normal level:
+<code>ZXV_RGB(215, 0, 0)</code> is red) and <code>ZXV_STD_RGB565(i)</code>, index <code>i</code>'s usual
+colour.</p>
+<h2 id="keyboard-joystick-and-mouse">Keyboard, joystick and mouse<a class="ancla" href="#keyboard-joystick-and-mouse" aria-hidden="true">#</a></h2>
+<h3 id="zxv_key_get"><code>zxv_key_get</code><a class="ancla" href="#zxv_key_get" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_key_get(void);
+</code></pre>
+<p>Takes the next key from the key queue (64 entries), or returns −1 if it
+is empty. Keys held down repeat (after 500 ms, 20 times a second).</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unicode code of the character</td>
+<td>A key that types a character (<code>'a'</code>, <code>'ñ'</code> = 0xF1...)</td>
+</tr>
+<tr>
+<td>0x0D, 0x08, 0x09, 0x1B</td>
+<td>Enter, Backspace, Tab, Esc</td>
+</tr>
+<tr>
+<td><code>ZXV_KEY_SPECIAL</code> (0xF000) | HID code</td>
+<td>Any other key: F1–F12, cursors, Home, End...</td>
+</tr>
+</tbody>
+</table>
+<p>Ctrl+Alt+Delete never arrives: it returns to BASIC.</p>
+<h3 id="zxv_joy_read"><code>zxv_joy_read</code><a class="ancla" href="#zxv_joy_read" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">uint32_t zxv_joy_read(int n);
+</code></pre>
+<p>The state of gamepad <code>n</code> (0 or 1; the first one connected is 0). A
+disconnected gamepad reads 0.</p>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Bit</th>
+<th>Constant</th>
+<th>Bit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_JOY_RIGHT</code></td>
+<td>0</td>
+<td><code>ZXV_JOY_FIRE2</code></td>
+<td>5</td>
+</tr>
+<tr>
+<td><code>ZXV_JOY_LEFT</code></td>
+<td>1</td>
+<td><code>ZXV_JOY_FIRE3</code></td>
+<td>6</td>
+</tr>
+<tr>
+<td><code>ZXV_JOY_DOWN</code></td>
+<td>2</td>
+<td><code>ZXV_JOY_START</code></td>
+<td>7</td>
+</tr>
+<tr>
+<td><code>ZXV_JOY_UP</code></td>
+<td>3</td>
+<td><code>ZXV_JOY_SELECT</code></td>
+<td>8</td>
+</tr>
+<tr>
+<td><code>ZXV_JOY_FIRE1</code></td>
+<td>4</td>
+<td><code>ZXV_JOY_CONNECTED</code></td>
+<td>15</td>
+</tr>
+</tbody>
+</table>
+<p>Direction comes from the d-pad or the left stick. On a PlayStation pad, ✕,
+○ and □ are fire 1, 2 and 3; Share/Create is Select and Options is Start.
+On a generic pad, buttons 1–3 are the fire buttons, 9 is Select and 10
+Start.</p>
+<h3 id="the-mouse-zxv_mouse_t-zxv_mouse_init-zxv_mouse_update">The mouse: <code>zxv_mouse_t</code>, <code>zxv_mouse_init</code>, <code>zxv_mouse_update</code><a class="ancla" href="#the-mouse-zxv_mouse_t-zxv_mouse_init-zxv_mouse_update" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {
+    int x, y;                   /* the pointer, in pixels */
+    int wheel;                  /* the wheel, accumulated (positive upwards) */
+    uint8_t buttons;            /* bits 0-2: left, right and middle */
+    uint16_t rx, ry;            /* internal: the counters at the last update */
+    uint8_t rw;
+} zxv_mouse_t;
+
+void zxv_mouse_init(zxv_mouse_t *p, int x, int y);
+void zxv_mouse_update(zxv_mouse_t *p, int w, int h);
+</code></pre>
+<p><code>zxv_mouse_init</code> puts the pointer at (x, y) and remembers the mouse's
+counters. <code>zxv_mouse_update</code>, once per frame, adds the movement since the
+last call (one mouse unit is one pixel, without acceleration) and keeps
+the pointer inside [0, w) × [0, h). It reads the
+<a href="#input-registers">input registers</a> <code>ZXV_I_MOUSE_...</code> directly.</p>
+<h2 id="sound">Sound<a class="ancla" href="#sound" aria-hidden="true">#</a></h2>
+<h3 id="zxv_ay_write"><code>zxv_ay_write</code><a class="ancla" href="#zxv_ay_write" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_ay_write(int reg, int val);
+</code></pre>
+<p>Writes <code>val</code> to register <code>reg</code> of an AY: 0–15 for the first chip,
+<code>ZXV_AY2</code> + 0–15 (16–31) for the second. The write goes through a queue
+of 256 entries and sounds a few milliseconds later; if the queue is full,
+the function waits. Writing register 13 restarts the envelope, as on the
+real chip.</p>
+<table>
+<thead>
+<tr>
+<th>Register</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0, 1</td>
+<td>Tone period of channel A: low 8 bits, high 4 bits</td>
+</tr>
+<tr>
+<td>2, 3</td>
+<td>Tone period of channel B</td>
+</tr>
+<tr>
+<td>4, 5</td>
+<td>Tone period of channel C</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Noise period (5 bits)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Mixer: bits 0–2 = 1 turn off the tone of A, B, C; bits 3–5 = 1 turn off the noise of A, B, C</td>
+</tr>
+<tr>
+<td>8, 9, 10</td>
+<td>Volume of A, B, C (0–15); bit 4 = follow the envelope</td>
+</tr>
+<tr>
+<td>11, 12</td>
+<td>Envelope period: low and high byte</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Envelope shape (0–15)</td>
+</tr>
+</tbody>
+</table>
+<p>The tone frequency is 1,773,447.5 / (16 × period) Hz; the envelope
+repeats every 256 × period / 1,773,447.5 seconds. Both chips start silent.</p>
+<h3 id="zxv_beeper_event"><code>zxv_beeper_event</code><a class="ancla" href="#zxv_beeper_event" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_beeper_event(int level);
+</code></pre>
+<p>Changes the beeper to <code>level</code> (0, or anything else for 1) at exactly the
+current time plus <code>ZXV_BEEP_LATENCY_US</code> (2000 µs). Events go through a
+queue of 256 entries (shared with <code>zxv_ay_event</code>); if it is full, the
+function waits. For simple sounds you can write the <code>ZXV_S_BEEPER</code>
+register instead; both ways add up.</p>
+<h3 id="zxv_ay_event"><code>zxv_ay_event</code><a class="ancla" href="#zxv_ay_event" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_ay_event(uint32_t t_us, int reg, int val);
+</code></pre>
+<p>Writes <code>val</code> to AY register <code>reg</code> (0–31, as in <code>zxv_ay_write</code>) at time
+<code>t_us</code> (in the clock of <code>zxv_time_us</code>) plus 2 ms. Times must go in
+increasing order: an event waits for the ones before it. If <code>t_us</code> is
+already past, it sounds at once. If the queue is full, the function waits.
+It is meant for digitised sound: see the
+<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/digital/digital.c"><code>digital</code></a> example.</p>
+<h3 id="zxv_beeper_event_at"><code>zxv_beeper_event_at</code><a class="ancla" href="#zxv_beeper_event_at" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_beeper_event_at(uint32_t t_us, int level);
+</code></pre>
+<p>Like <code>zxv_beeper_event</code>, but at time <code>t_us</code> (plus 2 ms), with the same rules
+as <code>zxv_ay_event</code>: times in increasing order. With the music of
+<code>zxv_music.h</code> playing, which goes 35 ms ahead, the beeper has to do the
+same: <code>zxv_beeper_event_at(zxv_time_us() + ZXV_MUSIC_AHEAD_US, level)</code>.</p>
+<h3 id="constants-1">Constants<a class="ancla" href="#constants-1" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_AY2</code></td>
+<td>16</td>
+<td>Add to a register number to reach the second AY</td>
+</tr>
+<tr>
+<td><code>ZXV_AY_FIFO_LEN</code></td>
+<td>256</td>
+<td>Entries in the AY queue</td>
+</tr>
+<tr>
+<td><code>ZXV_BEEP_QUEUE_LEN</code></td>
+<td>256</td>
+<td>Entries in the timed queue</td>
+</tr>
+<tr>
+<td><code>ZXV_BEEP_LATENCY_US</code></td>
+<td>2000</td>
+<td>Fixed delay of the timed queue, in µs</td>
+</tr>
+<tr>
+<td><code>ZXV_AY_STEREO_MONO</code>, <code>_ABC</code>, <code>_ACB</code></td>
+<td>0, 1, 2</td>
+<td>Values of <code>ZXV_S_AY_STEREO</code></td>
+</tr>
+<tr>
+<td><code>ZXV_EV_AY</code>, <code>ZXV_EV_AY_WRITE(reg, val)</code></td>
+<td></td>
+<td>The data word of an AY write in the timed queue (bit 31 set); only needed if you fill the queue yourself</td>
+</tr>
+</tbody>
+</table>
+<h2 id="music-and-effects">Music and effects<a class="ancla" href="#music-and-effects" aria-hidden="true">#</a></h2>
+<p>Declared in <code>zxv_music.h</code>. Build it with the files of <code>sdk/music</code>. The
+explanations and an example are in the
+<a href="index.html#tracker-music-and-sound-effects">guide</a>.</p>
+<h3 id="modules">Modules<a class="ancla" href="#modules" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_music_info(const void *data, uint32_t size, zxv_music_info_t *info);
+int zxv_music_play(const void *data, uint32_t size, int flags);
+void zxv_music_stop(void);
+void zxv_music_pause(int on);
+int zxv_music_playing(void);
+uint32_t zxv_music_steps(void);
+void zxv_music_moved(const void *song, const void *bank);
+void zxv_music_update(void);
+void zxv_music_update_until(uint32_t t_us);
+</code></pre>
+<ul>
+<li><code>zxv_music_play</code> starts playing a module and returns its format. If it
+  does not know it, it returns <code>ZXV_MUSIC_NONE</code> and plays nothing. <code>flags</code>:
+  <code>ZXV_MUSIC_LOOP</code> (at the end, it goes on from its loop position) and
+  <code>ZXV_MUSIC_AY2</code> (a one-AY module plays on the second chip).</li>
+<li><code>zxv_music_info</code> gives the format, title and author of a module, without
+  playing it.</li>
+<li><code>zxv_music_pause(1)</code> pauses the music and <code>zxv_music_pause(0)</code> resumes it.
+  <code>zxv_music_playing</code> returns 1 while it plays; <code>zxv_music_steps</code>, the
+  1/50 s steps it has played.</li>
+<li><code>zxv_music_update</code> prepares the steps of the next <code>ZXV_MUSIC_AHEAD_US</code>
+  (35 ms): call it every frame, or from the frame hook.
+  <code>zxv_music_update_until(t)</code> prepares only those before <code>t</code>, to mix the
+  music with your own <code>zxv_ay_event</code> calls.</li>
+<li>The module and the bank must stay in memory while they play. If the
+  program moves them, it tells the library with
+  <code>zxv_music_moved(module, bank)</code> (<code>NULL</code> for the one that did not move).</li>
+</ul>
+<pre><code class="language-c">typedef struct {
+    int format;                 /* ZXV_MUSIC_... */
+    int chips;                  /* the AY chips it uses: 1 or 2 */
+    char title[33];
+    char author[33];
+} zxv_music_info_t;
+</code></pre>
+<h3 id="ayfx-effects">AYFX effects<a class="ancla" href="#ayfx-effects" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_sfx_bank(const void *data, uint32_t size);
+int zxv_sfx_play(int n, int channel);
+int zxv_sfx_play_data(const void *data, uint32_t size, int channel);
+void zxv_sfx_stop(int channel);
+void zxv_sfx_channels(int mask);
+int zxv_sfx_playing(int channel);
+</code></pre>
+<p>The channels are 0 to 2 (A, B and C of the first AY) and 3 to 5 (those of
+the second).</p>
+<ul>
+<li><code>zxv_sfx_bank</code> sets the effect bank (<code>.afb</code>) and returns how many effects
+  it has.</li>
+<li><code>zxv_sfx_play</code> plays effect <code>n</code> of the bank on a channel. With
+  <code>ZXV_SFX_AUTO</code>, on a free one (if there is none, on the one that has been
+  playing longest). It returns the channel, or −1 if the effect does not
+  exist. <code>zxv_sfx_play_data</code> does the same with a single effect (<code>.afx</code>).</li>
+<li><code>zxv_sfx_stop</code> stops the effect on a channel, or all of them with
+  <code>ZXV_SFX_AUTO</code>. <code>zxv_sfx_playing</code> returns 1 if an effect plays on the
+  channel (or on any, with <code>ZXV_SFX_AUTO</code>).</li>
+<li><code>zxv_sfx_channels</code> picks the channels for <code>ZXV_SFX_AUTO</code> (bit <em>n</em>,
+  channel <em>n</em>). By default, those of the AY the music does not use.</li>
+</ul>
+<h3 id="constants-2">Constants<a class="ancla" href="#constants-2" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_MUSIC_NONE</code></td>
+<td>0</td>
+<td>Not a known module</td>
+</tr>
+<tr>
+<td><code>ZXV_MUSIC_PT3</code>, <code>_TS</code>, <code>_PSG</code></td>
+<td>1, 2, 3</td>
+<td>Pro Tracker 3 (and Vortex Tracker II), TurboSound, a dump of the AY registers</td>
+</tr>
+<tr>
+<td><code>ZXV_MUSIC_PT2</code>, <code>_STC</code>, <code>_ASC</code></td>
+<td>4, 5, 6</td>
+<td>Pro Tracker 2, Sound Tracker 1.x, ASC Sound Master</td>
+</tr>
+<tr>
+<td><code>ZXV_MUSIC_LOOP</code>, <code>ZXV_MUSIC_AY2</code></td>
+<td>1, 2</td>
+<td>Options of <code>zxv_music_play</code></td>
+</tr>
+<tr>
+<td><code>ZXV_MUSIC_AHEAD_US</code></td>
+<td>35000</td>
+<td>How far ahead the music goes, in µs</td>
+</tr>
+<tr>
+<td><code>ZXV_SFX_AUTO</code></td>
+<td>−1</td>
+<td>A free channel (or all of them)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="files-and-folders">Files and folders<a class="ancla" href="#files-and-folders" aria-hidden="true">#</a></h2>
+<p>Paths may start with a drive: <code>SD:</code> (the SD card) or <code>ROM:</code> (the
+read-only built-in drive), upper or lower case; <code>ROM:game</code> is the same as
+<code>ROM:/game</code>. Without a drive, a path is relative to the current folder, or
+absolute if it starts with <code>/</code>. <code>.</code> and <code>..</code> work, and <code>..</code> at the root
+stays at the root. Case does not matter. Names have up to 63 printable
+ASCII characters (not <code>\ : * ? " &lt; &gt; |</code>, not ending in a space or a dot);
+paths, up to 255.</p>
+<p>Up to 8 files and 4 folders can be open at once on each drive. Buffers
+must be in RAM (or, for reading, in the ROM); otherwise the function
+returns <code>ZXV_E_FAULT</code>. On a real SD card, a file that is open cannot be
+deleted, renamed or opened again for writing, and hidden or system files
+do not appear in listings.</p>
+<h3 id="zxv_file_open"><code>zxv_file_open</code><a class="ancla" href="#zxv_file_open" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_file_open(const char *name, uint32_t flags);
+</code></pre>
+<p>Opens a file and returns its number, or an error. <code>flags</code> combines:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Value</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_O_READ</code></td>
+<td>0x01</td>
+<td>Read</td>
+</tr>
+<tr>
+<td><code>ZXV_O_WRITE</code></td>
+<td>0x02</td>
+<td>Write</td>
+</tr>
+<tr>
+<td><code>ZXV_O_CREATE</code></td>
+<td>0x04</td>
+<td>Create it if it does not exist (needs <code>ZXV_O_WRITE</code>)</td>
+</tr>
+<tr>
+<td><code>ZXV_O_TRUNC</code></td>
+<td>0x08</td>
+<td>Empty it when opening</td>
+</tr>
+<tr>
+<td><code>ZXV_O_APPEND</code></td>
+<td>0x10</td>
+<td>Start at the end</td>
+</tr>
+</tbody>
+</table>
+<p>Opening for writing on <code>ROM:</code> returns <code>ZXV_E_ACCESS</code>.</p>
+<h3 id="zxv_file_read-zxv_file_write"><code>zxv_file_read</code>, <code>zxv_file_write</code><a class="ancla" href="#zxv_file_read-zxv_file_write" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_file_read(int f, void *buf, uint32_t n);
+int zxv_file_write(int f, const void *buf, uint32_t n);
+</code></pre>
+<p>Read or write up to <code>n</code> bytes at the current position and return how
+many, or an error. <code>zxv_file_read</code> returns 0 at the end of the file. If you
+read code into memory to run it, execute a <code>fence.i</code> instruction
+afterwards.</p>
+<h3 id="zxv_file_seek"><code>zxv_file_seek</code><a class="ancla" href="#zxv_file_seek" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_file_seek(int f, int32_t off, int whence);
+</code></pre>
+<p>Moves the position to <code>off</code> bytes from the start (<code>ZXV_SEEK_SET</code>, 0), the
+current position (<code>ZXV_SEEK_CUR</code>, 1) or the end (<code>ZXV_SEEK_END</code>, 2), and
+returns the new position.</p>
+<h3 id="zxv_file_close"><code>zxv_file_close</code><a class="ancla" href="#zxv_file_close" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_file_close(int f);
+</code></pre>
+<p>Closes the file. Always close files you wrote: that is when everything
+reaches the card.</p>
+<h3 id="zxv_file_load"><code>zxv_file_load</code><a class="ancla" href="#zxv_file_load" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_file_load(const char *name, void *addr, uint32_t max);
+</code></pre>
+<p>Reads a whole file into memory at <code>addr</code> and returns its size. <code>max</code> is the
+room you have there: if the file is bigger than <code>max</code> bytes, nothing is
+loaded and the function returns <code>ZXV_E_RANGE</code>. Pass the size of your buffer:</p>
+<pre><code class="language-c">static uint8_t level[8192];
+int size = zxv_file_load(&quot;level1.dat&quot;, level, sizeof(level));
+if (size &lt; 0)
+    zxv_report_error(size, &quot;Cannot load level1.dat&quot;);
+</code></pre>
+<p>Earlier versions of the SDK had no <code>max</code> argument; a program compiled with
+them must be compiled again.</p>
+<h3 id="zxv_file_stat"><code>zxv_file_stat</code><a class="ancla" href="#zxv_file_stat" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_file_stat(const char *name, zxv_dirent_t *e);
+</code></pre>
+<p>Fills <code>*e</code> with the name, size and attributes of a file or folder.</p>
+<pre><code class="language-c">typedef struct {
+    char name[64];              /* zero-terminated */
+    uint32_t size;              /* in bytes */
+    uint32_t attr;              /* ZXV_ATTR_DIR (bit 0): it is a folder */
+} zxv_dirent_t;
+</code></pre>
+<p>The same 72 bytes described for assembly: <code>ZXV_DIRENT_SIZE</code> (72),
+<code>ZXV_DE_NAME</code> (0), <code>ZXV_DE_SIZE</code> (64), <code>ZXV_DE_ATTR</code> (68).</p>
+<h3 id="zxv_file_remove-zxv_file_rename"><code>zxv_file_remove</code>, <code>zxv_file_rename</code><a class="ancla" href="#zxv_file_remove-zxv_file_rename" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_file_remove(const char *name);
+int zxv_file_rename(const char *from, const char *to);
+</code></pre>
+<p>Delete a file or an <strong>empty</strong> folder; rename or move a file or folder.</p>
+<h3 id="folders">Folders<a class="ancla" href="#folders" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_dir_make(const char *name);             /* create a folder */
+int zxv_dir_change(const char *name);           /* change the current folder */
+int zxv_dir_current(char *buf, uint32_t len);   /* the current folder; returns its length */
+int zxv_dir_open(const char *name);             /* open a folder to list it (&quot;&quot; = the current one) */
+int zxv_dir_read(int d, zxv_dirent_t *e);       /* next entry: 1, or 0 at the end */
+int zxv_dir_close(int d);
+</code></pre>
+<ul>
+<li><code>zxv_dir_change("ROM:")</code> enters the ROM drive and <code>zxv_dir_change("SD:")</code>
+  goes back to the root of the card.</li>
+<li><code>zxv_dir_current</code> gives <code>/...</code> on the card and <code>ROM:/...</code> on the ROM
+  drive; if <code>buf</code> is too small it returns <code>ZXV_E_RANGE</code>.</li>
+<li><code>zxv_dir_read</code> returns the entries in alphabetical order, ignoring case.</li>
+</ul>
+<h3 id="constants-3">Constants<a class="ancla" href="#constants-3" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_NAME_MAX</code></td>
+<td>63</td>
+<td>Characters per name</td>
+</tr>
+<tr>
+<td><code>ZXV_PATH_MAX</code></td>
+<td>255</td>
+<td>Characters per path</td>
+</tr>
+<tr>
+<td><code>ZXV_MAX_FILES</code></td>
+<td>8</td>
+<td>Files open at once (per drive)</td>
+</tr>
+<tr>
+<td><code>ZXV_MAX_DIRS</code></td>
+<td>4</td>
+<td>Folders open at once (per drive)</td>
+</tr>
+<tr>
+<td><code>ZXV_ATTR_DIR</code></td>
+<td>0x01</td>
+<td>Attribute: folder</td>
+</tr>
+</tbody>
+</table>
+<h2 id="clock-and-language">Clock and language<a class="ancla" href="#clock-and-language" aria-hidden="true">#</a></h2>
+<h3 id="zxv_clock_get-zxv_clock_set"><code>zxv_clock_get</code>, <code>zxv_clock_set</code><a class="ancla" href="#zxv_clock_get-zxv_clock_set" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {
+    uint16_t year;                      /* 2000-2099 */
+    uint8_t month, day, hour, min, sec;
+    uint8_t wday;                       /* 1 Monday ... 7 Sunday (set by clock_get) */
+} zxv_clock_t;
+
+int zxv_clock_get(zxv_clock_t *c);
+int zxv_clock_set(const zxv_clock_t *c);
+</code></pre>
+<p><code>zxv_clock_get</code> returns 0, or <code>ZXV_E_NOCLOCK</code> if the clock has not been
+set (then <code>*c</code> is unchanged). <code>zxv_clock_set</code> returns 0, or <code>ZXV_E_INVAL</code>
+for a date that does not exist or is outside 2000–2099; it ignores
+<code>wday</code>. The time is local time, without time zones. Both are slow: to
+measure time, use <code>zxv_time_us</code> or <code>ZXV_SV_FRAMES</code>. Files created on the
+card get this date.</p>
+<p>For assembly: <code>ZXV_CLOCK_SIZE</code> (8) and the offsets <code>ZXV_CK_YEAR</code> (0),
+<code>ZXV_CK_MONTH</code> (2), <code>ZXV_CK_DAY</code> (3), <code>ZXV_CK_HOUR</code> (4), <code>ZXV_CK_MIN</code> (5),
+<code>ZXV_CK_SEC</code> (6), <code>ZXV_CK_WDAY</code> (7).</p>
+<h3 id="zxv_lang_get-zxv_lang_set"><code>zxv_lang_get</code>, <code>zxv_lang_set</code><a class="ancla" href="#zxv_lang_get-zxv_lang_set" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">uint32_t zxv_lang_get(void);
+int zxv_lang_set(uint32_t lang);
+</code></pre>
+<p>The machine's language: a two-letter ISO 639-1 code in lower case, first
+letter in the low byte, made with <code>ZXV_LANG(a, b)</code>. <code>ZXV_LANG_EN</code> is
+<code>ZXV_LANG('e', 'n')</code> and <code>ZXV_LANG_ES</code> is <code>ZXV_LANG('e', 's')</code>. The ROM
+has English and Spanish texts, but any code is valid, so programs can use
+it to choose their own texts. <code>zxv_lang_set</code> changes it (and the machine
+remembers it); it returns <code>ZXV_E_INVAL</code> if the code is not two lower-case
+letters.</p>
+<pre><code class="language-c">const char *hello = zxv_lang_get() == ZXV_LANG_ES ? &quot;Hola&quot; : &quot;Hello&quot;;
+</code></pre>
+<h2 id="ending-a-program-and-running-others">Ending a program and running others<a class="ancla" href="#ending-a-program-and-running-others" aria-hidden="true">#</a></h2>
+<h3 id="zxv_exit_to_basic"><code>zxv_exit_to_basic</code><a class="ancla" href="#zxv_exit_to_basic" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_exit_to_basic(int code);
+</code></pre>
+<p>Ends the program from anywhere and returns to BASIC, as returning <code>code</code>
+from <code>main</code> does. <strong>0 means success</strong>: BASIC shows <code>0 OK, 0:1</code>. Any other
+code means an error, and BASIC shows <code>W Native code error (code), 0:1</code>
+(in Spanish, <code>W Error en el código nativo (code), 0:1</code>). In both cases the
+BASIC program that was in memory is gone, because the native program used
+that memory.</p>
+<p>The value <code>main</code> returns works the same way. Native code called from BASIC
+with <code>USR</code> is different: what it returns is just the value of <code>USR</code>.</p>
+<h3 id="zxv_exec"><code>zxv_exec</code><a class="ancla" href="#zxv_exec" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_exec(const char *name, int *result);
+</code></pre>
+<p>Loads and runs a <code>.zxv</code> (if <code>name</code> has no extension and does not exist,
+<code>.zxv</code> is added), stores in <code>*result</code> what it returned, and returns 0 or an
+error (<code>ZXV_E_FORMAT</code> if it is not a valid program, <code>ZXV_E_RANGE</code> if it
+does not fit).</p>
+<p><strong>A native program cannot use it</strong>: called from a <code>.zxv</code>, it returns
+<code>ZXV_E_ACCESS</code> (−9) and does nothing. Every program is loaded at the same
+address, at the start of the user RAM, so the new one would overwrite the
+one that called it. Only BASIC (with <code>LOAD</code>) and the system's monitor
+launch programs.</p>
+<h3 id="zxv_report_error"><code>zxv_report_error</code><a class="ancla" href="#zxv_report_error" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_report_error(int code, const char *msg);
+</code></pre>
+<p>Ends the program and returns to BASIC with the report <code>W</code> and your own
+message instead of BASIC's: <code>msg</code> is a string in UTF-8, of which BASIC
+shows up to 47 bytes. If <code>code</code> is not 0, it follows in brackets. For
+example, <code>zxv_report_error(5, "Fichero dañado")</code> gives
+<code>W Fichero dañado (5), 0:1</code>, and <code>zxv_report_error(0, "No level files")</code>
+gives <code>W No level files, 0:1</code>. The message is copied before BASIC takes
+back the memory, so it can be in a local array. An empty message shows
+BASIC's usual text (<code>W Native code error (5), 0:1</code>).</p>
+<p>BASIC's screen font has the Spanish letters, so <code>ñ</code>, <code>¿</code> or <code>á</code> can go in
+the message; other non-ASCII characters show as <code>?</code>.</p>
+<h2 id="graphics-engine">Graphics engine<a class="ancla" href="#graphics-engine" aria-hidden="true">#</a></h2>
+<p>Declared in <code>zxv_gfx.h</code>. See <a href="graphics.html">Graphics</a> for explanations and
+examples. All functions draw on the current target and clip to it and to
+the clip rectangle.</p>
+<h3 id="types">Types<a class="ancla" href="#types" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {            /* a bitmap */
+    uint8_t *pix;           /* first pixel, aligned to 4 */
+    uint16_t stride;        /* bytes per line, a multiple of 4 */
+    uint16_t w, h;          /* in pixels */
+    uint16_t reserved;
+} zxv_bitmap;
+
+typedef struct {            /* a tile map */
+    const uint16_t *cells;  /* cells, row by row */
+    uint16_t w, h;          /* in cells */
+    const uint8_t *tiles;   /* tile graphics, one after another (32 or 128 bytes) */
+    uint8_t size;           /* tile side: 8 or 16 */
+    uint8_t flags;          /* ZXV_MAP_WRAP */
+} zxv_tilemap;
+
+typedef struct {            /* a mode 7 texture */
+    const uint8_t *texels;  /* 1 byte per texel (0-15), row by row */
+    uint8_t log2size;       /* side = 2^log2size (1 to 10) */
+    uint8_t wrap;           /* 1: repeats; 0: outside is colour 'out' */
+    uint8_t out;
+    uint8_t reserved;
+} zxv_m7tex;
+
+typedef struct { int32_t u, v, du, dv; } zxv_m7line;   /* 16.16 fixed point */
+
+typedef struct {            /* a mode 7 camera, 16.16 fixed point */
+    int32_t x, y;           /* position on the texture */
+    int32_t height;         /* height above the floor */
+    int32_t angle;          /* 0x10000 = a full turn; 0 looks towards growing u */
+    int32_t focal;          /* focal distance, in pixels */
+    int16_t horizon;        /* screen line of the horizon (integer) */
+    int16_t reserved;
+} zxv_m7cam;
+</code></pre>
+<p>Pixels are 4 bits, two per byte, the even pixel in the low 4 bits.
+Bitmaps, tiles and prepared sprites must be aligned to 4 bytes.</p>
+<h3 id="constants-4">Constants<a class="ancla" href="#constants-4" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_TRANSPARENT</code></td>
+<td>8</td>
+<td>The transparent colour</td>
+</tr>
+<tr>
+<td><code>ZXV_FLIP_H</code>, <code>ZXV_FLIP_V</code></td>
+<td>0x01, 0x02</td>
+<td>Mirror horizontally, vertically (blit and sprites)</td>
+</tr>
+<tr>
+<td><code>ZXV_BLIT_TRANSPARENT</code></td>
+<td>0x04</td>
+<td><code>zxv_gfx_blit</code>: do not copy colour 8</td>
+</tr>
+<tr>
+<td><code>ZXV_MAP_WRAP</code></td>
+<td>0x01</td>
+<td><code>zxv_tilemap.flags</code>: the map repeats</td>
+</tr>
+<tr>
+<td><code>ZXV_CELL_TILE</code></td>
+<td>0x0FFF</td>
+<td>Cell: tile number</td>
+</tr>
+<tr>
+<td><code>ZXV_CELL_FLIP_H</code>, <code>ZXV_CELL_FLIP_V</code></td>
+<td>0x1000, 0x2000</td>
+<td>Cell: mirrored</td>
+</tr>
+<tr>
+<td><code>ZXV_CELL_TRANSP</code></td>
+<td>0x4000</td>
+<td>Cell: colour 8 is transparent</td>
+</tr>
+<tr>
+<td><code>ZXV_CELL_PRIO</code></td>
+<td>0x8000</td>
+<td>Cell: priority</td>
+</tr>
+<tr>
+<td><code>ZXV_MAP_ALL</code>, <code>ZXV_MAP_BACK</code>, <code>ZXV_MAP_FRONT</code></td>
+<td>0, 1, 2</td>
+<td><code>zxv_map_draw</code> filter: all cells, without priority, with priority</td>
+</tr>
+</tbody>
+</table>
+<h3 id="target-and-clipping">Target and clipping<a class="ancla" href="#target-and-clipping" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_gfx_target(const zxv_bitmap *b);
+void zxv_gfx_draw_page(int page);
+void zxv_gfx_clip(int x0, int y0, int x1, int y1);
+</code></pre>
+<ul>
+<li><code>zxv_gfx_target(b)</code> makes bitmap <code>b</code> the target; <code>0</code> returns to the
+  drawing page. It removes the clip rectangle. The bitmap structure is
+  copied, so it can be a local variable.</li>
+<li><code>zxv_gfx_draw_page(page)</code> chooses the drawing page (0 or 1), also for
+  <code>zxv_cls</code>, <code>zxv_plot</code> and the text. Its size follows the video mode and
+  <code>ZXV_V_VSIZE</code>.</li>
+<li><code>zxv_gfx_clip</code> limits drawing to the rectangle from (x0, y0) to
+  (x1, y1), excluding x1 and y1, in target coordinates.</li>
+</ul>
+<p>When a program starts, the target is the drawing page 0, without a clip
+rectangle.</p>
+<h3 id="shapes">Shapes<a class="ancla" href="#shapes" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_gfx_line(int x0, int y0, int x1, int y1, int c);
+void zxv_gfx_rect(int x, int y, int w, int h, int c);
+void zxv_gfx_tri(const int16_t *p, int c);
+void zxv_gfx_poly(const int16_t *p, int n, int c);
+void zxv_gfx_circle(int x, int y, int r, int c, int fill);
+</code></pre>
+<ul>
+<li><code>zxv_gfx_line</code>: a line including both ends.</li>
+<li><code>zxv_gfx_rect</code>: a filled rectangle of w × h with its top left corner at
+  (x, y). Nothing if w or h is 0 or less.</li>
+<li><code>zxv_gfx_tri</code>: a filled triangle; <code>p</code> has 3 pairs x, y.</li>
+<li><code>zxv_gfx_poly</code>: a filled polygon of <code>n</code> vertices (3 to 64) given as
+  pairs x, y, with the even-odd rule (a five-pointed star drawn in one go
+  has a hole in the middle).</li>
+<li><code>zxv_gfx_circle</code>: a circle of radius <code>r</code> centred on (x, y): only the
+  outline if <code>fill</code> is 0, a disc otherwise.</li>
+</ul>
+<p>Triangles and polygons follow a top-left rule: two of them sharing a side
+neither overlap nor leave a gap.</p>
+<h3 id="copies">Copies<a class="ancla" href="#copies" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_gfx_blit(const zxv_bitmap *src, int sx, int sy, int w, int h, int x, int y, int flags);
+</code></pre>
+<p>Copies the rectangle (sx, sy, w, h) of <code>src</code> to (x, y) of the target, up
+to 1024 pixels wide. <code>flags</code>: <code>ZXV_FLIP_H</code>, <code>ZXV_FLIP_V</code>,
+<code>ZXV_BLIT_TRANSPARENT</code>. The part of the rectangle outside <code>src</code> is not
+copied. Copying a bitmap onto itself with overlapping areas is not
+defined.</p>
+<h3 id="sprites">Sprites<a class="ancla" href="#sprites" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">uint32_t zxv_spr_prepare(const zxv_bitmap *src, int sx, int sy, int w, int h, void *buf);
+void zxv_spr_draw(const void *spr, int x, int y, int flags, const uint8_t *colours);
+void zxv_spr_draw_scaled(const void *spr, int x, int y, int w, int h, int flags, const uint8_t *colours);
+int zxv_spr_collide(const void *a, int ax, int ay, const void *b, int bx, int by);
+</code></pre>
+<ul>
+<li><code>zxv_spr_prepare</code> converts the rectangle (sx, sy, w, h) of <code>src</code> (up to
+  1024 × 1024; what falls outside <code>src</code> is transparent) into a sprite in
+  <code>buf</code>, which must be aligned to 4 bytes. It returns the size in bytes,
+  8 + h × ⌈w / 8⌉ × 8; with <code>buf</code> = <code>NULL</code> it only returns the size. It
+  returns 0 if the size is not valid.</li>
+<li><code>zxv_spr_draw</code> draws a sprite with its top left corner at (x, y).
+  <code>flags</code>: <code>ZXV_FLIP_H</code>, <code>ZXV_FLIP_V</code>. <code>colours</code>: <code>NULL</code>, or a table of
+  16 bytes; colour <em>c</em> is drawn as <code>colours[c]</code> (transparent pixels stay
+  transparent).</li>
+<li><code>zxv_spr_draw_scaled</code> draws it stretched or shrunk to w × h (1 to 4096
+  each; otherwise nothing), taking for each pixel the nearest one of the
+  sprite. At its own size it is the same as <code>zxv_spr_draw</code>. It uses about
+  2.5 KB of stack.</li>
+<li><code>zxv_spr_collide</code> returns 1 if some opaque pixel of <code>a</code> at (ax, ay)
+  coincides with an opaque pixel of <code>b</code> at (bx, by), at their own size.</li>
+</ul>
+<h3 id="tile-maps">Tile maps<a class="ancla" href="#tile-maps" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_map_draw(const zxv_tilemap *m, int mx, int my, int x, int y, int w, int h, int filter);
+uint16_t zxv_map_cell(const zxv_tilemap *m, int px, int py);
+</code></pre>
+<ul>
+<li><code>zxv_map_draw</code> draws, in the rectangle (x, y, w, h) of the target, the
+  part of the map that starts at pixel (mx, my) of the map. <code>filter</code>:
+  <code>ZXV_MAP_ALL</code>, <code>ZXV_MAP_BACK</code>, <code>ZXV_MAP_FRONT</code>. Cells outside a map
+  without <code>ZXV_MAP_WRAP</code> are not drawn. A single call can cover up to
+  1024 pixels of width.</li>
+<li><code>zxv_map_cell</code> returns the cell at pixel (px, py) of the map (0 outside
+  a map that does not repeat).</li>
+</ul>
+<h3 id="mode-7">Mode 7<a class="ancla" href="#mode-7" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_m7_draw(const zxv_m7tex *t, const zxv_m7line *l, int y, int n);
+void zxv_m7_camera(zxv_m7line *l, int n, const zxv_m7cam *c);
+</code></pre>
+<ul>
+<li><code>zxv_m7_draw</code> draws <code>n</code> lines from line <code>y</code> of the target; line <code>y + i</code>
+  uses <code>l[i]</code>. Pixel x of a line shows the texel at
+  (u + x·du, v + x·dv), taking the integer part of each coordinate.</li>
+<li><code>zxv_m7_camera</code> fills <code>l[0..n-1]</code> for lines 0 to n−1 of the target:
+  line <em>i</em> below the horizon is at distance height × focal / (i − horizon),
+  with the centre of the target at the camera's x. Lines at or above the
+  horizon are set to zero. Draw with <code>zxv_m7_draw(t, l + y0, y0, n)</code>.</li>
+</ul>
+<h2 id="gfx-graphics-files"><code>.gfx</code> graphics files<a class="ancla" href="#gfx-graphics-files" aria-hidden="true">#</a></h2>
+<p>Declared in <code>zxv_gfxfile.h</code>. Build it with <code>gfxfile.c</code>. The explanations,
+an example and the format are in <a href="graphics.html#reading-a-gfx-file-in-c">Graphics</a>.</p>
+<pre><code class="language-c">typedef struct {
+    const uint8_t *data;
+    uint32_t size;
+} zxv_gfxfile;
+
+int zxv_gfxf_open(zxv_gfxfile *f, const void *data, uint32_t size);
+const uint8_t *zxv_gfxf_find(const zxv_gfxfile *f, int kind, int num, uint32_t *len);
+uint32_t zxv_gfxf_sprite(const zxv_gfxfile *f, int num, zxv_bitmap *b, void *buf, uint32_t room);
+uint32_t zxv_gfxf_tiles(const zxv_gfxfile *f, int size, void *buf, uint32_t room, int *count);
+uint32_t zxv_gfxf_map(const zxv_gfxfile *f, int num, zxv_tilemap *m, const void *tiles,
+                      void *buf, uint32_t room);
+uint32_t zxv_gfxf_texture(const zxv_gfxfile *f, int num, zxv_m7tex *t, void *buf, uint32_t room);
+uint32_t zxv_gfxf_screen(const zxv_gfxfile *f, int num, int *mode, int *border, void *buf, uint32_t room);
+int zxv_gfxf_screen_palette(const zxv_gfxfile *f, int num, uint16_t pal[16]);
+</code></pre>
+<ul>
+<li><code>zxv_gfxf_open</code> returns 1 if <code>data</code> is a whole, well-formed <code>.gfx</code>, and
+  leaves <code>f</code> ready; if not, 0. The file can be anywhere: read with
+  <code>zxv_file_load</code> or inside the program.</li>
+<li>The objects in the file are not aligned, so each function copies its
+  object into <code>buf</code>, aligned to 4. It returns the bytes <code>buf</code> needs, or 0 if
+  the object is not there or is not valid. If <code>buf</code> is <code>NULL</code> or <code>room</code> is
+  smaller, it copies nothing: that is how you ask for the size.</li>
+<li><code>zxv_gfxf_sprite</code>: sprite <code>num</code> as a bitmap (<code>b</code> points to <code>buf</code>).</li>
+<li><code>zxv_gfxf_tiles</code>: the tiles of side <code>size</code> (8 or 16), one after another.
+  In <code>*count</code>, how many there are (<code>count</code> can be <code>NULL</code>).</li>
+<li><code>zxv_gfxf_map</code>: the cells of map <code>num</code>, in <code>buf</code>. <code>m</code> gets them and
+  <code>tiles</code>, the tiles of its size (from <code>zxv_gfxf_tiles</code>).</li>
+<li><code>zxv_gfxf_texture</code>: the texels of mode 7 texture <code>num</code>.</li>
+<li><code>zxv_gfxf_screen</code>: the pixels of screen <code>num</code>, like those of a VRAM page
+  (24,576 bytes in mode 0, 98,304 in mode 1), and its mode and border in
+  <code>*mode</code> and <code>*border</code>. <code>buf</code> can be the hidden page.</li>
+<li><code>zxv_gfxf_screen_palette</code>: the 16 RGB565 colours of screen <code>num</code>, to put
+  in <code>ZXV_PALETTE(t)</code>. It returns 1 if the screen has a palette; if not, 0
+  and the usual colours.</li>
+<li><code>zxv_gfxf_find</code>: an object's data as it is in the file (not aligned) and
+  its length in <code>*len</code>, or <code>NULL</code> if it is not there.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Value</th>
+<th>Kind of object (<code>kind</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_GFXF_SPRITE</code></td>
+<td>1</td>
+<td>Sprite</td>
+</tr>
+<tr>
+<td><code>ZXV_GFXF_TILES</code></td>
+<td>2</td>
+<td>Tiles (its number is the side: 8 or 16)</td>
+</tr>
+<tr>
+<td><code>ZXV_GFXF_MAP</code></td>
+<td>3</td>
+<td>Map</td>
+</tr>
+<tr>
+<td><code>ZXV_GFXF_TEXTURE</code></td>
+<td>4</td>
+<td>Texture</td>
+</tr>
+<tr>
+<td><code>ZXV_GFXF_SCREEN</code></td>
+<td>5</td>
+<td>Screen</td>
+</tr>
+</tbody>
+</table>
+<h2 id="video-registers">Video registers<a class="ancla" href="#video-registers" aria-hidden="true">#</a></h2>
+<p>Write them at any time; the system applies them at the next VBLANK.</p>
+<table>
+<thead>
+<tr>
+<th>Register</th>
+<th>Size</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_V_MODE</code></td>
+<td>8 bits</td>
+<td>Video mode, 0 or 1 (use <code>zxv_set_mode</code>)</td>
+</tr>
+<tr>
+<td><code>ZXV_V_PAGE</code></td>
+<td>8 bits</td>
+<td>Visible page, 0 or 1 (use <code>zxv_set_page</code>)</td>
+</tr>
+<tr>
+<td><code>ZXV_V_BORDER</code></td>
+<td>8 bits</td>
+<td>Border colour, 0–15 (not remapped; shown with the palette of the <code>ZXV_V_REMAP</code> table)</td>
+</tr>
+<tr>
+<td><code>ZXV_V_FLAGS</code></td>
+<td>8 bits</td>
+<td><code>ZXV_VFLAG_LINETAB</code> (0x01): use the line table; <code>ZXV_VFLAG_BLANK</code> (0x02): show only the border</td>
+</tr>
+<tr>
+<td><code>ZXV_V_SCROLL_X</code></td>
+<td>16 bits</td>
+<td>Horizontal scroll of the picture, wrapping round</td>
+</tr>
+<tr>
+<td><code>ZXV_V_SCROLL_Y</code></td>
+<td>16 bits</td>
+<td>Vertical scroll, wrapping round</td>
+</tr>
+<tr>
+<td><code>ZXV_V_REMAP</code></td>
+<td>8 bits</td>
+<td>Colour remapping table in use, 0–3</td>
+</tr>
+<tr>
+<td><code>ZXV_V_VSIZE</code></td>
+<td>8 bits</td>
+<td>Page size in mode 0 (see below)</td>
+</tr>
+<tr>
+<td><code>ZXV_V_OUT_INFO</code></td>
+<td>32 bits</td>
+<td>Read only: bits 0–3, the output (<code>ZXV_OUT_DVI</code> 1, no sound; <code>ZXV_OUT_HDMI</code> 2, with sound); bits 8–15, the refresh rate (always 60 Hz); bits 16–17, the screen (<code>ZXV_OUT_SCREEN_ON</code> connected, <code>ZXV_OUT_SCREEN_NONE</code> unplugged, <code>ZXV_OUT_SCREEN_UNKNOWN</code> not known: on a protoboard, or before one has been connected). The user chooses the output, not programs</td>
+</tr>
+</tbody>
+</table>
+<p>With scroll, screen pixel (x, y) shows page pixel ((x + SCROLL_X) mod
+width, (y + SCROLL_Y) mod height).</p>
+<p><strong>Page sizes</strong> (<code>ZXV_V_VSIZE</code>, mode 0 only; ignored in mode 1):</p>
+<table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Value</th>
+<th>Page</th>
+<th>Bytes per line</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_VSIZE_SCREEN</code></td>
+<td>0</td>
+<td>256 × 192</td>
+<td>128</td>
+</tr>
+<tr>
+<td><code>ZXV_VSIZE_2X2</code></td>
+<td>1</td>
+<td>512 × 384</td>
+<td>256</td>
+</tr>
+<tr>
+<td><code>ZXV_VSIZE_WIDE</code></td>
+<td>2</td>
+<td>1024 × 192</td>
+<td>512</td>
+</tr>
+<tr>
+<td><code>ZXV_VSIZE_TALL</code></td>
+<td>3</td>
+<td>256 × 768</td>
+<td>128</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Remapping tables:</strong> four tables of 16 bytes from <code>ZXV_REMAP_TABLES</code>
+(table <em>t</em> at <code>ZXV_REMAP_TABLES + 16·t</code>). Entry <em>v</em> is the colour shown
+for pixel value <em>v</em>. They start as the identity.</p>
+<p><strong>Palettes:</strong> each table has its own, 16 RGB565 colours (u16) from
+<code>ZXV_PALETTE(t)</code> (<code>ZXV_PALETTES + 32·t</code>, at <code>0x2000_0480</code>). A pixel of value
+<em>v</em> on a line that uses table <em>t</em> is shown in colour
+<code>palette[t][table[t][v]]</code>. They start with the usual colours
+(<code>ZXV_STD_RGB565</code>), and the ROM sets them again when each program starts.
+Like the tables, they are read just after each VBLANK.</p>
+<p><strong>Line table:</strong> at <code>ZXV_LINE_TABLE</code>, one entry of <code>ZXV_LINE_ENTRY_SIZE</code>
+(8) bytes per line of the whole frame, border included: 240 lines in mode
+0 (the picture starts at line 24), 480 in mode 1 (picture from line 48):
+<code>ZXV_FRAME_LINES(mode)</code> and <code>ZXV_BORDER_LINES(mode)</code>. The frame is
+<code>ZXV_FRAME_W</code> × <code>ZXV_FRAME_H</code> (640 × 480), with a border of <code>ZXV_BORDER_X</code>
+(64) pixels at each side and <code>ZXV_BORDER_Y</code> (48) lines above and below.</p>
+<table>
+<thead>
+<tr>
+<th>Offset</th>
+<th>Size</th>
+<th>Field</th>
+<th>Value for "as usual"</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_LT_BORDER</code> (0)</td>
+<td>8 bits</td>
+<td>Border colour</td>
+<td><code>0xFF</code></td>
+</tr>
+<tr>
+<td><code>ZXV_LT_REMAP</code> (1)</td>
+<td>8 bits</td>
+<td>Remapping table</td>
+<td><code>0xFF</code></td>
+</tr>
+<tr>
+<td><code>ZXV_LT_SCROLL_X</code> (2)</td>
+<td>16 bits</td>
+<td>Horizontal scroll (0 to page width − 1)</td>
+<td><code>0xFFFF</code></td>
+</tr>
+<tr>
+<td><code>ZXV_LT_SRC_LINE</code> (4)</td>
+<td>16 bits</td>
+<td>Page line shown (0 to page height − 1)</td>
+<td><code>0xFFFF</code> (= (y + SCROLL_Y) mod height)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>16 bits</td>
+<td>Reserved, write 0</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>On border lines only the border field counts.</p>
+<p><strong>When changes are safe:</strong> right after each VBLANK the system reads the
+visible page, the registers and the tables. While bit
+<code>ZXV_SYSF_LINK_BUSY</code> of <code>ZXV_SV_SYSFLAGS</code> is 1 (up to 1.5 ms in mode 0 and
+6 ms in mode 1 or with a large page), do not write to the visible page or
+the line table.</p>
+<p><strong>Video memory:</strong> <code>ZXV_VRAM0_BASE</code> (<code>0x2000_4000</code>) and <code>ZXV_VRAM1_BASE</code>
+(<code>0x2001_C000</code>), <code>ZXV_VRAM_PAGE_SIZE</code> (96 KB) each.</p>
+<h2 id="input-registers">Input registers<a class="ancla" href="#input-registers" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Register</th>
+<th>Size</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_I_KEYROWS</code></td>
+<td>8 × 8 bits</td>
+<td>The Spectrum keyboard matrix by half-rows; bits 0–4, 0 = pressed</td>
+</tr>
+<tr>
+<td><code>ZXV_I_KEY_HEAD</code>, <code>ZXV_I_KEY_TAIL</code></td>
+<td>8 bits each</td>
+<td>Write and read positions of the key queue (use <code>zxv_key_get</code>)</td>
+</tr>
+<tr>
+<td><code>ZXV_I_KEY_FIFO</code></td>
+<td>64 × 16 bits</td>
+<td>The key queue (<code>ZXV_KEY_FIFO_LEN</code> = 64)</td>
+</tr>
+<tr>
+<td><code>ZXV_I_KEYMAP</code></td>
+<td>32 bytes</td>
+<td>256 bits, one per HID key code; 1 = pressed</td>
+</tr>
+<tr>
+<td><code>ZXV_I_KEY_MODS</code></td>
+<td>8 bits</td>
+<td>Modifiers: bits 0–3 left Ctrl, Shift, Alt, GUI; bits 4–7 the same on the right</td>
+</tr>
+<tr>
+<td><code>ZXV_I_JOY0</code>, <code>ZXV_I_JOY1</code></td>
+<td>16 bits each</td>
+<td>Gamepads (as <code>zxv_joy_read</code>)</td>
+</tr>
+<tr>
+<td><code>ZXV_I_MOUSE_X</code>, <code>ZXV_I_MOUSE_Y</code></td>
+<td>16 bits each</td>
+<td>Mouse movement counters, wrapping round (x to the right, y down)</td>
+</tr>
+<tr>
+<td><code>ZXV_I_MOUSE_BTN</code></td>
+<td>8 bits</td>
+<td>Bits 0–2: left, right, middle button</td>
+</tr>
+<tr>
+<td><code>ZXV_I_MOUSE_WHEEL</code></td>
+<td>8 bits</td>
+<td>Wheel counter (positive upwards)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>HID codes</strong> of common keys: A–Z 0x04–0x1D; 1–9 0x1E–0x26, 0 0x27;
+Enter 0x28, Esc 0x29, Backspace 0x2A, Tab 0x2B, Space 0x2C; F1–F12
+0x3A–0x45; Insert 0x49, Home 0x4A, Page Up 0x4B, Delete 0x4C, End 0x4D,
+Page Down 0x4E; Right 0x4F, Left 0x50, Down 0x51, Up 0x52; left Ctrl,
+Shift, Alt 0xE0–0xE2, right ones 0xE4–0xE6. They identify the position of
+the key on a US keyboard.</p>
+<p><strong>The Spectrum matrix</strong> (<code>ZXV_I_KEYROWS[n]</code>, bits 0 to 4):</p>
+<table>
+<thead>
+<tr>
+<th>Half-row</th>
+<th>Bit 0</th>
+<th>Bit 1</th>
+<th>Bit 2</th>
+<th>Bit 3</th>
+<th>Bit 4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>CAPS SHIFT</td>
+<td>Z</td>
+<td>X</td>
+<td>C</td>
+<td>V</td>
+</tr>
+<tr>
+<td>1</td>
+<td>A</td>
+<td>S</td>
+<td>D</td>
+<td>F</td>
+<td>G</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Q</td>
+<td>W</td>
+<td>E</td>
+<td>R</td>
+<td>T</td>
+</tr>
+<tr>
+<td>3</td>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+<td>4</td>
+<td>5</td>
+</tr>
+<tr>
+<td>4</td>
+<td>0</td>
+<td>9</td>
+<td>8</td>
+<td>7</td>
+<td>6</td>
+</tr>
+<tr>
+<td>5</td>
+<td>P</td>
+<td>O</td>
+<td>I</td>
+<td>U</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>6</td>
+<td>ENTER</td>
+<td>L</td>
+<td>K</td>
+<td>J</td>
+<td>H</td>
+</tr>
+<tr>
+<td>7</td>
+<td>SPACE</td>
+<td>SYMBOL SHIFT</td>
+<td>M</td>
+<td>N</td>
+<td>B</td>
+</tr>
+</tbody>
+</table>
+<p>Shift is CAPS SHIFT and Ctrl is SYMBOL SHIFT; Backspace, Esc and the
+cursor keys press their Spectrum combinations (CAPS SHIFT + 0, SPACE, 5–8),
+and punctuation signs press SYMBOL SHIFT with the right key.</p>
+<h2 id="sound-registers">Sound registers<a class="ancla" href="#sound-registers" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Register</th>
+<th>Size</th>
+<th>Written by</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_S_BEEPER</code></td>
+<td>8 bits</td>
+<td>program</td>
+<td>Bit 0: beeper level</td>
+</tr>
+<tr>
+<td><code>ZXV_S_AY_STEREO</code></td>
+<td>8 bits</td>
+<td>program</td>
+<td>0 mono, 1 ABC, 2 ACB (both chips)</td>
+</tr>
+<tr>
+<td><code>ZXV_S_VOLUME</code></td>
+<td>8 bits</td>
+<td>program</td>
+<td>Master volume 0–255 (200 at start-up)</td>
+</tr>
+<tr>
+<td><code>ZXV_S_AFLAGS</code></td>
+<td>8 bits</td>
+<td>program</td>
+<td>Bit 0: mute</td>
+</tr>
+<tr>
+<td><code>ZXV_S_AY_HEAD</code>, <code>ZXV_S_AY_TAIL</code></td>
+<td>16 bits each</td>
+<td>program, system</td>
+<td>Positions of the AY queue (<code>ZXV_AY_FIFO</code>)</td>
+</tr>
+<tr>
+<td><code>ZXV_S_BEEP_HEAD</code>, <code>ZXV_S_BEEP_TAIL</code></td>
+<td>16 bits each</td>
+<td>program, system</td>
+<td>Positions of the timed queue (<code>ZXV_BEEP_QUEUE</code>)</td>
+</tr>
+<tr>
+<td><code>ZXV_S_AY_REGS</code></td>
+<td>16 × 8 bits</td>
+<td>system</td>
+<td>Read-only copy of the registers of the first AY, as already applied</td>
+</tr>
+<tr>
+<td><code>ZXV_S_AY2_REGS</code></td>
+<td>16 × 8 bits</td>
+<td>system</td>
+<td>The same for the second AY</td>
+</tr>
+</tbody>
+</table>
+<p>The queues are easier to use through <code>zxv_ay_write</code>, <code>zxv_beeper_event</code> and
+<code>zxv_ay_event</code>.</p>
+<p>Stereo mixing: in ABC, left = A + half of B and right = C + half of B; in
+ACB, left = A + half of C, right = B + half of C; in mono, all three on
+both sides. The beeper goes to both sides. The channels of the two chips
+with the same letter are added together.</p>
+<h2 id="system-variables">System variables<a class="ancla" href="#system-variables" aria-hidden="true">#</a></h2>
+<p>At <code>ZXV_SYSVARS</code> (<code>0x2000_0700</code>), 32 bits each:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_SV_FRAMES</code></td>
+<td>Frame counter, +1 at every VBLANK (not while interrupts are off)</td>
+</tr>
+<tr>
+<td><code>ZXV_SV_VERSION</code></td>
+<td>Version of the specification (<code>major &lt;&lt; 16 \| minor</code>)</td>
+</tr>
+<tr>
+<td><code>ZXV_SV_FRAME_HOOK</code></td>
+<td>The current frame hook (change it with <code>zxv_set_frame_hook</code>)</td>
+</tr>
+<tr>
+<td><code>ZXV_SV_RAMTOP</code></td>
+<td>Top of the usable RAM; the system stack starts here</td>
+</tr>
+<tr>
+<td><code>ZXV_SV_URAM_START</code>, <code>ZXV_SV_URAM_END</code></td>
+<td>Start and end (excluded) of the user RAM</td>
+</tr>
+<tr>
+<td><code>ZXV_SV_CPU_HZ</code></td>
+<td>Processor frequency</td>
+</tr>
+<tr>
+<td><code>ZXV_SV_SYSFLAGS</code></td>
+<td><code>ZXV_SYSF_LINK_BUSY</code> (bit 0): the visible page is being sent; <code>ZXV_SYSF_BREAK</code> (bit 1): the BREAK key is pressed</td>
+</tr>
+<tr>
+<td><code>ZXV_SV_LANG</code></td>
+<td>The machine's language (read only: use <code>zxv_lang_set</code>)</td>
+</tr>
+<tr>
+<td><code>ZXV_SV_EDITOR</code></td>
+<td>1 while BASIC waits for a command (in the editor or with a report); 0 while it runs something, native programs too. Written by the ROM</td>
+</tr>
+</tbody>
+</table>
+<h2 id="error-codes">Error codes<a class="ancla" href="#error-codes" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Constant</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>ZXV_OK</code></td>
+<td>Success</td>
+</tr>
+<tr>
+<td>−1</td>
+<td><code>ZXV_E_NOENT</code></td>
+<td>It does not exist</td>
+</tr>
+<tr>
+<td>−2</td>
+<td><code>ZXV_E_EXIST</code></td>
+<td>It already exists</td>
+</tr>
+<tr>
+<td>−3</td>
+<td><code>ZXV_E_NAME</code></td>
+<td>Name or path not valid</td>
+</tr>
+<tr>
+<td>−4</td>
+<td><code>ZXV_E_NOTDIR</code></td>
+<td>Part of the path is not a folder</td>
+</tr>
+<tr>
+<td>−5</td>
+<td><code>ZXV_E_ISDIR</code></td>
+<td>It is a folder</td>
+</tr>
+<tr>
+<td>−6</td>
+<td><code>ZXV_E_NOTEMPTY</code></td>
+<td>The folder is not empty</td>
+</tr>
+<tr>
+<td>−7</td>
+<td><code>ZXV_E_BADF</code></td>
+<td>File or folder number not valid</td>
+</tr>
+<tr>
+<td>−8</td>
+<td><code>ZXV_E_MFILE</code></td>
+<td>Too many open</td>
+</tr>
+<tr>
+<td>−9</td>
+<td><code>ZXV_E_ACCESS</code></td>
+<td>Not allowed (by the open mode, on <code>ROM:</code>, deleting the root, or <code>zxv_exec</code> from a native program)</td>
+</tr>
+<tr>
+<td>−10</td>
+<td><code>ZXV_E_FAULT</code></td>
+<td>The buffer is outside the allowed memory</td>
+</tr>
+<tr>
+<td>−11</td>
+<td><code>ZXV_E_IO</code></td>
+<td>Read or write error</td>
+</tr>
+<tr>
+<td>−12</td>
+<td><code>ZXV_E_NOCARD</code></td>
+<td>No SD card</td>
+</tr>
+<tr>
+<td>−13</td>
+<td><code>ZXV_E_NOSPC</code></td>
+<td>The card is full</td>
+</tr>
+<tr>
+<td>−14</td>
+<td><code>ZXV_E_FORMAT</code></td>
+<td>Not a valid <code>.zxv</code></td>
+</tr>
+<tr>
+<td>−15</td>
+<td><code>ZXV_E_RANGE</code></td>
+<td>It does not fit (in the user RAM, or in the buffer: <code>zxv_file_load</code>, <code>zxv_dir_current</code>)</td>
+</tr>
+<tr>
+<td>−16</td>
+<td><code>ZXV_E_NOCLOCK</code></td>
+<td>The clock is not set</td>
+</tr>
+<tr>
+<td>−17</td>
+<td><code>ZXV_E_INVAL</code></td>
+<td>Value not valid</td>
+</tr>
+</tbody>
+</table>
+<p>If the card is taken out, or stops answering, while files or folders are
+open, they keep their numbers (a file opened afterwards does not get one of
+them) and every call on them returns <code>ZXV_E_NOCARD</code> or <code>ZXV_E_IO</code> until you
+close them. Closing them returns <code>ZXV_OK</code>: what was already written is on
+the card.</p>
+<h2 id="api-function-numbers">API function numbers<a class="ancla" href="#api-function-numbers" aria-hidden="true">#</a></h2>
+<p>The API is a table of 256 function addresses at <code>ZXV_API_TABLE</code>
+(<code>0x2000_0000</code>). Entry <em>n</em> is at <code>ZXV_API_TABLE + 4·n</code>. From C, the
+headers' functions use the macro <code>ZXV_API_FN(n, type)</code>, which reads the
+entry and casts it to a function pointer type. In assembly:</p>
+<pre><code class="language-asm">    lui  t0, %hi(ZXV_API_TABLE)
+    lw   t0, 4*ZXV_API_CLS(t0)
+    jalr t0
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>n</th>
+<th>Constant</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>ZXV_API_VERSION</code></td>
+<td><code>zxv_api_version</code></td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>ZXV_API_WAIT_VBLANK</code></td>
+<td><code>zxv_wait_vblank</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>ZXV_API_SET_FRAME_HOOK</code></td>
+<td><code>zxv_set_frame_hook</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>ZXV_API_TIME_US</code></td>
+<td><code>zxv_time_us</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>ZXV_API_SET_MODE</code></td>
+<td><code>zxv_set_mode</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>ZXV_API_SET_PAGE</code></td>
+<td><code>zxv_set_page</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>ZXV_API_CLS</code></td>
+<td><code>zxv_cls</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>ZXV_API_PLOT</code></td>
+<td><code>zxv_plot</code></td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>ZXV_API_PRINT_CHAR</code></td>
+<td><code>zxv_print_char</code></td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>ZXV_API_PRINT_STR</code></td>
+<td><code>zxv_print_str</code></td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>ZXV_API_KEY_GET</code></td>
+<td><code>zxv_key_get</code></td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>ZXV_API_JOY_READ</code></td>
+<td><code>zxv_joy_read</code></td>
+</tr>
+<tr>
+<td>12</td>
+<td><code>ZXV_API_AY_WRITE</code></td>
+<td><code>zxv_ay_write</code></td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>ZXV_API_BEEPER_EVENT</code></td>
+<td><code>zxv_beeper_event</code></td>
+</tr>
+<tr>
+<td>14–17</td>
+<td><code>ZXV_API_FILE_OPEN</code>, <code>_READ</code>, <code>_WRITE</code>, <code>_CLOSE</code></td>
+<td><code>zxv_file_open</code>, <code>zxv_file_read</code>, <code>zxv_file_write</code>, <code>zxv_file_close</code></td>
+</tr>
+<tr>
+<td>18</td>
+<td><code>ZXV_API_FILE_LOAD</code></td>
+<td><code>zxv_file_load</code></td>
+</tr>
+<tr>
+<td>19</td>
+<td><code>ZXV_API_EXIT_TO_BASIC</code></td>
+<td><code>zxv_exit_to_basic</code></td>
+</tr>
+<tr>
+<td>20</td>
+<td><code>ZXV_API_REPORT_ERROR</code></td>
+<td><code>zxv_report_error</code></td>
+</tr>
+<tr>
+<td>21–24</td>
+<td><code>ZXV_API_FILE_SEEK</code>, <code>_STAT</code>, <code>_REMOVE</code>, <code>_RENAME</code></td>
+<td><code>zxv_file_seek</code>, <code>zxv_file_stat</code>, <code>zxv_file_remove</code>, <code>zxv_file_rename</code></td>
+</tr>
+<tr>
+<td>25–30</td>
+<td><code>ZXV_API_DIR_MAKE</code>, <code>_CHANGE</code>, <code>_CURRENT</code>, <code>_OPEN</code>, <code>_READ</code>, <code>_CLOSE</code></td>
+<td><code>zxv_dir_make</code> ... <code>zxv_dir_close</code></td>
+</tr>
+<tr>
+<td>31</td>
+<td><code>ZXV_API_ZXV_EXEC</code></td>
+<td><code>zxv_exec</code></td>
+</tr>
+<tr>
+<td>32</td>
+<td><code>ZXV_API_GFX_TARGET</code></td>
+<td><code>zxv_gfx_target</code></td>
+</tr>
+<tr>
+<td>33</td>
+<td><code>ZXV_API_GFX_DRAW_PAGE</code></td>
+<td><code>zxv_gfx_draw_page</code></td>
+</tr>
+<tr>
+<td>34</td>
+<td><code>ZXV_API_GFX_CLIP</code></td>
+<td><code>zxv_gfx_clip</code></td>
+</tr>
+<tr>
+<td>35</td>
+<td><code>ZXV_API_GFX_BLIT</code></td>
+<td><code>zxv_gfx_blit</code></td>
+</tr>
+<tr>
+<td>36</td>
+<td><code>ZXV_API_SPR_PREPARE</code></td>
+<td><code>zxv_spr_prepare</code></td>
+</tr>
+<tr>
+<td>37</td>
+<td><code>ZXV_API_SPR_DRAW</code></td>
+<td><code>zxv_spr_draw</code></td>
+</tr>
+<tr>
+<td>38</td>
+<td><code>ZXV_API_SPR_COLLIDE</code></td>
+<td><code>zxv_spr_collide</code></td>
+</tr>
+<tr>
+<td>39</td>
+<td><code>ZXV_API_MAP_DRAW</code></td>
+<td><code>zxv_map_draw</code></td>
+</tr>
+<tr>
+<td>40</td>
+<td><code>ZXV_API_MAP_CELL</code></td>
+<td><code>zxv_map_cell</code></td>
+</tr>
+<tr>
+<td>41</td>
+<td><code>ZXV_API_M7_DRAW</code></td>
+<td><code>zxv_m7_draw</code></td>
+</tr>
+<tr>
+<td>42</td>
+<td><code>ZXV_API_M7_CAMERA</code></td>
+<td><code>zxv_m7_camera</code></td>
+</tr>
+<tr>
+<td>43</td>
+<td><code>ZXV_API_GFX_LINE</code></td>
+<td><code>zxv_gfx_line</code></td>
+</tr>
+<tr>
+<td>44</td>
+<td><code>ZXV_API_GFX_RECT</code></td>
+<td><code>zxv_gfx_rect</code></td>
+</tr>
+<tr>
+<td>45</td>
+<td><code>ZXV_API_GFX_TRI</code></td>
+<td><code>zxv_gfx_tri</code></td>
+</tr>
+<tr>
+<td>46</td>
+<td><code>ZXV_API_GFX_POLY</code></td>
+<td><code>zxv_gfx_poly</code></td>
+</tr>
+<tr>
+<td>47</td>
+<td><code>ZXV_API_GFX_CIRCLE</code></td>
+<td><code>zxv_gfx_circle</code></td>
+</tr>
+<tr>
+<td>48</td>
+<td><code>ZXV_API_CLOCK_GET</code></td>
+<td><code>zxv_clock_get</code></td>
+</tr>
+<tr>
+<td>49</td>
+<td><code>ZXV_API_CLOCK_SET</code></td>
+<td><code>zxv_clock_set</code></td>
+</tr>
+<tr>
+<td>50</td>
+<td><code>ZXV_API_LANG_SET</code></td>
+<td><code>zxv_lang_set</code></td>
+</tr>
+<tr>
+<td>51</td>
+<td><code>ZXV_API_AY_EVENT</code></td>
+<td><code>zxv_ay_event</code></td>
+</tr>
+<tr>
+<td>52</td>
+<td><code>ZXV_API_SPR_DRAW_SCALED</code></td>
+<td><code>zxv_spr_draw_scaled</code></td>
+</tr>
+<tr>
+<td>53</td>
+<td><code>ZXV_API_TEXT_COLORS</code></td>
+<td><code>zxv_text_colors</code></td>
+</tr>
+<tr>
+<td>54</td>
+<td><code>ZXV_API_TEXT_AT</code></td>
+<td><code>zxv_text_at</code></td>
+</tr>
+<tr>
+<td>55</td>
+<td><code>ZXV_API_BEEPER_EVENT_AT</code></td>
+<td><code>zxv_beeper_event_at</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>zxv_lang_get</code> and the mouse functions read memory directly and have no
+number. Unused entries return −1. Because the table is in RAM, a program
+can replace an entry to intercept a routine.</p>
+<h2 id="memory-map">Memory map<a class="ancla" href="#memory-map" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>From</th>
+<th>To</th>
+<th>Size</th>
+<th>Contents</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x1000_0000</code></td>
+<td><code>0x1003_FFFF</code></td>
+<td>256 KB</td>
+<td>Platform firmware</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>0x1004_0000</code></td>
+<td><code>0x100B_FFFF</code></td>
+<td>512 KB</td>
+<td>The ROM (<code>ZXV_ROM_BASE</code>): BASIC and the API</td>
+<td>Read, execute</td>
+</tr>
+<tr>
+<td><code>0x100C_0000</code></td>
+<td><code>0x103F_FFFF</code></td>
+<td>3.25 MB</td>
+<td>The <code>ROM:</code> drive (<code>ZXV_ROMDISK_BASE</code>)</td>
+<td>Through the file functions</td>
+</tr>
+<tr>
+<td><code>0x2000_0000</code></td>
+<td><code>0x2000_3FFF</code></td>
+<td>16 KB</td>
+<td>System area (<code>ZXV_SYS_BASE</code>)</td>
+<td>See below</td>
+</tr>
+<tr>
+<td><code>0x2000_4000</code></td>
+<td><code>0x2001_BFFF</code></td>
+<td>96 KB</td>
+<td>Video page 0 (<code>ZXV_VRAM0_BASE</code>)</td>
+<td>Read, write</td>
+</tr>
+<tr>
+<td><code>0x2001_C000</code></td>
+<td><code>0x2003_3FFF</code></td>
+<td>96 KB</td>
+<td>Video page 1 (<code>ZXV_VRAM1_BASE</code>)</td>
+<td>Read, write</td>
+</tr>
+<tr>
+<td><code>0x2003_4000</code></td>
+<td><code>0x2007_1FFF</code></td>
+<td>248 KB</td>
+<td>User RAM (<code>ZXV_URAM_BASE</code> to <code>ZXV_URAM_END</code>)</td>
+<td>Read, write, execute</td>
+</tr>
+<tr>
+<td><code>0x2007_2000</code></td>
+<td><code>0x2008_1FFF</code></td>
+<td>64 KB</td>
+<td>Reserved for the system (<code>ZXV_RESERVED_BASE</code>)</td>
+<td><strong>Forbidden</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>System area:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Address</th>
+<th>Constant</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x2000_0000</code></td>
+<td><code>ZXV_API_TABLE</code></td>
+<td>API table (256 addresses)</td>
+</tr>
+<tr>
+<td><code>0x2000_0400</code></td>
+<td><code>ZXV_VIDEO_REGS</code></td>
+<td><a href="#video-registers">Video registers</a></td>
+</tr>
+<tr>
+<td><code>0x2000_0480</code></td>
+<td><code>ZXV_PALETTES</code></td>
+<td>Palettes of the remapping tables (4 × 16 RGB565 colours)</td>
+</tr>
+<tr>
+<td><code>0x2000_0500</code></td>
+<td><code>ZXV_INPUT_REGS</code></td>
+<td><a href="#input-registers">Input registers</a></td>
+</tr>
+<tr>
+<td><code>0x2000_0600</code></td>
+<td><code>ZXV_SOUND_REGS</code></td>
+<td><a href="#sound-registers">Sound registers</a></td>
+</tr>
+<tr>
+<td><code>0x2000_0700</code></td>
+<td><code>ZXV_SYSVARS</code></td>
+<td><a href="#system-variables">System variables</a></td>
+</tr>
+<tr>
+<td><code>0x2000_0800</code></td>
+<td><code>ZXV_AY_FIFO</code></td>
+<td>AY queue (256 × 2 bytes)</td>
+</tr>
+<tr>
+<td><code>0x2000_0A00</code></td>
+<td><code>ZXV_BEEP_QUEUE</code></td>
+<td>Timed queue (256 × 8 bytes)</td>
+</tr>
+<tr>
+<td><code>0x2000_1200</code></td>
+<td><code>ZXV_REMAP_TABLES</code></td>
+<td>Colour remapping tables (4 × 16 bytes)</td>
+</tr>
+<tr>
+<td><code>0x2000_1800</code></td>
+<td><code>ZXV_LINE_TABLE</code></td>
+<td>Line table (480 × 8 bytes)</td>
+</tr>
+<tr>
+<td><code>0x2000_2700</code></td>
+<td><code>ZXV_DBG_BOX</code></td>
+<td>BASIC debugger mailbox (used by the ROM and the emulator)</td>
+</tr>
+</tbody>
+</table>
+<p>The rest of the system area is for the ROM's internal use.</p>
+<p>The processor is a 32-bit RISC-V (RV32IMAC with the Zba, Zbb, Zbs, Zbkb
+and Zcb extensions, <code>-march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb
+-mabi=ilp32</code>), little-endian. <strong>Unaligned accesses</strong> to 16- or 32-bit data
+stop the program. Programs may turn interrupts on and off (bit 3 of
+<code>mstatus</code>) and read <code>mcycle</code>/<code>minstret</code>; other control registers belong to
+the system.</p>
+<h3 id="how-the-sdk-lays-out-a-program">How the SDK lays out a program<a class="ancla" href="#how-the-sdk-lays-out-a-program" aria-hidden="true">#</a></h3>
+<p><code>zxv.ld</code> puts, from <code>0x2003_4000</code>: the code (starting with <code>crt0.S</code>), the
+constants, the initialised variables, then the zeroed variables (BSS).
+It defines these symbols:</p>
+<table>
+<thead>
+<tr>
+<th>Symbol</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>__image_end</code></td>
+<td>End of what is stored in the <code>.zxv</code></td>
+</tr>
+<tr>
+<td><code>__bss_start</code>, <code>__bss_end</code></td>
+<td>The zeroed variables (the system clears them before starting)</td>
+</tr>
+<tr>
+<td><code>__heap_start</code>, <code>__heap_end</code></td>
+<td>Free memory for picolibc's <code>malloc</code>: from the end of the BSS to 32 KB below the end of the user RAM</td>
+</tr>
+<tr>
+<td><code>__tls_base</code></td>
+<td>Thread variables (picolibc's <code>errno</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>The stack is the system's: it starts near <code>ZXV_URAM_END</code> and grows down.</p>
+<h2 id="the-zxv-file-format">The <code>.zxv</code> file format<a class="ancla" href="#the-zxv-file-format" aria-hidden="true">#</a></h2>
+<p>A 72-byte header, followed by the loading screen, if there is one, and the
+program image, which is copied to the load address. All numbers are
+little-endian.</p>
+<table>
+<thead>
+<tr>
+<th>Offset</th>
+<th>Constant</th>
+<th>Size</th>
+<th>Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x00</td>
+<td><code>ZXV_H_MAGIC</code></td>
+<td>4 bytes</td>
+<td><code>ZXV1</code> (<code>ZXV_HDR_MAGIC</code>)</td>
+</tr>
+<tr>
+<td>0x04</td>
+<td><code>ZXV_H_HDR_SIZE</code></td>
+<td>16 bits</td>
+<td>Header size: 72 (<code>ZXV_HDR_SIZE</code>)</td>
+</tr>
+<tr>
+<td>0x06</td>
+<td><code>ZXV_H_PROFILE</code></td>
+<td>16 bits</td>
+<td>Specification profile: 1 (<code>ZXV_HDR_PROFILE</code>)</td>
+</tr>
+<tr>
+<td>0x08</td>
+<td><code>ZXV_H_LOAD</code></td>
+<td>32 bits</td>
+<td>Load address</td>
+</tr>
+<tr>
+<td>0x0C</td>
+<td><code>ZXV_H_ENTRY</code></td>
+<td>32 bits</td>
+<td>Entry point</td>
+</tr>
+<tr>
+<td>0x10</td>
+<td><code>ZXV_H_IMAGE_SIZE</code></td>
+<td>32 bits</td>
+<td>Size of the image</td>
+</tr>
+<tr>
+<td>0x14</td>
+<td><code>ZXV_H_BSS_SIZE</code></td>
+<td>32 bits</td>
+<td>Bytes cleared to zero after the image</td>
+</tr>
+<tr>
+<td>0x18</td>
+<td><code>ZXV_H_STACK</code></td>
+<td>32 bits</td>
+<td>Stack top (0 = keep the system's stack)</td>
+</tr>
+<tr>
+<td>0x1C</td>
+<td><code>ZXV_H_MODE</code></td>
+<td>8 bits</td>
+<td>Initial video mode</td>
+</tr>
+<tr>
+<td>0x1D</td>
+<td><code>ZXV_H_FLAGS</code></td>
+<td>8 bits</td>
+<td>Reserved: written as 0, ignored when loading</td>
+</tr>
+<tr>
+<td>0x1E</td>
+<td></td>
+<td>16 bits</td>
+<td>Reserved</td>
+</tr>
+<tr>
+<td>0x20</td>
+<td><code>ZXV_H_CRC</code></td>
+<td>32 bits</td>
+<td>CRC-32 of the image (the zlib one)</td>
+</tr>
+<tr>
+<td>0x24</td>
+<td><code>ZXV_H_NAME</code></td>
+<td>28 bytes</td>
+<td>Name (ASCII, zero-terminated)</td>
+</tr>
+<tr>
+<td>0x40</td>
+<td><code>ZXV_H_SCREEN</code></td>
+<td>32 bits</td>
+<td>Size of the loading screen, which comes after the header (0 = none)</td>
+</tr>
+<tr>
+<td>0x44</td>
+<td></td>
+<td>32 bits</td>
+<td>Reserved (0)</td>
+</tr>
+</tbody>
+</table>
+<p>When loading, the system checks the signature, the header size, the
+profile, that the load address is aligned to 4 and the entry point inside
+the image, that image and BSS fit in the user RAM leaving 4 KB below the
+system stack, and the CRC. Then it clears the BSS, sets the video mode (if
+the loading screen is not already in that mode) and calls the entry point
+as <code>int entry(void)</code>. A stack top other than 0 must be aligned to 16 and
+lie between the end of the BSS and <code>ZXV_URAM_END</code>. A <code>.zxv</code> with the old
+64-byte header does not load (<code>ZXV_E_FORMAT</code>): run it through <code>elf2zxv.py</code>
+again.</p>
+<p><strong>The loading screen</strong> is the data of a screen object of a <code>.gfx</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Offset</th>
+<th>Size</th>
+<th>Field</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>8 bits</td>
+<td>Mode, 0 or 1</td>
+</tr>
+<tr>
+<td>1</td>
+<td>8 bits</td>
+<td>Border colour, 0–15</td>
+</tr>
+<tr>
+<td>2</td>
+<td>8 bits</td>
+<td>Flags: <code>ZXV_SCREEN_F_PALETTE</code> (0x01), it has a palette</td>
+</tr>
+<tr>
+<td>3</td>
+<td>8 bits</td>
+<td>0</td>
+</tr>
+<tr>
+<td>4</td>
+<td>32 bytes</td>
+<td>With a palette, its 16 RGB565 colours (<code>ZXV_SCREEN_PALETTE</code>)</td>
+</tr>
+<tr>
+<td>4 or 36</td>
+<td>24,576 or 98,304 bytes</td>
+<td>The pixels of the page, as in VRAM (<code>ZXV_SCREEN_PIXELS(mode)</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><code>ZXV_SCREEN_HEAD</code> (4) is the size of the screen's header and
+<code>ZXV_SCREEN_SIZE_F(mode, flags)</code>, the size of the whole screen. The ROM
+shows it before it loads the image, with its mode, its border and, if it has
+one, its palette in table 0. If it is in the program's mode, the program
+starts with it on page 0; if not, in its own mode with a clear screen.</p>
+<h2 id="tools">Tools<a class="ancla" href="#tools" aria-hidden="true">#</a></h2>
+<h3 id="elf2zxvpy"><code>elf2zxv.py</code><a class="ancla" href="#elf2zxvpy" aria-hidden="true">#</a></h3>
+<pre><code class="language-sh">python3 sdk/tools/elf2zxv.py INPUT.elf OUTPUT.zxv [--name NAME] [--mode 0|1] [--stack ADDRESS] [--screen SCREEN]
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--name NAME</code></td>
+<td>Name in the header (up to 27 characters; by default the output file name without extension)</td>
+</tr>
+<tr>
+<td><code>--mode 0\|1</code></td>
+<td>Initial video mode (default 0)</td>
+</tr>
+<tr>
+<td><code>--stack ADDRESS</code></td>
+<td>Stack top (decimal or <code>0x...</code>; default 0, the system's stack)</td>
+</tr>
+<tr>
+<td><code>--screen SCREEN</code></td>
+<td>The loading screen (D89): a PNG (256 × 192, 512 × 384 or the whole frame with its border, 320 × 240 or 640 × 480) or a <code>.gfx</code> with a screen. The ROM puts it up before loading the program, which starts with it if it is in its mode</td>
+</tr>
+</tbody>
+</table>
+<p>It checks that the program is inside the user RAM and prints the load
+address, the entry point and the sizes. Like <code>png2gfx.py</code>, it speaks
+English, or Spanish if your system is in Spanish.</p>
+<h3 id="png2gfxpy"><code>png2gfx.py</code><a class="ancla" href="#png2gfxpy" aria-hidden="true">#</a></h3>
+<pre><code class="language-sh">python3 sdk/tools/png2gfx.py OUTPUT.gfx COMMAND...
+python3 sdk/tools/png2gfx.py --list FILE.gfx
+</code></pre>
+<p>The commands are listed in <a href="graphics.html#images-from-png-files-png2gfxpy">Graphics</a>,
+together with the <code>.gfx</code> format. Sprite numbers go from 0 to 255, tiles
+from 0 to 4095, maps from 0 to 15 and textures from 0 to 3, as in BASIC,
+and screens from 0 to 255.
+It reads any PNG except interlaced ones, without other Python packages.</p>
+<h2 id="the-standard-c-library-picolibc">The standard C library (picolibc)<a class="ancla" href="#the-standard-c-library-picolibc" aria-hidden="true">#</a></h2>
+<p>Programs compiled with picolibc and <code>zxvc.c</code> (see the
+<a href="index.html#two-ways-to-write-c">guide</a>) can use:</p>
+<table>
+<thead>
+<tr>
+<th>What</th>
+<th>Functions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Files</td>
+<td><code>fopen</code>, <code>fread</code>, <code>fwrite</code>, <code>fgets</code>, <code>fprintf</code>, <code>fseek</code>, <code>fclose</code>..., and <code>open</code>, <code>read</code>, <code>write</code>, <code>lseek</code>, <code>close</code></td>
+</tr>
+<tr>
+<td>Folders</td>
+<td><code>opendir</code>, <code>readdir</code>, <code>rewinddir</code>, <code>closedir</code>, <code>mkdir</code>, <code>rmdir</code>, <code>chdir</code>, <code>getcwd</code></td>
+</tr>
+<tr>
+<td>Names</td>
+<td><code>rename</code>, <code>unlink</code>/<code>remove</code>, <code>stat</code>, <code>fstat</code></td>
+</tr>
+<tr>
+<td>Console</td>
+<td><code>printf</code>, <code>puts</code>, <code>getchar</code>, <code>fgets(..., stdin)</code>: the screen and the keyboard (with echo; Enter is <code>'\n'</code>)</td>
+</tr>
+<tr>
+<td>Memory</td>
+<td><code>malloc</code>, <code>free</code>, <code>realloc</code></td>
+</tr>
+<tr>
+<td>Time</td>
+<td><code>time</code>, <code>gettimeofday</code>, <code>localtime</code>: the machine's clock (1 January 2026 if it is not set)</td>
+</tr>
+<tr>
+<td>Exit</td>
+<td><code>exit</code>, <code>abort</code>: back to BASIC (<code>exit(0)</code> gives <code>0 OK</code>, any other code a <code>W</code> report, as in <a href="#zxv_exit_to_basic"><code>zxv_exit_to_basic</code></a>)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>API errors arrive in <code>errno</code> (<code>ENOENT</code>, <code>EEXIST</code>, <code>ENOTEMPTY</code>, <code>ENOSPC</code>...;
+  no card is <code>ENODEV</code>).</li>
+<li>Descriptors 0, 1 and 2 are the console; files start at 3.</li>
+<li><code>struct dirent</code> has <code>d_name</code>, <code>d_type</code> (<code>DT_DIR</code> or <code>DT_REG</code>) and, as an
+  extra, the size in <code>d_size</code>.</li>
+<li><code>printf</code> with decimals adds about 7 KB; <code>-DPICOLIBC_INTEGER_PRINTF_SCANF</code>
+  when linking uses the smaller one, integers only.</li>
+<li>The console speaks UTF-8, like C strings: <code>printf("¿Qué tal?")</code> shows
+  the accents, and <code>fgets</code> gives the keys typed in UTF-8 (<code>ñ</code> is two
+  bytes). Letters the ROM font does not have come out as <code>?</code>.</li>
+</ul>
+<h2 id="internal-definitions">Internal definitions<a class="ancla" href="#internal-definitions" aria-hidden="true">#</a></h2>
+<p><code>zxv.h</code> is shared with the ROM and the emulator, so it also defines
+things programs must not use: the platform interface (<code>ZXV_PLATFORM_IF</code>
+and every <code>ZXV_PIF_...</code>), the BASIC debugger's mailbox (<code>ZXV_DBG_BOX</code> and
+every <code>ZXV_DBG...</code>), the ROM's workspace (<code>ZXV_ROM_WORKSPACE</code>,
+<code>ZXV_ROM_WORKSPACE_END</code>), the flash addresses (<code>ZXV_FLASH_BASE</code>,
+<code>ZXV_FLASH_SIZE</code>, <code>ZXV_PLATFORM_BASE</code>, <code>ZXV_ROM_SIZE</code>) and the SRAM ones
+(<code>ZXV_SRAM_BASE</code>, <code>ZXV_SRAM_SIZE</code>, <code>ZXV_RESERVED_END</code>). They are listed
+here only so that you recognise them.</p>
+<nav class="pasos"><a class="anterior" href="graphics.html"><small>Previous</small>← Graphics</a><a class="siguiente" href="web.html"><small>Next</small>Publishing your game on the web →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

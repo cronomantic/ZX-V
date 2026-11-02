@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>11. Keyboard and joystick · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../es/basic/tutorial/11-keyboard-and-joystick.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../../getting-started.html">Getting started</a>
+</li>
+<li><a href="../../emulator.html">The emulator</a>
+</li>
+<li><a href="../../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../index.html">Learn BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. First steps</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables and maths</a></li>
+<li><a href="03-text-and-input.html">3. Text and input</a></li>
+<li><a href="04-decisions.html">4. Decisions</a></li>
+<li><a href="05-loops.html">5. Loops</a></li>
+<li><a href="06-arrays-and-data.html">6. Arrays and data</a></li>
+<li><a href="07-procedures.html">7. Procedures</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Colours and the screen</a></li>
+<li><a href="09-drawing.html">9. Drawing</a></li>
+<li><a href="10-sound-and-music.html">10. Sound and music</a></li>
+<li><a href="11-keyboard-and-joystick.html" class="aqui">11. Keyboard and joystick</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Files and the SD card</a></li>
+<li><a href="14-a-complete-game.html">14. A complete game</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">The editor</a>
+</li>
+<li><a href="../reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../../hardware/board.html">The board</a>
+</li>
+<li><a href="../../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="11-keyboard-and-joystick">11. Keyboard and joystick</h1>
+<p><strong>In this chapter you will learn</strong> to read the keyboard without stopping the
+program, with <code>INKEY$</code> and <code>KEY</code>, to read a joystick with <code>JOY</code>, and to keep
+a steady speed with <code>WAIT</code> and <code>TIME</code>. These are the controls of every
+game.</p>
+<p><code>INPUT</code> is fine for questions, but a game cannot stop and wait for Enter: it
+has to look at the keyboard and carry on.</p>
+<h2 id="inkey-which-key-is-pressed"><code>INKEY$</code>: which key is pressed?<a class="ancla" href="#inkey-which-key-is-pressed" aria-hidden="true">#</a></h2>
+<p><code>INKEY$</code> gives the key that is being pressed at that moment, as a string, or
+<code>""</code> (an empty string) if there is none. It never waits.</p>
+<pre><code>10 PRINT &quot;Press keys (Q to quit)&quot;
+20 REPEAT
+30 REPEAT: UNTIL INKEY$=&quot;&quot;
+40 REPEAT: LET k$=INKEY$: UNTIL k$&lt;&gt;&quot;&quot;
+50 PRINT &quot;You pressed &quot;;k$
+60 UNTIL k$=&quot;q&quot;
+70 PAUSE 0
+</code></pre>
+<p>Line 30 waits until no key is pressed, and line 40 waits until one is. Why
+both? Because the program is very fast: while your finger is on a key,
+<code>INKEY$</code> gives that key again and again. Without line 30, a single press
+would fill the screen.</p>
+<p>A loop can be written on a single line, as in lines 30 and 40: <code>REPEAT:
+UNTIL INKEY$=""</code> repeats nothing, it just waits.</p>
+<h3 id="why-the-programs-end-with-pause-0">Why the programs end with <code>PAUSE 0</code><a class="ancla" href="#why-the-programs-end-with-pause-0" aria-hidden="true">#</a></h3>
+<p>When a program ends, it leaves its report (<code>0 OK...</code>) at the bottom until
+you press a key. If it ends with <code>PAUSE 0</code> ("press a key to finish"), the
+screen stays clean, without the report. <code>PAUSE</code> forgets the keys pressed
+before it and waits for a new one. All the programs in this chapter that
+read the keyboard end like that.</p>
+<h2 id="key-several-keys-at-once"><code>KEY</code>: several keys at once<a class="ancla" href="#key-several-keys-at-once" aria-hidden="true">#</a></h2>
+<p>In a game you may hold "right" and "fire" at the same time. <code>KEY n</code> gives 1
+if the key <code>n</code> is held down right now, and 0 if not. You can ask about as
+many keys as you like:</p>
+<table>
+<thead>
+<tr>
+<th><code>n</code></th>
+<th>Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CODE "a"</code> ... <code>CODE "z"</code>, <code>CODE "0"</code> ... <code>CODE "9"</code></td>
+<td>Letters and digits</td>
+</tr>
+<tr>
+<td>8, 9, 10, 11</td>
+<td>The cursor keys: left, right, down, up</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Enter</td>
+</tr>
+<tr>
+<td>32</td>
+<td>Space</td>
+</tr>
+</tbody>
+</table>
+<p>This program moves an <code>@</code> around the screen. Use <strong>O</strong>, <strong>P</strong>, <strong>Q</strong> and
+<strong>A</strong>, or the cursor keys, and <strong>Space</strong> to stop:</p>
+<pre><code>10 BORDER 0: PAPER 0: INK 7: CLS
+20 PRINT AT 21,0;&quot;Move with OPQA or the cursors&quot;
+30 LET x=15: LET y=10
+40 REPEAT
+50 PRINT AT y,x;&quot; &quot;
+60 IF (KEY CODE &quot;o&quot; OR KEY 8) AND x&gt;0 THEN LET x=x-1
+70 IF (KEY CODE &quot;p&quot; OR KEY 9) AND x&lt;31 THEN LET x=x+1
+80 IF (KEY CODE &quot;q&quot; OR KEY 11) AND y&gt;0 THEN LET y=y-1
+90 IF (KEY CODE &quot;a&quot; OR KEY 10) AND y&lt;20 THEN LET y=y+1
+100 PRINT AT y,x; INK 6;&quot;@&quot;
+110 WAIT 3
+120 UNTIL KEY 32
+130 PAUSE 0
+</code></pre>
+<p>Each time round the loop, it rubs out the <code>@</code> (line 50), changes <code>x</code> and
+<code>y</code> according to the keys, and prints it again in its new place. Holding two
+keys moves it diagonally. The conditions <code>x&gt;0</code>, <code>x&lt;31</code>... stop it at the
+edges.</p>
+<h2 id="a-steady-speed-wait-and-time">A steady speed: <code>WAIT</code> and <code>TIME</code><a class="ancla" href="#a-steady-speed-wait-and-time" aria-hidden="true">#</a></h2>
+<p>The screen is redrawn 60 times a second; each redraw is a <strong>frame</strong>. <code>WAIT
+n</code> waits until <code>n</code> frames have passed since the last <code>WAIT</code>. In the program
+above, <code>WAIT 3</code> makes each turn of the loop last exactly three frames, so
+the <code>@</code> moves at the same speed whether the loop has a lot or a little to
+do. That is what you want in a game.</p>
+<p><code>TIME</code> gives the number of frames since the machine was switched on. Use it
+to measure time. This game measures your reflexes:</p>
+<pre><code>10 RANDOMIZE
+20 BORDER 2: PAPER 0: INK 7: CLS
+30 PRINT &quot;Wait for green, then press SPACE&quot;
+40 PAUSE 50+INT (RND*150)
+50 BORDER 4: LET t=TIME
+60 REPEAT: UNTIL KEY 32
+70 LET t=TIME-t
+80 PRINT &quot;Your time: &quot;;INT (t*1000/60);&quot; milliseconds&quot;
+90 PAUSE 0
+</code></pre>
+<p>Each frame lasts a sixtieth of a second, hence the <code>t*1000/60</code>. (<code>PAUSE</code>
+counts in fiftieths of a second, as on the Spectrum: <code>PAUSE 50</code> is one
+second.) Thanks to the <code>PAUSE 0</code> in line 90, your time stays on the screen
+until you press another key.</p>
+<h2 id="the-joystick-joy">The joystick: <code>JOY</code><a class="ancla" href="#the-joystick-joy" aria-hidden="true">#</a></h2>
+<p><code>JOY 0</code> reads the first joystick or gamepad, and <code>JOY 1</code> the second. It gives
+0 if nothing is pressed (or nothing is plugged in), and otherwise a number
+that adds up these values:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Direction or button</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>right</td>
+</tr>
+<tr>
+<td>2</td>
+<td>left</td>
+</tr>
+<tr>
+<td>4</td>
+<td>down</td>
+</tr>
+<tr>
+<td>8</td>
+<td>up</td>
+</tr>
+<tr>
+<td>16</td>
+<td>fire</td>
+</tr>
+</tbody>
+</table>
+<p>For example, up and fire together give 8 + 16 = 24. To find out whether one
+of those values is in the number, this function is handy: <code>FN b(j,n)</code> is 1
+when the value 2^n is included in <code>j</code> (n = 0 for right, 1 left, 2 down,
+3 up, 4 fire):</p>
+<pre><code>10 DEF FN b(j,n)=INT (j/2^n)-2*INT (j/2^(n+1))
+20 CLS
+30 REPEAT
+40 LET j=JOY 0
+50 PRINT AT 0,0;&quot;Right &quot;;FN b(j,0);&quot;  Left &quot;;FN b(j,1);&quot;  Fire &quot;;FN b(j,4)
+60 WAIT 5
+70 UNTIL INKEY$&lt;&gt;&quot;&quot;
+80 PAUSE 0
+</code></pre>
+<p>To control a game with the keyboard and the joystick, join them with <code>OR</code>:
+<code>IF KEY 9 OR FN b(j,0) THEN ...</code>. In the emulator, a gamepad plugged into
+the PC works as joystick 0.</p>
+<p><strong>If you know the Spectrum:</strong> the joystick is also seen as the number keys,
+as the Sinclair interface did (6 left, 7 right, 8 down, 9 up, 0 fire), so
+old programs that read the keyboard with <code>INKEY$</code> or <code>IN</code> can be played with
+it. <code>KEY</code> only sees the real keyboard. The mouse is read with <code>MOUSE</code>; see
+the reference.</p>
+<h2 id="try-it">Try it<a class="ancla" href="#try-it" aria-hidden="true">#</a></h2>
+<ol>
+<li>In the moving <code>@</code> program, leave a trail: instead of rubbing out the <code>@</code>,
+   print a <code>.</code> where it was.</li>
+<li>Turn the reflexes game into a contest: play five rounds and print the
+   best time.</li>
+</ol>
+<details>
+<summary>Hint</summary>
+<p>For the first, change the <code>" "</code> of line 50. For the second, put lines 20 to
+80 inside a <code>FOR</code> loop, keep the best time in a variable that starts very
+big (<code>LET best=1000</code>), and update it with <code>IF t&lt;best THEN LET best=t</code>.</p>
+</details>
+<hr />
+<p><strong>Reference:</strong> <a href="../reference.html#inkey"><code>INKEY$</code></a>, <a href="../reference.html#key"><code>KEY</code></a>,
+<a href="../reference.html#joy"><code>JOY</code></a>, <a href="../reference.html#wait"><code>WAIT</code></a>,
+<a href="../reference.html#time"><code>TIME</code></a>, <a href="../reference.html#pause"><code>PAUSE</code></a>,
+<a href="../reference.html#mouse"><code>MOUSE</code></a>.</p>
+<p><strong>Next:</strong> <a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a> ·
+<strong>Previous:</strong> <a href="10-sound-and-music.html">10. Sound and music</a></p>
+</details>
+<nav class="pasos"><a class="anterior" href="10-sound-and-music.html"><small>Previous</small>← 10. Sound and music</a><a class="siguiente" href="12-sprites-and-tile-maps.html"><small>Next</small>12. Sprites and tile maps →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting started · ZX-V</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" type="image/png" href="../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../es/getting-started.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="getting-started.html" class="aqui">Getting started</a>
+<ul>
+</ul>
+</li>
+<li><a href="emulator.html">The emulator</a>
+</li>
+<li><a href="machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="basic/index.html">Learn BASIC</a>
+</li>
+<li><a href="basic/editor.html">The editor</a>
+</li>
+<li><a href="basic/reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="hardware/board.html">The board</a>
+</li>
+<li><a href="hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="getting-started">Getting started</h1>
+<p>This page takes you from nothing to typing and running your first program in
+about five minutes. You do not need to know anything about the ZX Spectrum or
+about programming.</p>
+<h2 id="what-is-zx-v">What is ZX-V?<a class="ancla" href="#what-is-zx-v" aria-hidden="true">#</a></h2>
+<p>ZX-V is a small 32-bit home computer, new but in the spirit of the 1980s
+ZX Spectrum. Like the computers of that time, you switch it on and it is ready
+for you to type: it starts straight into <strong>BASIC</strong>, a simple programming
+language. It has 15 bright colours as standard (and palettes to pick
+others), two music chips, an SD card for your files, and it can also run fast
+programs written in C.</p>
+<p>ZX-V is both a real machine, built from two Raspberry Pi Pico 2 boards, and an
+emulator that runs the very same software on your PC or in your browser.
+Everything on this page works the same in all of them.</p>
+<h2 id="choose-how-to-use-it">Choose how to use it<a class="ancla" href="#choose-how-to-use-it" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>What you need</th>
+<th>Best for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Desktop emulator</strong> (<code>zxv</code>)</td>
+<td>A PC with Windows (64-bit) or Linux (x86-64)</td>
+<td>Most people: programming, playing, developing</td>
+</tr>
+<tr>
+<td><strong>Web version</strong></td>
+<td>A modern browser (Chrome, Edge, Firefox...)</td>
+<td>Trying it without installing anything, or putting it on a website</td>
+</tr>
+<tr>
+<td><strong>Real hardware</strong></td>
+<td>The ZX-V board (or a protoboard), two Pico 2, a USB keyboard and an HDMI screen</td>
+<td>The full experience; see <a href="hardware/index.html">Build the hardware</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="download">Download<a class="ancla" href="#download" aria-hidden="true">#</a></h2>
+<p>Everything is on the project's GitHub page, under
+<a href="https://github.com/cronomantic/ZX-V/releases"><strong>Releases</strong></a>. The latest
+release has these packages:</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>zxv-windows-x64.zip</code></td>
+<td>The emulator for Windows</td>
+</tr>
+<tr>
+<td><code>ZX-V-…-x86_64.AppImage</code></td>
+<td>The emulator for Linux (x86-64) in a single file, with everything inside</td>
+</tr>
+<tr>
+<td><code>zxv-linux-x86_64.tar.gz</code></td>
+<td>The emulator for Linux (x86-64), using your system's Qt and SDL</td>
+</tr>
+<tr>
+<td><code>zxv-web.zip</code></td>
+<td>The web version</td>
+</tr>
+<tr>
+<td><code>zxv-uf2.zip</code></td>
+<td>The firmware for the two Picos of the real machine (see <a href="hardware/firmware.html">The firmware</a>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Windows:</strong> unzip <code>zxv-windows-x64.zip</code> anywhere (for example on your
+desktop) and double-click <code>zxv.exe</code>. Nothing else needs installing.</p>
+<p><strong>Linux:</strong> the easiest is the AppImage: make it executable and open it
+(<code>chmod +x ZX-V-*.AppImage</code>, then double-click it or run
+<code>./ZX-V-*.AppImage</code>). It brings Qt and SDL inside and works on most
+distributions from 2022 onwards (Ubuntu 22.04, Debian 12, Fedora 36...). The
+other programs of the package run through it too:
+<code>./ZX-V-*.AppImage zxv-cli --help</code>. If it complains about FUSE (in a container,
+for example), add <code>--appimage-extract-and-run</code>.</p>
+<p>Or unpack the archive (<code>tar xzf zxv-linux-x86_64.tar.gz</code>) and run
+<code>zxv-linux/zxv</code>. It needs Qt 6 and SDL 2, which most desktops already have; on
+Debian or Ubuntu:</p>
+<pre><code class="language-sh">sudo apt install libqt6widgets6 libsdl2-2.0-0
+</code></pre>
+<p><strong>Web version:</strong> unzip <code>zxv-web.zip</code> and double-click <code>index.html</code>. It works
+straight from your disk, without a web server.</p>
+<p>The Windows and Linux packages also bring this documentation, to read offline:
+open <code>docs/index.html</code>, or <strong>Help &gt; Documentation</strong> in the emulator.</p>
+<h2 id="the-first-boot">The first boot<a class="ancla" href="#the-first-boot" aria-hidden="true">#</a></h2>
+<p>Open the emulator. After a moment you see this:</p>
+<p><img alt="The ZX-V start-up screen" src="../images/start-boot-en.png" /></p>
+<p>That is all: a light grey screen, a copyright line, and a black bar at the
+bottom. The bar is the BASIC <strong>editor</strong>: <em>ZX-V BASIC</em> on the left, and on the
+right how much memory is free for your program (about 94,000 bytes). The
+coloured stripes are a tribute to the Spectrum 128.</p>
+<p>The first time you open <code>zxv</code>, it also creates a folder called <strong>ZX-V</strong> in your
+<em>Documents</em> folder and copies the example programs into it. That folder is the
+machine's <strong>SD card</strong>: everything you save goes there. More about it
+<a href="#saving-and-loading-your-programs">below</a>.</p>
+<p>The emulator's own menus and the machine's messages can be in English or in
+Spanish: choose in <strong>Options &gt; Language</strong>. In the web version, it is
+<strong>View &gt; Options...</strong>.</p>
+<h2 id="your-first-program">Your first program<a class="ancla" href="#your-first-program" aria-hidden="true">#</a></h2>
+<p>A program is a list of numbered lines. Type this line exactly as it is and
+press <strong>Enter</strong>:</p>
+<pre><code>10 BORDER 0: PAPER 0: INK 7: CLS
+</code></pre>
+<p>The line moves up into the listing, and the keywords (<code>BORDER</code>, <code>PAPER</code>...) are
+shown in capital letters. You can type them in capitals or in small letters,
+as you prefer: just type every word letter by letter, as on any computer.</p>
+<p>Now type the other two lines, pressing <strong>Enter</strong> after each one:</p>
+<pre><code>20 PRINT &quot;Hello, I am ZX-V!&quot;
+30 FOR i=1 TO 7: CIRCLE INK i;128,88,i*10: NEXT i
+</code></pre>
+<p>Your screen should look like this:</p>
+<p><img alt="The program typed in the editor" src="../images/start-editor-en.png" /></p>
+<p>If you make a mistake, move the cursor with the arrow keys and fix it as in a
+text editor: <strong>Backspace</strong> and <strong>Delete</strong> erase, <strong>Enter</strong> stores the line
+again. If a line has an error, the machine makes a buzzing sound and leaves the
+cursor where the problem is.</p>
+<p>Now type <code>RUN</code> and press <strong>Enter</strong>. The program runs:</p>
+<p><img alt="The program running" src="../images/start-run-en.png" /></p>
+<p>Line 10 paints the border and the background black and chooses white for the
+text, line 20 writes a message, and line 30 draws seven circles, one in each
+colour. The message at the bottom, <code>0 OK, 30:3</code>, means the program ended
+without errors, at line 30, statement 3. Press a key to go back to the
+editor, where your program is still waiting. (That key is also typed into the
+editor, so if it was a letter, just delete it.)</p>
+<p>Some keys worth knowing from the start:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Enter</strong></td>
+<td>Store the line, or run a command typed without a line number</td>
+</tr>
+<tr>
+<td><strong>Esc</strong></td>
+<td>Stop a running program (this is the <strong>BREAK</strong> key); in the editor, undo the changes to the current line</td>
+</tr>
+<tr>
+<td><strong>Tab</strong></td>
+<td>The <strong>EDIT</strong> key: opens the editor's options menu (renumber, show the program's screen, print)</td>
+</tr>
+<tr>
+<td>Arrow keys, Home, End, Page Up, Page Down</td>
+<td>Move around the listing</td>
+</tr>
+</tbody>
+</table>
+<p>To try something different, type <code>NEW</code> and press <strong>Enter</strong>: it erases the
+program so you can start again.</p>
+<p>The <a href="basic/index.html">BASIC course</a> starts from here and teaches you the
+language step by step.</p>
+<h2 id="the-built-in-examples-the-rom-drive">The built-in examples: the <code>ROM:</code> drive<a class="ancla" href="#the-built-in-examples-the-rom-drive" aria-hidden="true">#</a></h2>
+<p>ZX-V comes with a read-only disk full of examples, the <strong><code>ROM:</code> drive</strong> (on the
+real machine it is stored inside the CPU Pico, so it is always there). To see
+what is on it, type:</p>
+<pre><code>CAT &quot;ROM:&quot;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>platformer.zvb</code> and <code>platformer.gfx</code></td>
+<td>A platform game written in BASIC, and its graphics</td>
+</tr>
+<tr>
+<td><code>rps.bas</code></td>
+<td>Rock, Paper, Scissors in BASIC, as text: <code>LOAD "rps"</code> loads it and <code>LIST</code> shows it</td>
+</tr>
+<tr>
+<td><code>sentry.bas</code></td>
+<td><em>Sentry</em>, defend the cities from the missiles with the mouse, the keyboard or a joystick, in BASIC</td>
+</tr>
+<tr>
+<td><code>estela.zxv</code></td>
+<td><em>Estela</em>, a three-level space shooter</td>
+</tr>
+<tr>
+<td><code>route128.zxv</code></td>
+<td><em>Route 128</em>, a race against the clock along a road with bends and blind crests</td>
+</tr>
+<tr>
+<td><code>muncher.bas</code></td>
+<td><em>Muncher</em>, eat the dots in the maze without being caught by its four chasers, in BASIC</td>
+</tr>
+<tr>
+<td><code>cascade.bas</code></td>
+<td><em>Cascade</em>, line up three gems of a colour before the well fills up, in BASIC (with <code>cascade.gfx</code>, <code>cascade.pt3</code> and <code>cascade.afb</code>)</td>
+</tr>
+<tr>
+<td><code>mine.zxv</code></td>
+<td><em>The Mine</em>, dig and gather diamonds among falling boulders</td>
+</tr>
+<tr>
+<td><code>street.zxv</code></td>
+<td><em>Street Justice</em>, brawling through the streets against the neighbourhood gangs</td>
+</tr>
+<tr>
+<td><code>umbra.zxv</code></td>
+<td><em>Umbra</em>, a 3D maze in the dark</td>
+</tr>
+<tr>
+<td><code>keep.zxv</code></td>
+<td><em>The Keep</em>, a four-floor dungeon adventure</td>
+</tr>
+<tr>
+<td><code>chess.zxv</code></td>
+<td><em>ZXV Chess</em>, chess against the machine or for two players</td>
+</tr>
+<tr>
+<td><code>graphics.zxv</code></td>
+<td>A graphics demo: scrolling scenery, bouncing balls, a spinning star and a 3D floor</td>
+</tr>
+<tr>
+<td><code>scroll.zxv</code></td>
+<td>Smooth scrolling over a landscape four screens wide, with parallax</td>
+</tr>
+<tr>
+<td><code>digital.zxv</code></td>
+<td>Digitised sound played through the music chip</td>
+</tr>
+<tr>
+<td><code>hello.zxv</code></td>
+<td>The smallest example of a native program</td>
+</tr>
+<tr>
+<td><code>boardtest.zxv</code></td>
+<td>The board test: screen, clock, SD card, keyboard, gamepads, mouse and sound, one by one</td>
+</tr>
+<tr>
+<td><code>files.zxv</code></td>
+<td>A native program that creates, reads and lists files on the SD card</td>
+</tr>
+<tr>
+<td><code>gfxedit.zxv</code></td>
+<td>An editor for sprites, tiles and maps on the machine itself</td>
+</tr>
+<tr>
+<td><code>player.zxv</code></td>
+<td>A player for the music (PT3...) and sound effects (AYFX) on the card</td>
+</tr>
+</tbody>
+</table>
+<p>The files ending in <code>.zxv</code> are <strong>native programs</strong>, written in C. Load one with
+<code>LOAD</code>:</p>
+<pre><code>LOAD &quot;ROM:graphics&quot;
+</code></pre>
+<p><img alt="The graphics example" src="../images/start-graphics.png" /></p>
+<p>Press any key to go back to BASIC. Try <code>LOAD "ROM:estela"</code> too: it is a
+complete game (arrow keys or O, P, Q, A to move, Space or M to fire, Esc to
+quit).</p>
+<p>BASIC games that load more files, like the platform game, find them on the
+<code>ROM:</code> drive by themselves: <code>LOAD "ROM:platformer"</code>. You can also go into the
+drive and load them from there:</p>
+<pre><code>CD &quot;ROM:&quot;
+LOAD &quot;platformer&quot;
+</code></pre>
+<p><code>CD "SD:"</code> takes you back to your SD card.</p>
+<blockquote>
+<p>When a native program ends, you are back in BASIC with the report <code>0 OK</code>
+(or a <code>W</code> report if the program ended with an error), but any BASIC program
+you had in memory is gone: the native program used that memory. Save your
+work first.</p>
+</blockquote>
+<h2 id="saving-and-loading-your-programs">Saving and loading your programs<a class="ancla" href="#saving-and-loading-your-programs" aria-hidden="true">#</a></h2>
+<p>Your programs are saved on the <strong>SD card</strong>. In the desktop emulator this is the
+<strong>ZX-V</strong> folder in your <em>Documents</em> (you can choose another one in
+<strong>File &gt; SD card</strong>). To save the program in memory, give it a name:</p>
+<pre><code>SAVE &quot;circles&quot;
+</code></pre>
+<p>This creates the file <code>circles.zvb</code> on the card. To see what is on the card,
+type <code>CAT</code>. To load the program again later:</p>
+<pre><code>LOAD &quot;circles&quot;
+</code></pre>
+<p>You do not need to type the extension: <code>LOAD</code> looks for <code>circles.zvb</code>, then for
+<code>circles.tap</code>, <code>circles.zxv</code> and <code>circles.bas</code>, then for a file called just
+<code>circles</code>. The examples copied to the
+card the first time can be loaded the same way, without <code>ROM:</code>:
+<code>LOAD "estela"</code>.</p>
+<p>File names can only use unaccented letters, digits and some symbols, up to 63
+characters; capitals and small letters count as the same name.</p>
+<p>In the desktop emulator, <strong>File &gt; Save program...</strong> (Alt+G) does the same as
+<code>SAVE</code> with a file dialog.</p>
+<p>If you see <code>U No SD card</code>, the emulator is running without a card: choose one
+in <strong>File &gt; SD card</strong>.</p>
+<h2 id="opening-files-from-your-pc">Opening files from your PC<a class="ancla" href="#opening-files-from-your-pc" aria-hidden="true">#</a></h2>
+<p>You can open files from anywhere on your computer with <strong>File &gt; Open...</strong>
+(Alt+O), by dragging them onto the emulator window, or by naming them when you
+start it (<code>zxv game.zvb</code>):</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.zvb</code></td>
+<td>A ZX-V BASIC program, the format <code>SAVE</code> uses: it is loaded with <code>LOAD</code>, as on the machine</td>
+</tr>
+<tr>
+<td><code>.zxv</code></td>
+<td>A native program for ZX-V: it is loaded and run</td>
+</tr>
+<tr>
+<td><code>.tap</code>, <code>.tzx</code></td>
+<td>A Spectrum tape file: it is loaded with <code>LOAD</code>, as on the machine, for BASIC programs made for the ZX Spectrum</td>
+</tr>
+<tr>
+<td><code>.bas</code></td>
+<td>A BASIC listing as plain text: it is loaded with <code>LOAD</code>, as on the machine</td>
+</tr>
+<tr>
+<td><code>.txt</code></td>
+<td>A text listing: it is typed into the editor for you</td>
+</tr>
+<tr>
+<td><code>.zxvs</code></td>
+<td>A snapshot: the whole machine, exactly as it was when the snapshot was saved</td>
+</tr>
+<tr>
+<td><code>.img</code>, a folder</td>
+<td>It becomes the SD card</td>
+</tr>
+</tbody>
+</table>
+<p>If the program is not on the SD card, the emulator asks whether to copy it to
+the card or to use its folder as the card. See <a href="emulator.html">The emulator</a> for
+the details.</p>
+<blockquote>
+<p><strong>If you know the Spectrum:</strong> Spectrum <code>.tap</code> and <code>.tzx</code> files with BASIC
+programs load and run, including multi-part tapes (a loader followed by
+<code>LOAD ""</code>). Z80 machine code, however, cannot run on ZX-V, so most commercial
+Spectrum games will not work.</p>
+</blockquote>
+<h2 id="where-to-go-next">Where to go next<a class="ancla" href="#where-to-go-next" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong><a href="basic/index.html">Learn BASIC</a></strong>: a course from scratch, ending with a
+  complete game.</li>
+<li><strong><a href="basic/editor.html">The editor</a></strong> and the <strong><a href="basic/reference.html">BASIC reference</a></strong>.</li>
+<li><strong><a href="emulator.html">The emulator</a></strong>: menus, keys, snapshots, the web version and
+  all the options.</li>
+<li><strong><a href="machine.html">The machine</a></strong>: what ZX-V can do: screen, colours, sound,
+  memory and files.</li>
+<li><strong><a href="sdk/index.html">Native programs (SDK)</a></strong>: write fast programs and games in C.</li>
+<li><strong><a href="hardware/index.html">Build the hardware</a></strong>: make your own real ZX-V.</li>
+</ul>
+<nav class="pasos"><a class="anterior" href="index.html"><small>Previous</small>← Documentation</a><a class="siguiente" href="emulator.html"><small>Next</small>The emulator →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

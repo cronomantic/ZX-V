@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 236 108" width="472" height="216" role="img" aria-label="ZX-V">
+  <!-- El logo de ZX-V: el nombre de la web, con las letras dibujadas (sin
+       fuentes, para que se vea igual en todas partes) y la franja del Spectrum
+       debajo. Para fondo oscuro; logo-light.svg es el mismo para fondo claro. -->
+  <g fill="#f0f6fc">
+    <polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/>
+    <polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/>
+    <rect x="120" y="25" width="28" height="11"/>
+    <polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/>
+  </g>
+  <rect x="0" y="72" width="53" height="9" fill="#d70000"/>
+  <rect x="53" y="72" width="53" height="9" fill="#d7d700"/>
+  <rect x="106" y="72" width="53" height="9" fill="#00d700"/>
+  <rect x="159" y="72" width="53" height="9" fill="#00d7d7"/>
+</svg>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El BASIC de ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../en/basic/index.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../emulator.html">El emulador</a>
+</li>
+<li><a href="../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="index.html" class="aqui">Aprende BASIC</a>
+<ul>
+<li><a href="tutorial/01-first-steps.html">1. Primeros pasos</a></li>
+<li><a href="tutorial/02-variables-and-maths.html">2. Variables y cuentas</a></li>
+<li><a href="tutorial/03-text-and-input.html">3. Texto y preguntas</a></li>
+<li><a href="tutorial/04-decisions.html">4. Decisiones</a></li>
+<li><a href="tutorial/05-loops.html">5. Bucles</a></li>
+<li><a href="tutorial/06-arrays-and-data.html">6. Matrices y datos</a></li>
+<li><a href="tutorial/07-procedures.html">7. Procedimientos</a></li>
+<li><a href="tutorial/08-colours-and-the-screen.html">8. Los colores y la pantalla</a></li>
+<li><a href="tutorial/09-drawing.html">9. Dibujar</a></li>
+<li><a href="tutorial/10-sound-and-music.html">10. Sonido y música</a></li>
+<li><a href="tutorial/11-keyboard-and-joystick.html">11. Teclado y mando</a></li>
+<li><a href="tutorial/12-sprites-and-tile-maps.html">12. Sprites y mapas de tiles</a></li>
+<li><a href="tutorial/13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a></li>
+<li><a href="tutorial/14-a-complete-game.html">14. Un juego completo</a></li>
+</ul>
+</li>
+<li><a href="editor.html">El editor</a>
+</li>
+<li><a href="reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../hardware/board.html">La placa</a>
+</li>
+<li><a href="../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="el-basic-de-zx-v">El BASIC de ZX-V</h1>
+<p>Cuando enciendes ZX-V, está lista para que escribas en <strong>BASIC</strong>, un lenguaje
+de programación pensado para aprender. Escribes una línea, pulsas Intro y la
+máquina la hace. Unas líneas más y tienes un programa: un dibujo, una
+melodía, un juego.</p>
+<p>El BASIC de ZX-V es el del ZX Spectrum, el ordenador doméstico de los años
+ochenta, con muchas cosas más. Funcionan los programas escritos para el
+Spectrum 48K y la música con <code>PLAY</code> del Spectrum 128, y añade lo que le
+faltaba:</p>
+<ul>
+<li><strong>Programación estructurada</strong>: bucles <code>WHILE</code> y <code>REPEAT</code>, <code>IF</code> ... <code>ELSE</code>,
+  procedimientos con parámetros y variables locales, etiquetas en lugar de
+  números de línea y captura de errores con <code>ON ERROR</code>.</li>
+<li><strong>Gráficos para juegos</strong>: sprites, mapas de tiles con scroll, figuras
+  rellenas, dos páginas de pantalla para animar sin parpadeo y un modo de
+  alta resolución de 512 × 384 píxeles. Cada píxel tiene su propio color.</li>
+<li><strong>Sonido</strong>: el beeper y dos chips de sonido con seis voces para música y
+  efectos.</li>
+<li><strong>Ficheros</strong>: programas y datos en una tarjeta SD, en carpetas, y una
+  unidad <code>ROM:</code> con ejemplos.</li>
+<li><strong>Un editor a pantalla completa</strong>, donde las palabras clave se escriben
+  letra a letra y te mueves por el listado con las flechas.</li>
+</ul>
+<h2 id="el-curso">El curso<a class="ancla" href="#el-curso" aria-hidden="true">#</a></h2>
+<p>El curso enseña BASIC desde cero: no hace falta haber programado antes ni
+haber visto un Spectrum. Cada capítulo se apoya en los anteriores, con
+programas pequeños para escribir y probar, y ejercicios al final.</p>
+<table>
+<thead>
+<tr>
+<th>Capítulo</th>
+<th>Qué aprendes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="tutorial/01-first-steps.html">1. Primeros pasos</a></td>
+<td>Escribir una línea, <code>PRINT</code>, <code>RUN</code>, el editor en dos minutos, los mensajes de error</td>
+</tr>
+<tr>
+<td><a href="tutorial/02-variables-and-maths.html">2. Variables y cuentas</a></td>
+<td><code>LET</code>, operaciones y funciones, ordenar lo que sale con <code>PRINT</code>, números al azar</td>
+</tr>
+<tr>
+<td><a href="tutorial/03-text-and-input.html">3. Texto y preguntas</a></td>
+<td>Cadenas de texto, unirlas y cortarlas, preguntar con <code>INPUT</code></td>
+</tr>
+<tr>
+<td><a href="tutorial/04-decisions.html">4. Decisiones</a></td>
+<td><code>IF</code>, <code>THEN</code>, <code>ELSE</code>, comparaciones, <code>GO TO</code> y etiquetas, un juego de adivinar</td>
+</tr>
+<tr>
+<td><a href="tutorial/05-loops.html">5. Bucles</a></td>
+<td><code>FOR</code>, <code>WHILE</code>, <code>REPEAT</code>, bucles dentro de bucles, <code>PAUSE</code></td>
+</tr>
+<tr>
+<td><a href="tutorial/06-arrays-and-data.html">6. Matrices y datos</a></td>
+<td><code>DIM</code>, listas de valores con <code>READ</code> y <code>DATA</code></td>
+</tr>
+<tr>
+<td><a href="tutorial/07-procedures.html">7. Procedimientos</a></td>
+<td><code>DEF PROC</code>, parámetros, <code>LOCAL</code>, recursión, <code>DEF FN</code>, <code>GO SUB</code></td>
+</tr>
+<tr>
+<td><a href="tutorial/08-colours-and-the-screen.html">8. Los colores y la pantalla</a></td>
+<td><code>INK</code>, <code>PAPER</code>, <code>BORDER</code>, <code>PRINT AT</code>, <code>MODE 1</code></td>
+</tr>
+<tr>
+<td><a href="tutorial/09-drawing.html">9. Dibujar</a></td>
+<td><code>PLOT</code>, <code>DRAW</code>, <code>CIRCLE</code> y figuras rellenas con <code>BOX</code>, <code>DISC</code>, <code>POLY</code></td>
+</tr>
+<tr>
+<td><a href="tutorial/10-sound-and-music.html">10. Sonido y música</a></td>
+<td><code>BEEP</code>, música con <code>PLAY</code>, efectos con <code>SOUND</code></td>
+</tr>
+<tr>
+<td><a href="tutorial/11-keyboard-and-joystick.html">11. Teclado y mando</a></td>
+<td><code>INKEY$</code>, <code>KEY</code>, <code>JOY</code>, velocidad constante con <code>WAIT</code> y <code>TIME</code></td>
+</tr>
+<tr>
+<td><a href="tutorial/12-sprites-and-tile-maps.html">12. Sprites y mapas de tiles</a></td>
+<td><code>GRAB</code>, <code>SPRITE</code>, animar sin parpadeo, <code>HIT</code>, tiles, mapas y scroll</td>
+</tr>
+<tr>
+<td><a href="tutorial/13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a></td>
+<td><code>SAVE</code>, <code>LOAD</code>, carpetas, la unidad <code>ROM:</code>, ficheros de texto, <code>ON ERROR</code></td>
+</tr>
+<tr>
+<td><a href="tutorial/14-a-complete-game.html">14. Un juego completo</a></td>
+<td><em>Atrapa estrellas</em>, paso a paso</td>
+</tr>
+</tbody>
+</table>
+<h2 id="más-sobre-el-basic">Más sobre el BASIC<a class="ancla" href="#más-sobre-el-basic" aria-hidden="true">#</a></h2>
+<ul>
+<li><a href="reference.html">La referencia del BASIC</a>: cada orden y cada función, con su
+  sintaxis, sus detalles y ejemplos, y los mensajes de error.</li>
+<li><a href="editor.html">El editor</a>: todas las teclas, el menú EDIT, renumerar y las
+  demás órdenes para editar.</li>
+<li><a href="../getting-started.html">Primeros pasos</a>: cómo arrancar ZX-V, el emulador o
+  la máquina real, por primera vez.</li>
+</ul>
+<nav class="pasos"><a class="anterior" href="../machine.html"><small>Anterior</small>← La máquina</a><a class="siguiente" href="tutorial/01-first-steps.html"><small>Siguiente</small>1. Primeros pasos →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

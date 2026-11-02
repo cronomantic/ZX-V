@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZX-V documentation</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" type="image/png" href="../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../es/index.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="getting-started.html">Getting started</a>
+</li>
+<li><a href="emulator.html">The emulator</a>
+</li>
+<li><a href="machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="basic/index.html">Learn BASIC</a>
+</li>
+<li><a href="basic/editor.html">The editor</a>
+</li>
+<li><a href="basic/reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="hardware/board.html">The board</a>
+</li>
+<li><a href="hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="zx-v-documentation">ZX-V documentation</h1>
+<p>ZX-V is a 32-bit hobby computer inspired by the ZX Spectrum: switch it on and
+you are in BASIC. These pages explain how to use it, how to program it in
+BASIC or in C, and how to build the real machine.</p>
+<h2 id="start-here">Start here<a class="ancla" href="#start-here" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong><a href="getting-started.html">Getting started</a></strong> — get the emulator, type your
+  first program and load the built-in examples.</li>
+<li><strong><a href="emulator.html">The emulator</a></strong> — the desktop and web versions: menus,
+  keys, the SD card folder, snapshots and options.</li>
+<li><strong><a href="machine.html">The machine</a></strong> — what ZX-V is like inside: the screen and its
+  colours, sound, input, memory and the files it uses.</li>
+</ul>
+<h2 id="programming-in-basic">Programming in BASIC<a class="ancla" href="#programming-in-basic" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong><a href="basic/index.html">Learn BASIC</a></strong> — a course from scratch: no programming
+  or Spectrum experience needed. It ends with a complete game.</li>
+<li><strong><a href="basic/editor.html">The editor</a></strong> — typing and editing programs, the keys
+  and the options menu.</li>
+<li><strong><a href="basic/reference.html">BASIC reference</a></strong> — every statement, function and
+  error message.</li>
+</ul>
+<h2 id="programming-in-c">Programming in C<a class="ancla" href="#programming-in-c" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong><a href="sdk/index.html">Native programs (SDK)</a></strong> — the toolchain, your first
+  program, graphics, sound, input and files.</li>
+<li><strong><a href="sdk/graphics.html">Graphics</a></strong> — the graphics engine in depth: video
+  memory, sprites, tile maps, scrolling, mode 7 and converting images.</li>
+<li><strong><a href="sdk/reference.html">API reference</a></strong> — every function of the SDK.</li>
+</ul>
+<h2 id="tools-for-the-pc">Tools for the PC<a class="ancla" href="#tools-for-the-pc" aria-hidden="true">#</a></h2>
+<p>They come with the emulator, for Windows and Linux:</p>
+<ul>
+<li><strong><a href="sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a></strong> —
+  sprites, tiles, maps and textures for BASIC and C programs.</li>
+<li><strong><a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a></strong> —
+  music for the two AY chips (PT3 modules) and AYFX sound effects for
+  BASIC and C programs.</li>
+<li><strong><a href="sdk/web.html">Publishing your game on the web</a></strong> — <code>mkweb.py</code> (in the
+  SDK) makes a page with only your game, in C or in BASIC, for itch.io or
+  your website, with touch controls for phones.</li>
+</ul>
+<h2 id="compiling-basic">Compiling BASIC<a class="ancla" href="#compiling-basic" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong><a href="zxbasic.html">ZX Basic</a></strong> — Boriel's BASIC compiler, with a ZX-V target:
+  BASIC programs that run like native ones.</li>
+</ul>
+<h2 id="the-real-machine">The real machine<a class="ancla" href="#the-real-machine" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong><a href="hardware/index.html">Build the hardware</a></strong> — what you need and how it all
+  connects.</li>
+<li><strong><a href="hardware/board.html">The board</a></strong> — ordering the PCB assembled, and the
+  parts you solder yourself.</li>
+<li><strong><a href="hardware/firmware.html">The firmware</a></strong> — putting the software on the two
+  Picos.</li>
+<li><strong><a href="hardware/protoboard.html">On a protoboard</a></strong> — building it without the PCB.</li>
+</ul>
+<h2 id="examples">Examples<a class="ancla" href="#examples" aria-hidden="true">#</a></h2>
+<ul>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/examples/basic/platformer">A platform game in BASIC</a> — sprites, a
+  tile map, scrolling and music.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/examples/basic/rps">Rock, Paper, Scissors in BASIC</a> — the block IF,
+  <code>SELECT CASE</code> and procedures, in a listing you load as text.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/examples/basic/sentry">Sentry, a missile defence game in BASIC</a> —
+  the mouse, fast graphics and chain explosions at 60 frames per second.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/estela">Estela, a shooter in C</a> — a complete native
+  game.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/route128">Route 128, a racing game in C</a> — a pseudo-3D road
+  with bends and crests, and scaled sprites.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/examples/basic/muncher">Muncher in BASIC</a> — a maze with four
+  chasers, each hunting you in its own way, with a tile map and sprites at 60
+  frames per second.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/examples/basic/cascade">Cascade in BASIC</a> — a falling-gems puzzle
+  whose graphics, music and effects are editable files.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/mine">The Mine, a digging game in C</a> — boulders and
+  diamonds that fall and roll, in caves bigger than the screen.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/street">Street Justice, a brawler in C</a> — through the
+  streets against the gangs' thugs, with fighters drawn by the engine from a
+  skeleton.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/umbra">Umbra, a 3D maze in C</a> — raycast walls, a
+  mode 7 floor and a lamp whose light shrinks as its oil runs out.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/keep">The Keep, a dungeon adventure in C</a> — four floors
+  of rooms seen from above, whose maps you can redraw in <code>zxv-gfx</code>.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/chess">ZXV Chess, chess in C</a> — against the machine
+  or for two players, with the keyboard, a joystick or the mouse.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/examples/zxbasic/stardust">Stardust, a game in ZX Basic</a> — double
+  buffering, sprites and collisions with <code>zxv.bas</code>, at 60 frames per second.</li>
+</ul>
+<hr />
+<p>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; the code examples in it
+are public domain (CC0), so you can copy them into your programs freely.</p>
+<nav class="pasos"><a class="siguiente" href="getting-started.html"><small>Next</small>Getting started →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

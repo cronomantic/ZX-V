@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>12. Sprites y mapas de tiles · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../en/basic/tutorial/12-sprites-and-tile-maps.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../../emulator.html">El emulador</a>
+</li>
+<li><a href="../../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../index.html">Aprende BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. Primeros pasos</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables y cuentas</a></li>
+<li><a href="03-text-and-input.html">3. Texto y preguntas</a></li>
+<li><a href="04-decisions.html">4. Decisiones</a></li>
+<li><a href="05-loops.html">5. Bucles</a></li>
+<li><a href="06-arrays-and-data.html">6. Matrices y datos</a></li>
+<li><a href="07-procedures.html">7. Procedimientos</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Los colores y la pantalla</a></li>
+<li><a href="09-drawing.html">9. Dibujar</a></li>
+<li><a href="10-sound-and-music.html">10. Sonido y música</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Teclado y mando</a></li>
+<li><a href="12-sprites-and-tile-maps.html" class="aqui">12. Sprites y mapas de tiles</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a></li>
+<li><a href="14-a-complete-game.html">14. Un juego completo</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">El editor</a>
+</li>
+<li><a href="../reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../../hardware/board.html">La placa</a>
+</li>
+<li><a href="../../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="12-sprites-y-mapas-de-tiles">12. Sprites y mapas de tiles</h1>
+<p><strong>En este capítulo aprenderás</strong> a crear <strong>sprites</strong> (dibujitos que se mueven
+por encima del fondo) con <code>GRAB</code> y a dibujarlos con <code>SPRITE</code>, a animar sin
+parpadeos usando las dos páginas de la pantalla, a detectar choques con
+<code>HIT</code>, y a construir niveles con <strong>tiles</strong> (las piezas del mosaico) y
+<strong>mapas</strong>: <code>TILE</code>, <code>MAP DIM</code>, <code>MAP POKE</code>, <code>MAP</code> y <code>CELL</code>.</p>
+<p>Estas órdenes son los gráficos para juegos de ZX-V. Son rápidas: un bucle en
+BASIC puede dibujar unos cientos de sprites pequeños en cada frame.</p>
+<p>Como <code>BOX</code> en el capítulo 9, cuentan las coordenadas en píxeles desde la
+esquina de <strong>arriba a la izquierda</strong>, con la <code>y</code> creciendo hacia abajo, y
+usan los números de color del 0 al 15.</p>
+<h2 id="un-sprite-a-partir-de-una-cadena">Un sprite a partir de una cadena<a class="ancla" href="#un-sprite-a-partir-de-una-cadena" aria-hidden="true">#</a></h2>
+<p>La forma más fácil de crear un sprite es dibujarlo con caracteres. Cada
+carácter es un píxel: una cifra del <code>0</code> al <code>9</code> o una letra de la <code>a</code> a la <code>f</code>
+es un color (<code>a</code> es el 10, <code>b</code> el 11... <code>f</code> el 15), y cualquier otro
+carácter, como <code>.</code>, es transparente: deja ver el fondo.</p>
+<pre><code>10 BORDER 0: PAPER 0: INK 7: CLS
+20 LET s$=&quot;...ee...&quot;+&quot;..eeee..&quot;+&quot;.e2ee2e.&quot;+&quot;eeeeeeee&quot;+&quot;ee.ee.ee&quot;+&quot;eeeeeeee&quot;+&quot;..e..e..&quot;+&quot;.e....e.&quot;
+30 GRAB 0,8,s$
+40 SPRITE 0,16,20
+50 SPRITE 0,56,20,0,&quot;&quot;,32,32
+60 SPRITE 0,120,20,2
+70 SPRITE 0,168,20,0,&quot;0123456789abcd4f&quot;
+80 PRINT AT 7,0;&quot;Normal Grande Volteado Verde&quot;
+</code></pre>
+<p><img alt="Un sprite dibujado de cuatro formas" src="../../../images/tutorial-sprites-es.png" /></p>
+<ul>
+<li><code>GRAB 0,8,s$</code> crea el sprite número 0, de 8 píxeles de ancho, a partir de
+  la cadena. La cadena tiene 64 caracteres: 8 filas de 8, una detrás de
+  otra. Aquí la <code>e</code> es el amarillo brillante (14) y el <code>2</code> el rojo.</li>
+<li><code>SPRITE n,x,y</code> dibuja el sprite <code>n</code> con su esquina de arriba a la izquierda
+  en (x,y).</li>
+<li>Un cuarto número lo voltea: 1 de izquierda a derecha, 2 de arriba abajo, 3
+  las dos cosas.</li>
+<li>Una cadena en quinto lugar cambia sus colores: el color <code>i</code> se dibuja como
+  el carácter de la posición <code>i</code> de la cadena (contando desde 0). En la línea
+  70, el <code>4</code> de la posición 14 convierte el amarillo brillante en verde.</li>
+<li>Dos números más lo estiran a ese ancho y ese alto (línea 50).</li>
+</ul>
+<p>Puedes tener hasta 256 sprites, numerados del 0 al 255.</p>
+<h2 id="moverse-sin-parpadeos">Moverse sin parpadeos<a class="ancla" href="#moverse-sin-parpadeos" aria-hidden="true">#</a></h2>
+<p>Para mover un sprite lo vuelves a dibujar en su sitio nuevo, después de
+borrar el dibujo anterior. Si lo haces en la pantalla que estás viendo, se
+nota el momento en que se borra: el dibujo parpadea. El truco es dibujar en
+una pantalla escondida y enseñarla cuando está terminada.</p>
+<p>ZX-V tiene dos <strong>páginas</strong> de pantalla, la 0 y la 1. <code>SCREEN n</code> elige la
+página en la que se dibuja; <code>PAGE n</code> elige la que se ve. Así:</p>
+<pre><code>10 BORDER 0: PAPER 0: INK 7: CLS
+20 LET s$=&quot;...ee...&quot;+&quot;..eeee..&quot;+&quot;.e2ee2e.&quot;+&quot;eeeeeeee&quot;+&quot;ee.ee.ee&quot;+&quot;eeeeeeee&quot;+&quot;..e..e..&quot;+&quot;.e....e.&quot;
+30 GRAB 0,8,s$
+40 LET x=0: LET s=1
+50 REPEAT
+60 SCREEN s
+70 BOX 1,0,0,256,192
+80 SPRITE 0,x,88
+90 PAGE s: LET s=1-s
+100 WAIT 1
+110 LET x=x+2
+120 UNTIL x&gt;248
+130 SCREEN 0: PAGE 0
+</code></pre>
+<p><code>s</code> es la página escondida. En cada vuelta se dibuja ahí el cuadro entero
+(un fondo azul y el sprite), se enseña con <code>PAGE s</code> y se cambia: <code>LET s=1-s</code>
+convierte el 1 en 0 y el 0 en 1, así que el siguiente cuadro se dibuja en la
+otra página. <code>WAIT 1</code> mantiene la velocidad fija, a 50 cuadros por segundo.
+Al final, la línea 130 lo deja todo en la página 0, la normal.</p>
+<h2 id="sprites-a-partir-de-un-dibujo-y-choques">Sprites a partir de un dibujo, y choques<a class="ancla" href="#sprites-a-partir-de-un-dibujo-y-choques" aria-hidden="true">#</a></h2>
+<p><code>GRAB</code> también puede copiar un sprite de algo dibujado en la pantalla:
+<code>GRAB n,x,y,an,al,t</code> coge el rectángulo de <code>an</code> × <code>al</code> píxeles que hay en
+(x,y), y el color <code>t</code> pasa a ser transparente.</p>
+<p><code>HIT(a,ax,ay,b,bx,by)</code> da 1 si el sprite <code>a</code> dibujado en (ax,ay) y el sprite
+<code>b</code> en (bx,by) se tocan: si alguno de sus píxeles visibles coincide.</p>
+<pre><code>10 BORDER 0: PAPER 0: INK 7: CLS
+20 GRAB 0,8,&quot;...ee...&quot;+&quot;..eeee..&quot;+&quot;.e2ee2e.&quot;+&quot;eeeeeeee&quot;+&quot;ee.ee.ee&quot;+&quot;eeeeeeee&quot;+&quot;..e..e..&quot;+&quot;.e....e.&quot;
+30 DISC 3,8,8,7: GRAB 1,0,0,16,16,0
+40 LET x=0: LET s=1
+50 REPEAT
+60 SCREEN s: BOX 0,0,0,256,192
+70 SPRITE 1,200,84
+80 SPRITE 0,x,88
+90 PAGE s: LET s=1-s: WAIT 1
+100 LET x=x+2
+110 UNTIL HIT(0,x,88,1,200,84)
+120 SCREEN 0: PAGE 0
+130 BEEP 0.2,-10
+140 PRINT AT 0,0;&quot;Choque en x=&quot;;x
+</code></pre>
+<p>La línea 30 dibuja un círculo magenta en la esquina y lo coge como sprite 1,
+con el negro (0) como transparente, así que solo queda el círculo. El bucle
+mueve el sprite 0 hasta que toca el círculo.</p>
+<h2 id="tiles-y-mapas">Tiles y mapas<a class="ancla" href="#tiles-y-mapas" aria-hidden="true">#</a></h2>
+<p>Los juegos de plataformas y de laberintos se construyen con dibujitos
+cuadrados que se repiten muchas veces: ladrillos, hierba, monedas. Cada
+dibujito es un <strong>tile</strong>, y un <strong>mapa</strong> dice qué tile va en cada casilla del
+nivel.</p>
+<ul>
+<li><code>TILE 8,n,x,y</code> copia los 8 × 8 píxeles que hay en (x,y) de la pantalla como
+  el tile número <code>n</code>. (Los tiles también pueden ser de 16 × 16:
+  <code>TILE 16,...</code>).</li>
+<li><code>MAP DIM m,an,al</code> crea el mapa número <code>m</code> (del 0 al 15), de <code>an</code> casillas de
+  ancho y <code>al</code> de alto.</li>
+<li><code>MAP POKE m,x,y,a$</code> llena casillas del mapa desde (x,y) hacia la derecha,
+  una por carácter: cada carácter pone el tile cuyo número es su código. Así,
+  si el tile 35 es un ladrillo, <code>#</code> (código 35) quiere decir ladrillo.</li>
+<li><code>MAP m</code> dibuja el mapa en la pantalla.</li>
+<li><code>CELL(m,x,y)</code> dice qué tile hay en la casilla (x,y): así sabe un juego si
+  hay una pared o una moneda.</li>
+</ul>
+<pre><code>10 BORDER 0: PAPER 0: INK 7: CLS
+20 REM Tile 32 (un espacio): cielo
+30 BOX 1,0,0,8,8: TILE 8,32,0,0
+40 REM Tile 35 (#): ladrillo
+50 BOX 2,0,0,8,8: BOX 7,0,3,8,1: BOX 7,3,0,1,3: BOX 7,6,4,1,4: TILE 8,35,0,0
+60 REM Tile 111 (o): moneda
+70 BOX 1,0,0,8,8: DISC 14,3,3,2: TILE 8,111,0,0
+80 MAP DIM 0,32,22
+90 FOR y=0 TO 21: READ r$: MAP POKE 0,0,y,r$: NEXT y
+100 MAP 0
+110 PRINT AT 0,1;&quot;La casilla (4,10) tiene el &quot;;CELL(0,4,10)
+200 DATA &quot;################################&quot;
+210 DATA &quot;#                              #&quot;
+220 DATA &quot;#                              #&quot;
+230 DATA &quot;#   o o o                      #&quot;
+240 DATA &quot;#  #######          o o        #&quot;
+250 DATA &quot;#                  #####       #&quot;
+260 DATA &quot;#                              #&quot;
+270 DATA &quot;#         o                    #&quot;
+280 DATA &quot;#        ###           o o o   #&quot;
+290 DATA &quot;#                     #######  #&quot;
+300 DATA &quot;#   o                          #&quot;
+310 DATA &quot;#  ####                        #&quot;
+320 DATA &quot;#            o o               #&quot;
+330 DATA &quot;#           #####              #&quot;
+340 DATA &quot;#                       o      #&quot;
+350 DATA &quot;#                      ####    #&quot;
+360 DATA &quot;#      o o                     #&quot;
+370 DATA &quot;#     #####                    #&quot;
+380 DATA &quot;#                 o o o        #&quot;
+390 DATA &quot;#                ######        #&quot;
+400 DATA &quot;#                              #&quot;
+410 DATA &quot;################################&quot;
+</code></pre>
+<p><img alt="Un nivel hecho con tiles" src="../../../images/tutorial-tiles-es.png" /></p>
+<p>El nivel está dibujado en las líneas <code>DATA</code>, casi como se ve. En la casilla
+(4,10) hay una <code>o</code>, así que <code>CELL</code> da 111, la moneda. Para coger una moneda,
+un juego pone un espacio en su casilla con <code>MAP POKE 0,x,y," "</code> y vuelve a
+dibujar el mapa.</p>
+<h2 id="scroll">Scroll<a class="ancla" href="#scroll" aria-hidden="true">#</a></h2>
+<p>Un mapa puede ser más grande que la pantalla. <code>MAP m,mx,my,x,y,an,al</code> dibuja
+la parte del mapa que empieza en su píxel (mx,my), en el rectángulo
+(x,y,an,al) de la pantalla. Si cambias <code>mx</code> poco a poco, el nivel se
+desplaza:</p>
+<pre><code>10 BORDER 0: PAPER 0: INK 7: CLS
+20 BOX 1,0,0,8,8: TILE 8,32,0,0
+30 BOX 2,0,0,8,8: BOX 7,0,3,8,1: BOX 7,3,0,1,3: BOX 7,6,4,1,4: TILE 8,35,0,0
+40 CLS
+50 MAP DIM 0,64,2,8,1
+60 MAP POKE 0,0,0,&quot;   ##      ###          #####        ##   ###         ####      &quot;
+70 MAP POKE 0,0,1,&quot;################################################################&quot;
+80 LET cx=0: LET s=1
+90 REPEAT
+100 SCREEN s: MAP 0,cx,0,0,100,256,16
+110 PAGE s: LET s=1-s: WAIT 1
+120 LET cx=cx+2: IF cx=512 THEN LET cx=0
+130 UNTIL INKEY$&lt;&gt;&quot;&quot;
+140 SCREEN 0: PAGE 0
+</code></pre>
+<p>En <code>MAP DIM 0,64,2,8,1</code>, el 8 es el tamaño de los tiles y el 1 del final hace
+que el mapa se <strong>repita</strong> en las dos direcciones: detrás de la última columna
+vuelve a venir la primera, así que el scroll no se acaba nunca. Pulsa una
+tecla para pararlo.
+La línea 120 vuelve a poner <code>cx</code> a 0 cuando llega a 512, el ancho del mapa
+(64 tiles de 8 píxeles): como el mapa se repite, en la pantalla no cambia
+nada, y el número nunca crece demasiado.</p>
+<h2 id="guardar-tus-gráficos">Guardar tus gráficos<a class="ancla" href="#guardar-tus-gráficos" aria-hidden="true">#</a></h2>
+<p>Los sprites, los tiles y los mapas se quedan en la memoria cuando el
+programa acaba, y también tras <code>RUN</code>; <code>NEW</code> los borra. Para guardarlos todos
+en un fichero de la tarjeta SD, usa <code>SAVE "nombre" GRAPHICS</code>, y
+<code>LOAD "nombre" GRAPHICS</code> los recupera.</p>
+<p>Dibujar sprites grandes con cadenas es un trabajo lento. Es más fácil
+dibujarlos en el PC con <a href="../../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx"><code>zxv-gfx</code></a>,
+el editor de gráficos que viene con el emulador, que graba los <code>.gfx</code>
+directamente. También puedes usar cualquier programa de dibujo y convertir
+las imágenes con la herramienta <code>png2gfx</code>: la <a href="../../sdk/index.html">guía del SDK</a>
+explica cómo.</p>
+<h2 id="pruébalo">Pruébalo<a class="ancla" href="#pruébalo" aria-hidden="true">#</a></h2>
+<ol>
+<li>Haz un sprite tuyo de 8 × 8 y muévelo en diagonal por la pantalla.</li>
+<li>En el programa del mapa de tiles, añade un sprite que se mueva con las
+   teclas (como en el capítulo 11) y escribe el número del tile que tiene
+   debajo con <code>CELL</code>.</li>
+</ol>
+<details>
+<summary>Pista</summary>
+<p>Para el segundo, la casilla que hay debajo del punto (x,y) de la pantalla es
+<code>(INT (x/8),INT (y/8))</code>, porque los tiles miden 8 píxeles. Acuérdate de
+volver a dibujar el mapa (<code>MAP 0</code>) cada vez, antes que el sprite, para que
+el sprite anterior desaparezca, y usa las dos páginas para que no parpadee.</p>
+</details>
+<hr />
+<p><strong>Referencia:</strong> <a href="../reference.html#sprites-mapas-de-tiles-y-gráficos-rápidos">Sprites, mapas de tiles y gráficos rápidos</a>,
+<a href="../reference.html#grab"><code>GRAB</code></a>, <a href="../reference.html#sprite"><code>SPRITE</code></a>,
+<a href="../reference.html#hit"><code>HIT</code></a>, <a href="../reference.html#tile"><code>TILE</code></a>,
+<a href="../reference.html#map-dim-map-poke"><code>MAP DIM</code>, <code>MAP POKE</code></a>,
+<a href="../reference.html#map"><code>MAP</code></a>, <a href="../reference.html#cell"><code>CELL</code></a>,
+<a href="../reference.html#page-screen"><code>PAGE</code>, <code>SCREEN</code></a>.</p>
+<p><strong>Siguiente:</strong> <a href="13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a> ·
+<strong>Anterior:</strong> <a href="11-keyboard-and-joystick.html">11. Teclado y mando</a></p>
+<nav class="pasos"><a class="anterior" href="11-keyboard-and-joystick.html"><small>Anterior</small>← 11. Teclado y mando</a><a class="siguiente" href="13-files-and-the-sd-card.html"><small>Siguiente</small>13. Ficheros y la tarjeta SD →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1. Primeros pasos en BASIC · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../en/basic/tutorial/01-first-steps.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../../emulator.html">El emulador</a>
+</li>
+<li><a href="../../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../index.html">Aprende BASIC</a>
+<ul>
+<li><a href="01-first-steps.html" class="aqui">1. Primeros pasos</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables y cuentas</a></li>
+<li><a href="03-text-and-input.html">3. Texto y preguntas</a></li>
+<li><a href="04-decisions.html">4. Decisiones</a></li>
+<li><a href="05-loops.html">5. Bucles</a></li>
+<li><a href="06-arrays-and-data.html">6. Matrices y datos</a></li>
+<li><a href="07-procedures.html">7. Procedimientos</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Los colores y la pantalla</a></li>
+<li><a href="09-drawing.html">9. Dibujar</a></li>
+<li><a href="10-sound-and-music.html">10. Sonido y música</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Teclado y mando</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites y mapas de tiles</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a></li>
+<li><a href="14-a-complete-game.html">14. Un juego completo</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">El editor</a>
+</li>
+<li><a href="../reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../../hardware/board.html">La placa</a>
+</li>
+<li><a href="../../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="1-primeros-pasos-en-basic">1. Primeros pasos en BASIC</h1>
+<p><strong>En este capítulo aprenderás</strong> qué es un programa, cómo se teclea, cómo se
+ejecuta y cómo se cambia. Conocerás tus primeras palabras clave: <code>PRINT</code>,
+<code>RUN</code>, <code>GO TO</code>, <code>REM</code> y <code>NEW</code>.</p>
+<p>Necesitas tener ZX-V delante: la máquina de verdad o el emulador. Si todavía
+no lo has puesto en marcha, <a href="../../getting-started.html">Primeros pasos</a>
+explica cómo. Al arrancar verás una pantalla gris claro con una barra negra
+abajo. Esa barra es del <strong>editor</strong>, el sitio donde se escribe.</p>
+<h2 id="órdenes-la-máquina-lo-hace-ya">Órdenes: la máquina lo hace ya<a class="ancla" href="#órdenes-la-máquina-lo-hace-ya" aria-hidden="true">#</a></h2>
+<p>Teclea esto y pulsa <strong>Enter</strong>:</p>
+<pre><code>PRINT &quot;Hola&quot;
+</code></pre>
+<p>La pantalla cambia y aparece la palabra <code>Hola</code>. Abajo verás un mensaje como
+<code>0 OK, 0:1</code>, que quiere decir "todo ha ido bien". Pulsa cualquier tecla para
+volver al editor.</p>
+<p><code>PRINT</code> es una <strong>palabra clave</strong>: una palabra que la máquina entiende.
+Escribe en la pantalla lo que va detrás. El texto va entre comillas dobles
+(<code>"</code>). Los números y las cuentas no las necesitan:</p>
+<pre><code>PRINT 2+2
+</code></pre>
+<p>Esto escribe <code>4</code>. Las palabras clave se pueden teclear en mayúsculas o en
+minúsculas, como prefieras; al pulsar Enter, la máquina las enseña en
+mayúsculas.</p>
+<p>Lo que acabas de teclear son <strong>órdenes directas</strong>: líneas sin número, que la
+máquina ejecuta en cuanto pulsas Enter y después olvida.</p>
+<h2 id="programas-la-máquina-se-acuerda">Programas: la máquina se acuerda<a class="ancla" href="#programas-la-máquina-se-acuerda" aria-hidden="true">#</a></h2>
+<p>Un <strong>programa</strong> es una lista de líneas que la máquina guarda para
+ejecutarlas más tarde. Cada <strong>línea de programa</strong> empieza por un <strong>número de
+línea</strong>. Teclea estas dos, pulsando <strong>Enter</strong> después de cada una:</p>
+<pre><code>10 PRINT &quot;Hola, soy ZX-V&quot;
+20 PRINT &quot;2 + 2 = &quot;;2+2
+</code></pre>
+<p>Esta vez no pasa nada en la pantalla: las líneas van al <strong>listado</strong>, el
+programa que guarda el editor. Para ejecutarlo, teclea la orden <code>RUN</code> y pulsa
+Enter. Verás esto:</p>
+<p><img alt="El primer programa en marcha" src="../../../images/tutorial-first-program-es.png" /></p>
+<p>La máquina ha ejecutado la línea 10 y después la 20: siempre en el orden de
+los números de línea. El <code>;</code> de la línea 20 junta dos cosas en la misma línea
+de la pantalla: el texto y el resultado de la suma.</p>
+<p>El mensaje de abajo, <code>0 OK, 20:1</code>, dice que el programa ha terminado sin
+problemas, y dónde: en la línea 20, sentencia 1. Pulsa una tecla para volver
+al editor, donde sigue tu programa. (Esa tecla también se escribe en el
+editor; si era una letra, bórrala con <strong>Retroceso</strong>).</p>
+<p>¿Por qué de diez en diez? Para que quede sitio para líneas nuevas en medio:
+si más tarde quieres algo entre la 10 y la 20, le pones el 15.</p>
+<h2 id="el-editor-en-dos-minutos">El editor en dos minutos<a class="ancla" href="#el-editor-en-dos-minutos" aria-hidden="true">#</a></h2>
+<p>El editor funciona como un pequeño procesador de textos. De momento basta con
+estas teclas:</p>
+<table>
+<thead>
+<tr>
+<th>Tecla</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Enter</strong></td>
+<td>Guarda la línea (o la ejecuta, si no tiene número)</td>
+</tr>
+<tr>
+<td>Cursores</td>
+<td>Mueven el cursor por el listado</td>
+</tr>
+<tr>
+<td><strong>Retroceso</strong>, <strong>Supr</strong></td>
+<td>Borran a la izquierda del cursor o debajo de él</td>
+</tr>
+<tr>
+<td><strong>Ctrl+Fin</strong></td>
+<td>Lleva a la línea vacía del final, donde se escriben las líneas nuevas</td>
+</tr>
+<tr>
+<td><strong>Esc</strong></td>
+<td>Deshace los cambios de la línea en la que estás. Con un programa en marcha, lo para: es la tecla <strong>BREAK</strong></td>
+</tr>
+<tr>
+<td><strong>Tab</strong></td>
+<td>La tecla <strong>EDIT</strong>: abre el menú del editor</td>
+</tr>
+</tbody>
+</table>
+<p>Para <strong>cambiar</strong> una línea, sube hasta ella con los cursores, corrígela y
+pulsa <strong>Enter</strong>. También puedes teclearla otra vez con el mismo número: la
+nueva sustituye a la vieja.</p>
+<p>Para <strong>añadir</strong> una línea, tecléala con su número en la línea vacía del final
+del listado. El editor la coloca en su sitio, por orden de número. Después
+de Enter, el cursor va a la línea que sigue a la que has tecleado; pulsa
+<strong>Ctrl+Fin</strong> para volver a la línea vacía.</p>
+<p>Para <strong>borrar</strong> una línea, teclea solo su número y pulsa Enter.</p>
+<p>Para borrar el programa entero y empezar de nuevo, teclea <code>NEW</code>.</p>
+<p>Si una línea tiene un error, al pulsar Enter la máquina hace un zumbido, deja
+el cursor donde está el problema y muestra un mensaje en rojo encima de la
+barra, como <code>C Sintaxis incorrecta</code>. Corrígelo y pulsa Enter otra vez.</p>
+<p>La <a href="../editor.html">guía del editor</a> explica todo lo demás: el menú, cómo
+renumerar y más teclas.</p>
+<h2 id="un-programa-que-no-se-para">Un programa que no se para<a class="ancla" href="#un-programa-que-no-se-para" aria-hidden="true">#</a></h2>
+<p>Teclea <code>NEW</code> para empezar de cero y luego este programa:</p>
+<pre><code>10 PRINT &quot;ZX-V &quot;;
+20 GO TO 10
+</code></pre>
+<p><code>GO TO 10</code> manda el programa otra vez a la línea 10, así que se repite sin
+fin. El <code>;</code> al final de la línea 10 quiere decir "no cambies de línea": el
+siguiente <code>PRINT</code> sigue en la misma. Teclea <code>RUN</code> y la pantalla se llena.</p>
+<p>Cuando la pantalla está llena, la máquina pregunta <code>scroll?</code> abajo. Pulsa
+cualquier tecla para ver otra pantalla más. Para parar el programa, pulsa
+<strong>Esc</strong> (BREAK). El mensaje <code>D BREAK - CONT repite, 10:1</code> te dice que lo has
+parado en la línea 10.</p>
+<h2 id="errores">Errores<a class="ancla" href="#errores" aria-hidden="true">#</a></h2>
+<p>La máquina avisa cuando algo va mal. Prueba este programa (acuérdate antes de
+<code>NEW</code>):</p>
+<pre><code>10 PRINT &quot;Tus puntos:&quot;
+20 PRINT puntos
+</code></pre>
+<p>Ejecútalo. La línea 10 funciona, pero luego sale
+<code>2 Variable no encontrada, 20:1</code>. Todos los mensajes de error tienen un
+código (<code>2</code>), una descripción y el sitio: línea 20, sentencia 1. Aquí la
+máquina no sabe qué es <code>puntos</code>. En el capítulo siguiente aprenderás a
+arreglarlo.</p>
+<p>Los errores no hacen ningún daño: el programa sigue ahí, y puedes
+corregirlo y ejecutarlo otra vez.</p>
+<h2 id="notas-para-ti-rem">Notas para ti: <code>REM</code><a class="ancla" href="#notas-para-ti-rem" aria-hidden="true">#</a></h2>
+<p>La máquina no hace caso de las líneas que empiezan por <code>REM</code> (de <em>remark</em>,
+"comentario"). Úsalas para explicar lo que hace tu programa:</p>
+<pre><code>10 REM Mi primer programa
+20 PRINT &quot;Hola&quot;
+</code></pre>
+<p>En los textos de los programas no uses tildes, eñes ni los signos <code>¿</code> y <code>¡</code>:
+el BASIC usa el juego de caracteres del Spectrum, que no los tiene. Si los
+tecleas, el editor los escribe sin la tilde: <code>ñ</code> sale <code>n</code>, <code>ó</code> sale <code>o</code>, y
+<code>¿</code> y <code>¡</code> salen <code>?</code> y <code>!</code>. Escribe <code>"Como te llamas?"</code> en vez de
+<code>"¿Cómo te llamas?"</code>, que quedaría <code>"?Como te llamas?"</code>.</p>
+<h2 id="pruébalo">Pruébalo<a class="ancla" href="#pruébalo" aria-hidden="true">#</a></h2>
+<ol>
+<li>Escribe un programa que ponga tu nombre en una línea y tu ciudad en la
+   siguiente.</li>
+<li>Cambia el programa de "Un programa que no se para" para que escriba tu
+   nombre en vez de <code>ZX-V</code>. Luego quita el <code>;</code> del final de la línea 10 y
+   vuelve a ejecutarlo. ¿Qué cambia?</li>
+</ol>
+<details>
+<summary>Pista</summary>
+<p>Para el primero, usa dos líneas, cada una con su <code>PRINT</code>. Para el segundo,
+sube a la línea 10 con los cursores, cambia el texto entre comillas y pulsa
+Enter. Sin el <code>;</code>, cada <code>PRINT</code> empieza una línea nueva.</p>
+</details>
+<hr />
+<p><strong>Referencia:</strong> <a href="../reference.html#print"><code>PRINT</code></a>, <a href="../reference.html#run"><code>RUN</code></a>,
+<a href="../reference.html#go-to"><code>GO TO</code></a>, <a href="../reference.html#rem"><code>REM</code></a>,
+<a href="../reference.html#new"><code>NEW</code></a>, <a href="../reference.html#mensajes-de-error">Mensajes de error</a>.</p>
+<p><strong>Siguiente:</strong> <a href="02-variables-and-maths.html">2. Variables y cuentas</a> ·
+<a href="../index.html">Volver al curso</a></p>
+<nav class="pasos"><a class="anterior" href="../index.html"><small>Anterior</small>← Aprende BASIC</a><a class="siguiente" href="02-variables-and-maths.html"><small>Siguiente</small>2. Variables y cuentas →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

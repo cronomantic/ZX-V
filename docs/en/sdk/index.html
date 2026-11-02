@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Native programs (SDK) · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../es/sdk/index.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../getting-started.html">Getting started</a>
+</li>
+<li><a href="../emulator.html">The emulator</a>
+</li>
+<li><a href="../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Learn BASIC</a>
+</li>
+<li><a href="../basic/editor.html">The editor</a>
+</li>
+<li><a href="../basic/reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="index.html" class="aqui">Native programs (SDK)</a>
+<ul>
+</ul>
+</li>
+<li><a href="graphics.html">Graphics</a>
+</li>
+<li><a href="reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../hardware/board.html">The board</a>
+</li>
+<li><a href="../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="native-programs-sdk">Native programs (SDK)</h1>
+<p>A <strong>native program</strong> (<code>.zxv</code>) is a program written in C or in RISC-V
+assembly and compiled for the machine's own processor. It runs at full
+speed, has the whole machine to itself and can do everything BASIC does and
+more: games with dozens of sprites, digitised sound, your own file formats.</p>
+<p>This guide takes you from installing the tools to distributing a finished
+program. The complete list of functions, constants and formats is in the
+<a href="reference.html">API reference</a>, and the graphics engine has its own page:
+<a href="graphics.html">Graphics</a>.</p>
+<p><strong>Contents</strong></p>
+<ul>
+<li><a href="#native-programs-or-basic">Native programs or BASIC?</a></li>
+<li><a href="#installing-the-tools">Installing the tools</a></li>
+<li><a href="#building-and-running-the-examples">Building and running the examples</a></li>
+<li><a href="#your-first-program">Your first program</a></li>
+<li><a href="#how-a-program-works">How a program works</a></li>
+<li><a href="#the-screen-colours-and-text">The screen, colours and text</a></li>
+<li><a href="#graphics-drawing-sprites-and-tile-maps">Graphics: drawing, sprites and tile maps</a></li>
+<li><a href="#sound">Sound</a></li>
+<li><a href="#keyboard-joystick-and-mouse">Keyboard, joystick and mouse</a></li>
+<li><a href="#files-on-the-sd-card">Files on the SD card</a></li>
+<li><a href="#timing-and-the-frame-loop">Timing and the frame loop</a></li>
+<li><a href="#writing-in-assembly">Writing in assembly</a></li>
+<li><a href="#debugging">Debugging</a></li>
+<li><a href="#distributing-your-program">Distributing your program</a></li>
+</ul>
+<h2 id="native-programs-or-basic">Native programs or BASIC?<a class="ancla" href="#native-programs-or-basic" aria-hidden="true">#</a></h2>
+<p>Use <strong>BASIC</strong> when you want to try ideas quickly, learn, or write programs
+that are mostly text, menus or simple games. BASIC on ZX-V already has
+sprites, tile maps, sound and files, and you change a line and run it
+again in a second.</p>
+<p>Use a <strong>native program</strong> when you need:</p>
+<ul>
+<li><strong>Speed.</strong> C runs many times faster than BASIC: the CPU does about 2.4
+  million instructions per frame (60 frames per second).</li>
+<li><strong>Control.</strong> Your own data structures, fixed-point maths, your own sound
+  engine, your own file formats.</li>
+<li><strong>Size.</strong> Up to almost 248 KB for code and data, with all the memory of the
+  machine at your disposal while the program runs.</li>
+</ul>
+<p>The price is that you write in C on your computer, compile, and then load
+the result into the machine or the emulator. Many people do both: they try
+an idea in BASIC and then write the finished game in C.</p>
+<p>There is a third way: <strong>compiling BASIC</strong> with <a href="../zxbasic.html">ZX Basic</a>,
+which turns a BASIC program into a <code>.zxv</code> about 90 times faster than in the
+machine's BASIC.</p>
+<p><strong>If you know the Spectrum:</strong> a <code>.zxv</code> is like a machine code program
+loaded with <code>LOAD "" CODE</code> and started with <code>RANDOMIZE USR</code>, but in C, with a
+32-bit processor and a library of system routines you call like normal C
+functions.</p>
+<h2 id="installing-the-tools">Installing the tools<a class="ancla" href="#installing-the-tools" aria-hidden="true">#</a></h2>
+<p>You need three things:</p>
+<ol>
+<li><strong>A GCC cross-compiler for RISC-V</strong> (<code>riscv64-unknown-elf-gcc</code>). Despite
+   the "64" in its name, it also builds the 32-bit code ZX-V uses.</li>
+<li><strong>Python 3</strong>, for the tools that turn the compiled program into a <code>.zxv</code>
+   and convert images.</li>
+<li><strong>The SDK itself</strong>: the <code>sdk</code> folder of the
+   <a href="https://github.com/cronomantic/ZX-V/tree/main/sdk">ZX-V repository</a>. Clone or download the repository; the
+   commands in this guide are run from its top folder.</li>
+</ol>
+<p>Optionally:</p>
+<ul>
+<li><strong>picolibc</strong>, the standard C library for small machines, if you want
+  <code>printf</code>, <code>fopen</code>, <code>malloc</code> and friends (see
+  <a href="#two-ways-to-write-c">Two ways to write C</a>).</li>
+<li><strong>GDB</strong> for RISC-V, to debug with breakpoints (see <a href="#debugging">Debugging</a>).</li>
+<li><strong>The emulator</strong> to run your programs on your computer (see
+  <a href="../emulator.html">The emulator</a>). The <code>zxv-cli</code> version without a window is
+  handy for quick, automatic tests.</li>
+</ul>
+<h3 id="linux-debian-ubuntu">Linux (Debian, Ubuntu)<a class="ancla" href="#linux-debian-ubuntu" aria-hidden="true">#</a></h3>
+<pre><code class="language-sh">sudo apt install gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf python3 make
+# optional, for debugging:
+sudo apt install gdb-multiarch
+</code></pre>
+<p>These are the packages the project's own automatic builds use on Ubuntu
+24.04.</p>
+<h3 id="windows">Windows<a class="ancla" href="#windows" aria-hidden="true">#</a></h3>
+<p>Install <a href="https://www.msys2.org/">MSYS2</a> and, in its <strong>UCRT64</strong> terminal:</p>
+<pre><code class="language-sh">pacman -S mingw-w64-ucrt-x86_64-riscv64-unknown-elf-toolchain \
+          mingw-w64-ucrt-x86_64-python make
+# optional, for debugging:
+pacman -S mingw-w64-ucrt-x86_64-gdb-multiarch
+</code></pre>
+<p>Run the commands of this guide in that same terminal. MSYS2 has no picolibc
+package, so on Windows you can build every example except <code>files</code> and
+write programs without the standard C library (the usual case: all the
+other examples, including the Estela game, work like that).</p>
+<h3 id="macos">macOS<a class="ancla" href="#macos" aria-hidden="true">#</a></h3>
+<p>There is no tested recipe for macOS yet. Homebrew's <code>riscv64-elf-gcc</code>
+package should work if it includes the 32-bit <code>ilp32</code> libraries; its
+commands start with <code>riscv64-elf-</code> instead of <code>riscv64-unknown-elf-</code>, so
+build with <code>make -C sdk CROSS=riscv64-elf-</code>.</p>
+<h3 id="checking-the-installation">Checking the installation<a class="ancla" href="#checking-the-installation" aria-hidden="true">#</a></h3>
+<pre><code class="language-sh">riscv64-unknown-elf-gcc --version
+python3 --version
+</code></pre>
+<h2 id="building-and-running-the-examples">Building and running the examples<a class="ancla" href="#building-and-running-the-examples" aria-hidden="true">#</a></h2>
+<p>From the top folder of the repository:</p>
+<pre><code class="language-sh">make -C sdk
+</code></pre>
+<p>This compiles every example in <code>sdk/examples/</code> and leaves the programs in
+<code>sdk/build/</code>: <code>hello.zxv</code>, <code>graphics.zxv</code>, <code>estela.zxv</code>, and so on (and next to
+each one, the <code>.elf</code> file with the debugging information). Without
+picolibc (MSYS2 on Windows does not have it), <code>make</code> says so and builds the
+others, leaving out <code>files</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Example</th>
+<th>What it shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/hello/hello.c"><code>hello</code></a></td>
+<td>The first steps: text through the system routines, drawing straight into video memory and a note on the sound chip</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/graphics/graphics.c"><code>graphics</code></a></td>
+<td>The graphics engine: a scrolling tile map, bouncing sprites that collide, a spinning polygon, and a rotating "mode 7" floor with scaled sprites, all double-buffered</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/scroll/scroll.c"><code>scroll</code></a></td>
+<td>Hardware scrolling over a 1024-pixel-wide field, drawing only the column that comes in, and parallax with the line table</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/digital/digital.c"><code>digital</code></a></td>
+<td>Digitised sound: 8 kHz samples played through the volume of a sound chip channel</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/files/files.c"><code>files</code></a></td>
+<td>The standard C library with the SD card: <code>fopen</code>, <code>fprintf</code>, <code>fgets</code>, <code>opendir</code>, <code>malloc</code>... (needs picolibc)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/boardtest/boardtest.c"><code>boardtest</code></a></td>
+<td>The board test: <code>OUT_INFO</code> (output and screen), the clock, a file written and read back, the keyboard, gamepads and mouse live, the sound chip's two stereo channels and, with P, the palettes with the per-line table</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/estela"><code>estela</code></a></td>
+<td><strong>Estela</strong>, a complete shoot'em up: three stages, bosses, music and effects on both sound chips, keyboard and joystick, a high score on the card; its graphics (<code>.gfx</code>) and music (<code>.pt3</code>) can be changed without compiling (<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/estela/README.md">its README</a>)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/route128"><code>route128</code></a></td>
+<td><strong>Route 128</strong>, a racing game: a pseudo-3D road with bends and blind crests, painted line by line, and the scenery and traffic as scaled sprites; three stages against the clock; its graphics (<code>.gfx</code>) and music (<code>.pt3</code>) can be changed without compiling (<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/route128/README.md">its README</a>)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/mine"><code>mine</code></a></td>
+<td><strong>The Mine</strong>, a digging game: boulders and diamonds that fall and roll, creatures that follow the walls, growing moss and twelve caves bigger than the screen, with smooth scrolling; the rules, kept apart, are also tested on the PC (<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/mine/README.md">its README</a>)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/street"><code>street</code></a></td>
+<td><strong>Street Justice</strong>, a street brawler: fighters drawn with the engine from a skeleton in poses, depth, grabs, thugs that take turns to attack and a boss in each of the three stages (<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/street/README.md">its README</a>)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/umbra"><code>umbra</code></a></td>
+<td><strong>Umbra</strong>, a 3D maze in the dark: raycast walls, mode 7 floor and ceiling, lamp fog and shadows that chase you; its levels are maps in <code>umbra.gfx</code></td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/keep"><code>keep</code></a></td>
+<td><strong>The Keep</strong>, a top-down dungeon adventure: four floors of rooms, enemies, keys, treasures and a sorcerer; its floors are maps in <code>keep.gfx</code>, and the music and effects are editable files</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/chess"><code>chess</code></a></td>
+<td><strong>ZXV Chess</strong>, chess against the machine, with four levels, or for two players: all the FIDE rules except threefold repetition, the mouse, and the engine kept apart, which is also tested on the PC; the pieces are PNG images you can edit (<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/chess/README.md">its README</a>)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/player/player.c"><code>player</code></a></td>
+<td>Music and effects with the <code>zxv_music.h</code> library: a player for PT3, TurboSound, PT2, STC, ASC and PSG modules and AYFX effect banks, with the registers of both AY chips on screen</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/gfxedit"><code>gfxedit</code></a></td>
+<td><strong>The graphics editor</strong>: sprites, tiles, maps and textures in <code>.gfx</code> files, with the mouse (<a href="graphics.html#the-graphics-editor-on-the-machine-gfxedit">in the graphics guide</a>)</td>
+</tr>
+</tbody>
+</table>
+<p>To run one, the <code>.zxv</code> file has to be on the machine's SD card:</p>
+<ul>
+<li><strong>In the desktop emulator (<code>zxv</code>)</strong>, open the file with File &gt; Open
+  (Alt+O) or drag it onto the window. The emulator offers to copy it to the
+  card and loads it.</li>
+<li><strong>In any emulator or on the real machine</strong>, copy the <code>.zxv</code> to the SD
+  card (in the desktop emulator, the card is the folder <code>ZX-V</code> in your
+  Documents) and type in BASIC:</li>
+</ul>
+<p><code>LOAD "graphics"</code></p>
+<p>The <code>.zxv</code> extension is optional. In the web version, upload the file with
+  File &gt; The SD card first.</p>
+<p>The examples are also built into the machine, on the <code>ROM:</code> drive:
+<code>LOAD "ROM:graphics"</code> works on a new machine without copying anything.</p>
+<h2 id="your-first-program">Your first program<a class="ancla" href="#your-first-program" aria-hidden="true">#</a></h2>
+<p>Create a folder for your program, next to the repository or anywhere you
+like, and save this as <code>hello.c</code>:</p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+
+int main(void)
+{
+    zxv_cls(7);                                 /* clear the screen to white */
+    zxv_print_str(&quot;Hello from C!\n&quot;);
+    zxv_print_str(&quot;Press a key to go back to BASIC.&quot;);
+
+    for (int x = 0; x &lt; 256; x++)               /* a red line across the screen */
+        zxv_plot(x, 100, 2);
+
+    while (zxv_key_get() &lt; 0)                   /* wait for a key... */
+        zxv_wait_vblank();                      /* ...one frame at a time */
+    return 0;
+}
+</code></pre>
+<p>Compile it (change <code>SDK</code> to where the <code>sdk</code> folder is):</p>
+<pre><code class="language-sh">SDK=../ZX-V/sdk
+riscv64-unknown-elf-gcc -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 \
+    -Os -g -Wall -Wextra -std=gnu11 -ffreestanding -fno-builtin \
+    -fno-tree-loop-distribute-patterns -I$SDK/include \
+    -nostdlib -nostartfiles -static -T $SDK/zxv.ld -Wl,--gc-sections \
+    -Wl,--no-warn-rwx-segments \
+    $SDK/crt0.S $SDK/zxvlib.c hello.c -lgcc -o hello.elf
+python3 $SDK/tools/elf2zxv.py hello.elf hello.zxv
+</code></pre>
+<p>The first command compiles and links your program for ZX-V's processor
+into <code>hello.elf</code>. The second turns it into <code>hello.zxv</code>, the file the
+machine loads. Copy <code>hello.zxv</code> to the SD card and type <code>LOAD "hello"</code>:</p>
+<ul>
+<li><code>zxv_cls(7)</code> clears the screen with colour 7 (white).</li>
+<li><code>zxv_print_str</code> writes text at the text cursor, which starts at the top
+  left; <code>\n</code> moves to the next line.</li>
+<li><code>zxv_plot(x, y, colour)</code> sets one pixel. The screen is 256 × 192 pixels,
+  with (0, 0) at the top left.</li>
+<li><code>zxv_key_get()</code> returns the next key typed, or −1 if there is none.
+  <code>zxv_wait_vblank()</code> waits for the next frame (1/60 of a second) so the
+  loop does not spin for nothing.</li>
+<li>When <code>main</code> returns 0, you are back in BASIC with the report <code>0 OK</code>.</li>
+</ul>
+<h3 id="a-makefile-for-your-project">A Makefile for your project<a class="ancla" href="#a-makefile-for-your-project" aria-hidden="true">#</a></h3>
+<p>Typing those commands every time is tedious. This <code>Makefile</code> does it for
+you (<code>make</code> builds, <code>make clean</code> deletes what was built):</p>
+<pre><code class="language-make"># Where the ZX-V SDK is (the sdk folder of the repository).
+SDK     ?= ../ZX-V/sdk
+CROSS   ?= riscv64-unknown-elf-
+PYTHON  ?= python3
+NAME    := hello
+SOURCES := hello.c
+
+CFLAGS  := -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 \
+           -Os -g -Wall -Wextra -std=gnu11 -ffreestanding -fno-builtin \
+           -fno-tree-loop-distribute-patterns -I$(SDK)/include
+LDFLAGS := -nostdlib -nostartfiles -static -T $(SDK)/zxv.ld -Wl,--gc-sections \
+           -Wl,--no-warn-rwx-segments
+
+$(NAME).zxv: $(NAME).elf
+    $(PYTHON) $(SDK)/tools/elf2zxv.py $&lt; $@
+
+$(NAME).elf: $(SOURCES) $(SDK)/crt0.S $(SDK)/zxvlib.c
+    $(CROSS)gcc $(CFLAGS) $(LDFLAGS) $(SDK)/crt0.S $(SDK)/zxvlib.c $(SOURCES) -lgcc -o $@
+
+clean:
+    rm -f $(NAME).elf $(NAME).zxv
+</code></pre>
+<p>Add your other <code>.c</code> files to <code>SOURCES</code>. The command lines must start with
+a tab, not spaces.</p>
+<h2 id="how-a-program-works">How a program works<a class="ancla" href="#how-a-program-works" aria-hidden="true">#</a></h2>
+<h3 id="from-load-to-main">From <code>LOAD</code> to <code>main</code><a class="ancla" href="#from-load-to-main" aria-hidden="true">#</a></h3>
+<p>When you type <code>LOAD "hello"</code>, the machine:</p>
+<ol>
+<li>reads the <code>.zxv</code> and checks it (a signature and a checksum, so a damaged
+   file is never run);</li>
+<li>copies the program to the start of the <strong>user RAM</strong> (address
+   <code>0x2003_4000</code>) and fills its uninitialised variables with zeros;</li>
+<li>sets the video mode written in the file (0 unless you choose another, see
+   <a href="#distributing-your-program">Distributing</a>) and clears the screen (or
+   keeps the loading screen, if the program has one in its mode);</li>
+<li>jumps to <code>crt0.S</code>, the tiny piece of start-up code the SDK adds, which
+   calls your <code>main</code>.</li>
+</ol>
+<p>Your program uses the stack the system was already using, at the top of
+the user RAM, and grows down from there.</p>
+<h3 id="going-back-to-basic">Going back to BASIC<a class="ancla" href="#going-back-to-basic" aria-hidden="true">#</a></h3>
+<p>There are two ways to finish:</p>
+<ul>
+<li><strong>Return from <code>main</code>.</strong></li>
+<li><strong>Call <code>zxv_exit_to_basic(code)</code></strong> from anywhere, however deep.</li>
+</ul>
+<p>The number you return (or pass as <code>code</code>) tells BASIC how it went. <strong>0 means
+success</strong>: BASIC shows <code>0 OK, 0:1</code>. Any other number means an error, and
+BASIC shows it in a <code>W</code> report: <code>W Native code error (3), 0:1</code>. To explain
+the error in words, end with <strong><code>zxv_report_error(code, message)</code></strong>: BASIC
+shows your message instead of its own, followed by the code if it is not 0.</p>
+<pre><code class="language-c">if (zxv_file_load(&quot;level1.dat&quot;, level, sizeof(level)) &lt; 0)
+    zxv_report_error(1, &quot;Cannot load level1.dat&quot;);   /* W Cannot load level1.dat (1), 0:1 */
+</code></pre>
+<p>In every case the program's memory now belongs to BASIC again, so any BASIC
+program that was in memory is gone. BASIC also puts the screen back to
+normal (page 0, mode 0, no scroll) and silences the sound chips, but it is
+good manners to leave things tidy yourself.</p>
+<p>If your program crashes (for example, it reads from a forbidden address),
+the machine also goes back to BASIC, with the report
+<code>W Native code error, 0:1</code>. <strong>Ctrl+Alt+Delete</strong> stops a program that hangs,
+with <code>L BREAK into program, 0:1</code>.</p>
+<p>A native program cannot start another one: every program is loaded at the
+same address, so <code>zxv_exec</code> returns <code>ZXV_E_ACCESS</code> when a <code>.zxv</code> calls it.
+Only BASIC launches programs.</p>
+<h3 id="memory">Memory<a class="ancla" href="#memory" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Address</th>
+<th>Size</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User RAM</td>
+<td><code>0x2003_4000</code> – <code>0x2007_1FFF</code></td>
+<td>248 KB</td>
+<td>Your code, data and stack</td>
+</tr>
+<tr>
+<td>Video page 0</td>
+<td><code>0x2000_4000</code></td>
+<td>96 KB</td>
+<td>The screen (see <a href="graphics.html">graphics</a>)</td>
+</tr>
+<tr>
+<td>Video page 1</td>
+<td><code>0x2001_C000</code></td>
+<td>96 KB</td>
+<td>A second screen, for double buffering</td>
+</tr>
+<tr>
+<td>System area</td>
+<td><code>0x2000_0000</code></td>
+<td>16 KB</td>
+<td>Registers of the screen, sound and input; system variables</td>
+</tr>
+<tr>
+<td>ROM</td>
+<td><code>0x1004_0000</code></td>
+<td>512 KB</td>
+<td>BASIC and the system routines (read only)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>The program and its variables go at the bottom of the user RAM, the stack
+  at the top. Leave room for the stack: the system only checks there are
+  4 KB free when it loads the program. 32 KB, what picolibc leaves, is a
+  comfortable amount.</li>
+<li>In mode 0 each video page only shows its first 24 KB; the other 72 KB of
+  each page are free RAM if you need more space (unless you use the large
+  scrolling fields of <a href="graphics.html#hardware-scrolling">graphics</a>).</li>
+<li>The 64 KB above the user RAM belong to the system: touching them stops
+  your program.</li>
+</ul>
+<h3 id="the-rules-of-the-machine">The rules of the machine<a class="ancla" href="#the-rules-of-the-machine" aria-hidden="true">#</a></h3>
+<p>The same program has to work on the emulator and on the real machine. For
+that:</p>
+<ol>
+<li>Use only the system routines (the API), the ZX-V registers and memory.
+   The chip ZX-V is built on has other devices (timers, DMA, ...); they are
+   not part of the machine and your program must not touch them.</li>
+<li>Synchronise with the frame (<code>zxv_wait_vblank</code>), never by counting
+   instructions: the real processor and the emulator do not run at exactly
+   the same speed.</li>
+<li>Do not write to the <strong>visible</strong> video page just after a frame starts,
+   while the system is still sending it to the screen (see
+   <a href="graphics.html#pages-and-double-buffering">double buffering</a>).</li>
+<li>To return to BASIC, <code>main</code> must keep the registers <code>s0</code>–<code>s11</code>, as any C
+   function does. In assembly, take care of it yourself.</li>
+</ol>
+<p>Run your program in the emulator with <code>--strict</code> (or Options &gt; Strict mode
+in <code>zxv</code>): it warns about almost every broken rule.</p>
+<h3 id="two-ways-to-write-c">Two ways to write C<a class="ancla" href="#two-ways-to-write-c" aria-hidden="true">#</a></h3>
+<p><strong>Without the standard C library</strong> (the usual way, and the one the
+examples use): you link <code>zxvlib.c</code>, which only provides <code>memcpy</code>, <code>memset</code>,
+<code>memmove</code> and <code>memcmp</code> (the compiler may call them by itself to copy
+structures). You have the headers that come with the compiler
+(<code>&lt;stdint.h&gt;</code>, <code>&lt;stddef.h&gt;</code>, <code>&lt;stdbool.h&gt;</code>, <code>&lt;stdarg.h&gt;</code>...) and the ZX-V
+headers:</p>
+<table>
+<thead>
+<tr>
+<th>Header</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>zxv_api.h</code></td>
+<td>The system routines as C functions: screen, text, keys, joystick, sound, files, clock, mouse</td>
+</tr>
+<tr>
+<td><code>zxv_gfx.h</code></td>
+<td>The graphics engine: bitmaps, sprites, tile maps, mode 7 and shapes (includes <code>zxv_api.h</code>)</td>
+</tr>
+<tr>
+<td><code>zxv_gfxfile.h</code></td>
+<td>Reading <code>.gfx</code> graphics files (with <code>gfxfile.c</code>; see <a href="graphics.html#reading-a-gfx-file-in-c">Graphics</a>)</td>
+</tr>
+<tr>
+<td><code>zxv_music.h</code></td>
+<td>Tracker music and sound effects (with <code>sdk/music</code>; see <a href="#tracker-music-and-sound-effects">Sound</a>)</td>
+</tr>
+<tr>
+<td><code>zxv.h</code></td>
+<td>Addresses, registers and constants (included by <code>zxv_api.h</code> and <code>zxv_gfx.h</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>There is no <code>printf</code> or <code>malloc</code>: you print with <code>zxv_print_str</code> and keep
+your data in global or static arrays. <code>float</code>, <code>double</code> and 64-bit
+integers work (the compiler adds the routines from <code>libgcc</code>), but the
+processor has no floating-point unit, so they are slow; games use integers
+and fixed point.</p>
+<p><strong>With the standard C library</strong> (picolibc): you can use <code>printf</code>,
+<code>fopen</code>, <code>fgets</code>, <code>opendir</code>, <code>malloc</code>, <code>time</code> and most of the C library.
+<code>zxvc.c</code> connects it to the machine. You compile with <code>--specs=picolibc.specs</code>
+instead of <code>-nostdlib</code>, and with <code>zxvc.c</code> instead of <code>zxvlib.c</code>:</p>
+<pre><code class="language-sh">riscv64-unknown-elf-gcc -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 -Os \
+    --specs=picolibc.specs -nostartfiles -static -T $SDK/zxv.ld -I$SDK/include \
+    -Wl,--gc-sections -Wl,--no-warn-rwx-segments \
+    $SDK/crt0.S $SDK/zxvc.c my_program.c -o my_program.elf
+</code></pre>
+<p>The program grows (the <code>files</code> example takes 14 KB; 6.7 KB with
+<code>-DPICOLIBC_INTEGER_PRINTF_SCANF</code>, a <code>printf</code> without decimals). Details in
+<a href="reference.html#the-standard-c-library-picolibc">the reference</a>.</p>
+<h2 id="the-screen-colours-and-text">The screen, colours and text<a class="ancla" href="#the-screen-colours-and-text" aria-hidden="true">#</a></h2>
+<p>The screen has two modes:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Pixels</th>
+<th>Text (8 × 8 characters)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>256 × 192</td>
+<td>32 columns × 24 rows</td>
+</tr>
+<tr>
+<td>1</td>
+<td>512 × 384</td>
+<td>64 columns × 48 rows</td>
+</tr>
+</tbody>
+</table>
+<p>Programs start in mode 0 unless the <code>.zxv</code> says otherwise.
+<code>zxv_set_mode(1)</code> changes the mode and clears the screen.</p>
+<p>Each pixel is one of <strong>16 colour numbers</strong>: eight colours, and the same
+eight brighter (add 8):</p>
+<table>
+<thead>
+<tr>
+<th>Colour</th>
+<th>Normal</th>
+<th>Bright</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Black</td>
+<td>0</td>
+<td>8</td>
+</tr>
+<tr>
+<td>Blue</td>
+<td>1</td>
+<td>9</td>
+</tr>
+<tr>
+<td>Red</td>
+<td>2</td>
+<td>10</td>
+</tr>
+<tr>
+<td>Magenta</td>
+<td>3</td>
+<td>11</td>
+</tr>
+<tr>
+<td>Green</td>
+<td>4</td>
+<td>12</td>
+</tr>
+<tr>
+<td>Cyan</td>
+<td>5</td>
+<td>13</td>
+</tr>
+<tr>
+<td>Yellow</td>
+<td>6</td>
+<td>14</td>
+</tr>
+<tr>
+<td>White</td>
+<td>7</td>
+<td>15</td>
+</tr>
+</tbody>
+</table>
+<p>Colour 8 is the same black as 0, but the graphics engine uses it as
+<strong>transparent</strong> in sprites and tiles.</p>
+<p>These are the colours at start. Each number can be any other colour: each
+remapping table has a palette of 16 RGB565 colours you can change
+(<code>ZXV_PALETTE(t)</code>, <code>ZXV_RGB(r, g, b)</code>). That gives 16 colours per line and
+up to 64 on screen; see <a href="graphics.html#colour-remapping">Graphics</a>.</p>
+<p>This program draws all 16 and changes the colour of the <strong>border</strong>, the
+frame around the picture:</p>
+<pre><code class="language-c">#include &quot;zxv_gfx.h&quot;
+
+#define REG8(a) (*(volatile uint8_t *)(uintptr_t)(a))
+
+int main(void)
+{
+    zxv_cls(0);                                 /* black screen */
+    REG8(ZXV_V_BORDER) = 1;                     /* blue border */
+    for (int c = 0; c &lt; 16; c++)                /* one bar per colour */
+        zxv_gfx_rect(c * 16, 32, 16, 128, c);
+    zxv_print_str(&quot;The 16 colours (8 is black too)&quot;);
+
+    while (zxv_key_get() &lt; 0)
+        zxv_wait_vblank();
+    REG8(ZXV_V_BORDER) = 7;                     /* leave it as BASIC likes it */
+    return 0;
+}
+</code></pre>
+<p>The border is a <strong>register</strong>: a byte in the system area that you write
+like any variable. Registers are applied at the start of the next frame.
+The <code>zxv.h</code> header names them all (<code>ZXV_V_BORDER</code>, <code>ZXV_V_SCROLL_X</code>...);
+see the <a href="reference.html#video-registers">reference</a>.</p>
+<h3 id="text">Text<a class="ancla" href="#text" aria-hidden="true">#</a></h3>
+<p><code>zxv_print_str(s)</code> and <code>zxv_print_char(c)</code> write at the text cursor, in
+cells of 8 × 8 pixels. When the text reaches the bottom, the screen scrolls
+up.</p>
+<ul>
+<li><code>zxv_text_at(col, row)</code> moves the cursor. Columns and rows count from 0
+  at the top left: 32 × 24 in mode 0, 64 × 48 in mode 1. <code>zxv_cls</code> and
+  <code>zxv_set_mode</code> also put it back at the top left.</li>
+<li><code>zxv_text_colors(ink, paper)</code> chooses the colours: each character is drawn
+  in <code>ink</code> on a cell filled with <code>paper</code>. They are black on white unless a
+  program changes them, and they stay changed after it ends, so set them
+  before you print.</li>
+<li>Strings are UTF-8, as your C source is. Besides ASCII, the font has <code>©</code>
+  and the Spanish letters <code>á é í ó ú ü ñ</code>, their capitals, <code>¿</code> and <code>¡</code>;
+  any other character comes out as <code>?</code>. <code>\n</code> or <code>\r</code> starts a new line
+  and <code>\b</code> deletes the previous character.</li>
+</ul>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+
+int main(void)
+{
+    zxv_cls(1);                                 /* blue screen */
+    zxv_text_colors(14, 1);                     /* bright yellow on blue */
+    zxv_text_at(8, 10);                         /* column 8, row 10 */
+    zxv_print_str(&quot;¡Hola, señor Núñez!&quot;);       /* UTF-8, accents included */
+
+    zxv_text_colors(0, 7);                      /* black on white */
+    zxv_text_at(0, 23);                         /* the bottom row */
+    zxv_print_str(&quot;Press a key&quot;);
+    while (zxv_key_get() &lt; 0)
+        zxv_wait_vblank();
+    return 0;
+}
+</code></pre>
+<p>That is enough for messages and tests. Games usually draw their own text:
+Estela has a 5 × 7 font, with accents, in
+<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/estela/draw.c"><code>draw.c</code></a>.</p>
+<h3 id="drawing">Drawing<a class="ancla" href="#drawing" aria-hidden="true">#</a></h3>
+<p><code>zxv_plot</code> sets one pixel. For anything else use the graphics engine
+(<code>zxv_gfx.h</code>): lines, rectangles, circles, triangles, polygons, sprites and
+tile maps, all clipped to the screen so you can draw partly outside it.</p>
+<pre><code class="language-c">#include &quot;zxv_gfx.h&quot;
+
+int main(void)
+{
+    zxv_gfx_rect(0, 0, 256, 192, 1);                    /* blue background */
+    zxv_gfx_rect(16, 16, 64, 40, 6);                    /* yellow box */
+    zxv_gfx_line(0, 191, 255, 100, 15);                 /* white line */
+    zxv_gfx_circle(160, 48, 30, 10, 1);                 /* bright red disc */
+    zxv_gfx_circle(160, 48, 36, 14, 0);                 /* yellow ring */
+
+    static const int16_t tri[6] = { 40, 170, 90, 90, 140, 170 };
+    zxv_gfx_tri(tri, 4);                                /* green triangle */
+
+    static const int16_t star[10] = { 200, 100, 215, 160, 170, 122, 230, 122, 185, 160 };
+    zxv_gfx_poly(star, 5, 13);                          /* cyan star (even-odd rule) */
+
+    zxv_gfx_clip(0, 0, 128, 192);                       /* only the left half... */
+    zxv_gfx_circle(128, 96, 20, 3, 1);                  /* ...so this is half a disc */
+    zxv_gfx_target(0);                                  /* resets the clip */
+
+    while (zxv_key_get() &lt; 0)
+        zxv_wait_vblank();
+    return 0;
+}
+</code></pre>
+<p>The video memory is also an ordinary array you can write to: 4 bits per
+pixel, two pixels per byte, with the left pixel in the low half. The
+<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/hello/hello.c"><code>hello</code></a> example does it, and
+<a href="graphics.html#the-video-memory">Graphics</a> explains the format.</p>
+<h2 id="graphics-drawing-sprites-and-tile-maps">Graphics: drawing, sprites and tile maps<a class="ancla" href="#graphics-drawing-sprites-and-tile-maps" aria-hidden="true">#</a></h2>
+<p>The graphics engine in the ROM does the heavy work of a game:</p>
+<ul>
+<li><strong>Sprites</strong> with transparency, mirrored, recoloured or scaled, and
+  pixel-perfect collisions.</li>
+<li><strong>Tile maps</strong> of 8 × 8 or 16 × 16 tiles, with priority, that scroll in
+  any direction and repeat if you want.</li>
+<li><strong>Double buffering</strong> with the two video pages, so nothing flickers.</li>
+<li><strong>Hardware scrolling</strong> over fields up to four screens wide or tall,
+  <strong>raster effects</strong> per line (parallax, split screens) and <strong>colour
+  remapping</strong> (fades, colour cycling).</li>
+<li><strong>Mode 7</strong>: a textured floor in perspective, like on the SNES.</li>
+</ul>
+<p>All of it, with complete examples, is in <a href="graphics.html">Graphics</a>,
+including how to convert your PNG images with
+<a href="graphics.html#images-from-png-files-png2gfxpy"><code>png2gfx.py</code></a>.</p>
+<h2 id="sound">Sound<a class="ancla" href="#sound" aria-hidden="true">#</a></h2>
+<p>ZX-V has a <strong>beeper</strong> (one bit, like the Spectrum's) and <strong>two AY-3-8912
+sound chips</strong>, the chip of the Spectrum 128, each with three square-wave
+channels (A, B and C), a noise generator and volume envelopes. The sound
+comes out in stereo: by default channel A on the left, C on the right and B
+in the middle.</p>
+<h3 id="the-ay-chip">The AY chip<a class="ancla" href="#the-ay-chip" aria-hidden="true">#</a></h3>
+<p>You control an AY by writing its 16 registers with <code>zxv_ay_write(reg,
+value)</code>. For the second chip, add <code>ZXV_AY2</code> (16) to the register number.
+The main registers:</p>
+<table>
+<thead>
+<tr>
+<th>Register</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0–1, 2–3, 4–5</td>
+<td>Tone period of channels A, B and C (12 bits: low byte, high 4 bits)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Noise period (0–31)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Mixer: bits 0–2 turn <strong>off</strong> the tone of A, B, C; bits 3–5 turn off the noise</td>
+</tr>
+<tr>
+<td>8, 9, 10</td>
+<td>Volume of A, B, C (0–15), or 16 to follow the envelope</td>
+</tr>
+<tr>
+<td>11–12</td>
+<td>Envelope period</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Envelope shape (writing it restarts the envelope)</td>
+</tr>
+</tbody>
+</table>
+<p>The note's frequency is 1,773,447.5 / (16 × period) Hz. This program plays
+an A on the first AY, an E on the second and a quarter of a second of
+beeper:</p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+
+/* Tone period for a frequency: the AY's clock is 1,773,447.5 Hz,
+ * divided by 16 and by the period. */
+#define AY_PERIOD(hz) ((1773448 + 8 * (hz)) / (16 * (hz)))
+
+static void wait_frames(int n)
+{
+    while (n--)
+        zxv_wait_vblank();
+}
+
+/* A note on channel A of one AY (0 or ZXV_AY2 for the second one). */
+static void note_a(int ay, int hz, int volume)
+{
+    int p = AY_PERIOD(hz);
+    zxv_ay_write(ay + 0, p &amp; 0xFF);             /* R0, R1: tone period of channel A */
+    zxv_ay_write(ay + 1, p &gt;&gt; 8);
+    zxv_ay_write(ay + 7, 0x3E);                 /* R7 mixer: tone A on, the rest off */
+    zxv_ay_write(ay + 8, volume);               /* R8: volume of A, 0-15 */
+}
+
+int main(void)
+{
+    zxv_cls(7);
+    zxv_print_str(&quot;A 440 Hz, then E 659 Hz on the\nsecond AY, then the beeper.&quot;);
+
+    note_a(0, 440, 15);                         /* first AY: A4 */
+    wait_frames(ZXV_FRAME_HZ / 2);              /* half a second */
+    zxv_ay_write(8, 0);                         /* silence it */
+
+    note_a(ZXV_AY2, 659, 15);                   /* second AY: E5 */
+    wait_frames(ZXV_FRAME_HZ / 2);              /* half a second */
+    zxv_ay_write(ZXV_AY2 + 8, 0);
+
+    /* The beeper, with exact timing: 1 kHz for a quarter of a second.
+     * Each event is played 2 ms after the time it is stamped with. */
+    uint32_t start = zxv_time_us();
+    for (int i = 0; i &lt; 500; i++) {
+        while (zxv_time_us() - start &lt; (uint32_t)i * 500)
+            ;
+        zxv_beeper_event(i &amp; 1);
+    }
+    zxv_beeper_event(0);
+    wait_frames(5);
+    return 0;
+}
+</code></pre>
+<ul>
+<li><code>zxv_ay_write</code> puts each write in a queue that the sound system plays a
+  few milliseconds later, in order. You never wait for the chip.</li>
+<li>The <a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/hello/hello.c"><code>hello</code></a> example uses an envelope
+  (registers 11–13) for a note that fades away by itself.</li>
+<li>Estela's <a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/estela/sound.c"><code>sound.c</code></a> is a
+  complete music and effects engine: music on the first AY, effects on the
+  second.</li>
+</ul>
+<h3 id="the-beeper">The beeper<a class="ancla" href="#the-beeper" aria-hidden="true">#</a></h3>
+<p>There are two ways to move the speaker:</p>
+<ul>
+<li><strong>Directly:</strong> write 0 or 1 to the <code>ZXV_S_BEEPER</code> register. Good enough
+  for clicks and simple effects.</li>
+<li><strong>With a timestamp:</strong> <code>zxv_beeper_event(level)</code> records the change with
+  the current time, and the system plays it exactly 2 ms later
+  (<code>ZXV_BEEP_LATENCY_US</code>). Your timing then does not depend on when the
+  sound system gets round to it, which is what multi-channel beeper music
+  needs.</li>
+</ul>
+<h3 id="digitised-sound">Digitised sound<a class="ancla" href="#digitised-sound" aria-hidden="true">#</a></h3>
+<p>With the tone and noise of a channel turned off, its volume register <em>is</em>
+the output: writing volumes fast enough plays a sampled sound.
+<code>zxv_ay_event(time, reg, value)</code> queues a register write to sound at an
+exact time (in the <code>zxv_time_us</code> clock, plus the same 2 ms), so you can
+prepare samples ahead. The <a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/digital/digital.c"><code>digital</code></a>
+example plays a sine wave at 8 kHz; Estela uses it for its explosions. The
+queue holds 256 writes: 32 ms of sound at 8 kHz.</p>
+<h3 id="volume-and-stereo">Volume and stereo<a class="ancla" href="#volume-and-stereo" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Register</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_S_VOLUME</code></td>
+<td>Master volume, 0–255 (200 at start-up)</td>
+</tr>
+<tr>
+<td><code>ZXV_S_AY_STEREO</code></td>
+<td>0 mono, 1 ABC (A left, C right; the default), 2 ACB</td>
+</tr>
+<tr>
+<td><code>ZXV_S_AFLAGS</code></td>
+<td>Bit 0: mute everything</td>
+</tr>
+</tbody>
+</table>
+<p>Six channels at full volume at once can distort: lower <code>ZXV_S_VOLUME</code> or
+the channel volumes.</p>
+<h3 id="tracker-music-and-sound-effects">Tracker music and sound effects<a class="ancla" href="#tracker-music-and-sound-effects" aria-hidden="true">#</a></h3>
+<p>The SDK music library (<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/include/zxv_music.h"><code>zxv_music.h</code></a>,
+in <code>sdk/music</code>) plays the modules of the Spectrum trackers and the effects
+of the AY Sound FX Editor:</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PT3</strong></td>
+<td>Pro Tracker 3.x and Vortex Tracker II, the most used format for AY music</td>
+</tr>
+<tr>
+<td><strong>TurboSound</strong></td>
+<td>Two PT3 in one file, one per AY: six voices</td>
+</tr>
+<tr>
+<td><strong>PT2</strong></td>
+<td>Pro Tracker 2</td>
+</tr>
+<tr>
+<td><strong>STC</strong></td>
+<td>Sound Tracker 1.x (compiled modules)</td>
+</tr>
+<tr>
+<td><strong>ASC</strong></td>
+<td>ASC Sound Master 0.x and 1.x</td>
+</tr>
+<tr>
+<td><strong>PSG</strong></td>
+<td>A dump of the AY registers, step by step (the one many emulators record)</td>
+</tr>
+<tr>
+<td><strong>AYFX</strong> (<code>.afb</code>, <code>.afx</code>)</td>
+<td>The effects of Shiru's <a href="https://shiru.untergrund.net/software.shtml">AY Sound FX Editor</a>: a bank or a single effect</td>
+</tr>
+</tbody>
+</table>
+<p>Modules play at their tempo of 50 steps per second, as on the Spectrum,
+even though the machine runs at 60 frames: each step reaches the AY at its
+own time through the timestamped queue, so the music neither speeds up nor
+stutters. The registers it gives are the same as
+<a href="https://zxtune.bitbucket.io/">ZXTune</a>'s, step by step.</p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+#include &quot;zxv_music.h&quot;
+
+static uint8_t song[0x10000], sfx[0x4000];
+
+int main(void)
+{
+    int n = zxv_file_load(&quot;tune.pt3&quot;, song, sizeof song);
+    zxv_music_play(song, n, ZXV_MUSIC_LOOP);
+    n = zxv_file_load(&quot;effects.afb&quot;, sfx, sizeof sfx);
+    zxv_sfx_bank(sfx, n);
+    for (int k = 0; k != 0x1B; k = zxv_key_get()) {     /* until Esc */
+        if (k == ' ')
+            zxv_sfx_play(0, ZXV_SFX_AUTO);      /* effect 0 of the bank */
+        zxv_music_update();
+        zxv_wait_vblank();
+    }
+    zxv_music_stop();
+    return 0;
+}
+</code></pre>
+<ul>
+<li><strong><code>zxv_music_update()</code></strong> prepares the steps of the next 35 ms
+  (<code>ZXV_MUSIC_AHEAD_US</code>): call it every frame, or at least that often.
+  From the frame hook it also plays while the program is busy (loading a
+  file, for example).</li>
+<li><strong>With other <code>zxv_ay_event</code>s</strong> (digitised sound, for example), everything
+  goes through the same queue, which must be in time order: a change with
+  a time earlier than what is already in the queue waits for it to play.
+  To mix them, <code>zxv_music_update_until(t)</code> prepares only the steps before
+  <code>t</code>: call it before each of your changes, with its time, and start yours
+  after what the music already has (<code>ZXV_MUSIC_AHEAD_US</code> ahead). While
+  yours play, the music must not go past the last one:
+  <code>zxv_music_update_until</code> instead of <code>zxv_music_update</code>. That is what
+  <a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/estela/sound.c">Estela</a> does with its explosions.</li>
+<li><strong>The AY chips:</strong> a one-AY module plays on the first one (with
+  <code>ZXV_MUSIC_AY2</code>, on the second); a TurboSound one, on both. By default
+  effects go to the AY the music does not use, so they do not cut it.
+  <code>zxv_sfx_channels</code> picks other channels, and an effect on a music channel
+  covers it while it plays. The library only writes to the AY chips it
+  uses: you can play on the other one yourself.</li>
+<li><strong>Memory:</strong> the module and the bank have to stay where they are while
+  they play (they are not copied); if the program moves them, it says so
+  with <code>zxv_music_moved(module, bank)</code> and they keep playing. A PT3 fits in 64 KB; a TurboSound one,
+  in 128.</li>
+<li><code>zxv_music_info</code> gives the format, title and author of a module without
+  playing it; <code>zxv_music_pause</code>, <code>zxv_music_playing</code> and <code>zxv_music_steps</code>
+  (the 1/50 s steps played) complete the API.</li>
+<li>For the effects, <code>zxv_sfx_play_data(effect, size, channel)</code> plays a single
+  effect (<code>.afx</code>) without a bank, <code>zxv_sfx_stop(channel)</code> stops one (all of
+  them with <code>ZXV_SFX_AUTO</code>) and <code>zxv_sfx_playing(channel)</code> says whether one
+  is playing. The details are in the <a href="reference.html#music-and-effects">reference</a>.</li>
+</ul>
+<p>To use it, build your program with the files in <code>sdk/music</code>: in the
+Makefile above, <code>SOURCES := hello.c $(wildcard $(SDK)/music/*.c)</code>. The
+<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/player/player.c"><code>player</code></a> example is a full player:
+it walks the card, plays modules and effect banks and shows the registers
+of both AY chips.</p>
+<h4 id="the-tracker-for-the-pc-zxv-tracker">The tracker for the PC: <code>zxv-tracker</code><a class="ancla" href="#the-tracker-for-the-pc-zxv-tracker" aria-hidden="true">#</a></h4>
+<p>To make the music, the emulator packages come with <strong><code>zxv-tracker</code></strong>, a
+tracker for Windows and Linux (in the AppImage,
+<code>./ZX-V-x86_64.AppImage zxv-tracker</code>) that saves <strong>PT3</strong> modules and
+<strong>AYFX</strong> effect banks: the ones this library plays, and Vortex Tracker and
+the Spectrum players too. It sounds with the same code as the machine (this
+library and the ULA's AY), so what you hear is what will play. It is free
+software under the MIT licence: its code is in
+<a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/tools/tracker"><code>sdk/tools/tracker</code></a>, and it builds on its own
+with Qt 6 and SDL2 (<code>cmake -S sdk/tools/tracker -B build-tracker</code>). It
+speaks Spanish or English, the system's language (or the one you ask for:
+<code>zxv-tracker --lang es</code>).</p>
+<p><img alt="zxv-tracker with a demo module" src="../../images/sdk-tracker-en.png" /></p>
+<ul>
+<li><strong>Patterns</strong>, as in Vortex Tracker: per row, the envelope period, the
+  noise and, in each channel, the note, sample, envelope shape, ornament,
+  volume and an effect (1 and 2 the tone slides down and up, 3 portamento,
+  4 and 5 the position in the sample and in the ornament, 6 vibrato, 9 and A
+  the envelope, B the tempo). Notes are typed with the keyboard as a piano
+  (Z S X D C... and Q 2 W 3 E...) and play as you type them; the rest, in
+  hexadecimal. Select with Shift, copy, paste and transpose; undo has no
+  practical limit.</li>
+<li><strong>The header and positions:</strong> the title, author, tempo, note table and Pro
+  Tracker version; the order of the patterns and the position it loops
+  back to. <strong>TurboSound</strong> puts a second module on the second AY: six voices.</li>
+<li><strong>Samples</strong> (tone, noise and envelope at each step, their offsets and the
+  volume, which you paint with the mouse) and <strong>ornaments</strong>, with a piano to
+  hear them.</li>
+<li><strong>AYFX effects</strong>, in their own tab: a bank with names, the frames of each
+  effect (tone, noise, their periods and the volume), importing and
+  exporting <code>.afx</code>.</li>
+<li><strong>Play</strong> the song (F5), the pattern (F6) or from the cursor (F7), with the
+  cursor following what plays and any channels muted; and <strong>export</strong> the
+  song to WAV.</li>
+</ul>
+<p>It opens Vortex Tracker and Pro Tracker 3 PT3 files: read and saved again
+they sound the same. If a module has commands the editor does not have (two
+effects in the same row, for example), it warns when opening it. The
+modules and effects are played by C programs, with this library, and by
+BASIC, with <a href="../basic/reference.html#music"><code>MUSIC</code> and <code>SFX</code></a>.</p>
+<p>The pattern keys (in the program, Help &gt; Keys):</p>
+<table>
+<thead>
+<tr>
+<th>Keys</th>
+<th>What they do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Z S X D C V G B H N J M · Q 2 W 3 E R 5 T 6 Y 7 U</td>
+<td>Notes, in the note column: two octaves from the chosen one</td>
+</tr>
+<tr>
+<td>1 or A</td>
+<td>A note off (<code>R--</code>)</td>
+</tr>
+<tr>
+<td>0-9 and A-F</td>
+<td>The rest, in hexadecimal (the sample, 1 to 9 and A to V)</td>
+</tr>
+<tr>
+<td>* and / on the numeric keypad</td>
+<td>One octave higher or lower</td>
+</tr>
+<tr>
+<td>Arrows, Page Up, Page Down, Home and End · Tab</td>
+<td>Move · to the next channel</td>
+</tr>
+<tr>
+<td>Shift and the arrows · Ctrl+C, Ctrl+X, Ctrl+V</td>
+<td>Select · copy, cut and paste</td>
+</tr>
+<tr>
+<td>Ctrl+↑ and Ctrl+↓ (with Shift, an octave)</td>
+<td>Transpose the selection, or the channel</td>
+</tr>
+<tr>
+<td>Delete · Insert · Backspace</td>
+<td>Clear · insert a row · remove it</td>
+</tr>
+<tr>
+<td>F5 · F6 · F7 · F8 or Esc</td>
+<td>Play the song · the pattern · from the cursor · stop</td>
+</tr>
+<tr>
+<td>Scroll Lock</td>
+<td>Follow what plays</td>
+</tr>
+<tr>
+<td>Ctrl+Z · Ctrl+Y</td>
+<td>Undo · redo</td>
+</tr>
+</tbody>
+</table>
+<p>In samples, ornaments and effects, space or a click flips the switches
+(T, N, E), Insert and Delete add and remove lines, and the volume is
+painted by dragging the mouse along its bar; Enter plays the effect.</p>
+<h2 id="keyboard-joystick-and-mouse">Keyboard, joystick and mouse<a class="ancla" href="#keyboard-joystick-and-mouse" aria-hidden="true">#</a></h2>
+<h3 id="typed-keys">Typed keys<a class="ancla" href="#typed-keys" aria-hidden="true">#</a></h3>
+<p><code>zxv_key_get()</code> takes the next key from the <strong>key queue</strong>, or returns −1
+if it is empty. It is what you want for typing text or menus: keys are
+never lost, and a key held down repeats.</p>
+<ul>
+<li>A character is its <strong>Unicode</strong> code: <code>'a'</code> is 0x61, <code>ñ</code> is 0xF1.</li>
+<li>Enter is 13 (0x0D), Backspace 8, Tab 9 and Esc 27 (0x1B).</li>
+<li>Other keys (F1–F12, the cursor keys, Home...) are
+  <code>ZXV_KEY_SPECIAL | HID code</code> (0xF000 plus the code of the key, see the
+  table below).</li>
+</ul>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+
+static void print_hex(unsigned v)
+{
+    for (int i = 12; i &gt;= 0; i -= 4)
+        zxv_print_char(&quot;0123456789ABCDEF&quot;[(v &gt;&gt; i) &amp; 15]);
+}
+
+int main(void)
+{
+    zxv_cls(7);
+    zxv_print_str(&quot;Type something (Esc ends)\n&quot;);
+    for (;;) {
+        int k = zxv_key_get();
+        if (k &lt; 0) {                            /* nothing typed: wait a frame */
+            zxv_wait_vblank();
+            continue;
+        }
+        if (k == 0x1B)                          /* Esc */
+            break;
+        print_hex((unsigned)k);
+        if (k &gt;= 0x20 &amp;&amp; k &lt; 0x7F) {            /* a printable ASCII character */
+            zxv_print_str(&quot; '&quot;);
+            zxv_print_char(k);
+            zxv_print_char('\'');
+        } else if ((k &amp; 0xF000) == ZXV_KEY_SPECIAL) {
+            zxv_print_str(&quot; special, HID &quot;);
+            print_hex((unsigned)k &amp; 0xFFF);
+        }
+        zxv_print_char('\n');
+    }
+    return 0;
+}
+</code></pre>
+<h3 id="keys-held-down">Keys held down<a class="ancla" href="#keys-held-down" aria-hidden="true">#</a></h3>
+<p>For games you want to know which keys are <strong>pressed right now</strong>, several
+at once. The <code>ZXV_I_KEYMAP</code> register is a map of 256 bits, one per key,
+numbered with the standard USB (HID) key codes; a bit is 1 while its key is
+down:</p>
+<pre><code class="language-c">static int held(unsigned hid)                   /* is this key down now? */
+{
+    const volatile uint8_t *map = (const volatile uint8_t *)(uintptr_t)ZXV_I_KEYMAP;
+    return (map[hid &gt;&gt; 3] &gt;&gt; (hid &amp; 7)) &amp; 1;
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Keys</th>
+<th>HID codes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A to Z</td>
+<td>0x04 to 0x1D</td>
+</tr>
+<tr>
+<td>1 to 9, 0</td>
+<td>0x1E to 0x26, 0x27</td>
+</tr>
+<tr>
+<td>Enter, Esc, Backspace, Tab, Space</td>
+<td>0x28, 0x29, 0x2A, 0x2B, 0x2C</td>
+</tr>
+<tr>
+<td>F1 to F12</td>
+<td>0x3A to 0x45</td>
+</tr>
+<tr>
+<td>Right, Left, Down, Up</td>
+<td>0x4F, 0x50, 0x51, 0x52</td>
+</tr>
+<tr>
+<td>Left Ctrl, Shift, Alt</td>
+<td>0xE0, 0xE1, 0xE2</td>
+</tr>
+<tr>
+<td>Right Ctrl, Shift, Alt</td>
+<td>0xE4, 0xE5, 0xE6</td>
+</tr>
+</tbody>
+</table>
+<p>The codes are those of the key's <strong>position</strong> on a US keyboard, whatever
+the keyboard layout. If you read the map, also empty the key queue every
+frame (<code>while (zxv_key_get() &gt;= 0);</code>): otherwise what was typed during the
+game is still there when BASIC comes back.</p>
+<p><strong>If you know the Spectrum:</strong> <code>ZXV_I_KEYROWS</code> holds the classic keyboard
+matrix, eight half-rows with 0 meaning pressed, for programs that read it
+like the Spectrum's port <code>0xFE</code>.</p>
+<h3 id="joysticks">Joysticks<a class="ancla" href="#joysticks" aria-hidden="true">#</a></h3>
+<p><code>zxv_joy_read(0)</code> and <code>zxv_joy_read(1)</code> return the state of the first and
+second gamepad (the first one connected is number 0). Each bit is a button:</p>
+<table>
+<thead>
+<tr>
+<th>Bit</th>
+<th><code>ZXV_JOY_...</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0, 1, 2, 3</td>
+<td><code>RIGHT</code>, <code>LEFT</code>, <code>DOWN</code>, <code>UP</code> (the d-pad or the left stick)</td>
+</tr>
+<tr>
+<td>4, 5, 6</td>
+<td><code>FIRE1</code>, <code>FIRE2</code>, <code>FIRE3</code></td>
+</tr>
+<tr>
+<td>7, 8</td>
+<td><code>START</code>, <code>SELECT</code></td>
+</tr>
+<tr>
+<td>15</td>
+<td><code>CONNECTED</code>: there is a gamepad</td>
+</tr>
+</tbody>
+</table>
+<p>The five low bits are those of a Kempston joystick.</p>
+<p>This program moves a sprite with the cursor keys or the d-pad, and ends
+with Esc. It also shows the frame loop of every game, explained in
+<a href="graphics.html#pages-and-double-buffering">Graphics</a>:</p>
+<pre><code class="language-c">#include &lt;stddef.h&gt;
+#include &quot;zxv_gfx.h&quot;
+
+/* HID usage codes of a few keys (USB HID &quot;Keyboard/Keypad&quot; page). */
+#define KEY_RIGHT 0x4F
+#define KEY_LEFT  0x50
+#define KEY_DOWN  0x51
+#define KEY_UP    0x52
+#define KEY_ESC   0x29
+
+static int held(unsigned hid)                   /* is this key down now? */
+{
+    const volatile uint8_t *map = (const volatile uint8_t *)(uintptr_t)ZXV_I_KEYMAP;
+    return (map[hid &gt;&gt; 3] &gt;&gt; (hid &amp; 7)) &amp; 1;
+}
+
+static uint32_t ship_pix[16 * 16 / 8];          /* a 16x16 bitmap: 8 bytes per line */
+static uint32_t ship[(8 + 16 * 2 * 8) / 4];     /* the prepared sprite */
+
+static void make_ship(void)
+{
+    zxv_bitmap b = { (uint8_t *)ship_pix, 8, 16, 16, 0 };
+    zxv_gfx_target(&amp;b);                         /* draw into the bitmap */
+    zxv_gfx_rect(0, 0, 16, 16, ZXV_TRANSPARENT);
+    static const int16_t body[6] = { 0, 15, 8, 0, 16, 15 };
+    zxv_gfx_tri(body, 14);
+    zxv_gfx_rect(6, 8, 4, 4, 2);
+    zxv_gfx_target(0);                          /* back to the screen */
+    zxv_spr_prepare(&amp;b, 0, 0, 16, 16, ship);
+}
+
+int main(void)
+{
+    make_ship();
+    int x = 120, y = 88, visible = 0;
+    for (;;) {
+        uint32_t joy = zxv_joy_read(0);
+        if (held(KEY_ESC))
+            break;
+        if (held(KEY_LEFT) || (joy &amp; ZXV_JOY_LEFT))   x -= 2;
+        if (held(KEY_RIGHT) || (joy &amp; ZXV_JOY_RIGHT)) x += 2;
+        if (held(KEY_UP) || (joy &amp; ZXV_JOY_UP))       y -= 2;
+        if (held(KEY_DOWN) || (joy &amp; ZXV_JOY_DOWN))   y += 2;
+        while (zxv_key_get() &gt;= 0)              /* empty the typed-key queue */
+            ;
+
+        int hidden = 1 - visible;
+        zxv_gfx_draw_page(hidden);              /* draw the next frame out of sight */
+        zxv_gfx_rect(0, 0, 256, 192, 0);
+        zxv_spr_draw(ship, x, y, 0, NULL);
+        zxv_set_page(hidden);                   /* show it from the next VBLANK... */
+        zxv_wait_vblank();                      /* ...which we wait for */
+        visible = hidden;
+    }
+    zxv_set_page(0);                            /* leave page 0 visible and drawn on */
+    zxv_gfx_draw_page(0);
+    return 0;
+}
+</code></pre>
+<h3 id="the-mouse">The mouse<a class="ancla" href="#the-mouse" aria-hidden="true">#</a></h3>
+<p>The machine only knows how far the mouse has moved. <code>zxv_mouse_t</code> turns
+that into a pointer: <code>zxv_mouse_init</code> places it, and <code>zxv_mouse_update</code>,
+called once per frame, moves it and keeps it inside the area you give.
+This little paint program draws with the left button and rubs out with the
+right one:</p>
+<pre><code class="language-c">#include &quot;zxv_gfx.h&quot;
+
+int main(void)
+{
+    zxv_mouse_t m;
+    zxv_mouse_init(&amp;m, 128, 96);                /* the pointer starts in the middle */
+    zxv_gfx_rect(0, 0, 256, 192, 7);
+    while (zxv_key_get() &lt; 0) {
+        zxv_wait_vblank();
+        zxv_mouse_update(&amp;m, 256, 192);         /* follow the mouse, inside 256x192 */
+        if (m.buttons &amp; 1)                      /* left button: paint */
+            zxv_gfx_circle(m.x, m.y, 3, 2, 1);
+        else if (m.buttons &amp; 2)                 /* right button: rub out */
+            zxv_gfx_circle(m.x, m.y, 6, 7, 1);
+    }
+    return 0;
+}
+</code></pre>
+<p><code>m.wheel</code> accumulates the mouse wheel (positive upwards), and <code>m.buttons</code>
+has the left, right and middle buttons in bits 0, 1 and 2.</p>
+<h3 id="esc-and-ctrlaltdelete">Esc and Ctrl+Alt+Delete<a class="ancla" href="#esc-and-ctrlaltdelete" aria-hidden="true">#</a></h3>
+<p>Your program is not interrupted by Esc (BREAK): it is just another key,
+so give the player a way out. <strong>Ctrl+Alt+Delete</strong> always returns to BASIC,
+even if the program has hung, and never reaches your program.</p>
+<h2 id="files-on-the-sd-card">Files on the SD card<a class="ancla" href="#files-on-the-sd-card" aria-hidden="true">#</a></h2>
+<p>The machine has two drives: <code>SD:</code>, the <strong>SD card</strong>, where you read and
+write, and <code>ROM:</code>, the read-only drive with the built-in examples. A path
+without a drive refers to the current folder, which is where your program
+was loaded from (BASIC's <code>CD</code> changes it).</p>
+<ul>
+<li>The separator is <code>/</code>; <code>.</code> and <code>..</code> work. Upper and lower case are the
+  same (<code>HIGH.TXT</code> is <code>high.txt</code>).</li>
+<li>Names of up to 63 ASCII characters, without <code>\ : * ? " &lt; &gt; |</code>; paths of
+  up to 255.</li>
+<li>Up to 8 files and 4 folders open at once.</li>
+<li>Functions return 0 or more when they succeed and a negative error code
+  when they fail: <code>ZXV_E_NOENT</code> (−1, it does not exist), <code>ZXV_E_NOCARD</code>
+  (−12, no card), and so on (see <a href="reference.html#error-codes">the reference</a>).</li>
+</ul>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+
+static void print_num(int v)
+{
+    char buf[12];
+    int n = 0;
+    if (v &lt; 0) {
+        zxv_print_char('-');
+        v = -v;
+    }
+    do
+        buf[n++] = (char)('0' + v % 10);
+    while (v /= 10);
+    while (n)
+        zxv_print_char(buf[--n]);
+}
+
+int main(void)
+{
+    zxv_cls(7);
+
+    /* Write a small file (created if missing, emptied if it was there). */
+    static const char msg[] = &quot;Saved by a native program\n&quot;;
+    int f = zxv_file_open(&quot;SD:notes.txt&quot;, ZXV_O_WRITE | ZXV_O_CREATE | ZXV_O_TRUNC);
+    if (f &lt; 0) {
+        zxv_print_str(&quot;Cannot write: error &quot;);
+        print_num(f);                           /* -12 = no SD card, and so on */
+    } else {
+        zxv_file_write(f, msg, sizeof(msg) - 1);
+        zxv_file_close(f);
+    }
+
+    /* Read it back. */
+    char buf[64];
+    f = zxv_file_open(&quot;SD:notes.txt&quot;, ZXV_O_READ);
+    if (f &gt;= 0) {
+        int n = zxv_file_read(f, buf, sizeof(buf) - 1);
+        zxv_file_close(f);
+        buf[n &gt; 0 ? n : 0] = 0;
+        zxv_print_str(buf);
+    }
+
+    /* List the root folder of the card: name and size. */
+    zxv_dirent_t e;
+    int d = zxv_dir_open(&quot;SD:/&quot;);
+    while (d &gt;= 0 &amp;&amp; zxv_dir_read(d, &amp;e) == 1) {
+        zxv_print_str(e.name);
+        if (e.attr &amp; ZXV_ATTR_DIR) {
+            zxv_print_str(&quot; &lt;folder&gt;&quot;);
+        } else {
+            zxv_print_char(' ');
+            print_num((int)e.size);
+        }
+        zxv_print_char('\n');
+    }
+    if (d &gt;= 0)
+        zxv_dir_close(d);
+
+    zxv_print_str(&quot;Missing file: &quot;);
+    print_num(zxv_file_open(&quot;nothere.txt&quot;, ZXV_O_READ));   /* -1, ZXV_E_NOENT */
+
+    while (zxv_key_get() &lt; 0)
+        zxv_wait_vblank();
+    return 0;
+}
+</code></pre>
+<ul>
+<li><strong>Saving:</strong> write to <code>SD:</code> explicitly, as above. Your program may have
+  been loaded from <code>ROM:</code>, and writing there fails with <code>ZXV_E_ACCESS</code>.
+  Estela keeps its high score in <code>SD:estela.txt</code> for that reason.</li>
+<li><strong>Loading a whole file:</strong> <code>zxv_file_load(name, address, max)</code> reads it
+  into memory in one go and returns its size. <code>max</code> is the size of your
+  buffer: if the file is bigger, nothing is loaded and you get
+  <code>ZXV_E_RANGE</code> (the
+  <a href="graphics.html#images-from-png-files-png2gfxpy">graphics example</a> uses it).</li>
+<li>The folder listing comes in alphabetical order.</li>
+</ul>
+<h3 id="with-the-standard-c-library">With the standard C library<a class="ancla" href="#with-the-standard-c-library" aria-hidden="true">#</a></h3>
+<p>With picolibc (see <a href="#two-ways-to-write-c">Two ways to write C</a>) you use
+the usual functions; errors arrive in <code>errno</code>. This is part of the
+<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/files/files.c"><code>files</code></a> example (its
+comments are in Spanish: "a few lines with fprintf, read with fgets"):</p>
+<pre><code class="language-c">    /* Unas líneas con fprintf, leídas con fgets. */
+    FILE *f = fopen(&quot;puntos.txt&quot;, &quot;w&quot;);
+    for (int i = 1; i &lt;= 3; i++)
+        fprintf(f, &quot;jugador%d %d\n&quot;, i, i * 100);
+    fclose(f);
+    f = fopen(&quot;puntos.txt&quot;, &quot;r&quot;);
+    char line[32];
+    long total = 0;
+    while (fgets(line, sizeof(line), f)) {
+        char *sp = strchr(line, ' ');
+        total += sp ? atol(sp + 1) : 0;
+    }
+    fclose(f);
+</code></pre>
+<p><code>printf</code> writes on the screen and <code>getchar</code> reads the keyboard, with echo.
+The list of what works is in <a href="reference.html#the-standard-c-library-picolibc">the reference</a>.</p>
+<h2 id="timing-and-the-frame-loop">Timing and the frame loop<a class="ancla" href="#timing-and-the-frame-loop" aria-hidden="true">#</a></h2>
+<p>ZX-V draws <strong>60 frames per second</strong>. The moment between two frames is the
+<strong>VBLANK</strong>, and everything in a game revolves around it:</p>
+<pre><code class="language-c">for (;;) {
+    read_input();
+    move_everything();
+    draw_the_frame();           /* on the hidden page */
+    show_it();                  /* zxv_set_page */
+    zxv_wait_vblank();          /* wait for the next frame */
+}
+</code></pre>
+<p>At the reference speed the processor does about <strong>2.4 million
+instructions per frame</strong>. If one turn of your loop takes longer than a
+frame, <code>zxv_wait_vblank</code> waits for the following one and the game runs at
+30 frames per second instead of 60. <code>ZXV_FRAME_HZ</code> (60) is the number of
+frames per second: write times as <code>2 * ZXV_FRAME_HZ</code> rather than as a
+number of frames.</p>
+<p>There are three clocks:</p>
+<table>
+<thead>
+<tr>
+<th>Clock</th>
+<th>What it is</th>
+<th>Use it for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_SV_FRAMES</code></td>
+<td>A 32-bit counter of frames, +1 every VBLANK</td>
+<td>Game timing; spotting lost frames</td>
+</tr>
+<tr>
+<td><code>zxv_time_us()</code></td>
+<td>Microseconds, 32 bits (wraps every 71 minutes)</td>
+<td>Measuring time; timing sound</td>
+</tr>
+<tr>
+<td><code>zxv_clock_get()</code></td>
+<td>Date and time</td>
+<td>Showing the time; dates</td>
+</tr>
+</tbody>
+</table>
+<p>Compare times by subtracting them as unsigned numbers
+(<code>zxv_time_us() - start</code>): the result is right even when the counter
+wraps.</p>
+<h3 id="the-frame-hook">The frame hook<a class="ancla" href="#the-frame-hook" aria-hidden="true">#</a></h3>
+<p><code>zxv_set_frame_hook(function)</code> makes the system call your function at
+every VBLANK, whatever your program is doing: useful for music that must
+not stop while the game loads a level. The hook must be short, cannot call
+<code>zxv_wait_vblank</code>, and any variable it shares with the rest of the
+program must be <code>volatile</code>:</p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+
+static volatile uint32_t ticks;                 /* changed by the hook: volatile */
+
+static void on_frame(void)                      /* runs at every VBLANK, 60 times a second */
+{
+    ticks++;
+}
+
+static void print_num(uint32_t v)
+{
+    char buf[12];
+    int n = 0;
+    do
+        buf[n++] = (char)('0' + v % 10);
+    while (v /= 10);
+    while (n)
+        zxv_print_char(buf[--n]);
+}
+
+int main(void)
+{
+    volatile uint32_t *frames = (volatile uint32_t *)(uintptr_t)ZXV_SV_FRAMES;
+    zxv_cls(7);
+    zxv_set_frame_hook(on_frame);
+
+    uint32_t f0 = *frames, t0 = zxv_time_us();
+    while (ticks &lt; 2 * ZXV_FRAME_HZ)            /* two seconds, without wait_vblank */
+        ;
+    uint32_t us = zxv_time_us() - t0;           /* unsigned: right even if it wraps */
+    zxv_set_frame_hook(0);                      /* remove the hook before leaving */
+
+    zxv_print_str(&quot;frames: &quot;);
+    print_num(*frames - f0);
+    zxv_print_str(&quot;\nmicroseconds: &quot;);
+    print_num(us);
+    while (zxv_key_get() &lt; 0)
+        zxv_wait_vblank();
+    return 0;
+}
+</code></pre>
+<p>It prints 120 frames and about 2,000,000 microseconds. Remove the hook
+before your program ends.</p>
+<h3 id="interrupts">Interrupts<a class="ancla" href="#interrupts" aria-hidden="true">#</a></h3>
+<p>The VBLANK is an interrupt. You can turn interrupts off (<code>csrci mstatus, 8</code>)
+and on (<code>csrsi mstatus, 8</code>) for as long as you like: the screen, the sound
+and the input keep working, because another processor core handles them.
+While they are off, <code>ZXV_SV_FRAMES</code> does not advance and the hook is not
+called. To measure how long a piece of code takes, you may read the
+<code>mcycle</code> counter; do not use it to keep time.</p>
+<h2 id="writing-in-assembly">Writing in assembly<a class="ancla" href="#writing-in-assembly" aria-hidden="true">#</a></h2>
+<p>The system routines are reached through a <strong>table of addresses</strong> at
+<code>0x2000_0000</code>: entry <em>n</em> (4 bytes each) is the address of function <em>n</em>,
+which follows the standard RISC-V calling convention (arguments in
+<code>a0</code>–<code>a7</code>, result in <code>a0</code>). The numbers are the <code>ZXV_API_...</code> constants of
+<code>zxv.h</code>, a header you can include in <code>.S</code> files:</p>
+<pre><code class="language-asm">#include &quot;zxv.h&quot;
+
+/* Call API function n: load its address from the table at 0x2000_0000. */
+#define API(n)  lui t0, %hi(ZXV_API_TABLE); lw t0, 4*(n)(t0); jalr t0
+
+    .section .rodata
+msg:
+    .asciz &quot;Hello from assembly!\nPress a key.&quot;
+
+    .text
+    .globl main
+main:
+    addi sp, sp, -16
+    sw ra, 12(sp)                   # we call other functions: keep ra
+
+    li a0, 7
+    API(ZXV_API_CLS)                # cls(7)
+    la a0, msg
+    API(ZXV_API_PRINT_STR)          # print_str(msg)
+
+wait:
+    API(ZXV_API_WAIT_VBLANK)
+    API(ZXV_API_KEY_GET)            # a0 = key, or -1
+    bltz a0, wait
+
+    li a0, 0                        # main returns 0
+    lw ra, 12(sp)
+    addi sp, sp, 16
+    ret
+</code></pre>
+<p>Save it as <code>hello.S</code> (capital S, so it goes through the C preprocessor) and
+build it with the same commands as a C file, putting <code>hello.S</code> in place of
+<code>hello.c</code>. As in C, keep <code>s0</code>–<code>s11</code> and the stack aligned to 16 bytes if
+you want to return to BASIC. You can of course mix C and assembly files in
+one program.</p>
+<p>Because the table is in RAM, a program can replace an entry with its own
+function to intercept a system routine, as people did with the Spectrum's
+hooks.</p>
+<h2 id="debugging">Debugging<a class="ancla" href="#debugging" aria-hidden="true">#</a></h2>
+<h3 id="the-strict-mode">The strict mode<a class="ancla" href="#the-strict-mode" aria-hidden="true">#</a></h3>
+<p>Run with <code>--strict</code> (or Options &gt; Strict mode in <code>zxv</code>). The emulator
+warns, with the address of the instruction, when your program touches
+memory it must not, reads unaligned data, uses instructions the real
+processor lacks or writes to the video page being sent to the screen:</p>
+<pre><code>[strict] write in the system reserved area (20072000, PC=20034010)
+</code></pre>
+<p>To find which line of your code that address is:</p>
+<pre><code class="language-sh">riscv64-unknown-elf-addr2line -e hello.elf 20034010
+</code></pre>
+<h3 id="seeing-the-value-main-returns">Seeing the value <code>main</code> returns<a class="ancla" href="#seeing-the-value-main-returns" aria-hidden="true">#</a></h3>
+<p>BASIC shows the value <code>main</code> returns when it is not 0, in the report
+<code>W Native code error (N), 0:1</code>. The <code>MONITOR</code> command of BASIC opens the
+system's test console, which shows it every time: typing <code>LOAD hello</code> there
+runs the program and then shows <code>Program finished: 0</code>. It is handy for
+quick tests.</p>
+<h3 id="the-debugger-of-the-emulator">The debugger of the emulator<a class="ancla" href="#the-debugger-of-the-emulator" aria-hidden="true">#</a></h3>
+<p>The desktop emulator <code>zxv</code> has a full debugger (Alt+D): disassembly,
+breakpoints, registers, memory, the video pages and the sound chips. When
+you open a <code>.zxv</code> file, it also loads the symbols of the <code>.elf</code> file next
+to it, so you see your functions by name. See
+<a href="../emulator.html">The emulator</a>.</p>
+<p>Without a window, <code>zxv-cli --debug</code> starts stopped at a console debugger:
+<code>b ADDRESS</code> sets a breakpoint, <code>c</code> continues, <code>s</code> executes one instruction,
+<code>r</code> shows the registers, <code>d</code> disassembles, <code>x</code> dumps memory. Every program
+starts at <code>20034000</code>, so <code>b 20034000</code> and <code>c</code> stop at its first
+instruction after you <code>LOAD</code> it.</p>
+<h3 id="gdb">GDB<a class="ancla" href="#gdb" aria-hidden="true">#</a></h3>
+<p>The emulator can be a GDB server. Start it with <code>--gdb 1234</code> (or from the
+Debug menu in <code>zxv</code>); the machine waits, stopped, until GDB connects:</p>
+<pre><code class="language-sh">zxv-cli --sd my_card --gdb 1234 --type 'LOAD &quot;hello&quot;\n'
+</code></pre>
+<p>In another terminal, open GDB with your program's <code>.elf</code>:</p>
+<pre><code class="language-sh">riscv64-unknown-elf-gdb hello.elf -ex &quot;target remote :1234&quot;     # or gdb-multiarch
+(gdb) break main
+(gdb) continue
+(gdb) next
+(gdb) print x
+</code></pre>
+<ul>
+<li>Breakpoints can be set before the program is loaded.</li>
+<li>To see your variables while stepping, compile with <code>-Og</code> instead of
+  <code>-Os</code>: with <code>-Os</code> many of them are "optimized out".</li>
+<li><code>next</code> over a call to a system routine enters the ROM, which has no
+  symbols; use <code>finish</code> to come back, or put a breakpoint on the next
+  line.- An <code>ebreak</code> instruction in your code (<code>__asm__("ebreak")</code>) stops in the
+  debugger. Without a debugger, it stops the program like a crash.</li>
+</ul>
+<h3 id="where-the-time-goes">Where the time goes<a class="ancla" href="#where-the-time-goes" aria-hidden="true">#</a></h3>
+<p><code>--profile profile.txt</code> records where the processor spends its time. Remember that the emulator counts one
+instruction per cycle, while on the real machine some code is slower: the
+graphics engine, for example, takes between the same and 1.8 times as long.
+Leave some spare time in each frame.</p>
+<h2 id="distributing-your-program">Distributing your program<a class="ancla" href="#distributing-your-program" aria-hidden="true">#</a></h2>
+<p>A program is its <code>.zxv</code> file, plus any data files it loads. To give it
+to someone:</p>
+<ul>
+<li><strong>Put it on the SD card</strong> (any folder) and load it with <code>LOAD "name"</code>.
+  If the program loads more files without a drive in their names, keep
+  them in the same folder and <code>CD</code> into it first, or open the program in
+  <code>zxv</code>, which does that for you.</li>
+<li>If a <code>name.zvb</code> or <code>name.tap</code> file is in the same folder, <code>LOAD "name"</code> loads that one:
+  write <code>LOAD "name.zxv"</code> to be sure.</li>
+<li>In the web version, upload the files to its card (File &gt; The SD card).</li>
+<li><strong>On a web page of its own</strong>, which starts the game without going through
+  the BASIC, for itch.io or your website: <code>sdk/tools/mkweb.py</code> (see
+  <a href="web.html">Publishing your game on the web</a>).</li>
+</ul>
+<p><code>elf2zxv.py</code> has options for the header of the <code>.zxv</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--name NAME</code></td>
+<td>The program's name, up to 27 characters (by default, the file name)</td>
+</tr>
+<tr>
+<td><code>--mode 1</code></td>
+<td>Start in mode 1 (512 × 384) instead of mode 0</td>
+</tr>
+<tr>
+<td><code>--stack ADDRESS</code></td>
+<td>Use your own stack, starting at that address (aligned to 16, above your program)</td>
+</tr>
+<tr>
+<td><code>--screen SCREEN</code></td>
+<td>A loading screen: a PNG or a <code>.gfx</code> with a screen (from <code>zxv-gfx</code> or <code>png2gfx.py --screen</code>). It shows while the program loads, and on the game's web page while it starts</td>
+</tr>
+</tbody>
+</table>
+<p>Some advice:</p>
+<ul>
+<li>Test on the emulator with <code>--strict</code>: if it gives no warnings, the
+  program should work the same on the real machine.</li>
+<li>Choose the texts by the machine's language: <code>zxv_lang_get()</code> returns
+  <code>ZXV_LANG_EN</code>, <code>ZXV_LANG_ES</code> or another two-letter code. Estela does it
+  this way.</li>
+<li>Keep the <code>.elf</code> file: it is what lets you debug a crash report later. It
+  is not needed to run the program.</li>
+</ul>
+<p><strong>The licence is yours.</strong> The SDK has the MIT licence
+(<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/LICENSE">sdk/LICENSE</a>): what goes inside your program (the
+start-up code, the C library and the headers) does not impose anything on
+it, and you can distribute it under any licence you like, closed ones too.
+The notice of the SDK's MIT licence just has to go with it, for example in
+its documentation.</p>
+<nav class="pasos"><a class="anterior" href="../basic/reference.html"><small>Previous</small>← BASIC reference</a><a class="siguiente" href="graphics.html"><small>Next</small>Graphics →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

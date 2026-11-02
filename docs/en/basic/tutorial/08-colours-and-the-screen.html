@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>8. Colours and the screen · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../es/basic/tutorial/08-colours-and-the-screen.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../../getting-started.html">Getting started</a>
+</li>
+<li><a href="../../emulator.html">The emulator</a>
+</li>
+<li><a href="../../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../index.html">Learn BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. First steps</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables and maths</a></li>
+<li><a href="03-text-and-input.html">3. Text and input</a></li>
+<li><a href="04-decisions.html">4. Decisions</a></li>
+<li><a href="05-loops.html">5. Loops</a></li>
+<li><a href="06-arrays-and-data.html">6. Arrays and data</a></li>
+<li><a href="07-procedures.html">7. Procedures</a></li>
+<li><a href="08-colours-and-the-screen.html" class="aqui">8. Colours and the screen</a></li>
+<li><a href="09-drawing.html">9. Drawing</a></li>
+<li><a href="10-sound-and-music.html">10. Sound and music</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Keyboard and joystick</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Files and the SD card</a></li>
+<li><a href="14-a-complete-game.html">14. A complete game</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">The editor</a>
+</li>
+<li><a href="../reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../../hardware/board.html">The board</a>
+</li>
+<li><a href="../../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="8-colours-and-the-screen">8. Colours and the screen</h1>
+<p><strong>In this chapter you will learn</strong> to use the machine's colours with <code>INK</code>,
+<code>PAPER</code>, <code>BORDER</code> and <code>BRIGHT</code>, to make text flash, to write anywhere on the
+screen with <code>PRINT AT</code> and <code>TAB</code>, and to switch to the high-resolution mode
+with <code>MODE</code>.</p>
+<h2 id="the-colours">The colours<a class="ancla" href="#the-colours" aria-hidden="true">#</a></h2>
+<p>ZX-V has the colours of the ZX Spectrum. There are eight, numbered 0 to 7,
+and each one has a brighter version:</p>
+<table>
+<thead>
+<tr>
+<th>Number</th>
+<th>Colour</th>
+<th>Number</th>
+<th>Colour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>black</td>
+<td>4</td>
+<td>green</td>
+</tr>
+<tr>
+<td>1</td>
+<td>blue</td>
+<td>5</td>
+<td>cyan</td>
+</tr>
+<tr>
+<td>2</td>
+<td>red</td>
+<td>6</td>
+<td>yellow</td>
+</tr>
+<tr>
+<td>3</td>
+<td>magenta</td>
+<td>7</td>
+<td>white</td>
+</tr>
+</tbody>
+</table>
+<p>These are the standard colours. With <a href="../reference.html#palette"><code>PALETTE</code></a>,
+each number can be any colour you like; the reference shows how.</p>
+<p>Every character on the screen has two colours: the <strong>ink</strong> (the colour of
+the letter) and the <strong>paper</strong> (the background behind it). Around the screen
+there is a frame, the <strong>border</strong>.</p>
+<ul>
+<li><code>INK n</code> chooses the colour of what you write and draw.</li>
+<li><code>PAPER n</code> chooses the background colour.</li>
+<li><code>BORDER n</code> paints the frame at once.</li>
+<li><code>CLS</code> clears the screen and fills it with the paper colour.</li>
+<li><code>BRIGHT 1</code> makes the colours brighter (<code>BRIGHT 0</code> goes back to normal).</li>
+</ul>
+<pre><code>10 BORDER 1: PAPER 0: INK 7: CLS
+20 FOR c=0 TO 7
+30 PRINT PAPER c;&quot;    &quot;;PAPER 0;&quot; &quot;;c;&quot;  &quot;;
+40 PRINT BRIGHT 1;PAPER c;&quot;    &quot;;PAPER 0;&quot; &quot;;c;&quot; BRIGHT&quot;
+50 NEXT c
+60 PRINT
+70 PRINT INK 2;&quot;Red &quot;;INK 4;&quot;green &quot;;INK 6;&quot;yellow &quot;;INK 5;&quot;cyan&quot;
+80 PRINT FLASH 1;&quot;Flashing&quot;;FLASH 0;&quot; and &quot;;INVERSE 1;&quot;inverse&quot;
+</code></pre>
+<p><img alt="All the colours, normal and bright" src="../../../images/tutorial-colours-en.png" /></p>
+<p>On its own line, <code>INK 2</code> changes the colour for everything that comes after.
+Inside a <code>PRINT</code>, like in lines 30 to 80, it only changes the colour of that
+<code>PRINT</code>: the next one goes back to the colours you had.</p>
+<p>Two more effects:</p>
+<ul>
+<li><code>FLASH 1</code> makes the text swap its ink and paper about three times a
+  second.</li>
+<li><code>INVERSE 1</code> swaps ink and paper: the text appears as a hole in a block of
+  colour.</li>
+</ul>
+<p>A useful trick for messages that stand out:</p>
+<pre><code>10 PAPER 7: INK 0: CLS
+20 PRINT AT 10,8; PAPER 2; INK 7;&quot; GAME OVER &quot;
+30 PRINT AT 12,8; INK 1;&quot;Score: &quot;; INK 2;1250
+</code></pre>
+<p><strong>If you know the Spectrum:</strong> on ZX-V every pixel has its own colour, so
+there is no <em>colour clash</em>: drawing in one colour never changes the colour
+of the pixels next to it.</p>
+<h2 id="writing-anywhere-print-at">Writing anywhere: <code>PRINT AT</code><a class="ancla" href="#writing-anywhere-print-at" aria-hidden="true">#</a></h2>
+<p>The screen is a grid of 32 columns and 24 rows of characters. The program
+can write on the top 22 rows, numbered 0 to 21; the bottom two belong to
+<code>INPUT</code> and to the messages. <code>PRINT AT row,column;</code> moves to that place
+before writing:</p>
+<pre><code>10 PAPER 1: INK 6: CLS
+20 PRINT AT 0,0;&quot;Top left&quot;
+30 PRINT AT 10,12;&quot;Middle&quot;
+40 PRINT AT 21,20;&quot;Bottom right&quot;
+50 PRINT AT 5,0;&quot;Name&quot;;TAB 16;&quot;Score&quot;
+60 PRINT AT 6,0;&quot;Ada&quot;;TAB 16;&quot;120&quot;
+</code></pre>
+<p>Rows go down from 0 at the top; columns go right from 0 at the left. A row
+or column outside the screen gives <code>5 Out of screen</code>.</p>
+<p><code>TAB n</code> jumps to column <code>n</code> of the current line: it is handy for tables.</p>
+<p>With <code>PRINT AT</code> and random numbers you can fill the night sky with stars:</p>
+<pre><code>10 BORDER 0: PAPER 0: CLS
+20 FOR i=1 TO 300
+30 PRINT AT INT (RND*22),INT (RND*32); INK INT (RND*7)+1;&quot;*&quot;;
+40 NEXT i
+</code></pre>
+<h2 id="high-resolution-mode-1">High resolution: <code>MODE 1</code><a class="ancla" href="#high-resolution-mode-1" aria-hidden="true">#</a></h2>
+<p>So far you have used <strong>mode 0</strong>: 256 × 192 pixels, like the Spectrum. ZX-V
+has a second mode with twice as many pixels across and down: <strong>mode 1</strong>, 512
+× 384 pixels, with 64 columns and 48 rows of smaller characters.</p>
+<pre><code>10 MODE 1
+20 PRINT &quot;Mode 1 has 64 columns and 48 rows of text.&quot;
+30 PRINT AT 45,50;&quot;Bottom corner&quot;
+40 PLOT 0,0: DRAW 511,367
+</code></pre>
+<p><code>MODE</code> clears the screen. In mode 1 the program can use rows 0 to 45. Line
+40 draws a line across the whole screen (you will learn <code>PLOT</code> and <code>DRAW</code> in
+the next chapter). To go back to the normal mode, type <code>MODE 0</code>.</p>
+<h2 id="try-it">Try it<a class="ancla" href="#try-it" aria-hidden="true">#</a></h2>
+<ol>
+<li>Write your name in the middle of the screen in yellow on blue, with a
+   red border.</li>
+<li>Draw a chessboard of 8 × 8 squares, each square two characters wide and
+   one row high, alternating black and white paper.</li>
+</ol>
+<details>
+<summary>Hint</summary>
+<p>For the chessboard, use two <code>FOR</code> loops, one for rows and one for columns.
+The square in row <code>r</code> and column <code>c</code> is white when <code>r+c</code> is even:
+<code>INT ((r+c)/2)=(r+c)/2</code>. Print two spaces with <code>PAPER 7</code> or <code>PAPER 0</code> at
+<code>AT r,c*2</code>.</p>
+</details>
+<details>
+<summary>A solution for the second one</summary>
+<pre><code>10 BORDER 1: PAPER 1: CLS
+20 FOR r=0 TO 7
+30 FOR c=0 TO 7
+40 LET p=7*(INT ((r+c)/2)=(r+c)/2)
+50 PRINT AT r+7,c*2+8; PAPER p;&quot;  &quot;
+60 NEXT c
+70 NEXT r
+</code></pre>
+<p>Line 40 uses the fact that a true condition is 1 and a false one is 0, so <code>p</code>
+is 7 (white) or 0 (black).</p>
+</details>
+<hr />
+<p><strong>Reference:</strong> <a href="../reference.html#colours">Colours</a>,
+<a href="../reference.html#ink-paper"><code>INK</code>, <code>PAPER</code></a>, <a href="../reference.html#border"><code>BORDER</code></a>,
+<a href="../reference.html#bright-flash"><code>BRIGHT</code>, <code>FLASH</code></a>,
+<a href="../reference.html#inverse-over"><code>INVERSE</code>, <code>OVER</code></a>,
+<a href="../reference.html#print"><code>PRINT</code></a>, <a href="../reference.html#cls"><code>CLS</code></a>,
+<a href="../reference.html#mode"><code>MODE</code></a>.</p>
+<p><strong>Next:</strong> <a href="09-drawing.html">9. Drawing</a> ·
+<strong>Previous:</strong> <a href="07-procedures.html">7. Procedures</a></p>
+<nav class="pasos"><a class="anterior" href="07-procedures.html"><small>Previous</small>← 7. Procedures</a><a class="siguiente" href="09-drawing.html"><small>Next</small>9. Drawing →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

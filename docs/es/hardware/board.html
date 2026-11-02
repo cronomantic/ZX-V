@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La placa · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../en/hardware/board.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../emulator.html">El emulador</a>
+</li>
+<li><a href="../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Aprende BASIC</a>
+</li>
+<li><a href="../basic/editor.html">El editor</a>
+</li>
+<li><a href="../basic/reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="index.html">Construir el hardware</a>
+</li>
+<li><a href="board.html" class="aqui">La placa</a>
+<ul>
+</ul>
+</li>
+<li><a href="firmware.html">El firmware</a>
+</li>
+<li><a href="protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="la-placa">La placa</h1>
+<p>La placa de ZX-V lleva las dos Pico y todo lo que necesitan: HDMI, USB-A para
+el teclado, microSD, jack de audio, USB-C para la corriente, un reloj con su
+pila y los mandos del frontal. Mide 100 × 100 mm, es de dos capas, y está
+pensada para que JLCPCB la haga <strong>con todas las piezas pequeñas de montaje
+superficial (SMD) ya soldadas</strong>. Cuando llega, solo te quedan por soldar las
+dos Pico y unas pocas piezas grandes de agujero pasante.</p>
+<blockquote>
+<p><strong>La placa todavía no se ha fabricado ni probado.</strong> El diseño está
+terminado y pasa las comprobaciones de KiCad, pero nadie ha montado una
+todavía. Si la pides, comprueba todo lo que dice esta página y cuenta con
+alguna sorpresa. El diseño se publicará cuando se haya montado y probado una; hasta entonces, esta página cuenta lo que supondrá pedirla.</p>
+</blockquote>
+<p><img alt="La cara de arriba de la placa, sin las Pico. El frontal, con los mandos,
+está abajo." src="../../images/hardware-board-top.png" /></p>
+<p><em>La placa sin las Pico, dibujada por KiCad. El frontal queda abajo; algunos
+conectores solo se ven por sus pads. Los rótulos de la serigrafía están en
+español (ver <a href="#conectores-y-mandos">Conectores y mandos</a>).</em></p>
+<h2 id="cómo-pedirla-a-jlcpcb">Cómo pedirla a JLCPCB<a class="ancla" href="#cómo-pedirla-a-jlcpcb" aria-hidden="true">#</a></h2>
+<p>Estos son los ficheros que habrá que subir, cuando se publiquen;
+para pedirla no hará falta KiCad.</p>
+<table>
+<thead>
+<tr>
+<th>Fichero</th>
+<th>Qué es</th>
+<th>Dónde va</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>zxv-gerber.zip</code></td>
+<td>Los Gerber: cobre, máscara, serigrafía y pasta de las dos caras, el contorno y los taladros</td>
+<td>La placa («Add gerber file»)</td>
+</tr>
+<tr>
+<td><code>zxv-bom.csv</code></td>
+<td>La lista de piezas del montaje: 76 piezas, 28 números LCSC distintos</td>
+<td>El montaje, «BOM file»</td>
+</tr>
+<tr>
+<td><code>zxv-cpl.csv</code></td>
+<td>Dónde va cada pieza y cómo va girada</td>
+<td>El montaje, «CPL file»</td>
+</tr>
+<tr>
+<td><code>zxv-schematic.pdf</code></td>
+<td>El esquema, para consultarlo</td>
+<td>No se sube</td>
+</tr>
+</tbody>
+</table>
+<p>Los nombres de los botones y opciones de abajo son los que usa la web de
+JLCPCB (en inglés) mientras se escribe esto; pueden cambiar un poco.</p>
+<h3 id="1-la-placa">1. La placa<a class="ancla" href="#1-la-placa" aria-hidden="true">#</a></h3>
+<ol>
+<li>En jlcpcb.com, empieza un pedido de PCB y sube <code>zxv-gerber.zip</code>. La web lee
+   el tamaño de los ficheros: tiene que decir <strong>2 capas, 100 × 100 mm</strong>.</li>
+<li>Elige estas opciones (lo demás, como venga):</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Opción</th>
+<th>Qué elegir</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Base material</td>
+<td>FR-4</td>
+</tr>
+<tr>
+<td>Layers</td>
+<td>2</td>
+</tr>
+<tr>
+<td>PCB thickness</td>
+<td>1,6 mm</td>
+</tr>
+<tr>
+<td>Surface finish</td>
+<td>HASL sin plomo (<em>lead-free</em>)</td>
+</tr>
+<tr>
+<td>PCB color</td>
+<td>El que quieras</td>
+</tr>
+<tr>
+<td><strong>Remove order number</strong></td>
+<td><strong>Specify a location</strong></td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li><strong>El número de pedido.</strong> JLCPCB imprime su número de pedido en la
+   serigrafía. La placa tiene marcado el sitio <strong>debajo de la Pico CPU</strong>: el
+   texto <code>JLCJLCJLCJLC</code>. Con <em>Specify a location</em> lo imprimen ahí, donde la
+   Pico lo tapará; si dejas lo que viene, lo ponen donde quieren, a lo mejor
+   en pleno frontal. (Debajo de la Pico ULA hay otra marca, <code>WayWayWay</code>, para
+   pedirla a PCBWay.)</li>
+</ol>
+<h3 id="2-el-montaje">2. El montaje<a class="ancla" href="#2-el-montaje" aria-hidden="true">#</a></h3>
+<ol>
+<li>Activa <strong>PCB Assembly</strong> en el mismo pedido.</li>
+<li>Elige el montaje <strong>Economic</strong>, por la cara de arriba (<strong>Top side</strong>). Todo
+   lo que se monta es SMD y está arriba, así que vale el barato. Elige cuántas
+   placas quieres montadas.</li>
+<li>Sube <code>zxv-bom.csv</code> como BOM y <code>zxv-cpl.csv</code> como CPL (el fichero de
+   colocación).</li>
+<li>En la lista de piezas, mira que <strong>las 28 líneas tengan su pieza</strong> y que
+   todas estén <strong>en existencias</strong>. Las Pico, los pulsadores, el interruptor,
+   los LED y las tiras de pines no salen: los sueldas tú, así que no van en
+   los ficheros.</li>
+</ol>
+<p>Si una pieza está agotada, busca en el catálogo de JLCPCB una igual, del mismo
+valor y encapsulado. Por ejemplo, si se agotaran las ocho resistencias de
+240 Ω del HDMI (C17572), valdría cualquier otra de 240 Ω con el mismo
+encapsulado 0805.</p>
+<h3 id="3-la-vista-previa-de-la-colocación">3. La vista previa de la colocación<a class="ancla" href="#3-la-vista-previa-de-la-colocación" aria-hidden="true">#</a></h3>
+<p>JLCPCB coloca cada pieza según su propia huella, que no siempre está girada
+como la de KiCad ni tiene el centro en el mismo sitio. El CPL ya corrige las
+diferencias conocidas, pero <strong>mira la vista previa de la colocación</strong> antes de
+pagar. Amplía y comprueba que:</p>
+<ul>
+<li>el punto del pin 1 de <strong>U3</strong> (el chip del reloj, de 8 patas), de <strong>Q1</strong> y de
+  <strong>D4</strong> (de 3 patas cada uno) cae sobre la marca del pin 1 de la placa;</li>
+<li>la raya de los diodos <strong>D1, D2 y D3</strong> queda del lado de la raya dibujada en
+  la placa;</li>
+<li>el <strong>USB-C</strong> (J1), el zócalo de la <strong>microSD</strong> (J3) y el <strong>jack</strong> (J8)
+  caen bien sobre sus pads, y también el HDMI (J7), el USB-A (J4) y el
+  portapilas (BT1).</li>
+</ul>
+<p>Si una pieza sale girada, normalmente se puede girar en la propia vista
+previa, o pedírselo a JLCPCB en las notas del pedido.</p>
+<h3 id="lo-que-cuesta">Lo que cuesta<a class="ancla" href="#lo-que-cuesta" aria-hidden="true">#</a></h3>
+<p>Las piezas salen por unos 5 dólares por placa (sin las Pico). Además, JLCPCB
+cobra una vez <strong>por pedido</strong> (no por placa) cada pieza <em>Extended</em> que no sea
+<em>preferida</em>: aquí son ocho (el portapilas, los dos fusibles, el USB-C, la
+microSD, el USB-A, el HDMI y el jack), a unos 3 dólares cada una. En un pedido
+de 5 placas, unos 5 dólares por placa. Son cifras aproximadas: las de verdad salen
+en el presupuesto de la web.</p>
+<h3 id="sin-el-montaje-de-jlcpcb">Sin el montaje de JLCPCB<a class="ancla" href="#sin-el-montaje-de-jlcpcb" aria-hidden="true">#</a></h3>
+<p>Todas las piezas SMD se pueden soldar a mano: las resistencias y los
+condensadores son de 0805 (un tamaño cómodo) con pads largos, los chips tienen
+las patas a la vista, y solo el cristal del reloj es pequeño (3,2 × 1,5 mm, dos
+pads; con flux se suelda bien). También puedes pedir el stencil con las placas
+y usar una placa caliente o un horno: todo lo SMD está en la cara de arriba.
+Los mismos números LCSC de <code>zxv-bom.csv</code> valen en LCSC o en cualquier tienda.</p>
+<h2 id="las-piezas-que-sueldas-tú">Las piezas que sueldas tú<a class="ancla" href="#las-piezas-que-sueldas-tú" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Ref.</th>
+<th>Pieza</th>
+<th>Cant.</th>
+<th>LCSC</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>U1, U2</td>
+<td>Raspberry Pi Pico 2</td>
+<td>2</td>
+<td>—</td>
+<td>U1 es la Pico CPU; U2, la Pico ULA</td>
+</tr>
+<tr>
+<td>(U1, U2)</td>
+<td>Tira de pines macho de 1 × 20, 2,54 mm</td>
+<td>4</td>
+<td>C50981</td>
+<td>No hacen falta si sueldas las Pico por sus bordes, o si tus Pico ya las traen</td>
+</tr>
+<tr>
+<td>SW1, SW2</td>
+<td>Pulsador de 6 × 6 mm en ángulo recto (Omron B3F-3152)</td>
+<td>2</td>
+<td>C231320</td>
+<td>RESET y MODO</td>
+</tr>
+<tr>
+<td>SW3</td>
+<td>Interruptor deslizante en ángulo recto (Shou Han SK12D07VG4)</td>
+<td>1</td>
+<td>C393937</td>
+<td>El encendido (<code>OFF</code> / <code>ON</code>)</td>
+</tr>
+<tr>
+<td>LED1</td>
+<td>LED de 3 mm, verde difuso (Lite-On LTL-4231N)</td>
+<td>1</td>
+<td>C125082</td>
+<td>SD</td>
+</tr>
+<tr>
+<td>LED2</td>
+<td>LED de 3 mm, rojo difuso (Lite-On LTL-4221N)</td>
+<td>1</td>
+<td>C125081</td>
+<td>ENLACE</td>
+</tr>
+<tr>
+<td>J5</td>
+<td>Tira de pines macho de 1 × 3, 2,54 mm (opcional)</td>
+<td>1</td>
+<td>—</td>
+<td>UART</td>
+</tr>
+<tr>
+<td>J6</td>
+<td>Tira de pines macho de 1 × 4, 2,54 mm (opcional)</td>
+<td>1</td>
+<td>—</td>
+<td>I2C</td>
+</tr>
+<tr>
+<td>—</td>
+<td>Pila de botón CR2032</td>
+<td>1</td>
+<td>—</td>
+<td>Va en BT1, que viene montado</td>
+</tr>
+</tbody>
+</table>
+<h2 id="cómo-se-sueldan">Cómo se sueldan<a class="ancla" href="#cómo-se-sueldan" aria-hidden="true">#</a></h2>
+<p>Primero lo bajo del frontal, luego las tiras opcionales y, al final, las Pico.</p>
+<h3 id="los-mandos-y-led-del-frontal">Los mandos y LED del frontal<a class="ancla" href="#los-mandos-y-led-del-frontal" aria-hidden="true">#</a></h3>
+<p>Los cinco van en el borde de delante y asoman por él, para salir por los
+agujeros del frontal de una caja. Son piezas en ángulo recto que van tumbadas
+sobre la placa.</p>
+<ul>
+<li><strong>Los pulsadores (SW1, SW2)</strong>: mételos hasta el fondo, con el cuerpo hasta
+  el borde; el botón asoma unos 4 mm. Las patas solo entran de una manera.</li>
+<li><strong>El interruptor (SW3)</strong>: mételo hasta el fondo y suelda sus tres patas y
+  sus dos pestañas de sujeción. La palanca asoma unos 3,4 mm. Visto desde
+  delante, con la palanca a la <strong>derecha</strong> está encendido y a la <strong>izquierda</strong>,
+  apagado: la placa pone <code>OFF</code> encima de la mitad izquierda y <code>ON</code> encima de
+  la derecha.</li>
+<li><strong>Los LED (LED1 verde, LED2 rojo)</strong>: van tumbados, apuntando hacia fuera
+  del borde. Dobla las dos patas en ángulo recto para que el LED quede
+  paralelo a la placa, a unos 2 mm de ella, con la punta saliendo 1 mm del
+  borde. <strong>Ojo con la polaridad:</strong> el cátodo (la pata más corta, del lado
+  plano del reborde del LED) va al <strong>pad cuadrado</strong>. No los cambies: el verde
+  es LED1 (<code>SD</code>) y el rojo, LED2 (<code>ENLACE</code>).</li>
+</ul>
+<h3 id="las-tiras-opcionales">Las tiras opcionales<a class="ancla" href="#las-tiras-opcionales" aria-hidden="true">#</a></h3>
+<p><strong>J5</strong> (3 pines, <code>UART</code>) y <strong>J6</strong> (4 pines, <code>I2C</code>) están detrás a la derecha.
+Solo hacen falta para depurar (J5) o para conectar un módulo I2C, como un
+reloj DS3231 (J6). Tiras macho rectas de 2,54 mm.</p>
+<h3 id="las-pico">Las Pico<a class="ancla" href="#las-pico" aria-hidden="true">#</a></h3>
+<p>La huella admite las Pico de dos maneras:</p>
+<ul>
+<li><strong>Con tiras de pines</strong> (lo más fácil de soldar): suelda dos tiras de 1 × 20
+  a la Pico, o cómpralas con las tiras ya puestas, y luego suelda las tiras en
+  los agujeros de la placa. La Pico queda un poco separada de la placa.</li>
+<li><strong>Por sus bordes almenados</strong>: apoya la Pico sobre la placa, cada medio
+  agujero sobre su pad, y suelda los dos lados. La mitad de soldaduras y más
+  baja; más difícil de quitar.</li>
+</ul>
+<p><strong>La orientación:</strong> los componentes de la Pico hacia arriba y su <strong>conector
+micro-USB hacia el frontal</strong> (hacia el USB-A y los pulsadores). La <strong>Pico ULA
+va a la izquierda</strong> y la <strong>Pico CPU a la derecha</strong>, vistas desde delante; la
+placa pone <code>ULA</code> y <code>CPU</code> delante de cada una.</p>
+<p>Las dos Pico son iguales hasta que llevan su firmware. Lo más cómodo es
+<strong>cargar el firmware en cada una antes de soldarla</strong> y marcarla
+(<a href="firmware.html">El firmware</a>). También se puede hacer después: el micro-USB y
+el botón BOOTSEL quedan a mano.</p>
+<h3 id="la-pila">La pila<a class="ancla" href="#la-pila" aria-hidden="true">#</a></h3>
+<p>Mete una CR2032 en el portapilas (<code>CR2032</code>, en el lateral derecho) con el
+<strong>lado <code>+</code> (el plano, el de las letras) hacia arriba</strong>, como indica el <code>+</code> de
+la placa. Sin ella la máquina funciona, pero al apagarla olvida la hora, el
+idioma y la distribución del teclado.</p>
+<h2 id="lista-de-comprobación">Lista de comprobación<a class="ancla" href="#lista-de-comprobación" aria-hidden="true">#</a></h2>
+<ul>
+<li>[ ] La placa montada no tiene puentes de estaño a la vista, sobre todo en
+      el HDMI y el USB-C.</li>
+<li>[ ] SW1 (<code>RESET</code>) y SW2 (<code>MODO</code>), hasta el fondo y soldados.</li>
+<li>[ ] SW3 (<code>OFF</code> / <code>ON</code>) soldado, con sus pestañas.</li>
+<li>[ ] LED1 verde en <code>SD</code>, LED2 rojo en <code>ENLACE</code>, con el cátodo en el pad
+      cuadrado.</li>
+<li>[ ] Si las quieres: J5 y J6.</li>
+<li>[ ] Cada Pico con su firmware: <code>zxv_cpu.uf2</code> en la Pico CPU y
+      <code>zxv_ula_link.uf2</code> en la Pico ULA.</li>
+<li>[ ] La Pico ULA a la izquierda, la Pico CPU a la derecha, con el micro-USB
+      hacia delante.</li>
+<li>[ ] Los 80 pines de las Pico soldados (40 cada una).</li>
+<li>[ ] La CR2032 puesta, con el <code>+</code> hacia arriba.</li>
+</ul>
+<h2 id="el-primer-encendido">El primer encendido<a class="ancla" href="#el-primer-encendido" aria-hidden="true">#</a></h2>
+<p>Las primeras comprobaciones, <strong>antes de soldar las Pico</strong>, con un polímetro.</p>
+<ol>
+<li><strong>Que no haya un cortocircuito.</strong> Sin nada enchufado, mide la resistencia
+   entre los dos contactos de los extremos del puerto USB-A (5 V y masa). No
+   tiene que estar cerca de 0 Ω.</li>
+<li><strong>El interruptor.</strong> Enchufa el cargador USB-C y mide la tensión entre esos
+   mismos dos contactos del USB-A: unos 5 V con la palanca a la derecha (<code>ON</code>)
+   y 0 V a la izquierda (<code>OFF</code>). También puedes medir, en la huella de cada
+   Pico, entre el pin 39 (VSYS) y el 38 (GND), el segundo y el tercero desde el
+   extremo del micro-USB por el lado del pin 40: algo menos de 5 V encendida
+   (un diodo de protección se come unas décimas de voltio). Desenchufa el
+   cargador.</li>
+<li><strong>Suelda las Pico</strong>, mete una tarjeta microSD y conecta la pantalla HDMI y
+   un teclado USB.</li>
+<li><strong>Enciende.</strong> El LED rojo <code>ENLACE</code> parpadea una vez (el modo 0) y luego se
+   queda encendido mientras la Pico ULA recibe imágenes de la Pico CPU. En la
+   pantalla sale el BASIC.</li>
+<li><strong>Pruébala:</strong> <code>PRINT 6*7</code>, luego <code>CAT</code> (el LED verde <code>SD</code> se enciende
+   mientras lee la tarjeta) y <code>BEEP 1,0</code> para el sonido.</li>
+<li><strong>La prueba de la placa:</strong> <code>LOAD "ROM:boardtest"</code> comprueba, uno a uno, lo que
+   ve un programa: el monitor (por su HPD), el reloj, la tarjeta, el teclado,
+   los mandos, el ratón y el sonido (teclas 1, 2 y 3: beeper, AY por la
+   izquierda y por la derecha). Pulsa MODO para ver cambiar la línea del vídeo,
+   y Esc para volver. Con <strong>P</strong>, las paletas: los colores de siempre de la ROM
+   y los mismos puestos a mano, línea a línea, sin que se vean rayas; una rampa
+   gris; una de fuego que gira, y el borde, que cambia cada segundo (negro,
+   negro, naranja y morado) sin que cambie nada más. Con Espacio se para la
+   rampa, y el «CRC paletas» debe ser <code>95AF97D6</code>, el mismo que en el emulador y
+   que el de la página de diagnóstico (Ctrl+Alt+F12), en la línea de la ULA:
+   así las paletas llegan bien a la ULA. P otra vez vuelve a la prueba.</li>
+</ol>
+<p>Las Pico se pueden conectar al ordenador por su micro-USB con la placa
+encendida: los diodos de protección separan las dos alimentaciones. <strong>Con la
+placa apagada, no</strong>: una Pico sola alimentaría a la otra por los pines del
+enlace. Si algo no funciona, mira <a href="firmware.html#si-no-hay-imagen-o-no-hay-sonido">Qué mirar</a>.</p>
+<h2 id="conectores-y-mandos">Conectores y mandos<a class="ancla" href="#conectores-y-mandos" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Rótulo</th>
+<th>Dónde</th>
+<th>Pieza</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>5 V</code></td>
+<td>Detrás, a la izquierda</td>
+<td>J1, USB-C</td>
+<td>La corriente: cualquier cargador USB-C de 5 V y 2 A. Solo corriente, sin datos</td>
+</tr>
+<tr>
+<td><code>HDMI</code></td>
+<td>Detrás, tras la ULA</td>
+<td>J7</td>
+<td>La pantalla: la imagen, y el sonido en el modo HDMI</td>
+</tr>
+<tr>
+<td><code>AUDIO</code></td>
+<td>Detrás, tras la CPU</td>
+<td>J8, jack de 3,5 mm</td>
+<td>El sonido estéreo, a nivel de línea, siempre</td>
+</tr>
+<tr>
+<td><code>OFF</code> <code>ON</code></td>
+<td>Delante, en la esquina izquierda</td>
+<td>SW3</td>
+<td>El encendido: con la palanca a la derecha, encendida; a la izquierda, apagada</td>
+</tr>
+<tr>
+<td><code>MODO</code></td>
+<td>Delante, a la izquierda</td>
+<td>SW2</td>
+<td>Una pulsación corta cambia el modo de vídeo; una larga (de 1 a 5 s) enseña o quita la página de diagnóstico; apretado al encender, el modo seguro</td>
+</tr>
+<tr>
+<td><code>USB</code></td>
+<td>Delante, en el centro</td>
+<td>J4, USB-A</td>
+<td>Teclado, ratón y mandos (varios, con un hub). Con un fusible de 500 mA</td>
+</tr>
+<tr>
+<td><code>RESET</code></td>
+<td>Delante, a la derecha</td>
+<td>SW1</td>
+<td>Reinicia las dos Pico, como apagar y encender</td>
+</tr>
+<tr>
+<td><code>SD</code></td>
+<td>Delante, a la derecha</td>
+<td>LED1, verde</td>
+<td>Encendido mientras la máquina usa la tarjeta o el reloj</td>
+</tr>
+<tr>
+<td><code>ENLACE</code></td>
+<td>Delante, en la esquina derecha</td>
+<td>LED2, rojo</td>
+<td>Al arrancar parpadea el número del modo más uno; luego, encendido mientras llegan imágenes de la Pico CPU, parpadeando si algunas llegan con errores y apagado si no llega ninguna</td>
+</tr>
+<tr>
+<td><code>microSD</code></td>
+<td>Lateral derecho</td>
+<td>J3</td>
+<td>La tarjeta SD (se empuja para meterla y otra vez para sacarla)</td>
+</tr>
+<tr>
+<td><code>CR2032</code> <code>+</code></td>
+<td>Lateral derecho</td>
+<td>BT1</td>
+<td>La pila del reloj, con el <code>+</code> hacia arriba</td>
+</tr>
+<tr>
+<td><code>UART</code> <code>GND</code> <code>TX</code> <code>RX</code></td>
+<td>Detrás, a la derecha</td>
+<td>J5 (sin montar)</td>
+<td>El puerto serie de depuración de la Pico CPU, a 3,3 V y 921600 baudios. <code>TX</code> es la salida de la Pico</td>
+</tr>
+<tr>
+<td><code>I2C</code> <code>3V3</code> <code>GND</code> <code>SDA</code> <code>SCL</code></td>
+<td>Detrás, a la derecha</td>
+<td>J6 (sin montar)</td>
+<td>El bus I2C del reloj, a 3,3 V, para otro módulo (si hay un módulo de reloj DS3231, se usa en lugar del de la placa)</td>
+</tr>
+<tr>
+<td><code>ULA</code> <em>vídeo y sonido</em></td>
+<td>En el centro, a la izquierda</td>
+<td>U2</td>
+<td>La Pico ULA</td>
+</tr>
+<tr>
+<td><code>CPU</code> <em>BASIC y programas</em></td>
+<td>En el centro, a la derecha</td>
+<td>U1</td>
+<td>La Pico CPU</td>
+</tr>
+</tbody>
+</table>
+<p>Para arrancar en el modo de vídeo seguro con esta placa, mantén apretado
+<code>MODO</code> mientras enciendes, o mientras pulsas y sueltas <code>RESET</code>.</p>
+<nav class="pasos"><a class="anterior" href="index.html"><small>Anterior</small>← Construir el hardware</a><a class="siguiente" href="firmware.html"><small>Siguiente</small>El firmware →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

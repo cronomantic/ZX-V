@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>13. Files and the SD card · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../es/basic/tutorial/13-files-and-the-sd-card.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../../getting-started.html">Getting started</a>
+</li>
+<li><a href="../../emulator.html">The emulator</a>
+</li>
+<li><a href="../../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../index.html">Learn BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. First steps</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables and maths</a></li>
+<li><a href="03-text-and-input.html">3. Text and input</a></li>
+<li><a href="04-decisions.html">4. Decisions</a></li>
+<li><a href="05-loops.html">5. Loops</a></li>
+<li><a href="06-arrays-and-data.html">6. Arrays and data</a></li>
+<li><a href="07-procedures.html">7. Procedures</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Colours and the screen</a></li>
+<li><a href="09-drawing.html">9. Drawing</a></li>
+<li><a href="10-sound-and-music.html">10. Sound and music</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Keyboard and joystick</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a></li>
+<li><a href="13-files-and-the-sd-card.html" class="aqui">13. Files and the SD card</a></li>
+<li><a href="14-a-complete-game.html">14. A complete game</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">The editor</a>
+</li>
+<li><a href="../reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../../hardware/board.html">The board</a>
+</li>
+<li><a href="../../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="13-files-and-the-sd-card">13. Files and the SD card</h1>
+<p><strong>In this chapter you will learn</strong> to save and load your programs, to
+organise them in folders, to use the built-in examples of the <code>ROM:</code> drive,
+and to write and read your own text files, for example to keep the best
+score of a game. You will also learn to catch errors with <code>ON ERROR</code>.</p>
+<h2 id="the-sd-card">The SD card<a class="ancla" href="#the-sd-card" aria-hidden="true">#</a></h2>
+<p>ZX-V keeps its files on an <strong>SD card</strong>, as the Spectrum kept them on
+cassette tapes. In the emulator, the SD card is a folder on your PC: the
+<strong>ZX-V</strong> folder inside your <em>Documents</em> folder (the web version keeps it in
+the browser). See <a href="../../emulator.html">the emulator guide</a> for the details.</p>
+<h2 id="saving-and-loading-programs">Saving and loading programs<a class="ancla" href="#saving-and-loading-programs" aria-hidden="true">#</a></h2>
+<p>Type a short program and save it with <code>SAVE</code> and a name:</p>
+<pre><code>10 PRINT &quot;I was saved and loaded!&quot;
+SAVE &quot;hello&quot;
+</code></pre>
+<p>The program is now in the file <code>hello.zvb</code> on the card: ZX-V adds the
+<code>.zvb</code> ending, the one of its programs, by itself. <code>CAT</code> lists the files of the card:</p>
+<pre><code>NEW
+CAT
+</code></pre>
+<p><code>NEW</code> erases the program from memory, but the file is still on the card.
+Load it back and run it:</p>
+<pre><code>LOAD &quot;hello&quot;
+RUN
+</code></pre>
+<p>If you add <code>LINE</code> and a line number when you save, the program will start by
+itself, from that line, every time it is loaded:</p>
+<pre><code>SAVE &quot;hello&quot; LINE 10
+</code></pre>
+<p>The file also carries the variables there were when you saved it, as on the
+Spectrum: with <code>LINE</code>, the program finds them when it starts (<code>RUN</code> clears
+them).</p>
+<p><strong>If you know the Spectrum:</strong> ZX-V loads the BASIC programs in the
+Spectrum's tape files, <code>.tap</code> and <code>.tzx</code>, with <code>LOAD</code> like its own. And if you
+want to take a program to a Spectrum emulator, save it as a tape:
+<code>SAVE "hello.tap"</code>.</p>
+<h2 id="folders">Folders<a class="ancla" href="#folders" aria-hidden="true">#</a></h2>
+<p>As you save more programs, you can put them in <strong>folders</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MKDIR "games"</code></td>
+<td>Creates the folder <code>games</code></td>
+</tr>
+<tr>
+<td><code>CD "games"</code></td>
+<td>Goes into it: from now on, <code>SAVE</code>, <code>LOAD</code> and <code>CAT</code> work there</td>
+</tr>
+<tr>
+<td><code>CD ".."</code></td>
+<td>Goes back up one folder</td>
+</tr>
+<tr>
+<td><code>CD "/"</code></td>
+<td>Goes back to the main folder of the card</td>
+</tr>
+<tr>
+<td><code>PRINT DIR$</code></td>
+<td>Shows the current folder</td>
+</tr>
+<tr>
+<td><code>CAT "*.zvb"</code></td>
+<td>Lists only the files whose names end in <code>.zvb</code> (<code>*</code> means "anything")</td>
+</tr>
+<tr>
+<td><code>ERASE "old.zvb"</code></td>
+<td>Deletes a file. Careful: it cannot be undone</td>
+</tr>
+</tbody>
+</table>
+<p>You can also give the folder in the name: <code>LOAD "games/hello"</code>.</p>
+<h2 id="the-rom-drive-the-built-in-examples">The <code>ROM:</code> drive: the built-in examples<a class="ancla" href="#the-rom-drive-the-built-in-examples" aria-hidden="true">#</a></h2>
+<p>Besides the card, ZX-V has a second drive that cannot be written on, the
+<strong><code>ROM:</code> drive</strong>, with example programs that come with the machine:</p>
+<pre><code>CAT &quot;ROM:&quot;
+</code></pre>
+<p>To load one, put <code>ROM:</code> in front of its name: <code>LOAD "ROM:graphics"</code>. A program
+that loads more files, like the platform game (<code>LOAD "ROM:platformer"</code>),
+looks for them in the current folder first and, if they are not there, in
+its own folder: that is how it finds its graphics on the <code>ROM:</code> drive, and a
+file with the same name in your folder comes before its own (see
+<a href="../reference.html#load">LOAD</a>). You can also go into the drive with
+<code>CD "ROM:"</code>; <code>CD "SD:"</code> takes you back to the card. Trying to save on the
+<code>ROM:</code> drive gives <code>V Disk error (not allowed)</code>.</p>
+<h2 id="text-files">Text files<a class="ancla" href="#text-files" aria-hidden="true">#</a></h2>
+<p>A program can also write its own files: a list, a diary, the best scores.
+Files are opened on a <strong>stream</strong>, a numbered channel from 4 to 15.</p>
+<ul>
+<li><code>OPEN #4,"notes.txt" OUT</code> creates the file (or empties it, if it exists)
+  to write in it.</li>
+<li><code>PRINT #4;...</code> writes in the file as <code>PRINT</code> writes on the screen. A comma
+  starts a new line in the file.</li>
+<li><code>OPEN #4,"notes.txt" IN</code> opens it to read it.</li>
+<li><code>INPUT #4;...</code> reads from the file, one line for each variable. With <code>LINE
+  a$</code>, the whole line goes into <code>a$</code>.</li>
+<li><code>CLOSE #4</code> closes it. Always close the files you open.</li>
+</ul>
+<pre><code>10 OPEN #4,&quot;notes.txt&quot; OUT
+20 PRINT #4;&quot;Shopping list&quot;
+30 PRINT #4;&quot;bread&quot;,&quot;milk&quot;
+40 CLOSE #4
+50 OPEN #4,&quot;notes.txt&quot; IN
+60 INPUT #4;LINE a$,LINE b$,LINE c$
+70 CLOSE #4
+80 PRINT a$: PRINT b$: PRINT c$
+</code></pre>
+<p>The file <code>notes.txt</code> is a normal text file: you can open it on your PC with
+any text editor.</p>
+<h2 id="when-something-goes-wrong-on-error">When something goes wrong: <code>ON ERROR</code><a class="ancla" href="#when-something-goes-wrong-on-error" aria-hidden="true">#</a></h2>
+<p>Reading a file that does not exist stops the program with <code>T File not
+found</code>. A good program should not stop for that. <code>ON ERROR GO TO line</code> tells
+the machine where to jump if there is an error, instead of stopping:</p>
+<pre><code>10 ON ERROR GO TO 100
+20 LOAD &quot;nothing&quot;
+30 STOP
+100 PRINT &quot;Error &quot;;ERR;&quot; in line &quot;;ERL
+</code></pre>
+<p><code>ERR</code> is the code of the error (29 is <code>T File not found</code>; the
+<a href="../reference.html#error-messages">reference</a> has the full list) and <code>ERL</code> is
+the line where it happened. <code>ON ERROR GO TO 0</code> turns error catching off. The
+catching works only once: after an error, put <code>ON ERROR</code> again if you want to
+keep catching them.</p>
+<h2 id="keeping-the-best-score">Keeping the best score<a class="ancla" href="#keeping-the-best-score" aria-hidden="true">#</a></h2>
+<p>Here is everything together: a program that remembers the best score
+between one run and the next, in the file <code>best.txt</code>:</p>
+<pre><code>10 LET best=0
+20 ON ERROR GO TO 40
+30 OPEN #4,&quot;best.txt&quot; IN: INPUT #4;best
+40 ON ERROR GO TO 0: CLOSE #4
+50 PRINT &quot;Best score so far: &quot;;best
+60 INPUT &quot;Your score? &quot;;s
+70 IF s&gt;best THEN PRINT &quot;A new record!&quot;: OPEN #4,&quot;best.txt&quot; OUT: PRINT #4;s: CLOSE #4
+</code></pre>
+<p>The first time, <code>best.txt</code> does not exist: line 30 fails, the program jumps
+to line 40 and <code>best</code> stays at 0. From then on, it reads the score saved
+last time. Run it twice and see.</p>
+<h2 id="try-it">Try it<a class="ancla" href="#try-it" aria-hidden="true">#</a></h2>
+<ol>
+<li>Create a folder <code>tests</code>, save a program in it and load it from the main
+   folder.</li>
+<li>Write a "guest book": the program asks for a name and adds it to a file;
+   then it prints all the names in the file.</li>
+</ol>
+<details>
+<summary>Hint</summary>
+<p><code>OUT</code> empties the file, so to add a name, read all the names first (into an
+array, for example), then write them all again plus the new one. To read
+until the end of the file, use <code>ON ERROR</code>: when there are no more lines,
+<code>INPUT #4</code> gives error 8, <code>End of file</code>.</p>
+</details>
+<hr />
+<p><strong>Reference:</strong> <a href="../reference.html#files-and-the-sd-card">Files and the SD card</a>,
+<a href="../reference.html#save"><code>SAVE</code></a>, <a href="../reference.html#load"><code>LOAD</code></a>,
+<a href="../reference.html#cat"><code>CAT</code></a>, <a href="../reference.html#cd-dir"><code>CD</code>, <code>DIR$</code></a>,
+<a href="../reference.html#open-close"><code>OPEN</code>, <code>CLOSE</code></a>,
+<a href="../reference.html#on-error"><code>ON ERROR</code></a>, <a href="../reference.html#err-erl"><code>ERR</code>, <code>ERL</code></a>.</p>
+<p><strong>Next:</strong> <a href="14-a-complete-game.html">14. A complete game</a> ·
+<strong>Previous:</strong> <a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a></p>
+<nav class="pasos"><a class="anterior" href="12-sprites-and-tile-maps.html"><small>Previous</small>← 12. Sprites and tile maps</a><a class="siguiente" href="14-a-complete-game.html"><small>Next</small>14. A complete game →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

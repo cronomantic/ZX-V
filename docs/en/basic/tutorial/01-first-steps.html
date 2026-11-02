@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1. First steps · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../es/basic/tutorial/01-first-steps.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../../getting-started.html">Getting started</a>
+</li>
+<li><a href="../../emulator.html">The emulator</a>
+</li>
+<li><a href="../../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../index.html">Learn BASIC</a>
+<ul>
+<li><a href="01-first-steps.html" class="aqui">1. First steps</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables and maths</a></li>
+<li><a href="03-text-and-input.html">3. Text and input</a></li>
+<li><a href="04-decisions.html">4. Decisions</a></li>
+<li><a href="05-loops.html">5. Loops</a></li>
+<li><a href="06-arrays-and-data.html">6. Arrays and data</a></li>
+<li><a href="07-procedures.html">7. Procedures</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Colours and the screen</a></li>
+<li><a href="09-drawing.html">9. Drawing</a></li>
+<li><a href="10-sound-and-music.html">10. Sound and music</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Keyboard and joystick</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Files and the SD card</a></li>
+<li><a href="14-a-complete-game.html">14. A complete game</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">The editor</a>
+</li>
+<li><a href="../reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../../hardware/board.html">The board</a>
+</li>
+<li><a href="../../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="1-first-steps">1. First steps</h1>
+<p><strong>In this chapter you will learn</strong> what a program is, how to type one, how to
+run it and how to change it. You will meet your first keywords: <code>PRINT</code>,
+<code>RUN</code>, <code>GO TO</code>, <code>REM</code> and <code>NEW</code>.</p>
+<p>You need ZX-V in front of you: the real machine or the emulator. If you have
+not started it yet, <a href="../../getting-started.html">Getting started</a> explains how.
+When it starts, you see a light grey screen with a black bar at the bottom.
+That bar belongs to the <strong>editor</strong>, the place where you type.</p>
+<h2 id="commands-the-machine-does-it-now">Commands: the machine does it now<a class="ancla" href="#commands-the-machine-does-it-now" aria-hidden="true">#</a></h2>
+<p>Type this and press <strong>Enter</strong>:</p>
+<pre><code>PRINT &quot;Hello&quot;
+</code></pre>
+<p>The screen changes and shows the word <code>Hello</code>. At the bottom you see a
+message like <code>0 OK, 0:1</code>: it means "everything went well". Press any key to go
+back to the editor.</p>
+<p><code>PRINT</code> is a <strong>keyword</strong>: a word the machine understands. It writes on the
+screen whatever comes after it. Text goes between double quotes (<code>"</code>).
+Numbers and sums do not need them:</p>
+<pre><code>PRINT 2+2
+</code></pre>
+<p>This writes <code>4</code>. You can type keywords in capitals or in small letters, as you
+like; when you press Enter the machine shows them in capitals.</p>
+<p>What you just typed are <strong>commands</strong>: lines without a number, which the
+machine carries out as soon as you press Enter, and then forgets.</p>
+<h2 id="programs-the-machine-remembers">Programs: the machine remembers<a class="ancla" href="#programs-the-machine-remembers" aria-hidden="true">#</a></h2>
+<p>A <strong>program</strong> is a list of lines that the machine keeps, to carry them out
+later. Each program line starts with a <strong>line number</strong>. Type these two lines,
+pressing <strong>Enter</strong> after each one:</p>
+<pre><code>10 PRINT &quot;Hello, I am ZX-V&quot;
+20 PRINT &quot;2 + 2 = &quot;;2+2
+</code></pre>
+<p>This time nothing happens on the screen: the lines go into the <strong>listing</strong>,
+the program kept in the editor. To run the program, type the command <code>RUN</code>
+and press Enter. You see:</p>
+<p><img alt="The first program running" src="../../../images/tutorial-first-program-en.png" /></p>
+<p>The machine has carried out line 10, then line 20, always in the order of
+the line numbers. The <code>;</code> in line 20 joins two things on the same line of
+the screen: the text and the result of the sum.</p>
+<p>The message at the bottom, <code>0 OK, 20:1</code>, says that the program finished
+without problems, and where: at line 20, statement 1. Press a key to go back
+to the editor, where your program is still there. (That key is also typed
+into the editor; if it was a letter, just delete it with <strong>Backspace</strong>.)</p>
+<p>Why go up in tens? So that there is room for new lines in between: if you
+later want something between lines 10 and 20, you can number it 15.</p>
+<h2 id="the-editor-in-two-minutes">The editor in two minutes<a class="ancla" href="#the-editor-in-two-minutes" aria-hidden="true">#</a></h2>
+<p>The editor works like a small word processor. These keys are all you need
+for now:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Enter</strong></td>
+<td>Stores the line (or runs it, if it has no number)</td>
+</tr>
+<tr>
+<td>Arrow keys</td>
+<td>Move the cursor through the listing</td>
+</tr>
+<tr>
+<td><strong>Backspace</strong>, <strong>Delete</strong></td>
+<td>Erase to the left of the cursor, or under it</td>
+</tr>
+<tr>
+<td><strong>Ctrl+End</strong></td>
+<td>Takes you to the empty line at the end, where new lines are typed</td>
+</tr>
+<tr>
+<td><strong>Esc</strong></td>
+<td>Undoes the changes to the line you are on. While a program runs, it stops it: this is the <strong>BREAK</strong> key</td>
+</tr>
+<tr>
+<td><strong>Tab</strong></td>
+<td>The <strong>EDIT</strong> key: opens the editor's menu</td>
+</tr>
+</tbody>
+</table>
+<p>To <strong>change</strong> a line, move up to it with the arrow keys, fix it and press
+<strong>Enter</strong>. You can also type it again, with the same number: the new one
+replaces the old one.</p>
+<p>To <strong>add</strong> a line, type it with its number on the empty line at the bottom
+of the listing. The editor puts it in its place, ordered by number. After
+Enter, the cursor goes to the line that follows the one you typed; press
+<strong>Ctrl+End</strong> to go back to the empty line.</p>
+<p>To <strong>delete</strong> a line, type just its number and press Enter.</p>
+<p>To erase the whole program and start again, type <code>NEW</code>.</p>
+<p>If a line has a mistake, the machine makes a buzz when you press Enter, leaves
+the cursor where the problem is and shows a message in red above the bar,
+such as <code>C Nonsense in BASIC</code>. Fix it and press Enter again.</p>
+<p>The <a href="../editor.html">editor guide</a> explains everything else: the menu, how to
+renumber, and more keys.</p>
+<h2 id="a-program-that-never-stops">A program that never stops<a class="ancla" href="#a-program-that-never-stops" aria-hidden="true">#</a></h2>
+<p>Type <code>NEW</code> to start afresh, then this program:</p>
+<pre><code>10 PRINT &quot;ZX-V &quot;;
+20 GO TO 10
+</code></pre>
+<p><code>GO TO 10</code> sends the program back to line 10, so it repeats forever. The <code>;</code>
+at the end of line 10 means "do not start a new line": the next <code>PRINT</code>
+goes on the same line. Type <code>RUN</code> and the screen fills up.</p>
+<p>When the screen is full, the machine asks <code>scroll?</code> at the bottom. Press any
+key to see one more screenful. To stop the program, press <strong>Esc</strong> (BREAK).
+The message <code>D BREAK - CONT repeats, 10:1</code> tells you that you stopped it at
+line 10.</p>
+<h2 id="errors">Errors<a class="ancla" href="#errors" aria-hidden="true">#</a></h2>
+<p>The machine tells you when something goes wrong. Try this program (remember
+<code>NEW</code> first):</p>
+<pre><code>10 PRINT &quot;Your score:&quot;
+20 PRINT score
+</code></pre>
+<p>Run it. Line 10 works, but then you get <code>2 Variable not found, 20:1</code>. Every
+error message has a code (<code>2</code>), a description and the place: line 20,
+statement 1. Here, the machine does not know what <code>score</code> is. You will learn
+to fix that in the next chapter.</p>
+<p>Errors do no harm: your program is still there, and you can fix it and run
+it again.</p>
+<h2 id="notes-for-yourself-rem">Notes for yourself: <code>REM</code><a class="ancla" href="#notes-for-yourself-rem" aria-hidden="true">#</a></h2>
+<p>A line that starts with <code>REM</code> (from "remark") is ignored by the machine. Use
+it to explain what your program does:</p>
+<pre><code>10 REM My first program
+20 PRINT &quot;Hello&quot;
+</code></pre>
+<h2 id="try-it">Try it<a class="ancla" href="#try-it" aria-hidden="true">#</a></h2>
+<ol>
+<li>Write a program that prints your name on one line and your city on the
+   next one.</li>
+<li>Change the program from "A program that never stops" so that it prints
+   your name instead of <code>ZX-V</code>. Then delete the <code>;</code> at the end of line 10
+   and run it again. What changes?</li>
+</ol>
+<details>
+<summary>Hint</summary>
+<p>For the first one, use two lines, each with its own <code>PRINT</code>. For the second,
+move up to line 10 with the arrow keys, change the text between quotes and
+press Enter. Without the <code>;</code>, each <code>PRINT</code> starts a new line.</p>
+</details>
+<hr />
+<p><strong>Reference:</strong> <a href="../reference.html#print"><code>PRINT</code></a>, <a href="../reference.html#run"><code>RUN</code></a>,
+<a href="../reference.html#go-to"><code>GO TO</code></a>, <a href="../reference.html#rem"><code>REM</code></a>,
+<a href="../reference.html#new"><code>NEW</code></a>, <a href="../reference.html#error-messages">Error messages</a>.</p>
+<p><strong>Next:</strong> <a href="02-variables-and-maths.html">2. Variables and maths</a> ·
+<a href="../index.html">Back to the course</a></p>
+<nav class="pasos"><a class="anterior" href="../index.html"><small>Previous</small>← Learn BASIC</a><a class="siguiente" href="02-variables-and-maths.html"><small>Next</small>2. Variables and maths →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>On a protoboard · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../es/hardware/protoboard.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../getting-started.html">Getting started</a>
+</li>
+<li><a href="../emulator.html">The emulator</a>
+</li>
+<li><a href="../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Learn BASIC</a>
+</li>
+<li><a href="../basic/editor.html">The editor</a>
+</li>
+<li><a href="../basic/reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="index.html">Build the hardware</a>
+</li>
+<li><a href="board.html">The board</a>
+</li>
+<li><a href="firmware.html">The firmware</a>
+</li>
+<li><a href="protoboard.html" class="aqui">On a protoboard</a>
+<ul>
+</ul>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="on-a-protoboard">On a protoboard</h1>
+<p>Before the PCB existed, ZX-V was built on a protoboard with Pico 2 boards and
+a few breakout modules, and that is how its firmware has been tested, one Pico
+at a time. <strong>The two Picos have not yet been tested working together</strong>, so the
+complete machine described here is still untested. This page explains how to
+build it that way.</p>
+<blockquote>
+<p><strong>The PCB is the recommended way</strong> (<a href="board.html">The board</a>): it has
+everything on it, the fast signals (HDMI and the link between the Picos) are
+short and well routed, and you only solder a few parts. A protoboard is
+fine for experimenting, or if you already have the parts, but the wiring is
+long and it needs care.</p>
+</blockquote>
+<p>You can build it in stages and test each one (<a href="#building-it-step-by-step">Building it step by
+step</a>): the ULA Pico alone already shows a picture.</p>
+<h2 id="parts">Parts<a class="ancla" href="#parts" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Qty</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Raspberry Pi Pico 2</td>
+<td>2</td>
+<td>With pin headers for a breadboard</td>
+</tr>
+<tr>
+<td>HDMI female breakout board</td>
+<td>1</td>
+<td>The video output</td>
+</tr>
+<tr>
+<td>240 Ω resistors</td>
+<td>8</td>
+<td>One in series with each HDMI signal</td>
+</tr>
+<tr>
+<td>33 Ω resistors</td>
+<td>12</td>
+<td>In series with the link signals (optional with very short wires)</td>
+</tr>
+<tr>
+<td>1 kΩ, 10 kΩ and 100 kΩ resistors; 10 nF, 1 nF and 10 µF capacitors</td>
+<td>2 of each</td>
+<td>The audio output filter</td>
+</tr>
+<tr>
+<td>3.5 mm stereo jack, female</td>
+<td>1</td>
+<td>The audio output</td>
+</tr>
+<tr>
+<td>microSD module (SPI, 3.3 V)</td>
+<td>1</td>
+<td></td>
+</tr>
+<tr>
+<td>USB-A female connector or breakout, and a USB hub</td>
+<td>1 + 1</td>
+<td>For the keyboard, mouse and gamepads. Better a powered hub</td>
+</tr>
+<tr>
+<td>Push button</td>
+<td>1</td>
+<td>The video mode button</td>
+</tr>
+<tr>
+<td>LEDs and 330 Ω resistors</td>
+<td>2 + 2</td>
+<td>SD card activity (CPU) and link status (ULA)</td>
+</tr>
+<tr>
+<td>Clock: a DS3231 module, or a PCF8563 (or BM8563) with a 32.768 kHz crystal, a BAT54C, a CR2032 cell and its holder</td>
+<td>1</td>
+<td>Optional: the date and time, the language and the keyboard layout</td>
+</tr>
+<tr>
+<td>Schottky diodes (1N5817 or similar)</td>
+<td>2</td>
+<td>Only with a single 5 V supply (see <a href="#power">Power</a>)</td>
+</tr>
+<tr>
+<td>500 mA resettable fuse</td>
+<td>1</td>
+<td>For the USB-A's 5 V, with a single 5 V supply</td>
+</tr>
+<tr>
+<td>5 V, 2 A power supply</td>
+<td>1</td>
+<td>Only with a single 5 V supply</td>
+</tr>
+<tr>
+<td>Push button</td>
+<td>1</td>
+<td>Optional: reset</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-pico-pins">The Pico pins<a class="ancla" href="#the-pico-pins" aria-hidden="true">#</a></h2>
+<p>Both Picos use <strong>the same pin numbers for the link</strong> (GP4 to GP4, GP26 to
+GP26...), which makes the wiring easier. Physical pin numbers are counted
+round the Pico as usual: pin 1 (GP0) and pin 40 (VBUS) are at the micro-USB
+end. Here are all the pins ZX-V uses:</p>
+<table>
+<thead>
+<tr>
+<th>Pin</th>
+<th>GPIO</th>
+<th>CPU Pico</th>
+<th>ULA Pico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>GP0</td>
+<td>SD card MISO</td>
+<td>Mode button</td>
+</tr>
+<tr>
+<td>2</td>
+<td>GP1</td>
+<td>SD card CS</td>
+<td>Link LED</td>
+</tr>
+<tr>
+<td>4</td>
+<td>GP2</td>
+<td>SD card SCK</td>
+<td>Audio left</td>
+</tr>
+<tr>
+<td>5</td>
+<td>GP3</td>
+<td>SD card MOSI</td>
+<td>Audio right</td>
+</tr>
+<tr>
+<td>6, 7, 9, 10, 11, 12, 14, 15</td>
+<td>GP4–GP11</td>
+<td>Link D0–D7 (out)</td>
+<td>Link D0–D7 (in)</td>
+</tr>
+<tr>
+<td>16</td>
+<td>GP12</td>
+<td>Debug serial TX</td>
+<td>HDMI D0+</td>
+</tr>
+<tr>
+<td>17</td>
+<td>GP13</td>
+<td>Debug serial RX</td>
+<td>HDMI D0−</td>
+</tr>
+<tr>
+<td>19</td>
+<td>GP14</td>
+<td>USB D+</td>
+<td>HDMI CLK+</td>
+</tr>
+<tr>
+<td>20</td>
+<td>GP15</td>
+<td>USB D−</td>
+<td>HDMI CLK−</td>
+</tr>
+<tr>
+<td>21</td>
+<td>GP16</td>
+<td>Clock SDA</td>
+<td>HDMI D2+</td>
+</tr>
+<tr>
+<td>22</td>
+<td>GP17</td>
+<td>Clock SCL</td>
+<td>HDMI D2−</td>
+</tr>
+<tr>
+<td>24</td>
+<td>GP18</td>
+<td>Return channel (in)</td>
+<td>HDMI D1+</td>
+</tr>
+<tr>
+<td>25</td>
+<td>GP19</td>
+<td>—</td>
+<td>HDMI D1−</td>
+</tr>
+<tr>
+<td>26</td>
+<td>GP20</td>
+<td>Sound line (out)</td>
+<td>Return channel (out)</td>
+</tr>
+<tr>
+<td>27</td>
+<td>GP21</td>
+<td>—</td>
+<td>Sound line (in)</td>
+</tr>
+<tr>
+<td>29</td>
+<td>GP22</td>
+<td>SD card LED</td>
+<td>—</td>
+</tr>
+<tr>
+<td>30</td>
+<td>RUN</td>
+<td>Reset (optional)</td>
+<td>Reset (optional)</td>
+</tr>
+<tr>
+<td>31</td>
+<td>GP26</td>
+<td>Link CLK (out)</td>
+<td>Link CLK (in)</td>
+</tr>
+<tr>
+<td>32</td>
+<td>GP27</td>
+<td>Link VBLANK (in)</td>
+<td>Link VBLANK (out)</td>
+</tr>
+<tr>
+<td>36</td>
+<td>3V3</td>
+<td>3.3 V for the SD card and the clock</td>
+<td>—</td>
+</tr>
+<tr>
+<td>39</td>
+<td>VSYS</td>
+<td>5 V in, through a diode (single supply)</td>
+<td>5 V in, through a diode (single supply)</td>
+</tr>
+<tr>
+<td>40</td>
+<td>VBUS</td>
+<td>5 V for the USB-A (see <a href="#power">Power</a>)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>3, 8, 13, 18, 23, 28, 33, 38</td>
+<td>GND</td>
+<td>Ground</td>
+<td>Ground</td>
+</tr>
+</tbody>
+</table>
+<p>Note that GP12 to GP19 mean different things on each Pico: on the ULA they
+are the HDMI output, on the CPU the debug port, USB and clock. Do not join
+them.</p>
+<h2 id="power">Power<a class="ancla" href="#power" aria-hidden="true">#</a></h2>
+<p>All the grounds must be joined. There are two ways to power it:</p>
+<p><strong>The simplest, for testing: each Pico from its own micro-USB</strong>, from the
+computer or from two USB chargers. Join the grounds of the two Picos. The
+USB-A port takes its 5 V from the CPU Pico's VBUS (pin 40), which is enough
+for a keyboard and a mouse; with a powered hub, better.</p>
+<p><strong>A single 5 V supply (like the PCB):</strong></p>
+<ul>
+<li>The supply feeds <strong>VSYS (pin 39) of each Pico through a Schottky diode</strong>
+  (the anode to the supply, the cathode, the end with the stripe, to VSYS).
+  This way you can plug in a Pico's micro-USB at the same time (to update it,
+  or for the serial port) without its 5 V going back into the supply.</li>
+<li>The supply also feeds the <strong>USB-A's 5 V (VBUS) through the 500 mA
+  resettable fuse</strong>.</li>
+</ul>
+<p>If you feed the supply into the CPU Pico's <strong>VBUS (pin 40)</strong> instead, without
+diodes, you <strong>must disconnect the supply before plugging in that Pico's
+micro-USB</strong> (to flash it, or for the serial port), or its 5 V would reach your
+computer.</p>
+<h2 id="the-link-between-the-two-picos">The link between the two Picos<a class="ancla" href="#the-link-between-the-two-picos" aria-hidden="true">#</a></h2>
+<p>Short wires (<strong>at most about 20 cm</strong>), with <strong>at least three ground wires</strong>
+spread among the data wires. Each signal has a 33 Ω resistor in series,
+placed <strong>next to the Pico that sends it</strong>. With very short wires you can try
+without the resistors; if the link shows errors (see
+<a href="firmware.html#no-picture">No picture</a>), add them.</p>
+<table>
+<thead>
+<tr>
+<th>CPU Pico</th>
+<th>Signal</th>
+<th>ULA Pico</th>
+<th>33 Ω next to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GP4 (pin 6)</td>
+<td>D0 →</td>
+<td>GP4 (pin 6)</td>
+<td>CPU</td>
+</tr>
+<tr>
+<td>GP5 (pin 7)</td>
+<td>D1 →</td>
+<td>GP5 (pin 7)</td>
+<td>CPU</td>
+</tr>
+<tr>
+<td>GP6 (pin 9)</td>
+<td>D2 →</td>
+<td>GP6 (pin 9)</td>
+<td>CPU</td>
+</tr>
+<tr>
+<td>GP7 (pin 10)</td>
+<td>D3 →</td>
+<td>GP7 (pin 10)</td>
+<td>CPU</td>
+</tr>
+<tr>
+<td>GP8 (pin 11)</td>
+<td>D4 →</td>
+<td>GP8 (pin 11)</td>
+<td>CPU</td>
+</tr>
+<tr>
+<td>GP9 (pin 12)</td>
+<td>D5 →</td>
+<td>GP9 (pin 12)</td>
+<td>CPU</td>
+</tr>
+<tr>
+<td>GP10 (pin 14)</td>
+<td>D6 →</td>
+<td>GP10 (pin 14)</td>
+<td>CPU</td>
+</tr>
+<tr>
+<td>GP11 (pin 15)</td>
+<td>D7 →</td>
+<td>GP11 (pin 15)</td>
+<td>CPU</td>
+</tr>
+<tr>
+<td>GP26 (pin 31)</td>
+<td>CLK →</td>
+<td>GP26 (pin 31)</td>
+<td>CPU</td>
+</tr>
+<tr>
+<td>GP20 (pin 26)</td>
+<td>Sound line →</td>
+<td>GP21 (pin 27)</td>
+<td>CPU</td>
+</tr>
+<tr>
+<td>GP27 (pin 32)</td>
+<td>← VBLANK</td>
+<td>GP27 (pin 32)</td>
+<td>ULA</td>
+</tr>
+<tr>
+<td>GP18 (pin 24)</td>
+<td>← Return channel</td>
+<td>GP20 (pin 26)</td>
+<td>ULA</td>
+</tr>
+<tr>
+<td>GND (pins 8, 13, 18...)</td>
+<td>Ground, 3 wires or more</td>
+<td>GND</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Without the <strong>sound line</strong> there is a picture but no sound.</li>
+<li>Without the <strong>return channel</strong> everything works, but programs are always
+  told the output is HDMI at 60 Hz, and the CPU's report warns about it.</li>
+</ul>
+<h2 id="hdmi">HDMI<a class="ancla" href="#hdmi" aria-hidden="true">#</a></h2>
+<p>On the ULA Pico. One 240 Ω resistor in series with each of the
+eight signals, <strong>as close to the Pico as possible</strong>. If your breakout has its
+pins labelled (D0+, CK−...), just follow the Signal column.</p>
+<table>
+<thead>
+<tr>
+<th>ULA Pico</th>
+<th>Signal</th>
+<th>HDMI connector pin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GP12 (pin 16)</td>
+<td>D0+</td>
+<td>7</td>
+</tr>
+<tr>
+<td>GP13 (pin 17)</td>
+<td>D0−</td>
+<td>9</td>
+</tr>
+<tr>
+<td>GP14 (pin 19)</td>
+<td>CLK+</td>
+<td>10</td>
+</tr>
+<tr>
+<td>GP15 (pin 20)</td>
+<td>CLK−</td>
+<td>12</td>
+</tr>
+<tr>
+<td>GP16 (pin 21)</td>
+<td>D2+</td>
+<td>1</td>
+</tr>
+<tr>
+<td>GP17 (pin 22)</td>
+<td>D2−</td>
+<td>3</td>
+</tr>
+<tr>
+<td>GP18 (pin 24)</td>
+<td>D1+</td>
+<td>4</td>
+</tr>
+<tr>
+<td>GP19 (pin 25)</td>
+<td>D1−</td>
+<td>6</td>
+</tr>
+<tr>
+<td>GND (pin 18 or 23)</td>
+<td>Ground</td>
+<td>2, 5, 8, 11 and 17</td>
+</tr>
+<tr>
+<td>5 V (optional)</td>
+<td>Power for the screen's identification chip</td>
+<td>18</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Keep the wires short</strong> (under 10 cm) and each pair (+ and −) together, or
+  twisted. These signals carry hundreds of millions of bits per second.</li>
+<li><strong>Pin 18 (5 V):</strong> many TVs need it to detect that something is connected.
+  Take it from the ULA's VBUS (pin 40) when the ULA is powered by its
+  micro-USB, or from your 5 V supply. The PCB puts a Schottky diode in this
+  line so the TV cannot feed power back into the board.</li>
+<li>Use a short HDMI cable, without adapters.</li>
+</ul>
+<h2 id="audio">Audio<a class="ancla" href="#audio" aria-hidden="true">#</a></h2>
+<p>On the ULA Pico: GP2 (pin 4) is the left channel and GP3 (pin 5) the right.
+Each channel goes through a two-stage filter and a capacitor to the jack:</p>
+<pre><code>GP2 ──[1 kΩ]──┬──[10 kΩ]──┬──|+ 10 µF|──┬── jack: tip (left)
+            10 nF        1 nF         100 kΩ
+              │           │            │
+             GND         GND          GND
+</code></pre>
+<p>The same for GP3, to the jack's <strong>ring</strong> (right). The jack's <strong>sleeve</strong> goes to
+GND (pin 3 or 8). The 10 µF capacitor is polarised: its <code>+</code> goes towards the
+Pico. The output is line level, for powered speakers or a TV's audio input.</p>
+<p>For a quick test, a 1 kΩ resistor and the 10 µF capacitor are enough, although
+you will hear some hiss.</p>
+<h2 id="the-mode-button-and-the-link-led">The mode button and the link LED<a class="ancla" href="#the-mode-button-and-the-link-led" aria-hidden="true">#</a></h2>
+<p>On the ULA Pico.</p>
+<table>
+<thead>
+<tr>
+<th>ULA Pico</th>
+<th>Connect to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GP0 (pin 1)</td>
+<td>A push button, whose other side goes to GND (pin 3)</td>
+</tr>
+<tr>
+<td>GP1 (pin 2)</td>
+<td>A 330 Ω resistor, then an LED (anode), its cathode to GND</td>
+</tr>
+</tbody>
+</table>
+<p>The button needs no resistor: the Pico has one inside. What the button and the
+LED do is explained in <a href="firmware.html#no-picture">The firmware</a>.</p>
+<h2 id="the-sd-card">The SD card<a class="ancla" href="#the-sd-card" aria-hidden="true">#</a></h2>
+<p>On the CPU Pico. A 3.3 V microSD module (or a 5 V one, with a regulator and
+level shifters, powered from 3.3 V):</p>
+<table>
+<thead>
+<tr>
+<th>microSD module</th>
+<th>CPU Pico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MISO (DO)</td>
+<td>GP0 (pin 1)</td>
+</tr>
+<tr>
+<td>CS</td>
+<td>GP1 (pin 2)</td>
+</tr>
+<tr>
+<td>SCK (CLK)</td>
+<td>GP2 (pin 4)</td>
+</tr>
+<tr>
+<td>MOSI (DI)</td>
+<td>GP3 (pin 5)</td>
+</tr>
+<tr>
+<td>VCC</td>
+<td>3V3 (pin 36)</td>
+</tr>
+<tr>
+<td>GND</td>
+<td>GND (pin 3)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The activity LED:</strong> from GP22 (pin 29), a 330 Ω resistor and an LED to
+ground. It lights while the machine uses the card or the clock.</p>
+<h2 id="the-keyboard-mouse-and-gamepads-usb-a">The keyboard, mouse and gamepads (USB-A)<a class="ancla" href="#the-keyboard-mouse-and-gamepads-usb-a" aria-hidden="true">#</a></h2>
+<p>On the CPU Pico. A female USB-A connector (a breakout, or the end of a cut USB
+extension cable):</p>
+<table>
+<thead>
+<tr>
+<th>USB-A</th>
+<th>CPU Pico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D+ (green wire)</td>
+<td>GP14 (pin 19)</td>
+</tr>
+<tr>
+<td>D− (white wire)</td>
+<td>GP15 (pin 20)</td>
+</tr>
+<tr>
+<td>VBUS (red wire)</td>
+<td>VBUS (pin 40), or the 5 V supply through the 500 mA fuse</td>
+</tr>
+<tr>
+<td>GND (black wire)</td>
+<td>GND (pin 18 or 23)</td>
+</tr>
+</tbody>
+</table>
+<p>D+ and D− go straight to the Pico, or through a 22 Ω resistor each (the PCB
+has them); no other resistors are needed. Plug in a keyboard, or a hub with the
+keyboard, a mouse and one or two gamepads.</p>
+<h2 id="the-clock-optional">The clock (optional)<a class="ancla" href="#the-clock-optional" aria-hidden="true">#</a></h2>
+<p>On the CPU Pico. Without a clock the machine works, but forgets the date and
+time, the language and the keyboard layout when switched off.</p>
+<p>The easiest is a <strong>DS3231 module</strong> for 3.3 V, with its CR2032 cell (a 5 V
+module with a regulator also works if its pull-up resistors go to 3.3 V):</p>
+<table>
+<thead>
+<tr>
+<th>Clock</th>
+<th>CPU Pico</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SDA</td>
+<td>GP16 (pin 21)</td>
+</tr>
+<tr>
+<td>SCL</td>
+<td>GP17 (pin 22)</td>
+</tr>
+<tr>
+<td>VCC</td>
+<td>3V3 (pin 36)</td>
+</tr>
+<tr>
+<td>GND</td>
+<td>GND (pin 23)</td>
+</tr>
+</tbody>
+</table>
+<p>A <strong>PCF8563</strong> (or BM8563) chip, as on the PCB, connects the same way, but
+needs more parts around it: a 32.768 kHz crystal with a 12.5 pF load next to
+the chip, 4.7 kΩ pull-up resistors from SDA and SCL to 3.3 V, and a BAT54C
+diode pair that feeds the chip from the 3.3 V and from the CR2032 cell, with a
+100 nF capacitor. The firmware looks for a DS3231 first and then for a
+PCF8563, and uses the one it finds.</p>
+<h2 id="reset-button-and-debug-port-optional">Reset button and debug port (optional)<a class="ancla" href="#reset-button-and-debug-port-optional" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>Reset:</strong> a push button from the <strong>RUN</strong> pin (pin 30) of each Pico to
+  ground restarts it. The PCB joins both RUN pins to a single button.</li>
+<li><strong>Debug serial port:</strong> the CPU Pico's GP12 (pin 16) is TX and GP13 (pin 17)
+  is RX, at 921600 baud and 3.3 V. Cross them to a 3.3 V USB-serial adapter
+  (TX to RX). The same messages come out of the micro-USB anyway.</li>
+</ul>
+<h2 id="building-it-step-by-step">Building it step by step<a class="ancla" href="#building-it-step-by-step" aria-hidden="true">#</a></h2>
+<ol>
+<li><strong>The ULA Pico alone.</strong> Wire the HDMI and the audio, and flash the
+   <code>zxv_ula.uf2</code> test (<a href="firmware.html#test-programs">The firmware</a>). You should
+   see some demos and hear music, on the screen and on the jack. Add the mode
+   button and the LED, and try the modes.</li>
+<li><strong>The two Picos.</strong> Wire the link, flash <code>zxv_cpu.uf2</code> on the CPU Pico and
+   <code>zxv_ula_link.uf2</code> on the ULA Pico. The BASIC should appear on the screen.
+   Open the CPU Pico's serial port with a terminal: what you type there
+   reaches the machine, and every 5 seconds it writes a report. (This is the
+   step that has not been tested yet: if it fails, the report on the serial
+   port is the place to start.)</li>
+<li><strong>The SD card, the USB-A and the clock</strong>, one at a time, checking each in
+   the report (<code>card</code>, <code>USB</code>, <code>clock</code>) and from the BASIC: <code>CAT</code> for the
+   card, typing for the keyboard, and <code>CLOCK 2026,10,20,18,30</code> then
+   <code>PRINT CLOCK 3;":";CLOCK 4</code> for the clock.</li>
+</ol>
+<p>If something does not work, see
+<a href="firmware.html#if-there-is-no-picture-or-no-sound">If there is no picture or no sound</a>.</p>
+<nav class="pasos"><a class="anterior" href="firmware.html"><small>Previous</small>← The firmware</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

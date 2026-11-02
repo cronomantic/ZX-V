@@ -47,6 +47,7 @@ const EN = {
     'Abrir en una pestaña aparte': 'Open in a separate tab',
     'Opciones': 'Options',
     'El teclado y los atajos': 'The keyboard and shortcuts',
+    'La documentación': 'Documentation',
     'El proyecto (GitHub)': 'The project (GitHub)',
     'Términos de uso': 'Terms of use',
     'Avisos de terceros': 'Third-party notices',
@@ -164,6 +165,7 @@ function translatePage() {
     for (const el of document.querySelectorAll('[data-t]'))
         el.textContent = t(el.dataset.t);
     keysIn.setAttribute('aria-label', t('Teclado de ZX-V'));
+    document.getElementById('b-docs').href = 'https://cronomantic.github.io/ZX-V/docs/' + uiLang + '/';
     document.getElementById('ayuda-texto').innerHTML = uiLang === 'es' ? ES_HELP : EN.AYUDA;
 }
 

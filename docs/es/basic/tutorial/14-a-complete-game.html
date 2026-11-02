@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>14. Un juego completo · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../en/basic/tutorial/14-a-complete-game.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../../emulator.html">El emulador</a>
+</li>
+<li><a href="../../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../index.html">Aprende BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. Primeros pasos</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables y cuentas</a></li>
+<li><a href="03-text-and-input.html">3. Texto y preguntas</a></li>
+<li><a href="04-decisions.html">4. Decisiones</a></li>
+<li><a href="05-loops.html">5. Bucles</a></li>
+<li><a href="06-arrays-and-data.html">6. Matrices y datos</a></li>
+<li><a href="07-procedures.html">7. Procedimientos</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Los colores y la pantalla</a></li>
+<li><a href="09-drawing.html">9. Dibujar</a></li>
+<li><a href="10-sound-and-music.html">10. Sonido y música</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Teclado y mando</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites y mapas de tiles</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a></li>
+<li><a href="14-a-complete-game.html" class="aqui">14. Un juego completo</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">El editor</a>
+</li>
+<li><a href="../reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../../hardware/board.html">La placa</a>
+</li>
+<li><a href="../../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="14-un-juego-completo">14. Un juego completo</h1>
+<p><strong>En este capítulo</strong> juntarás todo lo que has aprendido para escribir un
+juego entero, paso a paso: <em>Atrapa estrellas</em>. Caen estrellas del cielo y
+las recoges con una cesta. Cada estrella vale 10 puntos, y caen más deprisa
+cuantos más puntos tienes. Si se te escapan tres, se acaba la partida. El
+récord se guarda en la tarjeta SD.</p>
+<p><img alt="Atrapa estrellas" src="../../../images/tutorial-game-es.png" /></p>
+<p>Lo construirás en cinco pasos. Después de cada paso el programa funciona,
+así que puedes ver cómo crece y encontrar los errores pronto. Cada paso
+enseña solo las líneas nuevas o las que cambian: tecléalas y deja las que ya
+tienes.</p>
+<h2 id="el-plan">El plan<a class="ancla" href="#el-plan" aria-hidden="true">#</a></h2>
+<p>Antes de teclear, conviene pensar en las piezas:</p>
+<ul>
+<li><strong>Los gráficos</strong>: dos sprites, la cesta (16 × 8 píxeles) y la estrella
+  (8 × 8).</li>
+<li><strong>El estado del juego</strong>, en variables: la posición de la cesta, <code>px</code>; la
+  posición de la estrella, <code>sx</code> y <code>sy</code>, y su velocidad, <code>sp</code>; <code>puntos</code> y
+  <code>vidas</code>.</li>
+<li><strong>El bucle del juego</strong>, que se repite 30 veces por segundo: leer los
+  controles y mover la cesta, mover la estrella, comprobar si se ha atrapado
+  o si ha llegado al suelo, y dibujarlo todo.</li>
+<li><strong>Alrededor del bucle</strong>: una pantalla de título, el final de la partida y
+  el récord.</li>
+</ul>
+<p>Cada pieza será un procedimiento, así que el programa principal será corto.</p>
+<h2 id="paso-1-los-gráficos-y-la-escena">Paso 1: los gráficos y la escena<a class="ancla" href="#paso-1-los-gráficos-y-la-escena" aria-hidden="true">#</a></h2>
+<pre><code>10 REM Atrapa estrellas
+20 BORDER 0: PAPER 0: INK 7: CLS
+50 PROC graficos
+80 LET px=120: LET sx=124: LET sy=8: LET puntos=0: LET vidas=3: LET s=1: PROC dibujar
+1000 REM --- Graficos ---
+1010 DEF PROC graficos
+1020 LET b$=&quot;6..............6&quot;+&quot;66............66&quot;+&quot;.66666666666666.&quot;
+1030 LET b$=b$+&quot;.62626262626262.&quot;+&quot;.66666666666666.&quot;+&quot;..626262626262..&quot;
+1040 LET b$=b$+&quot;..666666666666..&quot;+&quot;...6666666666...&quot;
+1050 GRAB 0,16,b$
+1060 LET t$=&quot;...ee...&quot;+&quot;...ee...&quot;+&quot;eeeffeee&quot;+&quot;.eeffee.&quot;
+1070 LET t$=t$+&quot;..eeee..&quot;+&quot;.ee..ee.&quot;+&quot;ee....ee&quot;+&quot;........&quot;
+1080 GRAB 1,8,t$
+1090 END PROC
+4400 DEF PROC dibujar
+4410 SCREEN s
+4420 BOX 1,0,0,256,168: BOX 4,0,168,256,24
+4430 SPRITE 1,sx,sy
+4440 SPRITE 0,px,160
+4450 PRINT AT 0,0; PAPER 1;&quot;PUNTOS &quot;;puntos;AT 0,25;&quot;VIDAS &quot;;vidas
+4460 PAGE s: LET s=1-s: WAIT 2
+4470 END PROC
+</code></pre>
+<ul>
+<li><code>graficos</code> crea los sprites a partir de cadenas, como en el capítulo 12.
+  En la cesta, el <code>6</code> es amarillo y el <code>2</code> rojo; la estrella es amarilla
+  brillante (<code>e</code>) con el centro blanco (<code>f</code>).</li>
+<li><code>dibujar</code> dibuja un cuadro completo en la página escondida <code>s</code>: el cielo
+  azul, el suelo verde, la estrella, la cesta y la línea de los puntos; luego
+  lo enseña y espera dos frames con <code>WAIT 2</code>. Eso da 30 cuadros por segundo.</li>
+<li>La línea 80 da unos valores a las variables solo para probar <code>dibujar</code>.
+  Ejecútalo: verás la escena, quieta.</li>
+</ul>
+<h2 id="paso-2-mover-la-cesta">Paso 2: mover la cesta<a class="ancla" href="#paso-2-mover-la-cesta" aria-hidden="true">#</a></h2>
+<p>Ahora, el bucle del juego. Cambia la línea 80 y añade estas:</p>
+<pre><code>40 DEF FN b(j,n)=INT (j/2^n)-2*INT (j/2^(n+1))
+80 PROC partida
+3000 REM --- Una partida ---
+3010 DEF PROC partida
+3020 LET puntos=0: LET vidas=3: LET px=120: LET s=1: LET vol=0
+3040 PROC estrella
+3050 REPEAT
+3060 PROC mover
+3100 PROC dibujar
+3120 UNTIL vidas=0
+3140 END PROC
+4000 REM --- Las piezas del juego ---
+4010 DEF PROC mover
+4020 LET j=JOY 0
+4030 IF KEY CODE &quot;o&quot; OR KEY 8 OR FN b(j,1) THEN LET px=px-4
+4040 IF KEY CODE &quot;p&quot; OR KEY 9 OR FN b(j,0) THEN LET px=px+4
+4050 IF px&lt;0 THEN LET px=0
+4060 IF px&gt;240 THEN LET px=240
+4070 END PROC
+4100 DEF PROC estrella
+4110 LET sx=INT (RND*248): LET sy=8
+4120 LET sp=2+INT (puntos/50): IF sp&gt;8 THEN LET sp=8
+4130 END PROC
+</code></pre>
+<ul>
+<li>El procedimiento <code>partida</code> lo prepara todo y repite el bucle hasta que no
+  quedan vidas. De momento nada quita vidas, así que no acaba nunca: pulsa
+  <strong>Esc</strong> para pararlo. (<code>vol</code> servirá para el sonido en el paso 4).</li>
+<li><code>mover</code> lee las teclas <strong>O</strong> y <strong>P</strong>, los cursores y el mando (con la
+  función <code>FN b</code> del capítulo 11, definida en la línea 40), y mantiene la
+  cesta dentro de la pantalla: la pantalla mide 256 píxeles de ancho y la
+  cesta 16, así que <code>px</code> va de 0 a 240.</li>
+<li><code>estrella</code> pone una estrella en un sitio al azar de arriba. Su velocidad
+  <code>sp</code> crece con los puntos: 2 píxeles por cuadro al principio, uno más cada
+  50 puntos, hasta 8.</li>
+</ul>
+<p>Ejecútalo y mueve la cesta de un lado a otro.</p>
+<h2 id="paso-3-estrellas-que-caen">Paso 3: estrellas que caen<a class="ancla" href="#paso-3-estrellas-que-caen" aria-hidden="true">#</a></h2>
+<pre><code>30 RANDOMIZE
+3070 LET sy=sy+sp
+3080 IF HIT(0,px,160,1,sx,sy) THEN PROC atrapada
+3090 IF sy&gt;168 THEN PROC perdida
+4200 DEF PROC atrapada
+4210 LET puntos=puntos+10
+4230 PROC estrella
+4240 END PROC
+4300 DEF PROC perdida
+4310 LET vidas=vidas-1
+4330 PROC estrella
+4340 END PROC
+</code></pre>
+<ul>
+<li>La línea 3070 hace caer la estrella.</li>
+<li>La línea 3080 usa <code>HIT</code> para ver si la estrella toca la cesta: si la toca,
+  <code>atrapada</code> suma 10 puntos y lanza una estrella nueva.</li>
+<li>Si la estrella llega al suelo (<code>sy&gt;168</code>), <code>perdida</code> quita una vida y lanza
+  otra estrella.</li>
+<li><code>RANDOMIZE</code>, en la línea 30, hace que las estrellas caigan en un sitio
+  distinto en cada partida.</li>
+</ul>
+<p>Ya es un juego: después de tres fallos se acaba el bucle, y con él el
+programa.</p>
+<h2 id="paso-4-el-sonido-y-el-final-de-la-partida">Paso 4: el sonido y el final de la partida<a class="ancla" href="#paso-4-el-sonido-y-el-final-de-la-partida" aria-hidden="true">#</a></h2>
+<pre><code>3030 SOUND 7,62
+3110 IF vol&gt;0 THEN LET vol=vol-1: SOUND 8,vol
+3130 PROC finpartida
+4220 SOUND 0,60;1,0;8,15: LET vol=15
+4320 SOUND 0,0;1,3;8,15: LET vol=15
+5000 REM --- Fin de la partida ---
+5010 DEF PROC finpartida
+5020 SOUND 8,0: SCREEN 1-s
+5030 PRINT AT 10,6; PAPER 2; INK 7;&quot; FIN DE LA PARTIDA &quot;
+5050 PLAY &quot;T160O4 3gfedc5c&quot;
+5060 PAUSE 100
+5070 END PROC
+</code></pre>
+<ul>
+<li>Los sonidos usan la voz A del chip de sonido, como en el capítulo 10. La
+  línea 3030 enciende su tono. Atrapar una estrella toca una nota aguda y
+  perderla una grave, las dos a todo volumen (<code>8,15</code>), y <code>vol</code> se acuerda del
+  volumen.</li>
+<li>La línea 3110 baja un poco el volumen en cada vuelta del bucle, así que
+  cada sonido se apaga solo en una fracción de segundo, sin parar el juego.
+  <code>BEEP</code> habría congelado el juego mientras sonaba.</li>
+<li><code>finpartida</code> apaga el sonido, escribe <em>FIN DE LA PARTIDA</em> en la página que
+  se está viendo (la que no es <code>s</code>), toca una melodía triste y espera dos
+  segundos, o hasta que se pulse una tecla.</li>
+</ul>
+<h2 id="paso-5-la-pantalla-de-título-y-el-récord">Paso 5: la pantalla de título y el récord<a class="ancla" href="#paso-5-la-pantalla-de-título-y-el-récord" aria-hidden="true">#</a></h2>
+<p>El último paso añade una pantalla de título y guarda el récord en un
+fichero, como en el capítulo 13:</p>
+<pre><code>60 LET record=0: PROC leerrecord
+70 @titulo: PROC titulo
+90 GO TO @titulo
+2000 REM --- Pantalla de titulo ---
+2010 DEF PROC titulo
+2020 SCREEN 0: PAGE 0: CLS
+2030 PRINT AT 4,8; INK 6; BRIGHT 1;&quot;ATRAPA ESTRELLAS&quot;
+2040 SPRITE 1,124,56
+2050 PRINT AT 10,1;&quot;Atrapa las estrellas que caen&quot;
+2060 PRINT AT 13,6;&quot;O y P, o los cursores&quot;
+2070 PRINT AT 15,11; INK 5;&quot;Record: &quot;;record
+2080 PRINT AT 19,2; FLASH 1;&quot; Pulsa una tecla para jugar &quot;
+2090 PLAY &quot;T180O5 3ceg5C&quot;
+2100 PAUSE 0
+2110 END PROC
+5040 IF puntos&gt;record THEN LET record=puntos: PROC grabarrecord: PRINT AT 12,8; PAPER 1; INK 6;&quot; Nuevo record! &quot;
+6000 REM --- El record, en un fichero ---
+6010 DEF PROC leerrecord
+6020 ON ERROR GO TO 6040
+6030 OPEN #4,&quot;estrellas.txt&quot; IN: INPUT #4;record
+6040 ON ERROR GO TO 0: CLOSE #4
+6050 END PROC
+6100 DEF PROC grabarrecord
+6110 ON ERROR GO TO 6130
+6120 OPEN #4,&quot;estrellas.txt&quot; OUT: PRINT #4;record
+6130 ON ERROR GO TO 0: CLOSE #4
+6140 END PROC
+</code></pre>
+<ul>
+<li>El programa principal da vueltas: título, partida, título...</li>
+<li><code>titulo</code> usa la página 0 y espera una tecla con <code>PAUSE 0</code>, que además se
+  olvida de las teclas pulsadas durante la partida anterior.</li>
+<li><code>leerrecord</code> y <code>grabarrecord</code> leen y escriben el récord en el fichero
+  <code>estrellas.txt</code>. Gracias a <code>ON ERROR</code>, si el fichero no existe, o no hay
+  tarjeta, el juego simplemente empieza con un récord de 0.</li>
+</ul>
+<p>Para parar el juego, pulsa <strong>Esc</strong>. Grábalo con <code>SAVE "estrellas" LINE 10</code>,
+así <code>LOAD "estrellas"</code> lo pondrá en marcha solo.</p>
+<h2 id="el-programa-entero">El programa entero<a class="ancla" href="#el-programa-entero" aria-hidden="true">#</a></h2>
+<p>Aquí tienes el listado completo, para comparar el tuyo:</p>
+<pre><code>10 REM Atrapa estrellas
+20 BORDER 0: PAPER 0: INK 7: CLS
+30 RANDOMIZE
+40 DEF FN b(j,n)=INT (j/2^n)-2*INT (j/2^(n+1))
+50 PROC graficos
+60 LET record=0: PROC leerrecord
+70 @titulo: PROC titulo
+80 PROC partida
+90 GO TO @titulo
+1000 REM --- Graficos ---
+1010 DEF PROC graficos
+1020 LET b$=&quot;6..............6&quot;+&quot;66............66&quot;+&quot;.66666666666666.&quot;
+1030 LET b$=b$+&quot;.62626262626262.&quot;+&quot;.66666666666666.&quot;+&quot;..626262626262..&quot;
+1040 LET b$=b$+&quot;..666666666666..&quot;+&quot;...6666666666...&quot;
+1050 GRAB 0,16,b$
+1060 LET t$=&quot;...ee...&quot;+&quot;...ee...&quot;+&quot;eeeffeee&quot;+&quot;.eeffee.&quot;
+1070 LET t$=t$+&quot;..eeee..&quot;+&quot;.ee..ee.&quot;+&quot;ee....ee&quot;+&quot;........&quot;
+1080 GRAB 1,8,t$
+1090 END PROC
+2000 REM --- Pantalla de titulo ---
+2010 DEF PROC titulo
+2020 SCREEN 0: PAGE 0: CLS
+2030 PRINT AT 4,8; INK 6; BRIGHT 1;&quot;ATRAPA ESTRELLAS&quot;
+2040 SPRITE 1,124,56
+2050 PRINT AT 10,1;&quot;Atrapa las estrellas que caen&quot;
+2060 PRINT AT 13,6;&quot;O y P, o los cursores&quot;
+2070 PRINT AT 15,11; INK 5;&quot;Record: &quot;;record
+2080 PRINT AT 19,2; FLASH 1;&quot; Pulsa una tecla para jugar &quot;
+2090 PLAY &quot;T180O5 3ceg5C&quot;
+2100 PAUSE 0
+2110 END PROC
+3000 REM --- Una partida ---
+3010 DEF PROC partida
+3020 LET puntos=0: LET vidas=3: LET px=120: LET s=1: LET vol=0
+3030 SOUND 7,62
+3040 PROC estrella
+3050 REPEAT
+3060 PROC mover
+3070 LET sy=sy+sp
+3080 IF HIT(0,px,160,1,sx,sy) THEN PROC atrapada
+3090 IF sy&gt;168 THEN PROC perdida
+3100 PROC dibujar
+3110 IF vol&gt;0 THEN LET vol=vol-1: SOUND 8,vol
+3120 UNTIL vidas=0
+3130 PROC finpartida
+3140 END PROC
+4000 REM --- Las piezas del juego ---
+4010 DEF PROC mover
+4020 LET j=JOY 0
+4030 IF KEY CODE &quot;o&quot; OR KEY 8 OR FN b(j,1) THEN LET px=px-4
+4040 IF KEY CODE &quot;p&quot; OR KEY 9 OR FN b(j,0) THEN LET px=px+4
+4050 IF px&lt;0 THEN LET px=0
+4060 IF px&gt;240 THEN LET px=240
+4070 END PROC
+4100 DEF PROC estrella
+4110 LET sx=INT (RND*248): LET sy=8
+4120 LET sp=2+INT (puntos/50): IF sp&gt;8 THEN LET sp=8
+4130 END PROC
+4200 DEF PROC atrapada
+4210 LET puntos=puntos+10
+4220 SOUND 0,60;1,0;8,15: LET vol=15
+4230 PROC estrella
+4240 END PROC
+4300 DEF PROC perdida
+4310 LET vidas=vidas-1
+4320 SOUND 0,0;1,3;8,15: LET vol=15
+4330 PROC estrella
+4340 END PROC
+4400 DEF PROC dibujar
+4410 SCREEN s
+4420 BOX 1,0,0,256,168: BOX 4,0,168,256,24
+4430 SPRITE 1,sx,sy
+4440 SPRITE 0,px,160
+4450 PRINT AT 0,0; PAPER 1;&quot;PUNTOS &quot;;puntos;AT 0,25;&quot;VIDAS &quot;;vidas
+4460 PAGE s: LET s=1-s: WAIT 2
+4470 END PROC
+5000 REM --- Fin de la partida ---
+5010 DEF PROC finpartida
+5020 SOUND 8,0: SCREEN 1-s
+5030 PRINT AT 10,6; PAPER 2; INK 7;&quot; FIN DE LA PARTIDA &quot;
+5040 IF puntos&gt;record THEN LET record=puntos: PROC grabarrecord: PRINT AT 12,8; PAPER 1; INK 6;&quot; Nuevo record! &quot;
+5050 PLAY &quot;T160O4 3gfedc5c&quot;
+5060 PAUSE 100
+5070 END PROC
+6000 REM --- El record, en un fichero ---
+6010 DEF PROC leerrecord
+6020 ON ERROR GO TO 6040
+6030 OPEN #4,&quot;estrellas.txt&quot; IN: INPUT #4;record
+6040 ON ERROR GO TO 0: CLOSE #4
+6050 END PROC
+6100 DEF PROC grabarrecord
+6110 ON ERROR GO TO 6130
+6120 OPEN #4,&quot;estrellas.txt&quot; OUT: PRINT #4;record
+6130 ON ERROR GO TO 0: CLOSE #4
+6140 END PROC
+</code></pre>
+<h2 id="hazlo-tuyo">Hazlo tuyo<a class="ancla" href="#hazlo-tuyo" aria-hidden="true">#</a></h2>
+<p>Algunas ideas para ir más allá:</p>
+<ul>
+<li>Añade otra clase de estrella, de otro color, que valga 50 puntos.</li>
+<li>Añade una bomba que <strong>no</strong> hay que atrapar: quita una vida.</li>
+<li>Da una vida extra cada 500 puntos.</li>
+<li>Haz la cesta más rápida o más lenta, o deja que el jugador elija la
+  dificultad en la pantalla de título.</li>
+<li>Dibuja un fondo con tiles: unas nubes, o una ciudad de noche.</li>
+</ul>
+<h2 id="y-ahora-qué">Y ahora, ¿qué?<a class="ancla" href="#y-ahora-qué" aria-hidden="true">#</a></h2>
+<p>Has terminado el curso. Para ver hasta dónde llega el BASIC de ZX-V, mira el
+juego de plataformas de <code>examples/basic/platformer</code>: un robot recorre un
+nivel de cinco pantallas con scroll, recoge monedas, salta pinchos y pisa a
+los bichos. Su <a href="https://github.com/cronomantic/ZX-V/blob/main/examples/basic/platformer/README.es.md">guía</a>
+explica cómo está hecho, y usa todo lo que has visto aquí. Puedes jugarlo
+desde la unidad <code>ROM:</code>: <code>CD "ROM:"</code> y <code>LOAD "platformer"</code>.</p>
+<p>A partir de ahora, la <a href="../reference.html">referencia del BASIC</a> tiene todas las
+palabras clave con todos sus detalles, y la <a href="../editor.html">guía del editor</a>
+todos los trucos del editor. Cuando el BASIC no sea lo bastante rápido, el
+<a href="../../sdk/index.html">SDK</a> te permite escribir programas nativos en C.</p>
+<hr />
+<p><strong>Referencia:</strong> <a href="../reference.html#sprites-mapas-de-tiles-y-gráficos-rápidos">Sprites, mapas de tiles y gráficos rápidos</a>,
+<a href="../reference.html#sound"><code>SOUND</code></a>, <a href="../reference.html#key"><code>KEY</code></a>,
+<a href="../reference.html#joy"><code>JOY</code></a>, <a href="../reference.html#on-error"><code>ON ERROR</code></a>.</p>
+<p><strong>Anterior:</strong> <a href="13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a> ·
+<a href="../index.html">Volver al curso</a></p>
+<nav class="pasos"><a class="anterior" href="13-files-and-the-sd-card.html"><small>Anterior</small>← 13. Ficheros y la tarjeta SD</a><a class="siguiente" href="../editor.html"><small>Siguiente</small>El editor →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

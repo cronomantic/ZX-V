@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>9. Dibujar · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../en/basic/tutorial/09-drawing.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../../emulator.html">El emulador</a>
+</li>
+<li><a href="../../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../index.html">Aprende BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. Primeros pasos</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables y cuentas</a></li>
+<li><a href="03-text-and-input.html">3. Texto y preguntas</a></li>
+<li><a href="04-decisions.html">4. Decisiones</a></li>
+<li><a href="05-loops.html">5. Bucles</a></li>
+<li><a href="06-arrays-and-data.html">6. Matrices y datos</a></li>
+<li><a href="07-procedures.html">7. Procedimientos</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Los colores y la pantalla</a></li>
+<li><a href="09-drawing.html" class="aqui">9. Dibujar</a></li>
+<li><a href="10-sound-and-music.html">10. Sonido y música</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Teclado y mando</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites y mapas de tiles</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a></li>
+<li><a href="14-a-complete-game.html">14. Un juego completo</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">El editor</a>
+</li>
+<li><a href="../reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../../hardware/board.html">La placa</a>
+</li>
+<li><a href="../../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="9-dibujar">9. Dibujar</h1>
+<p><strong>En este capítulo aprenderás</strong> a dibujar puntos, líneas, circunferencias y
+arcos con <code>PLOT</code>, <code>DRAW</code> y <code>CIRCLE</code>, y figuras rellenas con <code>BOX</code>, <code>DISC</code> y
+<code>POLY</code>.</p>
+<h2 id="píxeles-y-coordenadas">Píxeles y coordenadas<a class="ancla" href="#píxeles-y-coordenadas" aria-hidden="true">#</a></h2>
+<p>La pantalla está hecha de puntitos llamados <strong>píxeles</strong>: 256 a lo ancho y
+192 a lo alto en el modo 0. Para dibujar, dices qué píxel con dos números,
+sus <strong>coordenadas</strong>: <code>x</code> (lo a la derecha que está) e <code>y</code>.</p>
+<p>Para <code>PLOT</code>, <code>DRAW</code> y <code>CIRCLE</code>, el punto (0,0) es la esquina de <strong>abajo a la
+izquierda</strong>, y la <code>y</code> crece hacia arriba, como en clase de matemáticas. La
+<code>x</code> va de 0 a 255 y la <code>y</code> de 0 a 175 (las dos filas de caracteres de abajo
+son para los mensajes).</p>
+<h2 id="plot-draw-y-circle"><code>PLOT</code>, <code>DRAW</code> y <code>CIRCLE</code><a class="ancla" href="#plot-draw-y-circle" aria-hidden="true">#</a></h2>
+<ul>
+<li><code>PLOT x,y</code> enciende el píxel (x,y).</li>
+<li><code>DRAW dx,dy</code> dibuja una línea desde el último punto hasta otro que está
+  <code>dx</code> píxeles a la derecha y <code>dy</code> píxeles más arriba. Los números son
+  <strong>relativos</strong>: dicen cuánto moverse, no adónde ir. Los negativos van a la
+  izquierda o hacia abajo.</li>
+<li><code>CIRCLE x,y,r</code> dibuja una circunferencia con el centro en (x,y) y radio
+  <code>r</code>.</li>
+</ul>
+<pre><code>10 PLOT 0,0
+20 PLOT 255,175
+30 PLOT 128,88
+40 PLOT 20,150: DRAW 100,0: DRAW 0,-50: DRAW -100,50
+50 CIRCLE 200,60,30
+</code></pre>
+<p>Las líneas 10 a 30 encienden tres píxeles: dos esquinas y el centro. La línea
+40 dibuja un triángulo: desde (20,150), 100 a la derecha, 50 hacia abajo y
+vuelta al principio.</p>
+<p>Cada dibujo puede llevar su color, como con <code>PRINT</code>:</p>
+<pre><code>10 BORDER 0: PAPER 0: CLS
+20 FOR i=1 TO 7
+30 CIRCLE INK i;128,88,i*12
+40 NEXT i
+</code></pre>
+<pre><code>10 PAPER 0: CLS
+20 FOR x=0 TO 255 STEP 8
+30 PLOT INK 6;x,0: DRAW INK 4;255-x,175
+40 NEXT x
+</code></pre>
+<h2 id="arcos">Arcos<a class="ancla" href="#arcos" aria-hidden="true">#</a></h2>
+<p><code>DRAW</code> con un tercer número dibuja un <strong>arco</strong> en vez de una línea recta. El
+número es lo que gira, en radianes: <code>PI</code> es media vuelta. Los positivos se
+curvan hacia un lado y los negativos hacia el otro:</p>
+<pre><code>10 PLOT 50,100: DRAW 150,0,PI
+20 PLOT 50,120: DRAW 150,0,-PI/2
+</code></pre>
+<h2 id="curvas-con-matemáticas">Curvas con matemáticas<a class="ancla" href="#curvas-con-matemáticas" aria-hidden="true">#</a></h2>
+<p><code>SIN</code> (el seno) da la altura de una onda. Dibuja un punto para cada <code>x</code> y
+sale una curva:</p>
+<pre><code>10 FOR x=0 TO 255
+20 PLOT x,88+60*SIN (x/128*2*PI)
+30 NEXT x
+</code></pre>
+<h2 id="figuras-rellenas-box-disc-y-poly">Figuras rellenas: <code>BOX</code>, <code>DISC</code> y <code>POLY</code><a class="ancla" href="#figuras-rellenas-box-disc-y-poly" aria-hidden="true">#</a></h2>
+<p>ZX-V añade órdenes que dibujan figuras <strong>rellenas</strong>, muy deprisa. Son parte
+de los gráficos para juegos que usarás en el capítulo 12, y funcionan de
+forma algo distinta:</p>
+<ul>
+<li>El color va primero, como un número del 0 al 15: del 0 al 7 son los
+  colores normales y del 8 al 15 sus versiones brillantes (el 10 es el rojo
+  brillante y el 14 el amarillo brillante).</li>
+<li>Las coordenadas empiezan en la esquina de <strong>arriba a la izquierda</strong> y la
+  <code>y</code> crece <strong>hacia abajo</strong>, como las filas de <code>PRINT AT</code>. La <code>y</code> va de 0 a
+  191.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Orden</th>
+<th>Dibuja</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BOX c,x,y,an,al</code></td>
+<td>Un rectángulo relleno con la esquina de arriba a la izquierda en (x,y), de <code>an</code> de ancho y <code>al</code> de alto</td>
+</tr>
+<tr>
+<td><code>DISC c,x,y,r</code></td>
+<td>Un círculo relleno con el centro en (x,y) y radio <code>r</code></td>
+</tr>
+<tr>
+<td><code>POLY c,x1,y1,x2,y2,x3,y3...</code></td>
+<td>Un polígono relleno con esas esquinas (hasta 64)</td>
+</tr>
+</tbody>
+</table>
+<p>Este programa enseña la diferencia entre las dos formas de contar la <code>y</code>:</p>
+<pre><code>10 PAPER 0: CLS
+20 PLOT INK 7;10,10: DRAW INK 7;235,0
+30 BOX 2,10,10,40,30
+40 PRINT AT 21,0; INK 7;&quot;BOX en 10,10&quot;
+</code></pre>
+<p>La línea de <code>PLOT 10,10</code> queda abajo; el rectángulo rojo en 10,10, arriba.</p>
+<p>Con unas pocas figuras rellenas puedes pintar un cuadro entero:</p>
+<pre><code>10 BORDER 5: PAPER 5: CLS
+20 REM el cielo y la hierba
+30 BOX 13,0,0,256,120
+40 BOX 4,0,120,256,56
+50 REM el sol
+60 DISC 14,210,30,18
+70 REM la casa
+80 BOX 7,60,70,90,60
+90 POLY 2,50,70,105,30,160,70
+100 BOX 1,95,95,22,35
+110 BOX 6,70,80,18,16: BOX 6,125,80,18,16
+</code></pre>
+<p><img alt="Una casa dibujada con BOX, DISC y POLY" src="../../../images/tutorial-drawing.png" /></p>
+<p>El tejado es un <code>POLY</code> de tres esquinas: los dos extremos del alero y el
+pico. Lo que se dibuja después queda encima, por eso las ventanas y la
+puerta se dibujan después de la pared.</p>
+<h2 id="pruébalo">Pruébalo<a class="ancla" href="#pruébalo" aria-hidden="true">#</a></h2>
+<ol>
+<li>Dibuja una diana: cinco círculos rellenos, uno dentro de otro, alternando
+   el rojo y el blanco.</li>
+<li>Añade un árbol al dibujo de la casa: entre los colores de siempre no hay
+   marrón, así que usa un <code>BOX</code> amarillo para el tronco y un <code>DISC</code> verde
+   para la copa. (Con <a href="../reference.html#palette"><code>PALETTE</code></a> podrías crear un
+   marrón.)</li>
+</ol>
+<details>
+<summary>Pista</summary>
+<p>Para la diana, dibuja primero el círculo más grande, con un bucle <code>FOR</code> que
+vaya bajando de tamaño: <code>FOR i=5 TO 1 STEP -1</code>. El color se puede sacar de
+<code>i</code>: rojo (2) cuando <code>i</code> es impar y blanco (7) cuando es par.</p>
+</details>
+<details>
+<summary>Una solución para el primero</summary>
+<pre><code>10 PAPER 0: CLS
+20 FOR i=5 TO 1 STEP -1
+30 LET c=2: IF INT (i/2)=i/2 THEN LET c=7
+40 DISC c,128,88,i*15
+50 NEXT i
+</code></pre>
+</details>
+<hr />
+<p><strong>Referencia:</strong> <a href="../reference.html#plot"><code>PLOT</code></a>, <a href="../reference.html#draw"><code>DRAW</code></a>,
+<a href="../reference.html#circle"><code>CIRCLE</code></a>, <a href="../reference.html#box"><code>BOX</code></a>,
+<a href="../reference.html#disc"><code>DISC</code></a>, <a href="../reference.html#poly"><code>POLY</code></a>,
+<a href="../reference.html#colores">Colores</a>.</p>
+<p><strong>Siguiente:</strong> <a href="10-sound-and-music.html">10. Sonido y música</a> ·
+<strong>Anterior:</strong> <a href="08-colours-and-the-screen.html">8. Los colores y la pantalla</a></p>
+<nav class="pasos"><a class="anterior" href="08-colours-and-the-screen.html"><small>Anterior</small>← 8. Los colores y la pantalla</a><a class="siguiente" href="10-sound-and-music.html"><small>Siguiente</small>10. Sonido y música →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

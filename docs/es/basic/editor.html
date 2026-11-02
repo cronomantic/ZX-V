@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El editor · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../en/basic/editor.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../emulator.html">El emulador</a>
+</li>
+<li><a href="../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="index.html">Aprende BASIC</a>
+</li>
+<li><a href="editor.html" class="aqui">El editor</a>
+<ul>
+</ul>
+</li>
+<li><a href="reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../hardware/board.html">La placa</a>
+</li>
+<li><a href="../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="el-editor">El editor</h1>
+<p>Al encender ZX-V estás en el <strong>editor</strong>, donde se teclean y se cambian los
+programas en BASIC y se dan las órdenes. Esta página explica cómo funciona y
+qué hace cada tecla. Para el lenguaje BASIC en sí, mira el <a href="index.html">curso de
+BASIC</a> y la <a href="reference.html">referencia</a>.</p>
+<p><img alt="El editor con un programa corto y una errata" src="../../images/editor-error-es.png" /></p>
+<h2 id="las-dos-pantallas">Las dos pantallas<a class="ancla" href="#las-dos-pantallas" aria-hidden="true">#</a></h2>
+<p>ZX-V enseña dos pantallas distintas:</p>
+<ul>
+<li>La <strong>pantalla del editor</strong>, la de arriba: tu programa listado en 64
+  columnas (o en 32, en <a href="#el-editor-en-modo-0">modo 0</a>), con una línea vacía
+  al final para teclear líneas nuevas y órdenes. Abajo hay una <strong>línea de estado</strong> para los mensajes y una
+  <strong>barra</strong> negra con <code>ZX-V BASIC</code>, la memoria libre en bytes y las franjas
+  de colores.</li>
+<li>La <strong>pantalla del programa</strong>, donde se ejecutan los programas y las órdenes
+  enseñan sus resultados (con <code>PRINT</code>, <code>PLOT</code> y demás), en el modo y con los
+  colores del propio programa.</li>
+</ul>
+<p>Cuando ejecutas una orden o un programa, ZX-V pasa a la pantalla del
+programa. Al acabar, el informe (por ejemplo <code>0 OK, 0:1</code>) se queda abajo, en
+la pantalla del programa, hasta que pulsas una tecla; entonces vuelves al
+editor. La tecla que pulsas no se pierde: cuenta como tecleada en el editor,
+así que puedes empezar a escribir la línea siguiente sin más.</p>
+<h2 id="teclear-una-línea">Teclear una línea<a class="ancla" href="#teclear-una-línea" aria-hidden="true">#</a></h2>
+<p>El cursor es un recuadro que parpadea en cian y azul. Se teclea como en
+cualquier ordenador: letras, cifras, signos (con Mayúsculas, como vienen en tu
+teclado) y espacios.</p>
+<p><strong>Las palabras clave se teclean letra a letra</strong>, en mayúsculas o en
+minúsculas: <code>print</code>, <code>Print</code> y <code>PRINT</code> son lo mismo. Al guardar la línea, ZX-V
+la vuelve a enseñar con las palabras clave en mayúsculas y con sus propios
+espacios: si tecleas <code>10 goto 20</code>, sale <code>10 GO TO 20</code>. Los nombres de las
+variables se quedan como los tecleaste.</p>
+<p>Una palabra clave no puede ir pegada a las letras o cifras que la siguen:
+<code>GO TO 20</code> y <code>PRINT"hola"</code> están bien, pero <code>GOTO20</code> no se lee como
+<code>GO TO 20</code>. Si dudas, deja un espacio.</p>
+<p>Se pueden teclear los caracteres de código 32 a 127 (también <code>£</code> y <code>©</code>, si
+tu teclado los tiene). <strong>Las letras con tilde, la ñ, <code>¿</code> y <code>¡</code> no son
+caracteres del BASIC</strong>: al teclearlas se escriben sin la tilde, la diéresis o
+la cedilla (<code>é</code> sale <code>e</code>, <code>ñ</code> sale <code>n</code>, <code>ç</code> sale <code>c</code>), y <code>¿</code> y <code>¡</code> salen <code>?</code> y
+<code>!</code>; los demás caracteres no hacen nada. En los textos de tus programas, por
+tanto, hay que pasarse sin ellas. Los gráficos de bloques y los definidos por el
+usuario se escriben con <code>CHR$</code> (ver el <a href="reference.html#juego-de-caracteres">juego de
+caracteres</a>). Una línea puede tener hasta
+1024 caracteres; las largas siguen en las filas siguientes de la pantalla.</p>
+<blockquote>
+<p><strong>Si conoces el Spectrum:</strong> el editor funciona como el del +2/128K: el
+listado se edita en su sitio, no hay modos K, L y E, y la tecla EDIT abre el
+menú de opciones. Las teclas son las de un teclado de PC, sin CAPS SHIFT ni
+SYMBOL SHIFT.</p>
+</blockquote>
+<h2 id="líneas-de-programa-y-órdenes-directas">Líneas de programa y órdenes directas<a class="ancla" href="#líneas-de-programa-y-órdenes-directas" aria-hidden="true">#</a></h2>
+<p>Lo que pasa al pulsar <strong>Enter</strong> depende de cómo empiece la línea:</p>
+<ul>
+<li><strong>Con un número</strong> (del 1 al 9999), es una <strong>línea de programa</strong>: se guarda
+  en el programa, en su sitio según el número, y todavía no se ejecuta nada.
+  Si ya había una línea con ese número, se sustituye.</li>
+<li><strong>Sin número</strong>, es una <strong>orden directa</strong>: se ejecuta en el momento, en la
+  pantalla del programa. Por ejemplo <code>PRINT 2+2</code>, <code>RUN</code>, <code>SAVE "juego"</code> o
+  <code>CLS</code>.</li>
+</ul>
+<p>Antes de guardar o de ejecutar nada, ZX-V comprueba la línea. Si hay un
+error, suena un zumbido corto, el cursor salta al sitio del problema y la
+línea de estado dice en rojo qué pasa (casi siempre <code>C Sintaxis
+incorrecta</code>). No se guarda ni se ejecuta nada hasta que lo arreglas, como en
+la imagen del principio de esta página.</p>
+<p>Después de guardar una línea, el cursor pasa al principio de la línea
+siguiente del listado, o a la línea vacía del final.</p>
+<h2 id="moverse-y-cambiar-líneas">Moverse y cambiar líneas<a class="ancla" href="#moverse-y-cambiar-líneas" aria-hidden="true">#</a></h2>
+<p>Todo el listado se puede editar en su sitio: lleva el cursor a una línea,
+cámbiala y pulsa Enter.</p>
+<table>
+<thead>
+<tr>
+<th>Tecla</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>← →</td>
+<td>Un carácter a la izquierda o a la derecha. Al principio o al final de una línea, pasa a la anterior o a la siguiente</td>
+</tr>
+<tr>
+<td>↑ ↓</td>
+<td>Una fila arriba o abajo, por el listado</td>
+</tr>
+<tr>
+<td>Inicio, Fin</td>
+<td>Al principio o al final de la línea</td>
+</tr>
+<tr>
+<td>Ctrl+Inicio</td>
+<td>A la primera línea del programa</td>
+</tr>
+<tr>
+<td>Ctrl+Fin</td>
+<td>A la línea vacía del final</td>
+</tr>
+<tr>
+<td>RePág, AvPág</td>
+<td>Diez líneas arriba o abajo</td>
+</tr>
+<tr>
+<td>Ctrl+← , Ctrl+→</td>
+<td>A la palabra anterior o a la siguiente</td>
+</tr>
+<tr>
+<td>Retroceso</td>
+<td>Borra el carácter de la izquierda del cursor</td>
+</tr>
+<tr>
+<td>Supr</td>
+<td>Borra el carácter que hay bajo el cursor; con el cursor en un <a href="#bloques-de-líneas">bloque</a>, borra el bloque</td>
+</tr>
+<tr>
+<td>Enter</td>
+<td>Guarda la línea (o ejecuta la orden)</td>
+</tr>
+<tr>
+<td>Esc</td>
+<td>Deshace los cambios de esta línea (si no los hay, quita la marca del bloque); mientras se ejecuta un programa, es BREAK</td>
+</tr>
+<tr>
+<td>Tab</td>
+<td>EDIT: abre el menú de opciones</td>
+</tr>
+<tr>
+<td>Mayúsculas+↑ ↓</td>
+<td>Marcan un <a href="#bloques-de-líneas">bloque de líneas</a></td>
+</tr>
+<tr>
+<td>F3</td>
+<td><a href="#buscar-y-sustituir-find-y-replace">Busca</a> otra vez lo último que buscaste</td>
+</tr>
+</tbody>
+</table>
+<p>Algunas cosas útiles:</p>
+<ul>
+<li><strong>Al salir de una línea cambiada, se guarda.</strong> Si cambias una línea y te
+  vas a otra con los cursores, se guarda como si hubieras pulsado Enter. Si
+  tiene un error, el cursor se queda en ella hasta que lo arreglas o pulsas
+  Esc.</li>
+<li><strong>Para deshacer</strong> los cambios de la línea en la que estás, pulsa Esc: la
+  línea vuelve a estar como antes.</li>
+<li><strong>Para borrar una línea</strong>, teclea solo su número en la línea vacía y pulsa
+  Enter (<code>30</code> borra la línea 30). Para borrar varias, usa
+  <a href="reference.html#delete"><code>DELETE</code></a>.</li>
+<li><strong>Para copiar una línea</strong>, cámbiale el número: se guarda con el número
+  nuevo y la antigua se queda donde estaba.</li>
+<li><strong>Para ejecutar una línea como orden</strong>, bórrale el número y pulsa Enter:
+  el texto se ejecuta como una orden directa, y la línea del programa se queda
+  como estaba.</li>
+<li>Pulsar Enter en una línea que no has cambiado solo pasa a la siguiente.</li>
+</ul>
+<p>La línea vacía del final conserva lo que tecleas aunque subas a mirar el
+listado y vuelvas.</p>
+<p><strong>El listado se sangra solo:</strong> lo que va dentro de un <code>FOR</code>, <code>WHILE</code>,
+<code>REPEAT</code>, <code>DEF PROC</code>, <code>SELECT CASE</code> o un <a href="reference.html#if-then-else">IF de bloque</a>
+sale dos espacios más a la derecha por cada nivel, y <code>ELSE</code> y <code>CASE</code>, uno
+menos. Los espacios no se guardan (no ocupan memoria), así que no hace falta
+teclearlos: al guardar la línea, el editor la sangra. <code>LIST</code> y los <code>.bas</code> que
+graba <code>SAVE</code> salen igual.</p>
+<h2 id="ejecutar-un-programa">Ejecutar un programa<a class="ancla" href="#ejecutar-un-programa" aria-hidden="true">#</a></h2>
+<ul>
+<li><code>RUN</code> ejecuta el programa desde el principio (antes borra las variables);
+  <code>RUN 100</code>, desde la línea 100. <code>GO TO 100</code> también lo ejecuta desde la
+  línea 100, pero conserva las variables.</li>
+<li>Pulsa <strong>BREAK (la tecla Esc)</strong> para parar un programa. El informe es
+  <code>L BREAK en el programa</code>, y <a href="reference.html#continue"><code>CONTINUE</code></a> sigue desde
+  donde se paró.</li>
+<li>Cuando un programa llena la pantalla, se para y pregunta <code>scroll?</code>:
+  cualquier tecla sigue, y N, Espacio o Esc lo paran.</li>
+<li>El informe de abajo dice cómo acabó el programa y dónde (ver
+  <a href="reference.html#informes">Informes</a>): <code>0 OK, 70:1</code> quiere decir que acabó
+  bien, en la orden 1 de la línea 70.</li>
+</ul>
+<h2 id="buscar-una-línea-list-y-edit">Buscar una línea: LIST y EDIT<a class="ancla" href="#buscar-una-línea-list-y-edit" aria-hidden="true">#</a></h2>
+<p>En un programa largo, RePág y AvPág avanzan de diez en diez líneas, y
+Ctrl+Inicio y Ctrl+Fin te llevan al principio y al final. Para ir directo a
+una línea, teclea una de estas órdenes:</p>
+<ul>
+<li><code>LIST 200</code> pone el cursor en la línea 200 (o en la siguiente que haya),
+  lista para editarla. <code>LIST</code> sin número va al principio.</li>
+<li><code>EDIT 200</code> hace lo mismo; <code>EDIT</code> sin número va a la última línea que
+  guardaste.</li>
+</ul>
+<p>Para ver el listado en la pantalla del programa, como en el Spectrum, usa
+<code>LIST #2</code>. <code>LLIST</code> lo manda al fichero de la impresora.</p>
+<h2 id="numerar-líneas-auto-renum-delete">Numerar líneas: AUTO, RENUM, DELETE<a class="ancla" href="#numerar-líneas-auto-renum-delete" aria-hidden="true">#</a></h2>
+<ul>
+<li><a href="reference.html#auto"><code>AUTO</code></a> pone los números de línea solo: tras <code>AUTO</code>, la
+  línea vacía ya empieza con el número siguiente (la última línea más 10), y
+  cada vez que pulsas Enter sale el siguiente. <code>AUTO 100, 5</code> empieza en el 100
+  y va de cinco en cinco. Se acaba al pulsar Enter en una línea que solo tiene
+  el número, al pulsar Esc o al pasar a otra línea.</li>
+<li><a href="reference.html#renum"><code>RENUM</code></a> renumera todo el programa de diez en diez (o
+  <code>RENUM 1000, 5</code>, desde el 1000 de cinco en cinco), y corrige los números que
+  van detrás de <code>GO TO</code>, <code>GO SUB</code>, <code>RESTORE</code>, <code>RUN</code>, <code>LIST</code>, <code>LLIST</code> y <code>LINE</code>.
+  Los números de línea que calcula el programa, como en <code>GO TO n*10</code>, no se
+  corrigen; las etiquetas (<a href="reference.html#etiqueta"><code>@nombre</code></a>) nunca lo
+  necesitan.</li>
+<li><a href="reference.html#delete"><code>DELETE 100, 190</code></a> borra las líneas de la 100 a la 190.</li>
+</ul>
+<p>Las tres funcionan solo como órdenes directas.</p>
+<h2 id="bloques-de-líneas">Bloques de líneas<a class="ancla" href="#bloques-de-líneas" aria-hidden="true">#</a></h2>
+<p>Para copiar, mover o borrar varias líneas de una vez, márcalas primero:</p>
+<ol>
+<li>Lleva el cursor a la primera línea y pulsa <strong>Mayúsculas+↓</strong> (o
+   Mayúsculas+↑ para ir hacia arriba). Se marcan esa línea y la siguiente, y
+   cada vez que vuelves a pulsarlo se marca una más. Las líneas marcadas se
+   ven en amarillo.</li>
+<li>Lleva el cursor a donde quieras el bloque y pulsa <strong>EDIT (Tab)</strong>. Con un
+   bloque marcado, el menú tiene tres opciones más:</li>
+</ol>
+<p><img alt="El menú con un bloque marcado" src="../../images/editor-block-es.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Opción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Copiar aquí</td>
+<td>Copia las líneas del bloque detrás de la línea del cursor (en la línea vacía del final, al final del programa)</td>
+</tr>
+<tr>
+<td>Mover aquí</td>
+<td>Igual, pero quita las del sitio de antes. Los <code>GO TO</code>, <code>GO SUB</code>, <code>RESTORE</code>... que iban a una línea movida pasan a su número nuevo</td>
+</tr>
+<tr>
+<td>Borrar líneas</td>
+<td>Borra el bloque, como Supr</td>
+</tr>
+</tbody>
+</table>
+<p>Las líneas copiadas o movidas toman números entre el de la línea del cursor y
+el de la siguiente, de diez en diez si caben (si no, más juntos). Si no hay
+números libres para todas, primero se renumera el programa de diez en diez,
+como con <code>RENUM</code>. Al copiar, los números de línea que hay dentro de las
+líneas copiadas no cambian: siguen yendo a las mismas líneas de antes.</p>
+<p>Para <strong>borrar</strong> el bloque, pon el cursor en una de sus líneas y pulsa Supr: la
+línea de estado pregunta <code>¿Borrar 3 líneas? (S/N)</code>, y solo S las borra.
+<strong>Esc</strong> quita la marca sin hacer nada.</p>
+<h2 id="buscar-y-sustituir-find-y-replace">Buscar y sustituir: FIND y REPLACE<a class="ancla" href="#buscar-y-sustituir-find-y-replace" aria-hidden="true">#</a></h2>
+<ul>
+<li><a href="reference.html#find"><code>FIND "texto"</code></a> lleva el cursor a la siguiente línea
+  del programa donde aparece el texto, empezando por la que va detrás de la
+  del cursor y dando la vuelta al llegar al final. El cursor se queda justo
+  sobre el texto. No distingue mayúsculas de minúsculas: <code>FIND "print"</code>
+  encuentra los <code>PRINT</code>.</li>
+<li><strong>F3</strong> busca otra vez lo mismo, desde el cursor. <code>FIND</code> sin texto también.</li>
+<li><a href="reference.html#replace"><code>REPLACE "viejo", "nuevo"</code></a> cambia el texto en todo
+  el programa. Cada línea cambiada se comprueba como si la hubieras tecleado:
+  si quedara con un error, no se toca. La línea de estado dice cuántos cambios
+  ha hecho (<code>5 cambios</code>), y en rojo cuántas líneas se quedaron sin cambiar.</li>
+</ul>
+<p>Las dos buscan en el listado tal como lo ves, palabras clave, textos entre
+comillas y <code>REM</code> incluidos, pero no en los números de línea.</p>
+<h2 id="deshacer">Deshacer<a class="ancla" href="#deshacer" aria-hidden="true">#</a></h2>
+<p>La opción <strong>Deshacer</strong> del menú EDIT deshace el último cambio del programa:
+una línea guardada o borrada, un bloque copiado, movido o borrado, y también
+<code>REPLACE</code>, <code>RENUM</code>, <code>DELETE</code>, <code>NEW</code>, <code>LOAD</code> y <code>MERGE</code>. Si la usas otra vez,
+rehace lo que deshizo. Si la línea del cursor está a medio cambiar, primero
+solo la deja como estaba, como Esc.</p>
+<p>Para poder deshacer, el editor guarda una copia del programa en la memoria
+libre, sin quitársela a nadie. Si después un programa necesita esa memoria
+(por ejemplo con un <code>DIM</code> grande), la copia se pierde y la línea de estado
+dice <code>No se puede deshacer</code>. Con un programa muy grande, que no deja sitio
+para la copia, tampoco se puede.</p>
+<h2 id="el-menú-de-opciones-edit">El menú de opciones (EDIT)<a class="ancla" href="#el-menú-de-opciones-edit" aria-hidden="true">#</a></h2>
+<p>Pulsa <strong>EDIT (la tecla Tab)</strong> para abrir el menú de opciones en el centro de
+la pantalla:</p>
+<p><img alt="El menú de opciones" src="../../images/editor-menu-es.png" /></p>
+<p>Elige con ↑ y ↓ y pulsa Enter. Esc o Tab cierran el menú sin hacer nada.</p>
+<table>
+<thead>
+<tr>
+<th>Opción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ZX-V BASIC</td>
+<td>Cierra el menú y vuelve al editor</td>
+</tr>
+<tr>
+<td>Renumerar</td>
+<td>Renumera el programa de diez en diez desde el 10, como <code>RENUM</code>. La línea de estado dice <code>Programa renumerado</code>, o <code>No se puede renumerar</code> si los números pasarían de 9999 o no hay memoria suficiente</td>
+</tr>
+<tr>
+<td>Pantalla</td>
+<td>Enseña la pantalla del programa (lo que dejó allí el último programa u orden) hasta que pulsas una tecla</td>
+</tr>
+<tr>
+<td>Imprimir</td>
+<td>Manda el listado a la impresora, el fichero <code>printer.txt</code> de la tarjeta SD, como <code>LLIST</code>. La línea de estado dice <code>Listado enviado a la impresora</code></td>
+</tr>
+<tr>
+<td>Deshacer</td>
+<td>Deshace el último cambio del programa: ver <a href="#deshacer">Deshacer</a></td>
+</tr>
+<tr>
+<td>Modo 0 / Modo 1</td>
+<td>Pasa el editor al otro modo: ver <a href="#el-editor-en-modo-0">El editor en modo 0</a></td>
+</tr>
+<tr>
+<td>Copiar aquí, Mover aquí, Borrar líneas</td>
+<td>Solo con un bloque marcado: ver <a href="#bloques-de-líneas">Bloques de líneas</a></td>
+</tr>
+</tbody>
+</table>
+<p>Renumerar e Imprimir trabajan con el programa guardado: si la línea en la que
+estás ha cambiado, primero se guarda (y si tiene un error, el menú se cierra
+para que lo arregles).</p>
+<h2 id="el-editor-en-modo-0">El editor en modo 0<a class="ancla" href="#el-editor-en-modo-0" aria-hidden="true">#</a></h2>
+<p>El editor empieza en el modo 1 de la pantalla: 64 columnas y 46 filas para
+el listado, con letra pequeña. La opción <strong>Modo 0</strong> del menú EDIT lo pasa al
+modo 0, como el del 128K: <strong>32 columnas y 22 filas</strong>, con letra del doble de
+grande, más fácil de leer en una tele o desde lejos. Las líneas largas
+siguen en las filas siguientes, igual que en el modo 1, y la barra de abajo
+solo lleva la memoria libre (sin «bytes libres»). En modo 0, la misma opción
+se llama <strong>Modo 1</strong> y lo devuelve a como estaba.</p>
+<p><img alt="El editor en modo 0" src="../../images/editor-mode0-es.png" /></p>
+<p>El modo del editor no tiene que ver con el de tus programas (<code>MODE</code>): cada
+uno usa su pantalla. Se mantiene con <code>NEW</code>, y al reiniciar la máquina el
+editor vuelve al modo 1.</p>
+<h2 id="la-línea-de-estado">La línea de estado<a class="ancla" href="#la-línea-de-estado" aria-hidden="true">#</a></h2>
+<p>La línea que hay justo encima de la barra enseña:</p>
+<table>
+<thead>
+<tr>
+<th>Mensaje</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>© 2026 Cronomantic  ZX-V 0.7.2</code></td>
+<td>Al arrancar ZX-V, y después de <code>NEW</code>: el copyright y la versión de la ROM</td>
+</tr>
+<tr>
+<td>Un error en rojo, como <code>C Sintaxis incorrecta</code></td>
+<td>Cuando una línea que querías guardar o ejecutar tiene un error</td>
+</tr>
+<tr>
+<td><code>Programa renumerado</code>, <code>No se puede renumerar</code></td>
+<td>Tras la opción Renumerar</td>
+</tr>
+<tr>
+<td><code>Listado enviado a la impresora</code></td>
+<td>Tras la opción Imprimir</td>
+</tr>
+<tr>
+<td><code>3 líneas copiadas</code>, <code>3 líneas movidas</code>, <code>3 líneas borradas</code></td>
+<td>Tras copiar, mover o borrar un bloque</td>
+</tr>
+<tr>
+<td><code>El cursor está en el bloque</code>, <code>No caben las líneas</code></td>
+<td>Cuando el bloque no se puede copiar o mover ahí</td>
+</tr>
+<tr>
+<td><code>No encontrado</code></td>
+<td>Tras <code>FIND</code> o F3, si el texto no está en el programa</td>
+</tr>
+<tr>
+<td><code>5 cambios</code>, <code>, 2 líneas sin cambiar (error)</code></td>
+<td>Tras <code>REPLACE</code></td>
+</tr>
+<tr>
+<td><code>Cambio deshecho</code>, <code>No se puede deshacer</code></td>
+<td>Tras la opción Deshacer</td>
+</tr>
+</tbody>
+</table>
+<p>El mensaje desaparece con la siguiente tecla que pulses. La barra de debajo
+enseña siempre la memoria libre: el programa y sus variables comparten unos
+94 KB.</p>
+<h2 id="grabar-y-cargar">Grabar y cargar<a class="ancla" href="#grabar-y-cargar" aria-hidden="true">#</a></h2>
+<p>Los programas se guardan en la tarjeta SD. Desde el editor:</p>
+<ul>
+<li><code>SAVE "juego"</code> graba el programa como <code>juego.zvb</code>. <code>SAVE "juego" LINE 10</code>
+  lo graba para que, al cargarlo, se ejecute solo desde la línea 10.</li>
+<li><code>LOAD "juego"</code> lo carga, y sustituye al programa que haya en la memoria.</li>
+<li><code>CAT</code> lista los ficheros de la carpeta actual, y <code>CAT "ROM:"</code>, los ejemplos
+  que trae ZX-V; <code>LOAD "ROM:hello"</code> ejecuta uno de ellos.</li>
+<li><code>MERGE "juego"</code> añade las líneas (y las variables) de un programa grabado
+  al que tienes.</li>
+<li><code>OPEN #4, "juego.txt" OUT: LIST #4: CLOSE #4</code> escribe el listado en un
+  fichero de texto, para leerlo en un ordenador.</li>
+</ul>
+<p><code>NEW</code> borra el programa, y cargar un programa nativo (<code>.zxv</code>) también deja el
+BASIC vacío cuando acaba: graba antes tu trabajo. Todos los detalles están en
+la referencia, en <a href="reference.html#ficheros-y-la-tarjeta-sd">Ficheros y la tarjeta SD</a>.</p>
+<h2 id="el-idioma-del-editor">El idioma del editor<a class="ancla" href="#el-idioma-del-editor" aria-hidden="true">#</a></h2>
+<p>La barra, el menú, los mensajes y los informes de error están en inglés o en
+español, el idioma de la máquina. Se cambia con <code>LANGUAGE "es"</code> o
+<code>LANGUAGE "en"</code> (ver <a href="reference.html#language">LANGUAGE</a>); el emulador también
+tiene una opción para elegirlo (ver <a href="../emulator.html">el emulador</a>).</p>
+<nav class="pasos"><a class="anterior" href="tutorial/14-a-complete-game.html"><small>Anterior</small>← 14. Un juego completo</a><a class="siguiente" href="reference.html"><small>Siguiente</small>Referencia del BASIC →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

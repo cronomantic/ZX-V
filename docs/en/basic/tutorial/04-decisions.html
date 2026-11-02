@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4. Decisions · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../es/basic/tutorial/04-decisions.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../../getting-started.html">Getting started</a>
+</li>
+<li><a href="../../emulator.html">The emulator</a>
+</li>
+<li><a href="../../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../index.html">Learn BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. First steps</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables and maths</a></li>
+<li><a href="03-text-and-input.html">3. Text and input</a></li>
+<li><a href="04-decisions.html" class="aqui">4. Decisions</a></li>
+<li><a href="05-loops.html">5. Loops</a></li>
+<li><a href="06-arrays-and-data.html">6. Arrays and data</a></li>
+<li><a href="07-procedures.html">7. Procedures</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Colours and the screen</a></li>
+<li><a href="09-drawing.html">9. Drawing</a></li>
+<li><a href="10-sound-and-music.html">10. Sound and music</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Keyboard and joystick</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Files and the SD card</a></li>
+<li><a href="14-a-complete-game.html">14. A complete game</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">The editor</a>
+</li>
+<li><a href="../reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../../hardware/board.html">The board</a>
+</li>
+<li><a href="../../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="4-decisions">4. Decisions</h1>
+<p><strong>In this chapter you will learn</strong> to make the program choose what to do
+with <code>IF</code>, <code>THEN</code>, <code>ELSE</code> and <code>SELECT CASE</code>, to compare numbers and strings, and to jump to
+another place with <code>GO TO</code> and labels. At the end you will write a
+number-guessing game.</p>
+<h2 id="if--then"><code>IF</code> ... <code>THEN</code><a class="ancla" href="#if--then" aria-hidden="true">#</a></h2>
+<p><code>IF</code> checks a <strong>condition</strong>. If it is true, the machine carries out what
+comes after <code>THEN</code>; if not, it goes on with the next line.</p>
+<pre><code>10 INPUT &quot;How old are you? &quot;;age
+20 IF age&gt;=18 THEN PRINT &quot;You can vote.&quot;
+30 IF age&lt;18 THEN PRINT &quot;You can vote in &quot;;18-age;&quot; years.&quot;
+</code></pre>
+<p>With 12, it prints <code>You can vote in 6 years.</code></p>
+<p>These are the signs for comparing:</p>
+<table>
+<thead>
+<tr>
+<th>Sign</th>
+<th>Means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>=</code></td>
+<td>equal to</td>
+</tr>
+<tr>
+<td><code>&lt;&gt;</code></td>
+<td>different from</td>
+</tr>
+<tr>
+<td><code>&lt;</code></td>
+<td>less than</td>
+</tr>
+<tr>
+<td><code>&gt;</code></td>
+<td>greater than</td>
+</tr>
+<tr>
+<td><code>&lt;=</code></td>
+<td>less than or equal to</td>
+</tr>
+<tr>
+<td><code>&gt;=</code></td>
+<td>greater than or equal to</td>
+</tr>
+</tbody>
+</table>
+<p>They work with strings too: <code>"apple"&lt;"banana"</code> is true, because it compares
+in alphabetical order (capitals come before small letters).</p>
+<h2 id="else-one-thing-or-the-other"><code>ELSE</code>: one thing or the other<a class="ancla" href="#else-one-thing-or-the-other" aria-hidden="true">#</a></h2>
+<p><code>ELSE</code> says what to do when the condition is false:</p>
+<pre><code>10 INPUT &quot;Password? &quot;;p$
+20 IF p$=&quot;zxv&quot; THEN PRINT &quot;Welcome!&quot; ELSE PRINT &quot;Wrong password.&quot;
+</code></pre>
+<h2 id="several-things-at-once">Several things at once<a class="ancla" href="#several-things-at-once" aria-hidden="true">#</a></h2>
+<p>Everything after <code>THEN</code> up to the end of the line depends on the condition,
+even if there are several statements separated by <code>:</code>:</p>
+<pre><code>10 INPUT &quot;A number from 1 to 10? &quot;;n
+20 IF n&lt;1 OR n&gt;10 THEN PRINT &quot;That is not from 1 to 10.&quot;: STOP
+30 IF n=7 THEN PRINT &quot;Lucky seven!&quot;: PRINT &quot;Well done.&quot;
+40 PRINT &quot;You chose &quot;;n
+</code></pre>
+<p><code>STOP</code> ends the program there, with the message <code>9 STOP statement</code>.</p>
+<h2 id="blocks-an-if-over-several-lines">Blocks: an <code>IF</code> over several lines<a class="ancla" href="#blocks-an-if-over-several-lines" aria-hidden="true">#</a></h2>
+<p>When what depends on the condition does not fit comfortably on one line,
+leave <code>THEN</code> at the end and write the statements on the following lines, up
+to <code>END IF</code>. <code>ELSE</code> and <code>ELSE IF</code> (another condition, tried if the one before
+was not true) separate the parts:</p>
+<pre><code>10 INPUT &quot;Mark? &quot;;n
+20 IF n&gt;=9 THEN
+30 PRINT &quot;Excellent&quot;
+40 PRINT &quot;Well done!&quot;
+50 ELSE IF n&gt;=5 THEN
+60 PRINT &quot;Pass&quot;
+70 ELSE
+80 PRINT &quot;Fail&quot;
+90 END IF
+100 PRINT &quot;The end&quot;
+</code></pre>
+<p>Only one of the parts runs, and then the program carries on after <code>END IF</code>.
+There is no need to indent the lines: the editor does it when it stores them,
+so that you can see what goes inside what.</p>
+<h2 id="choosing-among-many-select-case">Choosing among many: <code>SELECT CASE</code><a class="ancla" href="#choosing-among-many-select-case" aria-hidden="true">#</a></h2>
+<p>To compare one value with many, <code>SELECT CASE</code> is clearer than a chain of
+<code>ELSE IF</code>. Each <code>CASE</code> has the values it matches: one, several separated by
+commas, a range with <code>TO</code> or a comparison such as <code>&lt; 0</code>. <code>CASE ELSE</code> catches
+the rest:</p>
+<pre><code>10 INPUT &quot;Month (1-12)? &quot;;m
+20 SELECT CASE m
+30 CASE 12, 1, 2: PRINT &quot;Winter&quot;
+40 CASE 3 TO 5: PRINT &quot;Spring&quot;
+50 CASE 6 TO 8: PRINT &quot;Summer&quot;
+60 CASE 9 TO 11: PRINT &quot;Autumn&quot;
+70 CASE ELSE: PRINT &quot;There is no such month&quot;
+80 END SELECT
+</code></pre>
+<p>It works with strings too: <code>SELECT CASE r$</code> with <code>CASE "y", "Y"</code>.</p>
+<h2 id="and-or-not"><code>AND</code>, <code>OR</code>, <code>NOT</code><a class="ancla" href="#and-or-not" aria-hidden="true">#</a></h2>
+<p>To join conditions:</p>
+<ul>
+<li><code>a AND b</code> is true when both are true.</li>
+<li><code>a OR b</code> is true when at least one is true.</li>
+<li><code>NOT a</code> is true when <code>a</code> is false.</li>
+</ul>
+<pre><code>10 LET t=20
+20 IF t&gt;15 AND t&lt;25 THEN PRINT &quot;Nice weather&quot;
+30 IF NOT t&gt;30 THEN PRINT &quot;Not too hot&quot;
+</code></pre>
+<p>Behind the scenes, a true condition is the number 1 and a false one is 0:
+<code>PRINT 3&gt;2</code> writes <code>1</code>. You will make use of this later.</p>
+<h2 id="jumping-go-to-and-labels">Jumping: <code>GO TO</code> and labels<a class="ancla" href="#jumping-go-to-and-labels" aria-hidden="true">#</a></h2>
+<p>You saw <code>GO TO</code> in chapter 1: it sends the program to another line. Together
+with <code>IF</code>, it lets you repeat something until it comes out right.</p>
+<p>Instead of a line number you can jump to a <strong>label</strong>: a name that starts with
+<code>@</code>, placed at the start of a statement. Labels make the program easier to
+read, and they keep working if you renumber the lines.</p>
+<p>Here is a complete game. The machine thinks of a number from 1 to 100 and
+you have to guess it:</p>
+<pre><code>10 RANDOMIZE
+20 LET secret=INT (RND*100)+1
+30 LET tries=0
+40 @ask: INPUT &quot;Guess my number (1-100): &quot;;g
+50 LET tries=tries+1
+60 IF g&lt;secret THEN PRINT g;&quot; is too low&quot;: GO TO @ask
+70 IF g&gt;secret THEN PRINT g;&quot; is too high&quot;: GO TO @ask
+80 PRINT &quot;Yes! It was &quot;;secret
+90 PRINT &quot;You needed &quot;;tries;&quot; tries&quot;
+</code></pre>
+<p>The line with <code>@ask</code> marks the place to go back to. Every wrong guess sends
+the program back there; when the guess is right, neither line 60 nor line 70
+jumps, and the program reaches line 80.</p>
+<h2 id="try-it">Try it<a class="ancla" href="#try-it" aria-hidden="true">#</a></h2>
+<ol>
+<li>Write a program that asks for a number and says whether it is even or
+   odd.</li>
+<li>Add a limit to the guessing game: if you have not guessed it after 7
+   tries, the program tells you the number and stops.</li>
+</ol>
+<details>
+<summary>Hint</summary>
+<p>A number <code>n</code> is even when <code>n/2</code> has no decimals, that is, when
+<code>INT (n/2)=n/2</code>. For the second, check <code>tries</code> before going back to <code>@ask</code>:
+a new line <code>55 IF tries=7 AND g&lt;&gt;secret THEN ...</code> will do.</p>
+</details>
+<details>
+<summary>A solution for the first one</summary>
+<pre><code>10 INPUT &quot;A number? &quot;;n
+20 IF INT (n/2)=n/2 THEN PRINT n;&quot; is even&quot; ELSE PRINT n;&quot; is odd&quot;
+</code></pre>
+</details>
+<hr />
+<p><strong>Reference:</strong> <a href="../reference.html#if-then-else"><code>IF</code>, <code>THEN</code>, <code>ELSE</code></a>,
+<a href="../reference.html#select-case"><code>SELECT CASE</code></a>,
+<a href="../reference.html#true-and-false">True and false</a>,
+<a href="../reference.html#go-to"><code>GO TO</code></a>, <a href="../reference.html#label"><code>@label</code></a>,
+<a href="../reference.html#stop"><code>STOP</code></a>.</p>
+<p><strong>Next:</strong> <a href="05-loops.html">5. Loops</a> ·
+<strong>Previous:</strong> <a href="03-text-and-input.html">3. Text and input</a></p>
+<nav class="pasos"><a class="anterior" href="03-text-and-input.html"><small>Previous</small>← 3. Text and input</a><a class="siguiente" href="05-loops.html"><small>Next</small>5. Loops →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La máquina · ZX-V</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" type="image/png" href="../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../en/machine.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="emulator.html">El emulador</a>
+</li>
+<li><a href="machine.html" class="aqui">La máquina</a>
+<ul>
+</ul>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="basic/index.html">Aprende BASIC</a>
+</li>
+<li><a href="basic/editor.html">El editor</a>
+</li>
+<li><a href="basic/reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="hardware/board.html">La placa</a>
+</li>
+<li><a href="hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="la-máquina">La máquina</h1>
+<p>Esta página describe cómo es ZX-V: lo que ves en la pantalla, lo que oyes,
+cómo lo manejas y cuánto sitio tienen tus programas. Es la misma máquina en el
+emulador y en el hardware real.</p>
+<h2 id="de-un-vistazo">De un vistazo<a class="ancla" href="#de-un-vistazo" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>ZX-V</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Procesador</td>
+<td>RISC-V de 32 bits a 144 MHz</td>
+</tr>
+<tr>
+<td>Memoria</td>
+<td>520 KB de RAM en total; unos 94 KB libres para un programa BASIC y hasta 248 KB para un programa nativo</td>
+</tr>
+<tr>
+<td>Pantalla</td>
+<td>256 × 192 o 512 × 384 píxeles, con borde</td>
+</tr>
+<tr>
+<td>Colores</td>
+<td>15 de serie; con paletas, 16 por línea de entre 65.536 (hasta 64 en la pantalla), cualquiera en cualquier píxel</td>
+</tr>
+<tr>
+<td>Páginas de vídeo</td>
+<td>Dos, para dibujar en una mientras se ve la otra</td>
+</tr>
+<tr>
+<td>Sonido</td>
+<td>Dos chips de música AY-3-8912 (6 voces) y un beeper, en estéreo</td>
+</tr>
+<tr>
+<td>Almacenamiento</td>
+<td>Tarjeta SD, y la unidad <code>ROM:</code> de serie con los ejemplos</td>
+</tr>
+<tr>
+<td>Entrada</td>
+<td>Teclado USB, ratón y hasta dos mandos</td>
+</tr>
+<tr>
+<td>Reloj</td>
+<td>Fecha y hora, que se mantienen con la máquina apagada</td>
+</tr>
+<tr>
+<td>Idiomas</td>
+<td>Español e inglés</td>
+</tr>
+<tr>
+<td>Ritmo</td>
+<td>60 imágenes por segundo</td>
+</tr>
+<tr>
+<td>Salida de imagen</td>
+<td>HDMI o DVI, 640 × 480 a 60 Hz</td>
+</tr>
+</tbody>
+</table>
+<p>Arranca directamente en el BASIC, y también ejecuta <strong>programas nativos</strong>
+escritos en C para su procesador (ver el <a href="sdk/index.html">SDK</a>).</p>
+<h2 id="la-pantalla">La pantalla<a class="ancla" href="#la-pantalla" aria-hidden="true">#</a></h2>
+<h3 id="dos-resoluciones">Dos resoluciones<a class="ancla" href="#dos-resoluciones" aria-hidden="true">#</a></h3>
+<p>La pantalla tiene dos <strong>modos</strong>. Cada uno enseña un rectángulo de píxeles (el
+<em>papel</em>) rodeado de un <strong>borde</strong> de color:</p>
+<table>
+<thead>
+<tr>
+<th>Modo</th>
+<th>Píxeles</th>
+<th>Texto (caracteres de 8 × 8)</th>
+<th>Para qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>256 × 192</td>
+<td>32 columnas × 24 filas</td>
+<td>Programas y juegos: la resolución clásica, de píxeles grandes</td>
+</tr>
+<tr>
+<td>1</td>
+<td>512 × 384</td>
+<td>64 columnas × 48 filas</td>
+<td>Gráficos detallados y mucho texto. Es el que usa el editor del BASIC (que también puede ir en modo 0)</td>
+</tr>
+</tbody>
+</table>
+<p>Los dos ocupan la misma superficie de la tele: un píxel del modo 1 mide la
+mitad de ancho y la mitad de alto que uno del modo 0. En el BASIC, <code>MODE 0</code> y
+<code>MODE 1</code> cambian de uno a otro. Tus programas empiezan en el modo 0.</p>
+<p>La pantalla es de 640 × 480: alrededor del papel hay un borde de 64 píxeles a
+cada lado y 48 líneas arriba y abajo.</p>
+<h3 id="los-colores">Los colores<a class="ancla" href="#los-colores" aria-hidden="true">#</a></h3>
+<p>ZX-V tiene <strong>15 colores</strong>: ocho de brillo normal y los mismos brillantes (el
+negro es igual en los dos).</p>
+<p><img alt="Los 15 colores" src="../images/machine-palette.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Número</th>
+<th>Color</th>
+<th>Número</th>
+<th>Color</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Negro</td>
+<td>8</td>
+<td>Negro (brillante)</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Azul</td>
+<td>9</td>
+<td>Azul brillante</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Rojo</td>
+<td>10</td>
+<td>Rojo brillante</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Magenta</td>
+<td>11</td>
+<td>Magenta brillante</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Verde</td>
+<td>12</td>
+<td>Verde brillante</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Cian</td>
+<td>13</td>
+<td>Cian brillante</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Amarillo</td>
+<td>14</td>
+<td>Amarillo brillante</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Blanco</td>
+<td>15</td>
+<td>Blanco brillante</td>
+</tr>
+</tbody>
+</table>
+<p>Cada píxel puede tener cualquiera de estos colores, sin depender de sus
+vecinos.</p>
+<p>En el BASIC, <code>INK</code> (el color del texto y los dibujos) y <code>PAPER</code> (el fondo)
+admiten los colores del 0 al 7 (el 8 y el 9 tienen significados especiales,
+explicados en la <a href="basic/reference.html">referencia</a>), y <code>BRIGHT 1</code> los hace
+brillantes; las órdenes gráficas para juegos (<code>BOX</code>, <code>DISC</code>, <code>SPRITE</code>...) usan
+directamente los números del 0 al 15. En esos gráficos, el color 8 quiere decir
+<strong>transparente</strong>: los píxeles de un sprite pintados con el 8 dejan ver el
+fondo.</p>
+<p><strong>Tablas de color.</strong> La máquina también puede <em>cambiar cómo se ven los
+colores</em> sin redibujar nada: una tabla dice, para cada uno de los 16 números,
+qué color se enseña. Los programas lo usan para fundidos, destellos y ciclos de
+color (en el BASIC, <code>REMAP</code>). Hay cuatro tablas, y cada parte de la pantalla
+puede usar una distinta.</p>
+<p><strong>Paletas.</strong> Los 15 colores son los de siempre, pero no los únicos: cada
+tabla tiene su <strong>paleta</strong>, que dice qué color es cada uno de los 16 números,
+de entre 65.536 (en el BASIC, <code>PALETTE</code>). Así, cada línea de la pantalla
+puede tener 16 colores a tu gusto, y la pantalla entera hasta 64.</p>
+<h3 id="dos-páginas">Dos páginas<a class="ancla" href="#dos-páginas" aria-hidden="true">#</a></h3>
+<p>La máquina tiene <strong>dos páginas de vídeo</strong>, dos pantallas completas en memoria.
+Una se ve mientras en la otra se puede dibujar, y pasar de una a otra es
+instantáneo. Los juegos lo usan para dibujar cada imagen en la página oculta y
+enseñarla después de golpe, sin parpadeos (en el BASIC, <code>SCREEN</code> elige la
+página en la que se dibuja y <code>PAGE</code>, la que se ve).</p>
+<p>El BASIC usa las dos páginas a su manera: la página 0, en modo 0, es la
+pantalla de tu programa, y la página 1 es el editor (en modo 1, o en modo 0
+si lo eliges en su menú). Por eso lo que saca un programa y tu listado no
+se mezclan: al ejecutar un programa ves su pantalla, y al terminar, una
+tecla te devuelve al editor.</p>
+<h3 id="sprites-mapas-de-tiles-y-capas">Sprites, mapas de tiles y capas<a class="ancla" href="#sprites-mapas-de-tiles-y-capas" aria-hidden="true">#</a></h3>
+<p>No hay sprites por hardware: un <strong>motor gráfico</strong> que va dentro de la ROM lo
+dibuja todo en la página, muy deprisa. Sabe dibujar:</p>
+<ul>
+<li><strong>sprites</strong> de cualquier tamaño, con partes transparentes, con espejo,
+  cambiados de color, o ampliados y reducidos;</li>
+<li><strong>mapas de tiles (mosaicos)</strong>: pantallas o niveles enteros hechos con
+  baldosas cuadradas pequeñas (de 8 × 8 o 16 × 16 píxeles);</li>
+<li><strong>suelos en modo 7</strong>: una imagen plana vista en perspectiva, para juegos de
+  carreras o paisajes en 3D;</li>
+<li>líneas, rectángulos rellenos, círculos, triángulos y polígonos.</li>
+</ul>
+<p>Las capas salen del orden en que se dibuja: un juego típico dibuja el fondo
+del mapa, luego los sprites y luego las partes del mapa marcadas como
+<em>delante</em>, que pueden tapar a los sprites (un árbol por detrás del que pasa el
+jugador, por ejemplo).</p>
+<p>Todo esto se puede usar desde el BASIC (<a href="basic/reference.html">la referencia del
+BASIC</a>) y desde C (<a href="sdk/index.html">el SDK</a>).</p>
+<h3 id="el-campo-virtual-y-el-scroll">El campo virtual y el scroll<a class="ancla" href="#el-campo-virtual-y-el-scroll" aria-hidden="true">#</a></h3>
+<p>En el modo 0 una página puede ser <strong>más grande que la pantalla</strong>. La pantalla
+es entonces una ventana que se mueve sobre una imagen mayor:</p>
+<table>
+<thead>
+<tr>
+<th>Tamaño de la página</th>
+<th>Pantallas</th>
+<th>Para qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>256 × 192</td>
+<td>1</td>
+<td>Lo normal</td>
+</tr>
+<tr>
+<td>512 × 384</td>
+<td>2 × 2</td>
+<td>Scroll en todas las direcciones</td>
+</tr>
+<tr>
+<td>1024 × 192</td>
+<td>4 de ancho</td>
+<td>Juegos de scroll lateral</td>
+</tr>
+<tr>
+<td>256 × 768</td>
+<td>4 de alto</td>
+<td>Juegos de scroll vertical</td>
+</tr>
+</tbody>
+</table>
+<p>En el BASIC, <code>MODE 0, 1024, 192</code> elige el tamaño y <code>SCROLL x, y</code> mueve la
+ventana. <strong>El scroll lo hace el hardware de vídeo</strong>, sin redibujar: la imagen
+se mueve gratis, y un juego solo dibuja la columna o la fila de escenario que
+está a punto de entrar. La página da la vuelta por sus bordes, así que un juego
+puede desplazarse sin fin.</p>
+<p>La máquina también puede cambiar algunos ajustes <strong>línea a línea</strong> de arriba
+abajo de la pantalla: el color del borde, la tabla de color y qué parte de la
+página enseña cada línea. Así salen las pantallas partidas (un marcador quieto
+mientras el juego se desplaza), el parallax (el fondo lejano moviéndose más
+despacio), las franjas en el borde como las de las cargas de cinta, y efectos
+de agua o de carretera. En el BASIC es <code>RASTER</code>.</p>
+<h2 id="el-texto-y-los-caracteres">El texto y los caracteres<a class="ancla" href="#el-texto-y-los-caracteres" aria-hidden="true">#</a></h2>
+<p>El texto se escribe en caracteres de 8 × 8 píxeles: 32 × 24 en el modo 0 y
+64 × 48 en el modo 1. En el modo 0, el BASIC se reserva las dos filas de abajo
+para escribir las respuestas a <code>INPUT</code> y para sus mensajes, así que un programa
+tiene 22 filas para su texto.</p>
+<p><img alt="El juego de caracteres" src="../images/machine-charset.png" /></p>
+<p>El juego de caracteres tiene las letras, las cifras y los signos de un teclado
+de ordenador (con <code>£</code> y <code>©</code>), dieciséis <strong>caracteres gráficos de bloques</strong> para
+dibujos sencillos hechos con cuartos de cuadro (los códigos del 128 al 143:
+una celda vacía y luego ▝ ▘ ▀ ▗ ▐ ▚ ▜ ▖ ▞ ▌ ▛ ▄ ▟ ▙ █, los mismos que en el Spectrum; el <a href="basic/reference.html#juego-de-caracteres">juego de
+caracteres</a> explica cómo se numeran),
+y 21 <strong>gráficos definidos por el usuario</strong> (UDG), caracteres cuya forma puede
+cambiar tu programa. Al principio son las letras de la A a la U.</p>
+<p>Los mensajes de la propia máquina tienen además las letras del español
+(<code>á é í ó ú ü ñ ¿ ¡</code> y sus mayúsculas), pero no forman parte del juego de
+caracteres del BASIC. En tus programas se escriben solo los caracteres
+estándar: una letra con tilde, diéresis o cedilla tecleada sale sin ella (<code>é</code>
+sale <code>e</code>, <code>ñ</code> sale <code>n</code>), <code>¿</code> y <code>¡</code> salen <code>?</code> y <code>!</code>, y los demás caracteres se
+ignoran.</p>
+<h2 id="el-sonido">El sonido<a class="ancla" href="#el-sonido" aria-hidden="true">#</a></h2>
+<p>ZX-V tiene tres fuentes de sonido, mezcladas en <strong>estéreo</strong>:</p>
+<ul>
+<li><strong>El beeper</strong>: un altavoz sencillo que solo está encendido o apagado, como el
+  de los primeros ordenadores domésticos. Con buena programación puede tocar
+  músicas sorprendentes. En el BASIC, <code>BEEP</code>.</li>
+<li><strong>Dos chips de música AY-3-8912</strong>, el chip del Spectrum 128 y de muchos otros
+  ordenadores y máquinas recreativas de los 80. Cada uno tiene <strong>tres voces</strong>
+  (llamadas A, B y C) que tocan notas, además de un generador de <strong>ruido</strong> para
+  baterías y explosiones y una <strong>envolvente</strong> que da forma al volumen de una
+  nota. Con dos chips hay seis voces a la vez: la música en un chip y los
+  efectos en el otro, por ejemplo. El segundo chip empieza en silencio, así que
+  la música escrita para un solo chip suena exactamente como en el original.</li>
+</ul>
+<p>Las voces se reparten por el estéreo (la A a la izquierda, la B en el centro y
+la C a la derecha). En el BASIC, <code>PLAY</code> toca música escrita como notas, con
+hasta seis voces, y <code>SOUND</code> maneja los chips directamente. Los programas
+nativos también pueden reproducir sonido digitalizado (ver el ejemplo
+<code>digital</code>).</p>
+<p>El sonido sale por HDMI con la imagen y, en la máquina real, también por una
+salida analógica de línea.</p>
+<h2 id="los-dispositivos-de-entrada">Los dispositivos de entrada<a class="ancla" href="#los-dispositivos-de-entrada" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>Teclado.</strong> Cualquier teclado USB. Se teclea como en un PC, con las teclas
+  de su distribución. En la máquina real, <strong>Ctrl+Alt+F1</strong>, <strong>F2</strong> y <strong>F3</strong>
+  eligen la distribución española, la británica y la de EE. UU. (la elección
+  se recuerda); el emulador usa la de tu PC.</li>
+<li><strong>Ratón.</strong> Un ratón USB con tres botones y rueda. Los programas en BASIC y en
+  C reciben la posición de un puntero en píxeles de la pantalla (en el BASIC,
+  <code>MOUSE</code>).</li>
+<li><strong>Mandos.</strong> Hasta dos mandos USB: genéricos y los DualShock 4 y DualSense de
+  PlayStation (en el emulador, cualquier mando que reconozca tu PC). Cada uno
+  tiene las direcciones, tres botones de disparo, Start y Select. El primer
+  mando funciona también como un <em>joystick Kempston</em> para los programas
+  escritos para el Spectrum, y el BASIC puede presentar un mando como teclas
+  (<code>JOY</code>).</li>
+</ul>
+<p>En la máquina real, el teclado, el ratón y los mandos se conectan a un hub USB.</p>
+<p><strong>Ctrl+Alt+Supr</strong> es el reset de emergencia: esté en marcha lo que esté,
+incluso un programa colgado, la máquina vuelve al BASIC. Un programa BASIC se
+conserva; uno nativo, no.</p>
+<h2 id="la-memoria">La memoria<a class="ancla" href="#la-memoria" aria-hidden="true">#</a></h2>
+<p>El procesador tiene 520 KB de RAM. La mayor parte se reparte así:</p>
+<table>
+<thead>
+<tr>
+<th>Zona</th>
+<th>Tamaño</th>
+<th>Contenido</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Páginas de vídeo</td>
+<td>2 × 96 KB</td>
+<td>Las dos pantallas</td>
+</tr>
+<tr>
+<td>Memoria de usuario</td>
+<td>248 KB</td>
+<td>Tu programa y sus datos</td>
+</tr>
+<tr>
+<td>Sistema</td>
+<td>80 KB</td>
+<td>Las variables y los buffers de la propia máquina</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Desde el BASIC</strong> quedan unos 94 KB libres para tu programa, sus variables y
+sus gráficos (sprites, tiles y mapas): el editor dice la cifra exacta, 93.856
+bytes al arrancar. El resto de la memoria de usuario es el espacio de trabajo
+del propio BASIC.</p>
+<p><strong>Un programa nativo</strong> se queda con la memoria de usuario: puede usar casi los
+248 KB. En el modo 0 cada página de vídeo solo necesita 24 KB para la
+pantalla, así que un programa que no use un campo virtual grande puede usar
+también los otros 72 KB de cada página.</p>
+<p>La ROM, con el BASIC, ocupa 512 KB, y la unidad <code>ROM:</code> hasta 3,25 MB; las dos
+son de solo lectura y no forman parte de la RAM.</p>
+<h2 id="el-almacenamiento-y-los-ficheros">El almacenamiento y los ficheros<a class="ancla" href="#el-almacenamiento-y-los-ficheros" aria-hidden="true">#</a></h2>
+<h3 id="la-tarjeta-sd-y-la-unidad-rom">La tarjeta SD y la unidad <code>ROM:</code><a class="ancla" href="#la-tarjeta-sd-y-la-unidad-rom" aria-hidden="true">#</a></h3>
+<p>La máquina tiene dos <strong>unidades</strong>:</p>
+<ul>
+<li><strong><code>SD:</code></strong>, la <strong>tarjeta SD</strong>, donde se carga y se graba. Puede estar
+  formateada en FAT, FAT32 o exFAT, así que también la puedes usar en tu PC.
+  En el emulador, una carpeta de tu PC hace de tarjeta.</li>
+<li><strong><code>ROM:</code></strong>, un disco de solo lectura que va dentro de la máquina, con los
+  ejemplos. No se puede escribir en él: si se intenta, sale
+  <code>V Error de disco (no se puede)</code>.</li>
+</ul>
+<p>Se usan con las órdenes de siempre del BASIC: <code>CAT</code> lista una carpeta, <code>CD</code>
+cambia de carpeta, <code>MKDIR</code> y <code>RMDIR</code> crean y borran carpetas, y <code>COPY</code>, <code>MOVE</code>
+y <code>ERASE</code> copian, mueven y borran ficheros (también con comodines como
+<code>*.zvb</code>). Una ruta puede empezar por la unidad: <code>LOAD "ROM:graphics"</code>,
+<code>CAT "SD:/juegos"</code>. <code>CD "ROM:"</code> entra en la unidad <code>ROM:</code> y <code>CD "SD:"</code> vuelve a
+la tarjeta.</p>
+<p>Los nombres de fichero pueden tener hasta 63 caracteres, con letras sin
+tildes, cifras y signos; las mayúsculas y las minúsculas cuentan como el mismo
+nombre. Las carpetas se separan con <code>/</code>.</p>
+<h3 id="los-tipos-de-fichero">Los tipos de fichero<a class="ancla" href="#los-tipos-de-fichero" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Extensión</th>
+<th>Qué guarda</th>
+<th>Cómo se usa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.zvb</code></td>
+<td>Un programa BASIC de ZX-V con sus variables, tal como están en la memoria. Es el formato de los programas. Puede llevar una pantalla de carga</td>
+<td><code>SAVE "nombre"</code>, <code>LOAD "nombre"</code>; con pantalla de carga, <code>SAVE "nombre" LINE n SCREEN$</code></td>
+</tr>
+<tr>
+<td><code>.zvd</code></td>
+<td>Una matriz del BASIC (números o caracteres), tal como está en la memoria</td>
+<td><code>SAVE "nombre" DATA a()</code>, <code>LOAD "nombre" DATA a()</code></td>
+</tr>
+<tr>
+<td><code>.bin</code></td>
+<td>Bytes de la memoria, sin más</td>
+<td><code>SAVE "nombre" CODE inicio, longitud</code>, <code>LOAD "nombre" CODE inicio</code></td>
+</tr>
+<tr>
+<td><code>.tap</code></td>
+<td>Fichero de cinta del Spectrum: programas BASIC, bloques de memoria (<code>CODE</code>), pantallas y matrices. Para el código hecho para el Spectrum, y para llevar algo a sus emuladores</td>
+<td><code>LOAD "nombre"</code>, <code>SAVE "nombre.tap"</code></td>
+</tr>
+<tr>
+<td><code>.tzx</code></td>
+<td>Fichero de cinta del Spectrum (otro formato); se cargan sus programas BASIC, código, pantallas y matrices</td>
+<td><code>LOAD "nombre.tzx"</code></td>
+</tr>
+<tr>
+<td><code>.bas</code></td>
+<td>Un listado BASIC en texto, para escribir o compartir programas con un editor de textos</td>
+<td><code>LOAD "nombre.bas"</code>, <code>SAVE "nombre.bas"</code>, <code>MERGE</code>; también se abre en el emulador</td>
+</tr>
+<tr>
+<td><code>.zxv</code></td>
+<td>Un programa nativo, compilado desde C o ensamblador. Puede llevar una pantalla de carga, que se ve mientras se carga</td>
+<td><code>LOAD "nombre"</code></td>
+</tr>
+<tr>
+<td><code>.zxvs</code></td>
+<td>Una instantánea: el estado completo de la máquina, para seguir más tarde (solo en el emulador)</td>
+<td>Archivo &gt; Abrir en el emulador</td>
+</tr>
+<tr>
+<td><code>.gfx</code></td>
+<td>Gráficos: sprites, tiles, mapas, texturas y pantallas (las de <code>SCREEN$</code>)</td>
+<td><code>SAVE "nombre" GRAPHICS</code>, <code>LOAD "nombre" GRAPHICS</code>; las pantallas, <code>SAVE "nombre" SCREEN$</code>, <code>LOAD "nombre" SCREEN$</code>. También se pueden hacer a partir de imágenes PNG en el PC (ver el <a href="sdk/index.html">SDK</a>)</td>
+</tr>
+<tr>
+<td><code>.pt3</code></td>
+<td>Música hecha con un tracker (también Pro Tracker 2, Sound Tracker, ASC, PSG y TurboSound)</td>
+<td><code>LOAD "nombre" MUSIC</code></td>
+</tr>
+<tr>
+<td><code>.afb</code>, <code>.afx</code></td>
+<td>Efectos de sonido AYFX: un banco o un efecto suelto</td>
+<td><code>LOAD "nombre" SFX</code></td>
+</tr>
+<tr>
+<td><code>.scr</code></td>
+<td>Una pantalla del Spectrum (6.912 bytes), que se ve como era, limitaciones de color incluidas</td>
+<td><code>LOAD "nombre.scr" SCREEN$</code>, <code>SAVE "nombre.scr" SCREEN$</code></td>
+</tr>
+<tr>
+<td>cualquiera</td>
+<td>Datos en bruto y ficheros de texto</td>
+<td><code>LOAD "nombre.dat" CODE dirección</code>; los de texto, con <code>OPEN #</code>, <code>PRINT #</code> e <code>INPUT #</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>LPRINT</code>, <code>LLIST</code> y <code>COPY</code> (las órdenes de la impresora) escriben en el
+fichero de texto <code>printer.txt</code>, en la raíz de la tarjeta.</p>
+<p><strong>Las cintas del Spectrum.</strong> Un <code>.tap</code> o un <code>.tzx</code> que se carga se queda «en la casetera»:
+los siguientes <code>LOAD ""</code> leen de él los bloques que siguen, como con una cinta
+de verdad. Así se cargan los programas de varias partes (un cargador, una
+pantalla de presentación, el juego) igual que en el Spectrum.</p>
+<h2 id="el-reloj">El reloj<a class="ancla" href="#el-reloj" aria-hidden="true">#</a></h2>
+<p>ZX-V sabe la <strong>fecha y la hora</strong>. En la máquina real, un chip de reloj con pila
+las mantiene con la máquina apagada; el emulador usa el reloj de tu PC. Los
+ficheros se fechan al grabarlos, y los programas pueden leer la hora (en el
+BASIC, <code>PRINT CLOCK 3;":";CLOCK 4</code> enseña la hora y los minutos). <code>CLOCK</code> con
+una fecha lo pone en hora.</p>
+<p>Si el reloj no se ha puesto nunca en hora, la máquina funciona igual y los
+ficheros se fechan el 1 de enero de 2026.</p>
+<p>Para medir el tiempo dentro de un programa, la máquina cuenta <strong>imágenes</strong>
+(frames): 60 por segundo, las mismas que la pantalla (en el BASIC, <code>TIME</code>).
+Lo que imita al Spectrum sigue con su tiempo, cincuentavos de segundo:
+<code>PAUSE 50</code> es un segundo, y la variable <code>FRAMES</code> del Spectrum (<code>PEEK 23672</code>)
+cuenta 50 por segundo, así que los programas del Spectrum miden el tiempo
+como siempre.</p>
+<h2 id="los-idiomas">Los idiomas<a class="ancla" href="#los-idiomas" aria-hidden="true">#</a></h2>
+<p>La máquina habla <strong>español</strong> e <strong>inglés</strong>: los mensajes del BASIC (<code>0 OK</code>,
+<code>2 Variable no encontrada</code> / <code>2 Variable not found</code>), la barra del editor y su
+menú. <code>LANGUAGE "es"</code> o <code>LANGUAGE "en"</code> lo cambia, y se recuerda (en la máquina
+real, en el chip del reloj). Las palabras clave son las mismas en los dos
+idiomas: <code>PRINT</code> es siempre <code>PRINT</code>.</p>
+<p>Los programas pueden leer el idioma y elegir sus propios textos; el juego
+<em>Estela</em> lo hace.</p>
+<h2 id="comparado-con-el-zx-spectrum">Comparado con el ZX Spectrum<a class="ancla" href="#comparado-con-el-zx-spectrum" aria-hidden="true">#</a></h2>
+<p>Esta sección es de lectura opcional, para quien conozca el Spectrum o tenga
+curiosidad.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>ZX Spectrum 48K / 128K</th>
+<th>ZX-V</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Procesador</td>
+<td>Z80, 8 bits, 3,5 MHz</td>
+<td>RISC-V, 32 bits, 144 MHz</td>
+</tr>
+<tr>
+<td>RAM</td>
+<td>48 KB / 128 KB</td>
+<td>520 KB</td>
+</tr>
+<tr>
+<td>Libre para el BASIC</td>
+<td>Unos 41 KB</td>
+<td>Unos 94 KB</td>
+</tr>
+<tr>
+<td>Pantalla</td>
+<td>256 × 192</td>
+<td>256 × 192 o 512 × 384</td>
+</tr>
+<tr>
+<td>Color</td>
+<td>2 colores por celda de 8 × 8 (<em>color clash</em>)</td>
+<td>Cualquiera de 16 colores en cualquier píxel, de una paleta de 65.536</td>
+</tr>
+<tr>
+<td>Páginas de vídeo</td>
+<td>1 (2 en el 128K)</td>
+<td>2, más scroll por hardware y campo virtual</td>
+</tr>
+<tr>
+<td>Sonido</td>
+<td>Beeper / beeper y un AY</td>
+<td>Beeper y dos AY, en estéreo</td>
+</tr>
+<tr>
+<td>Almacenamiento</td>
+<td>Cinta de casete</td>
+<td>Tarjeta SD y unidad <code>ROM:</code>; lee los <code>.tap</code> y <code>.tzx</code> del Spectrum</td>
+</tr>
+<tr>
+<td>BASIC</td>
+<td>Sinclair BASIC, palabras clave con una tecla</td>
+<td>Sinclair BASIC compatible, tecleado letra a letra, con un editor a pantalla completa como el del 128 y muchas extensiones</td>
+</tr>
+<tr>
+<td>Código máquina</td>
+<td>Z80</td>
+<td>RISC-V (programas nativos en C o ensamblador)</td>
+</tr>
+</tbody>
+</table>
+<p>Lo que se aprovecha del Spectrum:</p>
+<ul>
+<li><strong>Los programas BASIC.</strong> El BASIC sigue muy de cerca al Sinclair BASIC: los
+  mismos números, las mismas secuencias aleatorias, los mismos mensajes de
+  error y los mismos algoritmos de dibujo. Los programas BASIC del Spectrum en
+  ficheros <code>.tap</code> o <code>.tzx</code> se cargan y funcionan, y un programa grabado como
+  cinta (<code>SAVE "nombre.tap"</code>) se carga en un Spectrum de verdad. <code>PEEK</code> y
+  <code>POKE</code> sobre la pantalla, los atributos y las variables del sistema del
+  Spectrum funcionan, y
+  <code>SPEED 0</code> hace que el BASIC vaya a la velocidad de un 48K para los programas
+  que dependen de ella.</li>
+<li><strong>Las pantallas</strong> (<code>.scr</code> y los bloques <code>SCREEN$</code>) se cargan y se ven como
+  eran, <em>color clash</em> incluido.</li>
+<li><strong>El teclado y los joysticks.</strong> Los programas que leen el teclado con <code>IN</code> ven
+  las teclas del Spectrum, y el mando funciona como joystick Kempston o como
+  los Sinclair y Cursor.</li>
+<li><strong>El sonido.</strong> <code>BEEP</code>, y <code>PLAY</code> con la sintaxis del 128, funcionan como en el
+  original; <code>OUT</code> a los puertos del AY funciona como en el 128.</li>
+</ul>
+<p>Lo que no: <strong>el código máquina Z80</strong> no se puede ejecutar, así que la mayoría
+de los juegos comerciales, y los programas BASIC que se apoyan en rutinas en
+código máquina, no funcionarán. Ese papel lo hacen los programas nativos de
+ZX-V, mucho más potentes.</p>
+<p>La lista completa de diferencias, orden a orden, está en la
+<a href="basic/reference.html">referencia del BASIC</a>.</p>
+<nav class="pasos"><a class="anterior" href="emulator.html"><small>Anterior</small>← El emulador</a><a class="siguiente" href="basic/index.html"><small>Siguiente</small>Aprende BASIC →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

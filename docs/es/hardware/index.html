@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Construir el hardware · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../en/hardware/index.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../emulator.html">El emulador</a>
+</li>
+<li><a href="../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Aprende BASIC</a>
+</li>
+<li><a href="../basic/editor.html">El editor</a>
+</li>
+<li><a href="../basic/reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="index.html" class="aqui">Construir el hardware</a>
+<ul>
+</ul>
+</li>
+<li><a href="board.html">La placa</a>
+</li>
+<li><a href="firmware.html">El firmware</a>
+</li>
+<li><a href="protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="construir-el-hardware">Construir el hardware</h1>
+<p>ZX-V no es solo un emulador: puedes construir la máquina de verdad y
+enchufarla a la tele. Está hecha con dos placas <strong>Raspberry Pi Pico 2</strong>, unos
+cuantos conectores y unas decenas de piezas pequeñas. No hace falta programar
+nada: el software de las dos Pico viene listo para copiarlo en ellas.</p>
+<blockquote>
+<p><strong>Estado.</strong> El firmware de las dos Pico está escrito, y <strong>cada Pico se ha
+probado por separado</strong>: la imagen y el sonido por HDMI con una sola Pico 2,
+y la CPU, que ejecuta los programas exactamente igual que el emulador.
+<strong>Las dos Pico todavía no se han probado juntas</strong>, así que la máquina
+completa está sin probar, tanto en la placa como en una protoboard. La
+<strong>placa de circuito impreso (PCB) está diseñada del todo, pero todavía no
+se ha fabricado ni probado</strong>. Si la montas ahora, serás de los primeros en
+hacerlo: lee con calma <a href="board.html">La placa</a> y cuenta con que puede haber
+algo que corregir.</p>
+</blockquote>
+<h2 id="qué-necesitas">Qué necesitas<a class="ancla" href="#qué-necesitas" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>Dos Raspberry Pi Pico 2.</strong> Tienen que ser Pico <strong>2</strong> (con el chip
+  RP2350): la Raspberry Pi Pico original no puede con el firmware.</li>
+<li><strong>La placa</strong>, pedida a JLCPCB ya montada, y las pocas piezas que sueldas tú
+  (<a href="board.html">La placa</a>). O, en su lugar, una protoboard y las piezas de
+  <a href="protoboard.html">En una protoboard</a>.</li>
+<li><strong>El firmware</strong>: dos ficheros <code>.uf2</code>, uno para cada Pico
+  (<a href="firmware.html">El firmware</a>).</li>
+<li><strong>Una pantalla con entrada HDMI</strong> (una tele o un monitor) y un cable HDMI.</li>
+<li><strong>Un teclado USB.</strong> Si quieres, también un ratón USB, uno o dos mandos USB y
+  un hub USB para enchufarlo todo.</li>
+<li><strong>Una tarjeta microSD</strong>, para guardar tus programas y cargar otros.</li>
+<li><strong>Un cargador de móvil USB-C</strong> de 5 V que dé 2 A, con su cable.</li>
+<li>Si quieres, <strong>unos altavoces con amplificador</strong> para la salida de audio, y
+  <strong>una pila de botón CR2032</strong> para que el reloj no pierda la fecha y la hora.</li>
+<li>Soldador, estaño, y un ordenador con un cable micro-USB para cargar el
+  firmware en las Pico.</li>
+</ul>
+<h2 id="dos-maneras-de-montarla">Dos maneras de montarla<a class="ancla" href="#dos-maneras-de-montarla" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>La placa (lo recomendado)</th>
+<th>Una protoboard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Qué es</td>
+<td>Una placa de 100 × 100 mm con todo</td>
+<td>Las dos Pico y unos módulos, cableados a mano</td>
+</tr>
+<tr>
+<td>Qué se suelda</td>
+<td>Solo las dos Pico, dos pulsadores, un interruptor, dos LED y la pila: todo de agujero pasante</td>
+<td>Muchos cables; el HDMI y el enlace entre las Pico piden cables cortos y ordenados</td>
+</tr>
+<tr>
+<td>Conectores</td>
+<td>HDMI, USB-A, microSD, jack de audio, USB-C para la corriente y reloj</td>
+<td>Placas de conexión (<em>breakouts</em>) y módulos</td>
+</tr>
+<tr>
+<td>Estado</td>
+<td>Diseñada, <strong>sin fabricar ni probar</strong></td>
+<td>Cada Pico probada por separado; <strong>juntas, todavía no</strong></td>
+</tr>
+<tr>
+<td>Guía</td>
+<td><a href="board.html">La placa</a></td>
+<td><a href="protoboard.html">En una protoboard</a></td>
+</tr>
+</tbody>
+</table>
+<p>Las dos llevan el mismo firmware y funcionan igual.</p>
+<h2 id="qué-hace-cada-pico">Qué hace cada Pico<a class="ancla" href="#qué-hace-cada-pico" aria-hidden="true">#</a></h2>
+<p>Las dos Pico se reparten el trabajo como los chips del Spectrum original. La
+<strong>Pico CPU</strong> es el ordenador en sí: ejecuta el BASIC y tus programas, y se
+ocupa del teclado, el ratón y los mandos (por el puerto USB-A), de la tarjeta
+SD y del reloj. La <strong>Pico ULA</strong> hace la imagen y el sonido: recibe de la Pico
+CPU cada imagen terminada, la manda a la pantalla por HDMI, y saca el sonido
+por el HDMI y por el jack de audio. Además lleva el pulsador del modo de vídeo
+y el LED del enlace. Se hablan por un bus de 8 bits y unos pocos cables más.
+Para tus programas solo hay una máquina: no notan que haya dos chips.</p>
+<h2 id="cómo-se-conecta">Cómo se conecta<a class="ancla" href="#cómo-se-conecta" aria-hidden="true">#</a></h2>
+<h3 id="la-pantalla-hdmi">La pantalla (HDMI)<a class="ancla" href="#la-pantalla-hdmi" aria-hidden="true">#</a></h3>
+<p>Enchufa cualquier tele o monitor HDMI al conector <strong>HDMI</strong>. La imagen es
+siempre de 640 × 480 a 60 Hz, un modo que toda pantalla HDMI tiene que
+aceptar, y la Pico ULA tiene dos modos de salida:</p>
+<table>
+<thead>
+<tr>
+<th>Modo</th>
+<th>Salida</th>
+<th>Sonido en la pantalla</th>
+<th>El LED del enlace parpadea al arrancar</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>HDMI (el de partida)</td>
+<td>Sí</td>
+<td>Una vez</td>
+</tr>
+<tr>
+<td>1</td>
+<td>DVI (el <strong>modo seguro</strong>)</td>
+<td>No</td>
+<td>Dos veces</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Una pulsación corta del pulsador MODO</strong> pasa al otro modo. La Pico ULA se
+  reinicia con él (el BASIC sigue a lo suyo) y lo recuerda al apagar.</li>
+<li><strong>Si lo mantienes apretado al encender</strong>, arranca en el modo seguro, solo esa
+  vez. Lo acepta cualquier pantalla, también los monitores DVI antiguos que no
+  admiten HDMI.</li>
+<li>Los programas no pueden cambiar el modo; solo leerlo.</li>
+</ul>
+<h3 id="el-sonido">El sonido<a class="ancla" href="#el-sonido" aria-hidden="true">#</a></h3>
+<p>El sonido sale por el HDMI (en el modo 0) y, siempre, por el <strong>jack
+estéreo de 3,5 mm</strong> (rotulado <code>AUDIO</code>). El jack da nivel de línea: conecta unos
+altavoces con amplificador, un amplificador o la entrada de audio de la tele.
+Unos auriculares necesitan un amplificador.</p>
+<h3 id="teclado-ratón-y-mandos">Teclado, ratón y mandos<a class="ancla" href="#teclado-ratón-y-mandos" aria-hidden="true">#</a></h3>
+<p>Van al puerto <strong>USB-A</strong> de delante. Para más de uno, usa un hub USB (mejor si
+tiene alimentación propia). ZX-V entiende los teclados y ratones USB normales
+y la mayoría de los mandos.</p>
+<ul>
+<li><strong>Ctrl+Alt+F1</strong>, <strong>F2</strong> y <strong>F3</strong> eligen la distribución del teclado:
+  española, británica o de EE. UU. La máquina la recuerda.</li>
+<li><strong>Ctrl+Alt+Supr</strong> es el reinicio de emergencia: vuelve al BASIC aunque un
+  programa se haya colgado, y conserva tu programa en BASIC.</li>
+<li><strong>Ctrl+Alt+F12</strong> enseña o quita la página de diagnóstico (ver
+  <a href="firmware.html#la-página-de-diagnóstico">El firmware</a>).</li>
+</ul>
+<p>En <a href="../machine.html">La máquina</a> se explica cómo ven los programas el teclado,
+el ratón y los mandos.</p>
+<h3 id="la-tarjeta-sd">La tarjeta SD<a class="ancla" href="#la-tarjeta-sd" aria-hidden="true">#</a></h3>
+<p>Mete una tarjeta microSD en la ranura del lateral derecho. Puede estar en FAT,
+FAT32 o exFAT (como vienen de fábrica), de cualquier tamaño. Se puede sacar y
+volver a meter con la máquina encendida. En la placa la máquina se da cuenta
+enseguida: la tarjeta que entra queda lista, y un fichero que estuviera abierto
+al sacarla solo se puede cerrar (lo que ya se había escrito en él se queda).
+Cierra tus ficheros antes de sacarla.
+El LED verde <strong>SD</strong> se enciende mientras la máquina lee o escribe en ella.</p>
+<p>Los ejemplos de serie no están en la tarjeta: están en la unidad <code>ROM:</code>, que
+va dentro del firmware de la Pico CPU.</p>
+<h3 id="la-corriente">La corriente<a class="ancla" href="#la-corriente" aria-hidden="true">#</a></h3>
+<p>Enchufa un cargador USB-C al conector <strong>5 V</strong> de detrás, y pasa el interruptor
+(delante, a la izquierda) a la derecha, a <code>ON</code>; a la izquierda es <code>OFF</code>. Con un
+cargador de 2 A sobra: la máquina entera gasta menos de 1 A, con los aparatos
+USB. El USB-C solo lleva corriente, no datos.</p>
+<h3 id="el-reloj-y-el-idioma">El reloj y el idioma<a class="ancla" href="#el-reloj-y-el-idioma" aria-hidden="true">#</a></h3>
+<p>La placa tiene un reloj con una pila CR2032. Con la máquina apagada conserva la
+fecha y la hora (con ellas se fechan los ficheros que guardas), el idioma de la
+máquina y la distribución del teclado. La hora se pone desde el BASIC con
+<code>CLOCK</code>, por ejemplo <code>CLOCK 2026,10,20,18,30</code> (año, mes, día, hora y minutos).</p>
+<p>La máquina empieza en <strong>inglés</strong>. Para pasar al español, <code>LANGUAGE "es"</code>; con
+la pila puesta, se recuerda.</p>
+<h2 id="en-esta-sección">En esta sección<a class="ancla" href="#en-esta-sección" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong><a href="board.html">La placa</a></strong>: cómo pedirla montada a JLCPCB, las piezas que
+  sueldas tú, una lista de comprobación, el primer encendido y qué es cada
+  conector y cada mando.</li>
+<li><strong><a href="firmware.html">El firmware</a></strong>: dónde están los <code>.uf2</code>, cómo se cargan en
+  cada Pico, cómo se actualizan, cómo compilarlos y qué mirar si no hay imagen
+  o no hay sonido.</li>
+<li><strong><a href="protoboard.html">En una protoboard</a></strong>: ZX-V sin la placa, con el cableado
+  entre las dos Pico y a cada conector.</li>
+</ul>
+<nav class="pasos"><a class="anterior" href="../zxbasic.html"><small>Anterior</small>← ZX Basic</a><a class="siguiente" href="board.html"><small>Siguiente</small>La placa →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

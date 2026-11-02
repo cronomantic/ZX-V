@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5. Bucles · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../en/basic/tutorial/05-loops.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../../emulator.html">El emulador</a>
+</li>
+<li><a href="../../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../index.html">Aprende BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. Primeros pasos</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables y cuentas</a></li>
+<li><a href="03-text-and-input.html">3. Texto y preguntas</a></li>
+<li><a href="04-decisions.html">4. Decisiones</a></li>
+<li><a href="05-loops.html" class="aqui">5. Bucles</a></li>
+<li><a href="06-arrays-and-data.html">6. Matrices y datos</a></li>
+<li><a href="07-procedures.html">7. Procedimientos</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Los colores y la pantalla</a></li>
+<li><a href="09-drawing.html">9. Dibujar</a></li>
+<li><a href="10-sound-and-music.html">10. Sonido y música</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Teclado y mando</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites y mapas de tiles</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a></li>
+<li><a href="14-a-complete-game.html">14. Un juego completo</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">El editor</a>
+</li>
+<li><a href="../reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../../hardware/board.html">La placa</a>
+</li>
+<li><a href="../../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="5-bucles">5. Bucles</h1>
+<p><strong>En este capítulo aprenderás</strong> a repetir cosas con <code>FOR</code> ... <code>NEXT</code>,
+<code>WHILE</code> ... <code>WEND</code> y <code>REPEAT</code> ... <code>UNTIL</code>, a meter un bucle dentro de otro y
+a esperar con <code>PAUSE</code>.</p>
+<h2 id="contar-con-for--next">Contar con <code>FOR</code> ... <code>NEXT</code><a class="ancla" href="#contar-con-for--next" aria-hidden="true">#</a></h2>
+<p>Un <strong>bucle</strong> repite un grupo de líneas. <code>FOR</code> es el bucle que cuenta:</p>
+<pre><code>10 FOR i=1 TO 5
+20 PRINT &quot;Vuelta &quot;;i
+30 NEXT i
+40 PRINT &quot;Terminado!&quot;
+</code></pre>
+<p><code>FOR i=1 TO 5</code> da a <code>i</code> el valor 1 y ejecuta las líneas siguientes. Al llegar
+a <code>NEXT i</code>, suma 1 a <code>i</code> y vuelve, hasta que <code>i</code> pasa de 5. Así que escribe
+de <code>Vuelta 1</code> a <code>Vuelta 5</code> y luego <code>Terminado!</code>.</p>
+<p>La variable que cuenta (aquí <code>i</code>) tiene que tener un <strong>nombre de una sola
+letra</strong>: <code>FOR vuelta=1 TO 5</code> es un error.</p>
+<p><code>STEP</code> cambia lo que se suma cada vez, y puede ser negativo o tener
+decimales:</p>
+<pre><code>10 FOR i=10 TO 0 STEP -2
+20 PRINT i;&quot; &quot;;
+30 NEXT i
+40 PRINT
+50 FOR x=0 TO 1 STEP 0.25: PRINT x;&quot; &quot;;: NEXT x
+</code></pre>
+<p>Escribe <code>10 8 6 4 2 0</code> y, en la línea siguiente, <code>0 0.25 0.5 0.75 1</code>. Un
+<code>PRINT</code> sin nada detrás solo termina la línea.</p>
+<p>Cualquiera de los números puede ser una variable o una cuenta. Aquí tienes
+una tabla de multiplicar:</p>
+<pre><code>10 INPUT &quot;Que tabla? &quot;;t
+20 FOR i=1 TO 10
+30 PRINT i;&quot; x &quot;;t;&quot; = &quot;;i*t
+40 NEXT i
+</code></pre>
+<h2 id="bucles-dentro-de-bucles">Bucles dentro de bucles<a class="ancla" href="#bucles-dentro-de-bucles" aria-hidden="true">#</a></h2>
+<p>Puedes meter un bucle dentro de otro. Cada uno necesita su letra:</p>
+<pre><code>10 FOR f=1 TO 5
+20 FOR c=1 TO f
+30 PRINT &quot;*&quot;;
+40 NEXT c
+50 PRINT
+60 NEXT f
+</code></pre>
+<p>El bucle de fuera cuenta las filas (<code>f</code>); en cada fila, el de dentro escribe
+<code>f</code> estrellas. Sale un triángulo:</p>
+<pre><code>*
+**
+***
+****
+*****
+</code></pre>
+<h2 id="while--wend-repetir-mientras-se-cumpla-algo"><code>WHILE</code> ... <code>WEND</code>: repetir mientras se cumpla algo<a class="ancla" href="#while--wend-repetir-mientras-se-cumpla-algo" aria-hidden="true">#</a></h2>
+<p>A veces no sabes cuántas veces hay que repetir. <code>WHILE</code> ("mientras") repite
+mientras se cumpla una condición, y la comprueba <strong>antes</strong> de cada vuelta:</p>
+<pre><code>10 LET dinero=100: LET t=0
+20 WHILE dinero&lt;200
+30 LET dinero=dinero*1.1: LET t=t+1
+40 WEND
+50 PRINT &quot;Se ha doblado en &quot;;t;&quot; vueltas&quot;
+</code></pre>
+<p>Si cada vuelta (un año en el banco, por ejemplo) el dinero crece un 10 %, se
+dobla en 8. Si la condición no se cumple desde el principio, las líneas de
+dentro no se ejecutan nunca.</p>
+<h2 id="repeat--until-repetir-hasta-que-pase-algo"><code>REPEAT</code> ... <code>UNTIL</code>: repetir hasta que pase algo<a class="ancla" href="#repeat--until-repetir-hasta-que-pase-algo" aria-hidden="true">#</a></h2>
+<p><code>REPEAT</code> ("repite") comprueba su condición <strong>después</strong> de cada vuelta, así
+que las líneas de dentro se ejecutan al menos una vez. Repite hasta
+(<code>UNTIL</code>) que la condición se cumple:</p>
+<pre><code>10 RANDOMIZE
+20 LET tiradas=0
+30 REPEAT
+40 LET d=INT (RND*6)+1: LET tiradas=tiradas+1
+50 PRINT d;&quot; &quot;;
+60 UNTIL d=6
+70 PRINT: PRINT &quot;Un seis en &quot;;tiradas;&quot; tiradas&quot;
+</code></pre>
+<p>Con <code>REPEAT</code>, el juego de adivinar del capítulo 4 ya no necesita <code>GO TO</code>:</p>
+<pre><code>10 RANDOMIZE
+20 LET secreto=INT (RND*100)+1: LET intentos=0
+30 REPEAT
+40 INPUT &quot;Adivina mi numero (1-100): &quot;;n
+50 LET intentos=intentos+1
+60 IF n&lt;secreto THEN PRINT n;&quot; es poco&quot;
+70 IF n&gt;secreto THEN PRINT n;&quot; es mucho&quot;
+80 UNTIL n=secreto
+90 PRINT &quot;Si! &quot;;intentos;&quot; intentos&quot;
+</code></pre>
+<p>¿Qué bucle usar? <code>FOR</code> cuando sabes cuántas veces; <code>WHILE</code> cuando puede que
+no haga falta ninguna; <code>REPEAT</code> cuando hay que hacerlo al menos una vez.</p>
+<h2 id="esperar-pause">Esperar: <code>PAUSE</code><a class="ancla" href="#esperar-pause" aria-hidden="true">#</a></h2>
+<p><code>PAUSE n</code> espera <code>n</code> cincuentavos de segundo, así que <code>PAUSE 50</code> es un
+segundo. <code>PAUSE 0</code> espera hasta que se pulse una tecla. Una tecla también
+corta cualquier pausa.</p>
+<pre><code>10 FOR n=10 TO 1 STEP -1
+20 PRINT n
+30 PAUSE 50
+40 NEXT n
+50 PRINT &quot;Despegue!&quot;
+</code></pre>
+<p><strong>Si conoces el Spectrum:</strong> <code>WHILE</code>, <code>WEND</code>, <code>REPEAT</code> y <code>UNTIL</code> son
+extensiones de ZX-V; <code>FOR</code>, <code>NEXT</code> y <code>PAUSE</code> funcionan como en el 48K.</p>
+<h2 id="pruébalo">Pruébalo<a class="ancla" href="#pruébalo" aria-hidden="true">#</a></h2>
+<ol>
+<li>Escribe los números del 1 al 20 con sus cuadrados (el número por sí
+   mismo).</li>
+<li>Escribe un programa que pida una palabra y la escriba al revés: con
+   <code>HOLA</code> escribe <code>ALOH</code>.</li>
+</ol>
+<details>
+<summary>Pista</summary>
+<p>Para el segundo, <code>p$(i)</code> es la letra número <code>i</code>. Recorre las letras desde
+<code>LEN p$</code> hasta 1 con <code>STEP -1</code> y escribe cada una seguida de <code>;</code>.</p>
+</details>
+<details>
+<summary>Una solución para el segundo</summary>
+<pre><code>10 INPUT &quot;Una palabra? &quot;;p$
+20 FOR i=LEN p$ TO 1 STEP -1
+30 PRINT p$(i);
+40 NEXT i
+</code></pre>
+</details>
+<hr />
+<p><strong>Referencia:</strong> <a href="../reference.html#for-next"><code>FOR</code>, <code>NEXT</code></a>,
+<a href="../reference.html#while-wend"><code>WHILE</code>, <code>WEND</code></a>,
+<a href="../reference.html#repeat-until"><code>REPEAT</code>, <code>UNTIL</code></a>,
+<a href="../reference.html#pause"><code>PAUSE</code></a>.</p>
+<p><strong>Siguiente:</strong> <a href="06-arrays-and-data.html">6. Matrices y datos</a> ·
+<strong>Anterior:</strong> <a href="04-decisions.html">4. Decisiones</a></p>
+<nav class="pasos"><a class="anterior" href="04-decisions.html"><small>Anterior</small>← 4. Decisiones</a><a class="siguiente" href="06-arrays-and-data.html"><small>Siguiente</small>6. Matrices y datos →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

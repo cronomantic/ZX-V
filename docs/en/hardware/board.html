@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The board · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../es/hardware/board.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../getting-started.html">Getting started</a>
+</li>
+<li><a href="../emulator.html">The emulator</a>
+</li>
+<li><a href="../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Learn BASIC</a>
+</li>
+<li><a href="../basic/editor.html">The editor</a>
+</li>
+<li><a href="../basic/reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="index.html">Build the hardware</a>
+</li>
+<li><a href="board.html" class="aqui">The board</a>
+<ul>
+</ul>
+</li>
+<li><a href="firmware.html">The firmware</a>
+</li>
+<li><a href="protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="the-board">The board</h1>
+<p>The ZX-V board holds the two Picos and everything they need: HDMI, USB-A for
+the keyboard, microSD, audio jack, USB-C power, a real-time clock with its coin
+cell, and the front controls. It is 100 × 100 mm with two layers, and it is
+designed so that JLCPCB can make it <strong>with all the small surface-mount (SMD)
+parts already soldered</strong>. When it arrives you only solder the two Picos and a
+few large through-hole parts.</p>
+<blockquote>
+<p><strong>The board has not been manufactured or tested yet.</strong> The design is
+complete and passes KiCad's checks, but nobody has built one. If you order
+it, check everything this page asks you to check, and be ready for surprises.
+The design files will be published once a board has been built and tested; until then, this page shows what ordering it will involve.</p>
+</blockquote>
+<p><img alt="The top of the board, without the Picos. The front edge, with the controls,
+is at the bottom." src="../../images/hardware-board-top.png" /></p>
+<p><em>A KiCad render of the bare board, without the Picos. The front edge is at the
+bottom; some connectors are only drawn as their pads. The printed labels are
+in Spanish (see <a href="#connectors-and-controls">Connectors and controls</a>).</em></p>
+<h2 id="ordering-it-from-jlcpcb">Ordering it from JLCPCB<a class="ancla" href="#ordering-it-from-jlcpcb" aria-hidden="true">#</a></h2>
+<p>These are the files you will upload, once they are published; you
+will not need KiCad to order the board.</p>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>What it is</th>
+<th>Where it goes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>zxv-gerber.zip</code></td>
+<td>The Gerber files: copper, solder mask, silkscreen and paste for both sides, the outline and the drill files</td>
+<td>The board ("Add gerber file")</td>
+</tr>
+<tr>
+<td><code>zxv-bom.csv</code></td>
+<td>The bill of materials for assembly: 76 parts, 28 different LCSC part numbers</td>
+<td>Assembly, "BOM file"</td>
+</tr>
+<tr>
+<td><code>zxv-cpl.csv</code></td>
+<td>Where each part goes and how it is rotated</td>
+<td>Assembly, "CPL file"</td>
+</tr>
+<tr>
+<td><code>zxv-schematic.pdf</code></td>
+<td>The schematic, for reference</td>
+<td>Not uploaded</td>
+</tr>
+</tbody>
+</table>
+<p>The names of the buttons and options below are the ones JLCPCB's website uses
+at the time of writing; they may change slightly.</p>
+<h3 id="1-the-board">1. The board<a class="ancla" href="#1-the-board" aria-hidden="true">#</a></h3>
+<ol>
+<li>On jlcpcb.com, start a PCB order and upload <code>zxv-gerber.zip</code>. The website
+   reads the size from the files: it should say <strong>2 layers, 100 × 100 mm</strong>.</li>
+<li>Choose these options (leave anything else at its default):</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Choose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Base material</td>
+<td>FR-4</td>
+</tr>
+<tr>
+<td>Layers</td>
+<td>2</td>
+</tr>
+<tr>
+<td>PCB thickness</td>
+<td>1.6 mm</td>
+</tr>
+<tr>
+<td>Surface finish</td>
+<td>HASL, lead-free</td>
+</tr>
+<tr>
+<td>PCB colour</td>
+<td>Any you like</td>
+</tr>
+<tr>
+<td><strong>Remove order number</strong></td>
+<td><strong>Specify a location</strong></td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li><strong>The order number.</strong> JLCPCB prints its own order number on the
+   silkscreen. The board has a place marked for it <strong>under the CPU Pico</strong>: the
+   text <code>JLCJLCJLCJLC</code>. With <em>Specify a location</em> they print the number there,
+   where the Pico will hide it; if you leave the default, they put it wherever
+   they want, perhaps right on the front. (There is also a <code>WayWayWay</code> mark
+   under the ULA Pico, for ordering from PCBWay.)</li>
+</ol>
+<h3 id="2-assembly">2. Assembly<a class="ancla" href="#2-assembly" aria-hidden="true">#</a></h3>
+<ol>
+<li>Turn on <strong>PCB Assembly</strong> in the same order.</li>
+<li>Choose the <strong>Economic</strong> assembly, on the <strong>top side</strong>. Everything to be
+   assembled is SMD on the top, so the cheap option is enough. Choose how many
+   of the boards you want assembled.</li>
+<li>Upload <code>zxv-bom.csv</code> as the BOM and <code>zxv-cpl.csv</code> as the CPL (pick-and-place)
+   file.</li>
+<li>In the list of parts, check that <strong>all 28 lines are matched</strong> to a part and
+   that every part is <strong>in stock</strong>. The Picos, buttons, switch, LEDs and pin
+   headers do not appear: you solder those yourself, so they are not in the
+   files.</li>
+</ol>
+<p>If a part is out of stock, look for an equivalent with the same value and
+package in JLCPCB's catalogue. For example, if the eight 240 Ω resistors of
+the HDMI (C17572) were out of stock, any other 240 Ω resistor in the same
+0805 package would do.</p>
+<h3 id="3-the-placement-preview">3. The placement preview<a class="ancla" href="#3-the-placement-preview" aria-hidden="true">#</a></h3>
+<p>JLCPCB places each part using its own footprint, which is not always rotated
+like KiCad's or centred in the same place. The CPL file already corrects the
+known differences, but <strong>look at the placement preview</strong> before you pay. Zoom
+in and check that:</p>
+<ul>
+<li>the pin 1 dot of <strong>U3</strong> (the clock chip, 8 pins), <strong>Q1</strong> and <strong>D4</strong> (3 pins
+  each) sits on the pin 1 mark of the board;</li>
+<li>the stripe of the diodes <strong>D1, D2 and D3</strong> is on the side of the stripe
+  printed on the board;</li>
+<li>the <strong>USB-C</strong> (J1), the <strong>microSD</strong> socket (J3) and the <strong>audio jack</strong> (J8)
+  sit squarely on their pads, as do the HDMI (J7), the USB-A (J4) and the coin
+  cell holder (BT1).</li>
+</ul>
+<p>If a part looks rotated, you can usually rotate it in the preview, or ask
+JLCPCB in the order notes.</p>
+<h3 id="what-it-costs">What it costs<a class="ancla" href="#what-it-costs" aria-hidden="true">#</a></h3>
+<p>The parts come to roughly 5 US dollars per board (without the Picos). On top
+of that, JLCPCB charges a one-off fee <strong>per order</strong> (not per board) for each
+<em>Extended</em> part that is not a <em>preferred</em> one: here that is eight parts (the
+coin cell holder, the two fuses, the USB-C, the microSD socket, the USB-A, the
+HDMI and the audio jack), around 3 dollars each. Spread over an order of 5 boards
+that is about 5 dollars per board. These figures are estimates: the quote on
+the website has the real ones.</p>
+<h3 id="without-jlcpcbs-assembly">Without JLCPCB's assembly<a class="ancla" href="#without-jlcpcbs-assembly" aria-hidden="true">#</a></h3>
+<p>Every SMD part can also be soldered by hand: the resistors and capacitors are
+0805 (a comfortable size) with long pads, the chips have visible legs, and only
+the clock crystal is small (3.2 × 1.5 mm, two pads; easy with flux). You can
+also order a stencil with the boards and use a hot plate or an oven: all the
+SMD parts are on the top side. The same LCSC part numbers in <code>zxv-bom.csv</code> work
+from LCSC or any other shop.</p>
+<h2 id="the-parts-you-solder-yourself">The parts you solder yourself<a class="ancla" href="#the-parts-you-solder-yourself" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Ref.</th>
+<th>Part</th>
+<th>Qty</th>
+<th>LCSC</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>U1, U2</td>
+<td>Raspberry Pi Pico 2</td>
+<td>2</td>
+<td>—</td>
+<td>U1 is the CPU Pico, U2 the ULA Pico</td>
+</tr>
+<tr>
+<td>(U1, U2)</td>
+<td>Male pin header, 1 × 20, 2.54 mm</td>
+<td>4</td>
+<td>C50981</td>
+<td>Not needed if you solder the Picos by their edges, or if your Picos come with headers</td>
+</tr>
+<tr>
+<td>SW1, SW2</td>
+<td>Push button, 6 × 6 mm, right-angle (Omron B3F-3152)</td>
+<td>2</td>
+<td>C231320</td>
+<td>RESET and MODO (mode)</td>
+</tr>
+<tr>
+<td>SW3</td>
+<td>Slide switch, right-angle (Shou Han SK12D07VG4)</td>
+<td>1</td>
+<td>C393937</td>
+<td>Power (<code>OFF</code> / <code>ON</code>)</td>
+</tr>
+<tr>
+<td>LED1</td>
+<td>LED, 3 mm, diffused green (Lite-On LTL-4231N)</td>
+<td>1</td>
+<td>C125082</td>
+<td>SD</td>
+</tr>
+<tr>
+<td>LED2</td>
+<td>LED, 3 mm, diffused red (Lite-On LTL-4221N)</td>
+<td>1</td>
+<td>C125081</td>
+<td>ENLACE (link)</td>
+</tr>
+<tr>
+<td>J5</td>
+<td>Male pin header, 1 × 3, 2.54 mm (optional)</td>
+<td>1</td>
+<td>—</td>
+<td>UART</td>
+</tr>
+<tr>
+<td>J6</td>
+<td>Male pin header, 1 × 4, 2.54 mm (optional)</td>
+<td>1</td>
+<td>—</td>
+<td>I2C</td>
+</tr>
+<tr>
+<td>—</td>
+<td>CR2032 coin cell</td>
+<td>1</td>
+<td>—</td>
+<td>Goes in BT1, which comes assembled</td>
+</tr>
+</tbody>
+</table>
+<h2 id="soldering">Soldering<a class="ancla" href="#soldering" aria-hidden="true">#</a></h2>
+<p>Solder the low parts at the front first, then the optional headers, and the
+Picos last.</p>
+<h3 id="the-front-controls-and-leds">The front controls and LEDs<a class="ancla" href="#the-front-controls-and-leds" aria-hidden="true">#</a></h3>
+<p>All five sit at the front edge and stick out of it, so that they can come
+through holes in the front of a case. They are right-angle parts that lie flat
+on the board.</p>
+<ul>
+<li><strong>The push buttons (SW1, SW2)</strong>: push each one fully onto the board, with its
+  body up to the edge; the button sticks out about 4 mm. The pins only fit one
+  way.</li>
+<li><strong>The slide switch (SW3)</strong>: push it fully onto the board and solder its three
+  pins and its two mounting tabs. The lever sticks out about 3.4 mm. Seen from
+  the front, the lever to the <strong>right</strong> is on and to the <strong>left</strong> is off: the
+  board says <code>OFF</code> above the left half and <code>ON</code> above the right half.</li>
+<li><strong>The LEDs (LED1 green, LED2 red)</strong>: they lie flat, pointing out of the front
+  edge. Bend both legs at a right angle so that the LED lies parallel to the
+  board, about 2 mm above it, with its tip about 1 mm past the edge. <strong>Polarity
+  matters:</strong> the cathode (the shorter leg, on the flat side of the LED's rim)
+  goes to the <strong>square pad</strong>. Do not mix them up: the green one is LED1
+  (<code>SD</code>), the red one is LED2 (<code>ENLACE</code>).</li>
+</ul>
+<h3 id="the-optional-headers">The optional headers<a class="ancla" href="#the-optional-headers" aria-hidden="true">#</a></h3>
+<p><strong>J5</strong> (3 pins, <code>UART</code>) and <strong>J6</strong> (4 pins, <code>I2C</code>) are at the back right. You
+only need them for debugging (J5) or to connect an I2C module such as a DS3231
+clock (J6). Straight 2.54 mm male headers.</p>
+<h3 id="the-picos">The Picos<a class="ancla" href="#the-picos" aria-hidden="true">#</a></h3>
+<p>The footprint accepts the Picos two ways:</p>
+<ul>
+<li><strong>With pin headers</strong> (the easiest to solder): solder two 1 × 20 headers to
+  the Pico, or buy Picos with headers already fitted, and then solder the
+  headers into the holes of the board. The Pico sits a little above the board.</li>
+<li><strong>By their castellated edges</strong>: lay the Pico flat on the board, with each
+  half-hole on its pad, and solder along both edges. Half the joints, and
+  lower; harder to undo.</li>
+</ul>
+<p><strong>Orientation:</strong> the Pico's components face up and its <strong>micro-USB connector
+points to the front edge</strong> (towards the USB-A and the buttons). The <strong>ULA Pico
+goes on the left</strong> and the <strong>CPU Pico on the right</strong>, as seen from the front;
+the board says <code>ULA</code> and <code>CPU</code> in front of each one.</p>
+<p>Both Picos are identical until they have firmware. It is easiest to <strong>put the
+firmware on each Pico before soldering it</strong> and to label it
+(<a href="firmware.html">The firmware</a>). You can also do it afterwards: the micro-USB
+and the BOOTSEL button stay accessible.</p>
+<h3 id="the-coin-cell">The coin cell<a class="ancla" href="#the-coin-cell" aria-hidden="true">#</a></h3>
+<p>Slide a CR2032 into the holder (<code>CR2032</code>, on the right-hand side) with its
+<strong><code>+</code> side (the flat side with the writing) facing up</strong>, as marked by the <code>+</code>
+on the board. Without it the machine works, but forgets the time, the language
+and the keyboard layout when switched off.</p>
+<h2 id="assembly-checklist">Assembly checklist<a class="ancla" href="#assembly-checklist" aria-hidden="true">#</a></h2>
+<ul>
+<li>[ ] The assembled board has no visible solder bridges, especially on the
+      HDMI and USB-C connectors.</li>
+<li>[ ] SW1 (<code>RESET</code>) and SW2 (<code>MODO</code>) pushed fully down and soldered.</li>
+<li>[ ] SW3 (<code>OFF</code> / <code>ON</code>) soldered, with its mounting tabs.</li>
+<li>[ ] LED1 green at <code>SD</code>, LED2 red at <code>ENLACE</code>, cathode on the square pad.</li>
+<li>[ ] Optional: J5 and J6.</li>
+<li>[ ] Each Pico flashed with its firmware: <code>zxv_cpu.uf2</code> on the CPU Pico,
+      <code>zxv_ula_link.uf2</code> on the ULA Pico.</li>
+<li>[ ] ULA Pico on the left, CPU Pico on the right, micro-USB to the front.</li>
+<li>[ ] All 80 pins of the Picos soldered (40 each).</li>
+<li>[ ] CR2032 in place, <code>+</code> up.</li>
+</ul>
+<h2 id="the-first-power-on">The first power-on<a class="ancla" href="#the-first-power-on" aria-hidden="true">#</a></h2>
+<p>Do the first checks <strong>before soldering the Picos</strong>, with a multimeter.</p>
+<ol>
+<li><strong>No short circuit.</strong> With nothing plugged in, measure the resistance
+   between the two outer contacts of the USB-A port (5 V and ground). It must
+   not be close to 0 Ω.</li>
+<li><strong>The power switch.</strong> Plug in the USB-C charger and measure the voltage
+   between those same two contacts of the USB-A port: about 5 V with the lever
+   to the right (<code>ON</code>), 0 V with it to the left (<code>OFF</code>). You can also measure,
+   on each Pico footprint, between pin 39 (VSYS) and pin 38 (GND), the second
+   and third pins from the micro-USB end on the pin 40 side: a little less than
+   5 V when on (a protection diode drops a few tenths of a volt). Unplug the
+   charger.</li>
+<li><strong>Solder the Picos</strong>, insert a microSD card, and connect the HDMI screen and
+   a USB keyboard.</li>
+<li><strong>Switch on.</strong> The red <code>ENLACE</code> LED blinks once (mode 0), and then stays
+   lit while the ULA Pico receives images from the CPU Pico. The screen shows
+   the BASIC.</li>
+<li><strong>Try it:</strong> <code>PRINT 6*7</code>, then <code>CAT</code> (the green <code>SD</code> LED flashes while it
+   reads the card), then <code>BEEP 1,0</code> for sound.</li>
+<li><strong>The board test:</strong> <code>LOAD "ROM:boardtest"</code> checks, one by one, what a program
+   can see: the screen (by its HPD), the clock, the SD card, the keyboard, the
+   gamepads, the mouse and the sound (keys 1, 2 and 3: beeper, AY left and
+   right). Press MODE to see the video line change, and Esc to go back. Press
+   <strong>P</strong> for the palettes: the ROM's usual colours and the same ones set by
+   hand, line by line, with no stripes showing; a grey ramp; a fire ramp that
+   cycles; and the border, which changes every second (black, black, orange
+   and purple) while nothing else does. Space stops the ramp, and the
+   "Palettes CRC" must read <code>95AF97D6</code>, the same as in the emulator and as on
+   the diagnostic page (Ctrl+Alt+F12), in the ULA's line: the palettes reach
+   the ULA intact. P again goes back to the test.</li>
+</ol>
+<p>The Picos can still be connected to a computer by their micro-USB while the
+board is powered: the protection diodes keep the two supplies apart. <strong>Not
+while it is switched off</strong>: a single Pico would feed the other one through the
+link pins. If something does not work, see
+<a href="firmware.html#if-there-is-no-picture-or-no-sound">What to check</a>.</p>
+<h2 id="connectors-and-controls">Connectors and controls<a class="ancla" href="#connectors-and-controls" aria-hidden="true">#</a></h2>
+<p>The labels printed on the board are in Spanish.</p>
+<table>
+<thead>
+<tr>
+<th>Label</th>
+<th>Where</th>
+<th>Part</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>5 V</code></td>
+<td>Back, left</td>
+<td>J1, USB-C</td>
+<td>Power: any 5 V USB-C charger of 2 A. Power only, no data</td>
+</tr>
+<tr>
+<td><code>HDMI</code></td>
+<td>Back, behind the ULA</td>
+<td>J7</td>
+<td>The screen: picture, and sound in the HDMI mode</td>
+</tr>
+<tr>
+<td><code>AUDIO</code></td>
+<td>Back, behind the CPU</td>
+<td>J8, 3.5 mm jack</td>
+<td>Stereo line-level sound, always on</td>
+</tr>
+<tr>
+<td><code>OFF</code> <code>ON</code></td>
+<td>Front, far left</td>
+<td>SW3</td>
+<td>Power switch: lever to the right is on, to the left is off</td>
+</tr>
+<tr>
+<td><code>MODO</code></td>
+<td>Front, left</td>
+<td>SW2</td>
+<td><strong>Mode</strong>: a short press switches video mode; a long press (1 to 5 s) shows or hides the diagnostic page; held at power-on, the safe mode</td>
+</tr>
+<tr>
+<td><code>USB</code></td>
+<td>Front, centre</td>
+<td>J4, USB-A</td>
+<td>Keyboard, mouse, gamepads (several through a hub). Protected by a 500 mA fuse</td>
+</tr>
+<tr>
+<td><code>RESET</code></td>
+<td>Front, right</td>
+<td>SW1</td>
+<td>Restarts both Picos, like switching off and on</td>
+</tr>
+<tr>
+<td><code>SD</code></td>
+<td>Front, right</td>
+<td>LED1, green</td>
+<td>Lit while the machine uses the SD card or the clock</td>
+</tr>
+<tr>
+<td><code>ENLACE</code></td>
+<td>Front, far right</td>
+<td>LED2, red</td>
+<td><strong>Link</strong>: at start-up it blinks the mode number plus one; then it is lit while images arrive from the CPU Pico, blinks if some arrive with errors, and is off if none arrive</td>
+</tr>
+<tr>
+<td><code>microSD</code></td>
+<td>Right side</td>
+<td>J3</td>
+<td>The SD card (push to insert, push again to release)</td>
+</tr>
+<tr>
+<td><code>CR2032</code> <code>+</code></td>
+<td>Right side</td>
+<td>BT1</td>
+<td>The clock's coin cell, <code>+</code> up</td>
+</tr>
+<tr>
+<td><code>UART</code> <code>GND</code> <code>TX</code> <code>RX</code></td>
+<td>Back, right</td>
+<td>J5 (not fitted)</td>
+<td>The CPU Pico's debug serial port, 3.3 V, 921600 baud. <code>TX</code> is the Pico's output</td>
+</tr>
+<tr>
+<td><code>I2C</code> <code>3V3</code> <code>GND</code> <code>SDA</code> <code>SCL</code></td>
+<td>Back, right</td>
+<td>J6 (not fitted)</td>
+<td>The clock's I2C bus, 3.3 V, for an extra module (a DS3231 clock module is used instead of the on-board one if present)</td>
+</tr>
+<tr>
+<td><code>ULA</code> <em>vídeo y sonido</em></td>
+<td>Centre left</td>
+<td>U2</td>
+<td>The ULA Pico ("video and sound")</td>
+</tr>
+<tr>
+<td><code>CPU</code> <em>BASIC y programas</em></td>
+<td>Centre right</td>
+<td>U1</td>
+<td>The CPU Pico ("BASIC and programs")</td>
+</tr>
+</tbody>
+</table>
+<p>To start in the safe video mode on this board, hold <code>MODO</code> down while you
+switch on, or while you press and release <code>RESET</code>.</p>
+<nav class="pasos"><a class="anterior" href="index.html"><small>Previous</small>← Build the hardware</a><a class="siguiente" href="firmware.html"><small>Next</small>The firmware →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

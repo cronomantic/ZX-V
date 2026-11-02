@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Primeros pasos · ZX-V</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="icon" type="image/png" href="../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../en/getting-started.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="getting-started.html" class="aqui">Primeros pasos</a>
+<ul>
+</ul>
+</li>
+<li><a href="emulator.html">El emulador</a>
+</li>
+<li><a href="machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="basic/index.html">Aprende BASIC</a>
+</li>
+<li><a href="basic/editor.html">El editor</a>
+</li>
+<li><a href="basic/reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="hardware/board.html">La placa</a>
+</li>
+<li><a href="hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="primeros-pasos">Primeros pasos</h1>
+<p>Esta página te lleva desde cero hasta escribir y ejecutar tu primer programa en
+unos cinco minutos. No hace falta saber nada del ZX Spectrum ni de
+programación.</p>
+<h2 id="qué-es-zx-v">¿Qué es ZX-V?<a class="ancla" href="#qué-es-zx-v" aria-hidden="true">#</a></h2>
+<p>ZX-V es un pequeño ordenador doméstico de 32 bits, nuevo pero con el espíritu
+del ZX Spectrum de los años 80. Como los ordenadores de entonces, lo enciendes
+y está listo para que escribas: arranca directamente en el <strong>BASIC</strong>, un
+lenguaje de programación sencillo. Tiene 15 colores vivos de serie (y paletas
+para elegir otros), dos chips de música, una tarjeta SD para tus ficheros, y
+también ejecuta programas rápidos escritos en C.</p>
+<p>ZX-V es a la vez una máquina real, hecha con dos placas Raspberry Pi Pico 2, y
+un emulador que ejecuta exactamente el mismo software en tu PC o en el
+navegador. Todo lo de esta página funciona igual en todos ellos.</p>
+<h2 id="elige-cómo-usarlo">Elige cómo usarlo<a class="ancla" href="#elige-cómo-usarlo" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Opción</th>
+<th>Qué necesitas</th>
+<th>Ideal para</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Emulador de escritorio</strong> (<code>zxv</code>)</td>
+<td>Un PC con Windows (64 bits) o Linux (x86-64)</td>
+<td>Casi todo el mundo: programar, jugar, desarrollar</td>
+</tr>
+<tr>
+<td><strong>Versión web</strong></td>
+<td>Un navegador moderno (Chrome, Edge, Firefox...)</td>
+<td>Probarlo sin instalar nada, o ponerlo en una web</td>
+</tr>
+<tr>
+<td><strong>Hardware real</strong></td>
+<td>La placa de ZX-V (o una protoboard), dos Pico 2, un teclado USB y una pantalla HDMI</td>
+<td>La experiencia completa; ver <a href="hardware/index.html">Construir el hardware</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="descarga">Descarga<a class="ancla" href="#descarga" aria-hidden="true">#</a></h2>
+<p>Todo está en la página del proyecto en GitHub, en
+<a href="https://github.com/cronomantic/ZX-V/releases"><strong>Releases</strong></a>. La última versión
+trae estos paquetes:</p>
+<table>
+<thead>
+<tr>
+<th>Fichero</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>zxv-windows-x64.zip</code></td>
+<td>El emulador para Windows</td>
+</tr>
+<tr>
+<td><code>ZX-V-…-x86_64.AppImage</code></td>
+<td>El emulador para Linux (x86-64) en un solo fichero, con todo dentro</td>
+</tr>
+<tr>
+<td><code>zxv-linux-x86_64.tar.gz</code></td>
+<td>El emulador para Linux (x86-64), con el Qt y el SDL del sistema</td>
+</tr>
+<tr>
+<td><code>zxv-web.zip</code></td>
+<td>La versión web</td>
+</tr>
+<tr>
+<td><code>zxv-uf2.zip</code></td>
+<td>El firmware de las dos Pico de la máquina real (ver <a href="hardware/firmware.html">El firmware</a>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Windows:</strong> descomprime <code>zxv-windows-x64.zip</code> donde quieras (en el escritorio,
+por ejemplo) y haz doble clic en <code>zxv.exe</code>. No hay que instalar nada más.</p>
+<p><strong>Linux:</strong> lo más sencillo es la AppImage: hazla ejecutable y ábrela
+(<code>chmod +x ZX-V-*.AppImage</code> y luego doble clic, o <code>./ZX-V-*.AppImage</code>). Lleva
+Qt y SDL dentro y funciona en casi todas las distribuciones desde 2022
+(Ubuntu 22.04, Debian 12, Fedora 36...). Los otros programas del paquete
+también van a través de ella: <code>./ZX-V-*.AppImage zxv-cli --help</code>. Si se queja
+de FUSE (en un contenedor, por ejemplo), añade <code>--appimage-extract-and-run</code>.</p>
+<p>O descomprime el paquete (<code>tar xzf zxv-linux-x86_64.tar.gz</code>) y ejecuta
+<code>zxv-linux/zxv</code>. Necesita Qt 6 y SDL 2, que casi todos los escritorios ya
+tienen; en Debian o Ubuntu:</p>
+<pre><code class="language-sh">sudo apt install libqt6widgets6 libsdl2-2.0-0
+</code></pre>
+<p><strong>Versión web:</strong> descomprime <code>zxv-web.zip</code> y haz doble clic en <code>index.html</code>.
+Funciona directamente desde el disco, sin servidor web.</p>
+<p>Los paquetes de Windows y Linux traen también esta documentación, para leerla
+sin conexión: abre <code>docs/index.html</code>, o <strong>Ayuda &gt; Documentación</strong> en
+el emulador.</p>
+<h2 id="el-primer-arranque">El primer arranque<a class="ancla" href="#el-primer-arranque" aria-hidden="true">#</a></h2>
+<p>Abre el emulador. Al momento verás esto:</p>
+<p><img alt="La pantalla de arranque de ZX-V" src="../images/start-boot-es.png" /></p>
+<p>Eso es todo: una pantalla gris clara, una línea de copyright y una barra negra
+abajo. La barra es el <strong>editor</strong> del BASIC: <em>ZX-V BASIC</em> a la izquierda y, a la
+derecha, cuánta memoria queda libre para tu programa (unos 94.000 bytes). Las
+franjas de colores son un homenaje al Spectrum 128.</p>
+<p>La primera vez que abres <code>zxv</code>, además, crea una carpeta llamada <strong>ZX-V</strong> en tu
+carpeta <em>Documentos</em> y copia en ella los programas de ejemplo. Esa carpeta es
+la <strong>tarjeta SD</strong> de la máquina: todo lo que grabes irá ahí. Más sobre ella
+<a href="#grabar-y-cargar-tus-programas">abajo</a>.</p>
+<p>Los menús del emulador y los mensajes de la máquina pueden ir en español o en
+inglés: se elige en <strong>Opciones &gt; Idioma</strong>. En la versión web, en
+<strong>Ver &gt; Opciones...</strong>.</p>
+<h2 id="tu-primer-programa">Tu primer programa<a class="ancla" href="#tu-primer-programa" aria-hidden="true">#</a></h2>
+<p>Un programa es una lista de líneas numeradas. Escribe esta línea tal cual y
+pulsa <strong>Intro</strong>:</p>
+<pre><code>10 BORDER 0: PAPER 0: INK 7: CLS
+</code></pre>
+<p>La línea sube al listado, y las palabras clave (<code>BORDER</code>, <code>PAPER</code>...) se
+muestran en mayúsculas. Puedes escribirlas en mayúsculas o en minúsculas, como
+prefieras: basta con escribir cada palabra letra a letra, como en cualquier
+ordenador.</p>
+<p>Ahora escribe las otras dos líneas, pulsando <strong>Intro</strong> después de cada una:</p>
+<pre><code>20 PRINT &quot;Hola, soy ZX-V&quot;
+30 FOR i=1 TO 7: CIRCLE INK i;128,88,i*10: NEXT i
+</code></pre>
+<p>La pantalla quedará así:</p>
+<p><img alt="El programa escrito en el editor" src="../images/start-editor-es.png" /></p>
+<p>Si te equivocas, mueve el cursor con las flechas y corrígelo como en un editor
+de textos: <strong>Retroceso</strong> y <strong>Supr</strong> borran, e <strong>Intro</strong> vuelve a guardar la
+línea. Si una línea tiene un error, la máquina suelta un zumbido y deja el
+cursor donde está el problema.</p>
+<p>Ahora escribe <code>RUN</code> y pulsa <strong>Intro</strong>. El programa se ejecuta:</p>
+<p><img alt="El programa en marcha" src="../images/start-run-es.png" /></p>
+<p>La línea 10 pinta de negro el borde y el fondo y elige el blanco para el texto,
+la 20 escribe un mensaje y la 30 dibuja siete círculos, uno de cada color. El
+mensaje de abajo, <code>0 OK, 30:3</code>, quiere decir que el programa terminó sin
+errores, en la línea 30, sentencia 3. Pulsa una tecla para volver al editor,
+donde te espera tu programa. (Esa tecla también se escribe en el editor; si era
+una letra, bórrala sin más.)</p>
+<p>Algunas teclas que conviene conocer desde el principio:</p>
+<table>
+<thead>
+<tr>
+<th>Tecla</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Intro</strong></td>
+<td>Guarda la línea, o ejecuta una orden escrita sin número de línea</td>
+</tr>
+<tr>
+<td><strong>Esc</strong></td>
+<td>Para un programa en marcha (es la tecla <strong>BREAK</strong>); en el editor, deshace los cambios de la línea</td>
+</tr>
+<tr>
+<td><strong>Tab</strong></td>
+<td>La tecla <strong>EDIT</strong>: abre el menú de opciones del editor (renumerar, ver la pantalla del programa, imprimir)</td>
+</tr>
+<tr>
+<td>Flechas, Inicio, Fin, RePág, AvPág</td>
+<td>Se mueven por el listado</td>
+</tr>
+</tbody>
+</table>
+<p>Para probar otra cosa, escribe <code>NEW</code> y pulsa <strong>Intro</strong>: borra el programa para
+empezar de nuevo.</p>
+<p>El <a href="basic/index.html">curso de BASIC</a> empieza aquí y te enseña el lenguaje paso
+a paso.</p>
+<h2 id="los-ejemplos-de-serie-la-unidad-rom">Los ejemplos de serie: la unidad <code>ROM:</code><a class="ancla" href="#los-ejemplos-de-serie-la-unidad-rom" aria-hidden="true">#</a></h2>
+<p>ZX-V trae un disco de solo lectura lleno de ejemplos, la <strong>unidad <code>ROM:</code></strong> (en
+la máquina real va dentro de la Pico CPU, así que siempre está ahí). Para ver
+lo que tiene, escribe:</p>
+<pre><code>CAT &quot;ROM:&quot;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Fichero</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>platformer.zvb</code> y <code>platformer.gfx</code></td>
+<td>Un juego de plataformas escrito en BASIC, y sus gráficos</td>
+</tr>
+<tr>
+<td><code>rps.bas</code></td>
+<td>Rock, Paper, Scissors en BASIC, en texto: <code>LOAD "rps"</code> lo carga y <code>LIST</code> lo enseña</td>
+</tr>
+<tr>
+<td><code>sentry.bas</code></td>
+<td><em>Sentry</em>, defiende las ciudades de los misiles con el ratón, el teclado o un mando, en BASIC</td>
+</tr>
+<tr>
+<td><code>estela.zxv</code></td>
+<td><em>Estela</em>, un matamarcianos de tres fases</td>
+</tr>
+<tr>
+<td><code>route128.zxv</code></td>
+<td><em>Route 128</em>, carreras contra el reloj por una carretera con curvas y cambios de rasante</td>
+</tr>
+<tr>
+<td><code>muncher.bas</code></td>
+<td><em>Muncher</em>, cómete los puntos del laberinto sin que te pillen sus cuatro perseguidores, en BASIC</td>
+</tr>
+<tr>
+<td><code>cascade.bas</code></td>
+<td><em>Cascade</em>, junta tres gemas del mismo color en línea antes de que se llene el pozo, en BASIC (con <code>cascade.gfx</code>, <code>cascade.pt3</code> y <code>cascade.afb</code>)</td>
+</tr>
+<tr>
+<td><code>mine.zxv</code></td>
+<td><em>The Mine</em>, cava y junta diamantes entre piedras que caen</td>
+</tr>
+<tr>
+<td><code>street.zxv</code></td>
+<td><em>Street Justice</em>, peleas por las calles contra las bandas del barrio</td>
+</tr>
+<tr>
+<td><code>umbra.zxv</code></td>
+<td><em>Umbra</em>, un laberinto en 3D a oscuras</td>
+</tr>
+<tr>
+<td><code>keep.zxv</code></td>
+<td><em>The Keep</em>, una aventura de mazmorras de cuatro plantas</td>
+</tr>
+<tr>
+<td><code>chess.zxv</code></td>
+<td><em>ZXV Chess</em>, ajedrez contra la máquina o entre dos</td>
+</tr>
+<tr>
+<td><code>graphics.zxv</code></td>
+<td>Una demostración gráfica: escenario que se desplaza, pelotas que rebotan, una estrella que gira y un suelo en 3D</td>
+</tr>
+<tr>
+<td><code>scroll.zxv</code></td>
+<td>Desplazamiento suave por un paisaje de cuatro pantallas de ancho, con parallax</td>
+</tr>
+<tr>
+<td><code>digital.zxv</code></td>
+<td>Sonido digitalizado por el chip de música</td>
+</tr>
+<tr>
+<td><code>hello.zxv</code></td>
+<td>El ejemplo más pequeño de programa nativo</td>
+</tr>
+<tr>
+<td><code>boardtest.zxv</code></td>
+<td>La prueba de la placa: monitor, reloj, tarjeta, teclado, mandos, ratón y sonido, uno a uno</td>
+</tr>
+<tr>
+<td><code>files.zxv</code></td>
+<td>Un programa nativo que crea, lee y lista ficheros en la tarjeta SD</td>
+</tr>
+<tr>
+<td><code>gfxedit.zxv</code></td>
+<td>Un editor de sprites, tiles y mapas en la propia máquina</td>
+</tr>
+<tr>
+<td><code>player.zxv</code></td>
+<td>Un reproductor de la música (PT3...) y los efectos de sonido (AYFX) de la tarjeta</td>
+</tr>
+</tbody>
+</table>
+<p>Los ficheros que acaban en <code>.zxv</code> son <strong>programas nativos</strong>, escritos en C. Se
+cargan con <code>LOAD</code>:</p>
+<pre><code>LOAD &quot;ROM:graphics&quot;
+</code></pre>
+<p><img alt="El ejemplo graphics" src="../images/start-graphics.png" /></p>
+<p>Pulsa una tecla para volver al BASIC. Prueba también <code>LOAD "ROM:estela"</code>: es un
+juego completo (flechas o O, P, Q, A para moverte, espacio o M para disparar y
+Esc para salir).</p>
+<p>Los juegos en BASIC que cargan más ficheros, como el de plataformas, los
+encuentran en la unidad <code>ROM:</code> solos: <code>LOAD "ROM:platformer"</code>. También puedes
+entrar en la unidad y cargarlos desde ahí:</p>
+<pre><code>CD &quot;ROM:&quot;
+LOAD &quot;platformer&quot;
+</code></pre>
+<p><code>CD "SD:"</code> te devuelve a la tarjeta SD.</p>
+<blockquote>
+<p>Cuando termina un programa nativo, vuelves al BASIC con el informe <code>0 OK</code>
+(o con un informe <code>W</code> si el programa ha acabado con un error), pero el
+programa BASIC que tuvieras en memoria ha desaparecido: el programa nativo
+ha usado esa memoria. Grábalo antes.</p>
+</blockquote>
+<h2 id="grabar-y-cargar-tus-programas">Grabar y cargar tus programas<a class="ancla" href="#grabar-y-cargar-tus-programas" aria-hidden="true">#</a></h2>
+<p>Tus programas se graban en la <strong>tarjeta SD</strong>. En el emulador de escritorio es
+la carpeta <strong>ZX-V</strong> de tus <em>Documentos</em> (puedes elegir otra en
+<strong>Archivo &gt; Tarjeta SD</strong>). Para grabar el programa que tienes en memoria, ponle
+un nombre:</p>
+<pre><code>SAVE &quot;circulos&quot;
+</code></pre>
+<p>Esto crea el fichero <code>circulos.zvb</code> en la tarjeta. Para ver lo que hay en la
+tarjeta, escribe <code>CAT</code>. Para volver a cargar el programa más tarde:</p>
+<pre><code>LOAD &quot;circulos&quot;
+</code></pre>
+<p>No hace falta escribir la extensión: <code>LOAD</code> busca <code>circulos.zvb</code>, después
+<code>circulos.tap</code>, <code>circulos.zxv</code> y <code>circulos.bas</code>, y por último un fichero
+llamado solo <code>circulos</code>. Los ejemplos
+que se copiaron a la tarjeta la primera vez se cargan igual, sin <code>ROM:</code>:
+<code>LOAD "estela"</code>.</p>
+<p>Los nombres de fichero solo pueden llevar letras sin tildes, cifras y algunos
+signos, hasta 63 caracteres: <code>circulos</code>, no <code>círculos</code>. Las mayúsculas y las
+minúsculas cuentan como el mismo nombre.</p>
+<p>En el emulador de escritorio, <strong>Archivo &gt; Grabar el programa...</strong> (Alt+G) hace
+lo mismo que <code>SAVE</code>, con un diálogo.</p>
+<p>Si ves <code>U No hay tarjeta SD</code>, el emulador está funcionando sin tarjeta: elige
+una en <strong>Archivo &gt; Tarjeta SD</strong>.</p>
+<h2 id="abrir-ficheros-de-tu-pc">Abrir ficheros de tu PC<a class="ancla" href="#abrir-ficheros-de-tu-pc" aria-hidden="true">#</a></h2>
+<p>Puedes abrir ficheros de cualquier sitio de tu ordenador con
+<strong>Archivo &gt; Abrir...</strong> (Alt+O), arrastrándolos a la ventana del emulador o
+dándolos al arrancarlo (<code>zxv juego.zvb</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Fichero</th>
+<th>Qué pasa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.zvb</code></td>
+<td>Un programa BASIC de ZX-V, el formato en el que los graba <code>SAVE</code>: se carga con <code>LOAD</code>, como en la máquina</td>
+</tr>
+<tr>
+<td><code>.zxv</code></td>
+<td>Un programa nativo de ZX-V: se carga y se ejecuta</td>
+</tr>
+<tr>
+<td><code>.tap</code>, <code>.tzx</code></td>
+<td>Un fichero de cinta del Spectrum: se carga con <code>LOAD</code>, como en la máquina, para los programas BASIC hechos para el ZX Spectrum</td>
+</tr>
+<tr>
+<td><code>.bas</code></td>
+<td>Un listado BASIC en texto: se carga con <code>LOAD</code>, como en la máquina</td>
+</tr>
+<tr>
+<td><code>.txt</code></td>
+<td>Un listado en texto: se teclea solo en el editor</td>
+</tr>
+<tr>
+<td><code>.zxvs</code></td>
+<td>Una instantánea: la máquina entera, tal como estaba al guardarla</td>
+</tr>
+<tr>
+<td><code>.img</code>, una carpeta</td>
+<td>Pasa a ser la tarjeta SD</td>
+</tr>
+</tbody>
+</table>
+<p>Si el programa no está en la tarjeta SD, el emulador pregunta si copiarlo a la
+tarjeta o usar su carpeta como tarjeta. Los detalles, en
+<a href="emulator.html">El emulador</a>.</p>
+<blockquote>
+<p><strong>Si conoces el Spectrum:</strong> los <code>.tap</code> y <code>.tzx</code> del Spectrum con programas
+BASIC se cargan y funcionan, también las cintas de varias partes (un cargador
+seguido de <code>LOAD ""</code>). En cambio, el código máquina Z80 no se puede ejecutar
+en ZX-V, así que la mayoría de los juegos comerciales del Spectrum no
+funcionarán.</p>
+</blockquote>
+<h2 id="y-ahora-qué">Y ahora, ¿qué?<a class="ancla" href="#y-ahora-qué" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong><a href="basic/index.html">Aprende BASIC</a></strong>: un curso desde cero que termina con un
+  juego completo.</li>
+<li><strong><a href="basic/editor.html">El editor</a></strong> y la <strong><a href="basic/reference.html">referencia del BASIC</a></strong>.</li>
+<li><strong><a href="emulator.html">El emulador</a></strong>: menús, teclas, instantáneas, la versión web y
+  todas las opciones.</li>
+<li><strong><a href="machine.html">La máquina</a></strong>: lo que sabe hacer ZX-V: pantalla, colores,
+  sonido, memoria y ficheros.</li>
+<li><strong><a href="sdk/index.html">Programas nativos (SDK)</a></strong>: programas y juegos rápidos en C.</li>
+<li><strong><a href="hardware/index.html">Construir el hardware</a></strong>: haz tu propio ZX-V de verdad.</li>
+</ul>
+<nav class="pasos"><a class="anterior" href="index.html"><small>Anterior</small>← Documentación</a><a class="siguiente" href="emulator.html"><small>Siguiente</small>El emulador →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3. Text and input · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../es/basic/tutorial/03-text-and-input.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../../getting-started.html">Getting started</a>
+</li>
+<li><a href="../../emulator.html">The emulator</a>
+</li>
+<li><a href="../../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../index.html">Learn BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. First steps</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables and maths</a></li>
+<li><a href="03-text-and-input.html" class="aqui">3. Text and input</a></li>
+<li><a href="04-decisions.html">4. Decisions</a></li>
+<li><a href="05-loops.html">5. Loops</a></li>
+<li><a href="06-arrays-and-data.html">6. Arrays and data</a></li>
+<li><a href="07-procedures.html">7. Procedures</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Colours and the screen</a></li>
+<li><a href="09-drawing.html">9. Drawing</a></li>
+<li><a href="10-sound-and-music.html">10. Sound and music</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Keyboard and joystick</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites and tile maps</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Files and the SD card</a></li>
+<li><a href="14-a-complete-game.html">14. A complete game</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">The editor</a>
+</li>
+<li><a href="../reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="../../hardware/index.html">Build the hardware</a>
+</li>
+<li><a href="../../hardware/board.html">The board</a>
+</li>
+<li><a href="../../hardware/firmware.html">The firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="3-text-and-input">3. Text and input</h1>
+<p><strong>In this chapter you will learn</strong> to keep text in <strong>string variables</strong>, to
+join and cut text, and to ask the person at the keyboard with <code>INPUT</code>.</p>
+<h2 id="strings">Strings<a class="ancla" href="#strings" aria-hidden="true">#</a></h2>
+<p>A piece of text is called a <strong>string</strong>. You already used strings: everything
+between double quotes, like <code>"Hello"</code>. Strings can be kept in variables too.
+Their names are a single letter followed by <code>$</code> (say "a-string"): <code>a$</code>,
+<code>n$</code>, <code>t$</code>.</p>
+<pre><code>10 LET a$=&quot;ZX&quot;
+20 LET b$=&quot;Spectrum&quot;
+30 LET c$=a$+&quot; &quot;+b$
+40 PRINT c$
+50 PRINT LEN c$
+60 PRINT c$(1 TO 2)
+70 PRINT c$(4 TO )
+80 PRINT c$(4)
+</code></pre>
+<p>This prints:</p>
+<pre><code>ZX Spectrum
+11
+ZX
+Spectrum
+S
+</code></pre>
+<ul>
+<li><code>+</code> <strong>joins</strong> strings: line 30 builds <code>"ZX Spectrum"</code>.</li>
+<li><code>LEN</code> gives the <strong>length</strong>, the number of characters (spaces count).</li>
+<li><code>c$(1 TO 2)</code> takes a <strong>slice</strong>: from character 1 to character 2.
+  <code>c$(4 TO )</code> goes from 4 to the end, and <code>c$(4)</code> is just character 4.</li>
+</ul>
+<p>There are only 26 string variables, one per letter, so choose letters that
+remind you of what they hold: <code>n$</code> for a name, <code>w$</code> for a word.</p>
+<h2 id="numbers-and-text">Numbers and text<a class="ancla" href="#numbers-and-text" aria-hidden="true">#</a></h2>
+<p>A number and a string are different things: <code>"42"</code> is two characters, <code>42</code>
+is a number. These functions turn one into the other:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>What it does</th>
+<th>Example</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>STR$</code></td>
+<td>number to string</td>
+<td><code>STR$ 42</code></td>
+<td><code>"42"</code></td>
+</tr>
+<tr>
+<td><code>VAL</code></td>
+<td>string to number</td>
+<td><code>VAL "2*3+1"</code></td>
+<td><code>7</code></td>
+</tr>
+<tr>
+<td><code>CODE</code></td>
+<td>the code of the first character</td>
+<td><code>CODE "A"</code></td>
+<td><code>65</code></td>
+</tr>
+<tr>
+<td><code>CHR$</code></td>
+<td>the character with that code</td>
+<td><code>CHR$ 66</code></td>
+<td><code>"B"</code></td>
+</tr>
+</tbody>
+</table>
+<pre><code>10 LET n=42
+20 LET t$=STR$ n
+30 PRINT &quot;The number has &quot;;LEN t$;&quot; digits&quot;
+40 PRINT VAL &quot;2*3+1&quot;
+50 PRINT CODE &quot;A&quot;,CHR$ 66
+</code></pre>
+<p>Every character has a code: <code>A</code> is 65, <code>B</code> is 66, and so on. You will use
+<code>CODE</code> again when you read the keyboard in chapter 11.</p>
+<h2 id="asking-questions-input">Asking questions: <code>INPUT</code><a class="ancla" href="#asking-questions-input" aria-hidden="true">#</a></h2>
+<p><code>INPUT</code> stops the program and waits for the person to type something and
+press Enter. Whatever they type goes into a variable:</p>
+<pre><code>10 INPUT &quot;What is your name? &quot;;n$
+20 INPUT &quot;How old are you? &quot;;age
+30 PRINT &quot;Hello, &quot;;n$
+40 PRINT &quot;In ten years you will be &quot;;age+10
+</code></pre>
+<p>The question appears at the bottom of the screen, followed by a flashing
+cursor:</p>
+<p><img alt="INPUT waits at the bottom of the screen" src="../../../images/tutorial-input-en.png" /></p>
+<p>If the variable is a string (<code>n$</code>), the cursor appears between quotes, to
+remind you that the answer is text: type it without the quotes, they are
+already there. Any text is fine. If it is a number
+(<code>age</code>), type a number: the machine works out what you type as if it were a
+sum, so <code>30+6</code> also gives 36. Words are a problem there: typing <code>ten</code>, for
+example, stops the program with <code>2 Variable not found</code>, because the machine
+thinks <code>ten</code> is the name of a variable.</p>
+<h2 id="try-it">Try it<a class="ancla" href="#try-it" aria-hidden="true">#</a></h2>
+<ol>
+<li>Ask for a first name and a surname, and print the initials: with "Grace"
+   and "Hopper" the program prints <code>Your initials: GH</code>.</li>
+<li>Ask for a word and print how many letters it has.</li>
+</ol>
+<details>
+<summary>Hint</summary>
+<p>Character 1 of <code>f$</code> is <code>f$(1)</code>. For the second exercise, <code>LEN</code> does the
+counting.</p>
+</details>
+<details>
+<summary>A solution for the first one</summary>
+<pre><code>10 INPUT &quot;First name? &quot;;f$
+20 INPUT &quot;Surname? &quot;;s$
+30 PRINT &quot;Your initials: &quot;;f$(1);s$(1)
+</code></pre>
+</details>
+<hr />
+<p><strong>Reference:</strong> <a href="../reference.html#strings">Strings</a>,
+<a href="../reference.html#len"><code>LEN</code></a>, <a href="../reference.html#str-val-val"><code>STR$</code>, <code>VAL</code></a>,
+<a href="../reference.html#chr-code"><code>CHR$</code>, <code>CODE</code></a>,
+<a href="../reference.html#input"><code>INPUT</code></a>.</p>
+<p><strong>Next:</strong> <a href="04-decisions.html">4. Decisions</a> ·
+<strong>Previous:</strong> <a href="02-variables-and-maths.html">2. Variables and maths</a></p>
+<nav class="pasos"><a class="anterior" href="02-variables-and-maths.html"><small>Previous</small>← 2. Variables and maths</a><a class="siguiente" href="04-decisions.html"><small>Next</small>4. Decisions →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

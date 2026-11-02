@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Building the hardware · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html">ZX-V</a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir" href="../../es/hardware/index.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../getting-started.html">Getting started</a>
+</li>
+<li><a href="../emulator.html">The emulator</a>
+</li>
+<li><a href="../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Learn BASIC</a>
+</li>
+<li><a href="../basic/editor.html">The editor</a>
+</li>
+<li><a href="../basic/reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="index.html" class="aqui">Build the hardware</a>
+<ul>
+</ul>
+</li>
+<li><a href="board.html">The board</a>
+</li>
+<li><a href="firmware.html">The firmware</a>
+</li>
+<li><a href="protoboard.html">On a protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="building-the-hardware">Building the hardware</h1>
+<p>ZX-V is not only an emulator: you can build the real machine and plug it into
+a TV. It is made from two <strong>Raspberry Pi Pico 2</strong> boards, a handful of
+connectors and a few dozen small parts. You do not need to write any code: the
+software for both Picos comes ready to copy onto them.</p>
+<blockquote>
+<p><strong>Status.</strong> The firmware for both Picos is written, and <strong>each Pico has been
+tested on its own</strong>: the HDMI picture and sound on a single Pico 2, and the
+CPU, which runs programs exactly like the emulator. <strong>The two Picos have not
+yet been tested working together</strong>, so the complete machine has not been
+tested, neither on the PCB nor on a protoboard. The <strong>printed circuit board
+(PCB) is fully designed, but it has not been manufactured or tested yet</strong>.
+If you build one now, you will be among the first to try it: read
+<a href="board.html">The board</a> carefully and expect that something may need fixing.</p>
+</blockquote>
+<h2 id="what-you-need">What you need<a class="ancla" href="#what-you-need" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>Two Raspberry Pi Pico 2</strong> boards. They must be the Pico <strong>2</strong> (with the
+  RP2350 chip): the original Raspberry Pi Pico does not run the firmware.</li>
+<li><strong>The board</strong>, ordered assembled from JLCPCB, and the few parts you solder
+  yourself (<a href="board.html">The board</a>). Or, instead, a protoboard or breadboard and
+  the parts in <a href="protoboard.html">On a protoboard</a>.</li>
+<li><strong>The firmware</strong>: two <code>.uf2</code> files, one for each Pico
+  (<a href="firmware.html">The firmware</a>).</li>
+<li><strong>A screen with an HDMI input</strong> (a TV or a monitor) and an HDMI cable.</li>
+<li><strong>A USB keyboard.</strong> Optionally a USB mouse, one or two USB gamepads and a USB
+  hub to plug them all in.</li>
+<li><strong>A microSD card</strong>, to save your programs and load others.</li>
+<li><strong>A USB-C phone charger</strong> of 5 V that can give 2 A, with its cable.</li>
+<li>Optionally, <strong>powered speakers</strong> for the audio output, and a <strong>CR2032 coin
+  cell</strong> so the clock keeps the date and time.</li>
+<li>A soldering iron, solder, and a computer with a micro-USB cable to put the
+  firmware on the Picos.</li>
+</ul>
+<h2 id="two-ways-to-build-it">Two ways to build it<a class="ancla" href="#two-ways-to-build-it" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>The PCB (recommended)</th>
+<th>A protoboard or breadboard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What it is</td>
+<td>A 100 × 100 mm board with everything on it</td>
+<td>The two Picos and modules wired by hand</td>
+</tr>
+<tr>
+<td>Soldering</td>
+<td>Only the two Picos, two buttons, a switch, two LEDs and the coin cell: all through-hole</td>
+<td>Many wires; HDMI and the link between the Picos need short, tidy wiring</td>
+</tr>
+<tr>
+<td>Connectors</td>
+<td>HDMI, USB-A, microSD, audio jack, USB-C for power, real-time clock</td>
+<td>Breakout boards and modules</td>
+</tr>
+<tr>
+<td>Status</td>
+<td>Designed, <strong>not yet made or tested</strong></td>
+<td>Each Pico tested on its own; <strong>not yet together</strong></td>
+</tr>
+<tr>
+<td>Guide</td>
+<td><a href="board.html">The board</a></td>
+<td><a href="protoboard.html">On a protoboard</a></td>
+</tr>
+</tbody>
+</table>
+<p>Both run the same firmware and behave the same.</p>
+<h2 id="what-each-pico-does">What each Pico does<a class="ancla" href="#what-each-pico-does" aria-hidden="true">#</a></h2>
+<p>The two Picos split the work like the chips in the original Spectrum. The
+<strong>CPU Pico</strong> is the computer itself: it runs the BASIC and your programs, and
+looks after the keyboard, mouse and gamepads (through the USB-A port), the SD
+card and the clock. The <strong>ULA Pico</strong> makes the picture and the sound: it
+receives each finished image from the CPU Pico, sends it to the screen over
+HDMI, and plays the sound both on the HDMI and on the audio jack. It also
+carries the video mode button and the link LED. They talk over an 8-bit bus and
+a few extra wires. For your programs there is only one machine: they cannot
+tell that there are two chips.</p>
+<h2 id="connecting-it">Connecting it<a class="ancla" href="#connecting-it" aria-hidden="true">#</a></h2>
+<h3 id="the-screen-hdmi">The screen (HDMI)<a class="ancla" href="#the-screen-hdmi" aria-hidden="true">#</a></h3>
+<p>Plug any HDMI TV or monitor into the <strong>HDMI</strong> connector. The picture is
+always 640 × 480 at 60 Hz, a mode every HDMI screen must accept, and the ULA
+Pico has two output modes:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Output</th>
+<th>Sound on the screen</th>
+<th>The link LED blinks at start-up</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>HDMI (the default)</td>
+<td>Yes</td>
+<td>Once</td>
+</tr>
+<tr>
+<td>1</td>
+<td>DVI (the <strong>safe mode</strong>)</td>
+<td>No</td>
+<td>Twice</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>A short press of the MODE button</strong> switches to the other mode. The ULA
+  Pico restarts with it (the BASIC carries on) and remembers it when you
+  switch off.</li>
+<li><strong>Holding MODE down while you switch on</strong> starts in the safe mode, just that
+  once. Every screen should accept it, including old DVI monitors that reject
+  HDMI.</li>
+<li>Programs cannot change the mode, only read it.</li>
+</ul>
+<h3 id="sound">Sound<a class="ancla" href="#sound" aria-hidden="true">#</a></h3>
+<p>The sound comes out on the HDMI (in mode 0) and, always, on the
+<strong>3.5 mm stereo jack</strong> (labelled <code>AUDIO</code>). The jack gives a line-level signal:
+connect powered speakers, an amplifier or your TV's audio input. Headphones
+need an amplifier.</p>
+<h3 id="keyboard-mouse-and-gamepads">Keyboard, mouse and gamepads<a class="ancla" href="#keyboard-mouse-and-gamepads" aria-hidden="true">#</a></h3>
+<p>Plug them into the <strong>USB-A</strong> port at the front. For more than one device, use
+a USB hub (a powered hub is best). ZX-V understands ordinary USB keyboards,
+mice and most gamepads.</p>
+<ul>
+<li><strong>Ctrl+Alt+F1</strong>, <strong>F2</strong> and <strong>F3</strong> choose the keyboard layout: Spanish,
+  British or US. The machine remembers it.</li>
+<li><strong>Ctrl+Alt+Del</strong> is the emergency reset: it takes you back to the BASIC even
+  if a program has hung, and keeps your BASIC program.</li>
+<li><strong>Ctrl+Alt+F12</strong> shows or hides the diagnostic page (see
+  <a href="firmware.html#the-diagnostic-page">The firmware</a>).</li>
+</ul>
+<p><a href="../machine.html">The machine</a> explains how the keyboard, mouse and gamepads are
+seen by programs.</p>
+<h3 id="the-sd-card">The SD card<a class="ancla" href="#the-sd-card" aria-hidden="true">#</a></h3>
+<p>Insert a microSD card in the slot on the right-hand side. It can be formatted
+FAT, FAT32 or exFAT (cards come formatted like this), of any size. You can take
+it out and put it back with the machine on. On the board the machine notices
+at once: a card that goes in is ready, and a file that was open when it came
+out can only be closed (what was already written to it is kept). Close your
+files before taking the card out.
+The green <strong>SD</strong> LED lights while the machine reads or writes the card.</p>
+<p>The built-in examples are not on the card: they are in the <code>ROM:</code> drive, which
+comes inside the CPU Pico's firmware.</p>
+<h3 id="power">Power<a class="ancla" href="#power" aria-hidden="true">#</a></h3>
+<p>Plug a USB-C charger into the <strong>5 V</strong> connector at the back, and slide the
+power switch (at the front, on the left) to the right, to <code>ON</code>; to the left is
+<code>OFF</code>. A 2 A charger is plenty: the whole machine uses
+under 1 A, including the USB devices. The USB-C port only takes power; it does
+not carry data.</p>
+<h3 id="the-clock-and-the-language">The clock and the language<a class="ancla" href="#the-clock-and-the-language" aria-hidden="true">#</a></h3>
+<p>The board has a real-time clock with a CR2032 coin cell. It keeps the date and
+time (used to date the files you save), the machine's language and the
+keyboard layout while the power is off. Set the time from the BASIC with
+<code>CLOCK</code>, for example <code>CLOCK 2026,10,20,18,30</code> (year, month, day, hour and
+minutes).</p>
+<p>The machine starts in <strong>English</strong>. Type <code>LANGUAGE "es"</code> to switch to Spanish;
+with the coin cell in place it is remembered.</p>
+<h2 id="in-this-section">In this section<a class="ancla" href="#in-this-section" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong><a href="board.html">The board</a></strong>: ordering the PCB assembled from JLCPCB, the parts
+  you solder, a checklist, the first power-on, and what every connector and
+  control is.</li>
+<li><strong><a href="firmware.html">The firmware</a></strong>: getting the <code>.uf2</code> files, putting them on
+  each Pico, updating, building them yourself, and what to check if there is
+  no picture or no sound.</li>
+<li><strong><a href="protoboard.html">On a protoboard</a></strong>: building ZX-V without the PCB, with the
+  wiring between the two Picos and to each connector.</li>
+</ul>
+<nav class="pasos"><a class="anterior" href="../zxbasic.html"><small>Previous</small>← ZX Basic</a><a class="siguiente" href="board.html"><small>Next</small>The board →</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

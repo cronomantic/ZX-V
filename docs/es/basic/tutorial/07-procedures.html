@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>7. Procedimientos · ZX-V</title>
+<link rel="stylesheet" href="../../../style.css">
+<link rel="icon" type="image/png" href="../../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../../index.html">ZX-V</a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir" href="../../../en/basic/tutorial/07-procedures.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../../emulator.html">El emulador</a>
+</li>
+<li><a href="../../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../index.html">Aprende BASIC</a>
+<ul>
+<li><a href="01-first-steps.html">1. Primeros pasos</a></li>
+<li><a href="02-variables-and-maths.html">2. Variables y cuentas</a></li>
+<li><a href="03-text-and-input.html">3. Texto y preguntas</a></li>
+<li><a href="04-decisions.html">4. Decisiones</a></li>
+<li><a href="05-loops.html">5. Bucles</a></li>
+<li><a href="06-arrays-and-data.html">6. Matrices y datos</a></li>
+<li><a href="07-procedures.html" class="aqui">7. Procedimientos</a></li>
+<li><a href="08-colours-and-the-screen.html">8. Los colores y la pantalla</a></li>
+<li><a href="09-drawing.html">9. Dibujar</a></li>
+<li><a href="10-sound-and-music.html">10. Sonido y música</a></li>
+<li><a href="11-keyboard-and-joystick.html">11. Teclado y mando</a></li>
+<li><a href="12-sprites-and-tile-maps.html">12. Sprites y mapas de tiles</a></li>
+<li><a href="13-files-and-the-sd-card.html">13. Ficheros y la tarjeta SD</a></li>
+<li><a href="14-a-complete-game.html">14. Un juego completo</a></li>
+</ul>
+</li>
+<li><a href="../editor.html">El editor</a>
+</li>
+<li><a href="../reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../../hardware/board.html">La placa</a>
+</li>
+<li><a href="../../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../../hardware/protoboard.html">En una protoboard</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="7-procedimientos">7. Procedimientos</h1>
+<p><strong>En este capítulo aprenderás</strong> a dividir un programa en trozos con nombre
+usando <code>DEF PROC</code> y <code>PROC</code>, a darles valores con los que trabajar, a que sus
+variables sean solo suyas con <code>LOCAL</code>, y a crear tus propias funciones con
+<code>DEF FN</code>. También conocerás <code>GO SUB</code>, la forma clásica de hacerlo.</p>
+<h2 id="para-qué-dividir-un-programa">Para qué dividir un programa<a class="ancla" href="#para-qué-dividir-un-programa" aria-hidden="true">#</a></h2>
+<p>Cuando un programa crece, es fácil perderse entre números de línea. La
+solución es poner nombre a los trozos: "dibuja el tablero", "mueve al
+jugador", "enseña los puntos". Cada trozo es un <strong>procedimiento</strong>. El
+programa principal se queda en una lista corta de nombres, y cada
+procedimiento se puede escribir y probar por separado.</p>
+<p><strong>Si conoces el Spectrum:</strong> los procedimientos, <code>LOCAL</code> y las etiquetas son
+extensiones de ZX-V. <code>GO SUB</code> y <code>DEF FN</code> funcionan como en el 48K.</p>
+<h2 id="def-proc-y-proc"><code>DEF PROC</code> y <code>PROC</code><a class="ancla" href="#def-proc-y-proc" aria-hidden="true">#</a></h2>
+<pre><code>10 PROC titulo(&quot;ZX-V&quot;)
+20 PROC titulo(&quot;BASIC&quot;)
+30 PRINT &quot;Hecho&quot;
+40 DEF PROC titulo(t$)
+50 PRINT &quot;*** &quot;;t$;&quot; ***&quot;
+60 END PROC
+</code></pre>
+<ul>
+<li><code>DEF PROC titulo(t$)</code> empieza la definición de un procedimiento que se
+  llama <code>titulo</code>, y <code>END PROC</code> la termina.</li>
+<li><code>PROC titulo("ZX-V")</code> lo <strong>llama</strong>: el programa salta al procedimiento,
+  con <code>t$</code> valiendo <code>"ZX-V"</code>, lo ejecuta y, en <code>END PROC</code>, vuelve a la
+  sentencia que sigue a la llamada.</li>
+<li>Cuando el programa llega por sí solo a un <code>DEF PROC</code> (la línea 40, después
+  de la 30), se salta el procedimiento entero. Por eso puedes poner los
+  procedimientos detrás del programa principal sin que pase nada raro.</li>
+</ul>
+<p>Los valores entre paréntesis son los <strong>parámetros</strong>. Un procedimiento puede
+tener varios, números o cadenas, separados por comas: <code>DEF PROC caja(n,c$)</code>.
+Un parámetro de cadena es una sola letra seguida de <code>$</code>. Un procedimiento
+también puede no tener parámetros: <code>DEF PROC cabecera</code> y <code>PROC cabecera</code>.</p>
+<p>Los nombres de los procedimientos siguen las mismas reglas que las variables
+numéricas, así que un nombre que sea justo una palabra clave no vale: llámalo
+<code>guiones</code>, no <code>line</code>. Llamar a un procedimiento que no existe da
+<code>Z PROC no encontrado</code>.</p>
+<h2 id="local-variables-propias"><code>LOCAL</code>: variables propias<a class="ancla" href="#local-variables-propias" aria-hidden="true">#</a></h2>
+<p>Los parámetros solo existen dentro del procedimiento: al terminar, una
+variable de fuera con el mismo nombre recupera su valor. Para tener más
+variables así, ponlas detrás de <code>LOCAL</code>:</p>
+<pre><code>10 LET i=99
+20 PROC guiones(10)
+30 PRINT &quot;i sigue valiendo &quot;;i
+40 DEF PROC guiones(n)
+50 LOCAL i
+60 FOR i=1 TO n: PRINT &quot;-&quot;;: NEXT i
+70 PRINT
+80 END PROC
+</code></pre>
+<p>El procedimiento usa <code>i</code> para su bucle, pero la <code>i</code> del programa principal
+sigue valiendo 99. Sin <code>LOCAL i</code>, valdría 11.</p>
+<h2 id="un-programa-hecho-de-procedimientos">Un programa hecho de procedimientos<a class="ancla" href="#un-programa-hecho-de-procedimientos" aria-hidden="true">#</a></h2>
+<p>Esta es la forma de un programa bien organizado: arriba la parte principal,
+que se lee casi como una descripción, y debajo los procedimientos.</p>
+<pre><code>10 REM Programa principal
+20 PROC cabecera
+30 FOR i=1 TO 3: PROC estrellas(i*3): NEXT i
+40 PROC cabecera
+50 REM Procedimientos
+60 DEF PROC cabecera
+70 PRINT &quot;==========&quot;
+80 END PROC
+90 DEF PROC estrellas(n)
+100 LOCAL i
+110 FOR i=1 TO n: PRINT &quot;*&quot;;: NEXT i
+120 PRINT
+130 END PROC
+</code></pre>
+<h2 id="un-procedimiento-que-se-llama-a-sí-mismo">Un procedimiento que se llama a sí mismo<a class="ancla" href="#un-procedimiento-que-se-llama-a-sí-mismo" aria-hidden="true">#</a></h2>
+<p>Un procedimiento puede llamar a otros, y también a sí mismo. Eso se llama
+<strong>recursividad</strong>, y resuelve algunos problemas de una forma
+sorprendentemente corta. El ejemplo clásico son las torres de Hanói: pasar
+una pila de discos del palo 1 al 3, de uno en uno, sin poner nunca un disco
+grande encima de uno más pequeño.</p>
+<pre><code>10 PROC hanoi(3,1,3,2)
+20 DEF PROC hanoi(n,o,d,a)
+30 IF n=0 THEN GO TO 70
+40 PROC hanoi(n-1,o,a,d)
+50 PRINT &quot;Pasa un disco del &quot;;o;&quot; al &quot;;d
+60 PROC hanoi(n-1,a,d,o)
+70 END PROC
+</code></pre>
+<p>Para pasar <code>n</code> discos del palo <code>o</code> (origen) al <code>d</code> (destino), usando <code>a</code>
+como auxiliar: se apartan <code>n-1</code> discos al <code>a</code>, se pasa el más grande al <code>d</code>,
+y se ponen encima los <code>n-1</code> discos que estaban en el <code>a</code>. Escribe los 7
+movimientos de 3 discos. Prueba con <code>PROC hanoi(4,1,3,2)</code>.</p>
+<h2 id="tus-propias-funciones-def-fn">Tus propias funciones: <code>DEF FN</code><a class="ancla" href="#tus-propias-funciones-def-fn" aria-hidden="true">#</a></h2>
+<p>Un procedimiento hace algo; una <strong>función</strong> devuelve un valor. <code>DEF FN</code>
+define una función en una línea. Su nombre es una sola letra (con <code>$</code> si
+devuelve una cadena), y se usa con <code>FN</code>:</p>
+<pre><code>10 DEF FN a(r)=PI*r*r
+20 DEF FN m$(a$,b$)=a$+&quot; y &quot;+b$
+30 PRINT FN a(10)
+40 PRINT FN m$(&quot;sal&quot;,&quot;pimienta&quot;)
+</code></pre>
+<h2 id="la-forma-clásica-go-sub">La forma clásica: <code>GO SUB</code><a class="ancla" href="#la-forma-clásica-go-sub" aria-hidden="true">#</a></h2>
+<p>Antes de que existieran los procedimientos, los programas en BASIC usaban
+<strong>subrutinas</strong>. <code>GO SUB</code> salta a una línea y <code>RETURN</code> vuelve justo detrás
+del <code>GO SUB</code>:</p>
+<pre><code>10 GO SUB 100
+20 PRINT &quot;De vuelta en el programa principal&quot;
+30 STOP
+100 PRINT &quot;En la subrutina&quot;
+110 RETURN
+</code></pre>
+<p>Aquí hace falta el <code>STOP</code> de la línea 30: sin él, el programa seguiría y se
+metería en la subrutina. Una subrutina no tiene nombre ni parámetros, y
+todas sus variables son compartidas, así que para programas nuevos los
+procedimientos son más cómodos. Encontrarás <code>GO SUB</code> en muchos programas
+antiguos del Spectrum.</p>
+<h2 id="pruébalo">Pruébalo<a class="ancla" href="#pruébalo" aria-hidden="true">#</a></h2>
+<ol>
+<li>Escribe un procedimiento <code>cuadrado(n)</code> que dibuje un cuadrado de <code>n</code> × <code>n</code>
+   estrellas, y llámalo con 3 y con 5.</li>
+<li>Escribe una función <code>FN c(f)</code> que pase grados Fahrenheit a Celsius
+   (C = (F − 32) × 5 / 9) y escribe el valor para 212.</li>
+</ol>
+<details>
+<summary>Pista</summary>
+<p>Para el primero, usa dos bucles <code>FOR</code> dentro del procedimiento (como el
+triángulo del capítulo 5) y declara sus variables con <code>LOCAL</code>. Para el
+segundo: <code>DEF FN c(f)=(f-32)*5/9</code>.</p>
+</details>
+<details>
+<summary>Una solución para el primero</summary>
+<pre><code>10 PROC cuadrado(3): PRINT
+20 PROC cuadrado(5)
+30 DEF PROC cuadrado(n)
+40 LOCAL f,c
+50 FOR f=1 TO n
+60 FOR c=1 TO n: PRINT &quot;*&quot;;: NEXT c
+70 PRINT
+80 NEXT f
+90 END PROC
+</code></pre>
+</details>
+<hr />
+<p><strong>Referencia:</strong> <a href="../reference.html#def-proc-proc-end-proc"><code>DEF PROC</code>, <code>PROC</code>, <code>END PROC</code></a>,
+<a href="../reference.html#local"><code>LOCAL</code></a>, <a href="../reference.html#def-fn-fn"><code>DEF FN</code>, <code>FN</code></a>,
+<a href="../reference.html#go-sub-return"><code>GO SUB</code>, <code>RETURN</code></a>.</p>
+<p><strong>Siguiente:</strong> <a href="08-colours-and-the-screen.html">8. Los colores y la pantalla</a> ·
+<strong>Anterior:</strong> <a href="06-arrays-and-data.html">6. Matrices y datos</a></p>
+<nav class="pasos"><a class="anterior" href="06-arrays-and-data.html"><small>Anterior</small>← 6. Matrices y datos</a><a class="siguiente" href="08-colours-and-the-screen.html"><small>Siguiente</small>8. Los colores y la pantalla →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>
