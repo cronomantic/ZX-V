@@ -84,7 +84,7 @@ instruction (Alt+N), to the end of the frame (Alt+F), the GDB server and the
 strict mode warnings. See [Debugging](#debugging).
 
 **Help**: the keyboard and shortcuts, this documentation (the copy in the
-package, which works offline, or else the one on GitHub), and the version.
+package, which works offline, or else the one on the web), and the version.
 
 ### The keyboard
 
@@ -323,7 +323,7 @@ lists them all). These are the ones you are most likely to use:
 | `--screenshot F.bmp` | Save the screen at the end |
 | `--wav F.wav` | Record the sound to a WAV file |
 | `--strict` | Strict mode: warn about anything the real machine would not allow |
-| `--version` | Print the ZX-V version (`ZX-V 0.7.1`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
+| `--version` | Print the ZX-V version (`ZX-V 0.7.2`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
 
 The rest (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
 `--profile`, `--panel`, `--test`, `--fail-on-warning`) are for programmers:
@@ -404,7 +404,7 @@ left Alt key):
 | File | Open... (Alt+O), The SD card..., Save the program... (Alt+G), Save a snapshot (Alt+I), Back to the snapshot (Alt+U), Download the snapshot, Save the image (Alt+S) |
 | Machine | Reset (Alt+R), Ctrl+Alt+Del (back to BASIC), Stop/Continue (Alt+P), One instruction (Alt+N), Debug panel (Alt+D) |
 | View | Sound on or off, Change the border (Alt+B), Full screen (Alt+Enter), Options..., Open in a separate tab (only when the page is inside another one) |
-| Help | The keyboard and shortcuts |
+| Help | The keyboard and shortcuts, the documentation (on the web) |
 
 Ctrl+Alt+Del is in the Machine menu because your operating system keeps those
 keys for itself.

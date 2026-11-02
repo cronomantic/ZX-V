@@ -70,7 +70,8 @@ the [getting started guide](docs/en/getting-started.md).
 | [The machine](docs/en/machine.md) | Screen, colours, sound, memory and files |
 | [Build the hardware](docs/en/hardware/README.md) | The board, assembly and firmware |
 
-All of it is also in Spanish: [docs/es](docs/es/README.md).
+All of it is also in Spanish: [docs/es](docs/es/README.md). And on the
+web, with an index to move around: [cronomantic.github.io/ZX-V/docs](https://cronomantic.github.io/ZX-V/docs/en/).
 
 ## How it is made
 
@@ -91,7 +92,7 @@ program.
 
 | | |
 |---|---|
-| [`sdk/`](sdk) | The SDK for native programs in C, with its examples and four complete games in C. MIT licence ([`sdk/LICENSE`](sdk/LICENSE)): your programs can have any licence |
+| [`sdk/`](sdk) | The SDK for native programs in C, with its examples and seven complete games in C. MIT licence ([`sdk/LICENSE`](sdk/LICENSE)): your programs can have any licence |
 | [`examples/`](examples) | Games in BASIC (`basic/`) and one in compiled BASIC with ZX Basic (`zxbasic/stardust`). MIT licence ([`examples/LICENSE`](examples/LICENSE)) |
 | [`docs/`](docs) | The documentation, in English and Spanish. CC BY 4.0 licence ([`docs/LICENSE`](docs/LICENSE)), the same as `dev/`; its code examples are public domain |
 | [`dev/`](dev) | The technical specification of the machine ([`spec.md`](dev/spec.md)) and of its BASIC ([`basic.md`](dev/basic.md)), in Spanish: memory map, registers, the ROM API, file formats |

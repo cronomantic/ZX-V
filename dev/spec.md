@@ -1209,7 +1209,8 @@ Ver [sdk/README.md](../sdk/README.md):
   en PNG en sprites, tiles y mapas; `tools/mkweb.py`, la página web de un
   juego (D85).
 - Ejemplos en C: `hello`, `graphics`, `scroll`, `digital`, `files`, `boardtest`,
-  `estela`, `route128`, `mine`, `street`, `umbra`, `keep`, `player` y `gfxedit`.
+  `estela`, `route128`, `mine`, `street`, `umbra`, `keep`, `chess`, `player` y
+  `gfxedit`.
   Todos devuelven 0 al acabar bien.
 
 Previsto: `zxv.inc` con macros para ensamblador (`ZXV_CALL`, `WAIT_VBLANK`,

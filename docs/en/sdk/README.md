@@ -149,6 +149,7 @@ others, leaving out `files`.
 | [`street`](../../../sdk/examples/street) | **Street Justice**, a street brawler: fighters drawn with the engine from a skeleton in poses, depth, grabs, thugs that take turns to attack and a boss in each of the three stages ([its README](../../../sdk/examples/street/README.md)) |
 | [`umbra`](../../../sdk/examples/umbra) | **Umbra**, a 3D maze in the dark: raycast walls, mode 7 floor and ceiling, lamp fog and shadows that chase you; its levels are maps in `umbra.gfx` |
 | [`keep`](../../../sdk/examples/keep) | **The Keep**, a top-down dungeon adventure: four floors of rooms, enemies, keys, treasures and a sorcerer; its floors are maps in `keep.gfx`, and the music and effects are editable files |
+| [`chess`](../../../sdk/examples/chess) | **ZXV Chess**, chess against the machine, with four levels, or for two players: all the FIDE rules except threefold repetition, the mouse, and the engine kept apart, which is also tested on the PC; the pieces are PNG images you can edit ([its README](../../../sdk/examples/chess/README.md)) |
 | [`player`](../../../sdk/examples/player/player.c) | Music and effects with the `zxv_music.h` library: a player for PT3, TurboSound, PT2, STC, ASC and PSG modules and AYFX effect banks, with the registers of both AY chips on screen |
 | [`gfxedit`](../../../sdk/examples/gfxedit) | **The graphics editor**: sprites, tiles, maps and textures in `.gfx` files, with the mouse ([in the graphics guide](graphics.md#the-graphics-editor-on-the-machine-gfxedit)) |
 

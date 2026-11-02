@@ -91,6 +91,8 @@ Vienen con el emulador, para Windows y Linux:
 - [The Keep, una aventura de mazmorras en C](../../sdk/examples/keep/README.es.md):
   cuatro plantas de salas vistas desde arriba, cuyos mapas puedes redibujar
   en `zxv-gfx`.
+- [ZXV Chess, ajedrez en C](../../sdk/examples/chess/README.es.md):
+  contra la máquina o entre dos, con el teclado, el mando o el ratón.
 - [Stardust, un juego en ZX Basic](../../examples/zxbasic/stardust/README.es.md):
   doble buffer, sprites y choques con `zxv.bas`, a 60 imágenes por segundo.
 

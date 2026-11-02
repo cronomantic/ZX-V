@@ -46,7 +46,7 @@ mapa de memoria y los formatos de fichero. Para aprender a usarlo, lee la
 | `zxvlib.c` | `memcpy`, `memmove`, `memset`, `memcmp`, para los programas sin la biblioteca de C |
 | `include/zxv_gfxfile.h`, `gfxfile.c` | Lee los ficheros de gráficos `.gfx` (de `zxv-gfx`, `gfxedit` y `png2gfx.py`): sprites, tiles, mapas y texturas, en los formatos de `zxv_gfx.h`, y pantallas |
 | `include/zxv_music.h`, `music/` | Música y efectos para los dos AY: módulos PT3, TurboSound, PT2, STC, ASC y PSG y efectos AYFX |
-| `include/zxv_version.h` | La versión de ZX-V (`ZXV_VERSION`, por ejemplo `"0.7.1"`) |
+| `include/zxv_version.h` | La versión de ZX-V (`ZXV_VERSION`, por ejemplo `"0.7.2"`) |
 | `zxvc.c` | La unión entre picolibc y la API (ficheros, carpetas, consola, montón, hora, salida) |
 | `tools/elf2zxv.py` | Convierte el `.elf` enlazado en un `.zxv` |
 | `tools/gfx/` | `zxv-gfx`, el editor de gráficos para el PC |

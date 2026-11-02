@@ -83,7 +83,7 @@ programa, una instrucción (Alt+N), hasta el final del frame (Alt+F), el
 servidor GDB y los avisos del modo estricto. Ver [Depuración](#depuración).
 
 **Ayuda**: el teclado y los atajos, esta documentación (la que trae el
-paquete, que se lee sin conexión, o si no la de GitHub) y la versión.
+paquete, que se lee sin conexión, o si no la de la web) y la versión.
 
 ### El teclado
 
@@ -327,7 +327,7 @@ lista todas). Estas son las que más vas a usar:
 | `--screenshot F.bmp` | Guarda la pantalla al terminar |
 | `--wav F.wav` | Graba el sonido en un fichero WAV |
 | `--strict` | Modo estricto: avisa de lo que la máquina real no permitiría |
-| `--version` | Escribe la versión de ZX-V (`ZX-V 0.7.1`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
+| `--version` | Escribe la versión de ZX-V (`ZX-V 0.7.2`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
 
 Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
 `--profile`, `--panel`, `--test`, `--fail-on-warning`) son para programadores:
@@ -408,7 +408,7 @@ tecla Alt de la izquierda):
 | Archivo | Abrir... (Alt+O), La tarjeta SD..., Grabar el programa... (Alt+G), Guardar una instantánea (Alt+I), Volver a la instantánea (Alt+U), Descargar la instantánea, Guardar la imagen (Alt+S) |
 | Máquina | Reiniciar (Alt+R), Ctrl+Alt+Supr (vuelve al BASIC), Parar/Seguir (Alt+P), Una instrucción (Alt+N), Panel de depuración (Alt+D) |
 | Ver | Sonido sí o no, Cambiar el borde (Alt+B), Pantalla completa (Alt+Intro), Opciones..., Abrir en una pestaña aparte (solo cuando la página está dentro de otra) |
-| Ayuda | El teclado y los atajos |
+| Ayuda | El teclado y los atajos, la documentación (en la web) |
 
 Ctrl+Alt+Supr está en el menú Máquina porque el sistema operativo se queda esas
 teclas.
