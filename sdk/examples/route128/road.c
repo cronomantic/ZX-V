@@ -254,6 +254,9 @@ static const theme_t theme_col[THEMES] = {
     },
 };
 
+/* El color de arriba del cielo de la etapa: el del borde en la carrera. */
+int road_sky(int theme) { return theme_col[theme].sky[0] & 15; }
+
 /* --- La proyección ----------------------------------------------------------- */
 
 typedef struct {

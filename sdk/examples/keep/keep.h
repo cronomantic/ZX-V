@@ -58,6 +58,7 @@ typedef struct {
 } sprite_t;
 
 void video_init(void);
+void video_border(int c);              /* el color del borde, de los 16 de siempre */
 void video_begin(void);                 /* elige la página oculta */
 void video_end(void);                   /* la enseña en el siguiente VBLANK y lo espera */
 void video_done(void);                  /* vuelve a la página 0 */

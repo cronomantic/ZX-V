@@ -50,6 +50,7 @@ void video_init(int mode);
 void video_begin(void);                 /* elige la página oculta */
 void video_end(void);                   /* la enseña en el siguiente VBLANK y lo espera */
 void video_done(void);                  /* vuelve al modo 0, la página 0 y los colores de siempre */
+void video_border(int c, int view);    /* el color c del borde, de la tabla de la vista o del marcador */
 uint32_t video_lost(void);              /* frames perdidos (el dibujo no cupo en uno) */
 uint8_t *video_page(void);              /* la página de dibujo */
 void video_palette(const uint8_t (*rgb)[3]);    /* los 16 colores de la vista */

@@ -27,7 +27,7 @@ También está en el disco ROM de la máquina: `LOAD "ROM:gonesilent"`.
   terraformación. Algunas puertas piden una tarjeta, un código, energía o
   algo con lo que abrirlas.
 - **El traje:** su energía se gasta al andar fuera, al disparar, con cada
-  golpe, en el aire tóxico y en las tormentas, y se recarga encima de los
+  golpe (el borde parpadea en rojo), en el aire tóxico y en las tormentas, y se recarga encima de los
   puntos de recarga. Si se acaba, vuelves al último punto de recarga, con todo
   lo conseguido.
 - **Las criaturas** cazan cada una a su manera (al acecho, en emboscada o

@@ -518,7 +518,9 @@ static void draw_world(void)
     zxv_map_draw(&floor_map, cam_x, cam_y + HUD_H - VIEW_TOP, 0, HUD_H, W, H - HUD_H, ZXV_MAP_ALL);
     items_draw(cam_x, cam_y);
     actors_draw(cam_x, cam_y);
-    if (cur_floor == DARK_FLOOR && !(hero.items & ITEM_LANTERN)) {
+    int dark = cur_floor == DARK_FLOOR && !(hero.items & ITEM_LANTERN);
+    video_border(dark ? 0 : 1);         /* el borde, el azul de alrededor de las salas */
+    if (dark) {
         /* A oscuras: solo se ve alrededor del héroe (el recorte quita lo
          * que sale de la sala). */
         int x = hero.x / FIX - cam_x + 8, y = hero.y / FIX - cam_y + VIEW_TOP + 8, r = 40;
@@ -879,6 +881,7 @@ static int play(void)
  * demostración, -1 para salir. */
 static int title(void)
 {
+    video_border(0);
     sound_song(SONG_TITLE);
     for (int t = 0;; t++) {
         read_input();

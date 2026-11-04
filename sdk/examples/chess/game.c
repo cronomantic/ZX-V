@@ -1150,6 +1150,7 @@ int main(void)
     es = zxv_lang_get() != ZXV_LANG_EN;
     make_pieces();
     zxv_mouse_init(&mouse, 128, 96);
+    uint8_t border = REG8(ZXV_V_BORDER);     /* el del BASIC, para volver */
     REG8(ZXV_V_BORDER) = 0;
     zxv_set_page(0);
     zxv_gfx_draw_page(0);
@@ -1163,6 +1164,6 @@ int main(void)
     zxv_gfx_draw_page(0);
     zxv_set_page(0);
     zxv_text_colors(0, 7);
-    REG8(ZXV_V_BORDER) = 7;
+    REG8(ZXV_V_BORDER) = border;
     return 0;
 }

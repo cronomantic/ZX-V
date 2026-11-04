@@ -16,7 +16,7 @@ int scr_w = 256, scr_h = 192, view_h = 144, hires;
 
 enum { PAL_UI, PAL_VIEW, PALETTES };
 
-static uint8_t saved_flags, saved_remap;
+static uint8_t saved_flags, saved_remap, saved_border;
 static uint8_t *page;                   /* la página de dibujo */
 static int visible;
 static uint32_t last_frame, lost;
@@ -45,6 +45,7 @@ void video_init(int mode)
         first = 0;
         saved_flags = REG8(ZXV_V_FLAGS);
         saved_remap = REG8(ZXV_V_REMAP);
+        saved_border = REG8(ZXV_V_BORDER);  /* el del BASIC, para volver */
     }
     hires = mode;
     scr_w = mode ? ZXV_MODE1_W : ZXV_MODE0_W;
@@ -55,7 +56,8 @@ void video_init(int mode)
     visible = 0;                            /* no hace falta borrar: cada frame se dibuja entero */
     zxv_set_page(0);
     wait_link();
-    REG8(ZXV_V_REMAP) = PAL_UI;             /* el borde, con los colores de siempre */
+    REG8(ZXV_V_REMAP) = PAL_UI;             /* el borde, negro hasta el primer frame */
+    REG8(ZXV_V_BORDER) = 0;
     for (int t = 0; t < PALETTES; t++) {
         volatile uint8_t *r = (volatile uint8_t *)(uintptr_t)(ZXV_REMAP_TABLES + 16u * (uint32_t)t);
         for (int i = 0; i < 16; i++)
@@ -80,8 +82,9 @@ void video_init(int mode)
         for (int i = 0; i < 6; i++)         /* todo como sin la tabla... */
             e[i] = 0xFF;
         e[6] = e[7] = 0;
-        if (y >= border && y < border + view_h)
-            e[ZXV_LT_REMAP] = PAL_VIEW;     /* ...menos los colores de la vista */
+        /* ...menos la tabla: la de la vista o la del marcador (la global
+         * es la del borde: main.c, border_update) */
+        e[ZXV_LT_REMAP] = y >= border && y < border + view_h ? PAL_VIEW : PAL_UI;
     }
     REG8(ZXV_V_FLAGS) = (uint8_t)(saved_flags | ZXV_VFLAG_LINETAB);
     zxv_wait_vblank();
@@ -126,10 +129,18 @@ void video_done(void)
     }
     REG8(ZXV_V_FLAGS) = saved_flags;
     REG8(ZXV_V_REMAP) = saved_remap;
+    REG8(ZXV_V_BORDER) = saved_border;
     zxv_wait_vblank();
 }
 
 uint32_t video_lost(void) { return lost; }
+
+/* El borde: el color c de la tabla de la vista (view) o la del marcador. */
+void video_border(int c, int view)
+{
+    REG8(ZXV_V_REMAP) = view ? PAL_VIEW : PAL_UI;
+    REG8(ZXV_V_BORDER) = (uint8_t)c;
+}
 
 uint8_t *video_page(void) { return page; }
 

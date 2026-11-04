@@ -450,6 +450,7 @@ static void draw_player(void)
 static void draw_world(void)
 {
     int32_t cam_y = height_at(player_z()) + CAM_H;
+    video_border(show_car ? road_sky(pl.theme) : 0);    /* en el título, negro */
     road_draw(pl.z, pl.x, cam_y, pl.theme, pl.bg_x, draw_player);
 }
 

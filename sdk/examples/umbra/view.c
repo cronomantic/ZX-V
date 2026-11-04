@@ -151,6 +151,8 @@ static rgb_t shown(rgb_t c)
  * niebla: lo que más se ve, más exacto. */
 enum { EYES = 1, COMMON = 12, FIXED = 5 };  /* FIXED: los de cerca más vistos, tal cual */
 static rgb_t pal_ceiling[16], pal_floor[16];
+static int border_colour;               /* el del borde, de la tabla del techo */
+#define FOG_BORDER  4                   /* la penumbra del borde */
 
 typedef struct {
     rgb_t c;
@@ -442,6 +444,17 @@ void view_level(int wall)
         }
     }
     make_surface(ceiling_lut, cmap, pal_ceiling);
+
+    /* El borde: el color de la pared del nivel que más se ve (sin contar el
+     * negro, el blanco y los grises) en la penumbra, el más parecido de los
+     * comunes (sin el negro ni los ojos): está en las dos tablas de la vista
+     * y cambia con ellas, con la luz de la lámpara y el rojo de un golpe. */
+    int c = -1;
+    for (int i = 1; i < 16; i++)
+        if ((i & 7) != 7 && i != 8 && (c < 0 || art_wall_count[wall][i] > art_wall_count[wall][c]))
+            c = i;
+    border_colour = c < 0 || !art_wall_count[wall][c] ? 0
+                  : EYES + 1 + nearest(fog_rgb(c, FOG_BORDER), pal_ceiling + EYES + 1, COMMON - EYES - 1, 0);
     make_surface(floor_lut, fmap, pal_floor);
 }
 
@@ -464,6 +477,8 @@ void view_colours(int bright, int flash)
 
 /* El color de la vista más parecido al color c de siempre: para lo que se
  * escribe sobre el techo. */
+int view_border(void) { return border_colour; }
+
 int view_ui_colour(int c) { return nearest(fog_rgb(c, 0), pal_ceiling, 16, 0); }
 
 /* --- Los rayos ------------------------------------------------------------------- */

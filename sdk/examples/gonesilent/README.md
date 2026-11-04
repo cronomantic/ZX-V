@@ -25,8 +25,8 @@ It is also on the machine's ROM disk: `LOAD "ROM:gonesilent"`.
   workshop), control and communications, the mine (three levels down) and the
   terraforming plant. Some doors need a card, a code, power or something to
   open them with.
-- **The suit:** its energy drains when you walk outside, fire, get hit,
-  breathe toxic air or stand in a storm, and it recharges on the charging
+- **The suit:** its energy drains when you walk outside, fire, get hit
+  (the border blinks red), breathe toxic air or stand in a storm, and it recharges on the charging
   pads. If it runs out you go back to the last pad you used, keeping
   everything you found.
 - **The creatures** each hunt in their own way (stalking, ambushing or

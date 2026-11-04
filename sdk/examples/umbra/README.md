@@ -30,7 +30,7 @@ It is also on the machine's ROM disk: `LOAD "ROM:umbra"`.
 - **The shadows** roam the maze and smell you eight steps away. Then they
   chase you, and you hear their whisper, louder the closer they are. They
   are faster when your light is dim and in the later levels. A touch drinks
-  part of your oil (a red flash). The shadow then vanishes and comes back
+  part of your oil (a red flash, and the border blinks). The shadow then vanishes and comes back
   somewhere far away. If the lamp goes out completely, it goes dark and you
   light one of your spares; with none left, the game is over. Their red eyes show
   even in the dark.

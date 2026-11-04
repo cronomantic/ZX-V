@@ -435,6 +435,7 @@ static int run_cave(int n)
     nmoves = 0;
     __builtin_memset(moved_dir, 0, sizeof(moved_dir));
     art_cave(c);
+    video_border(c->dirt);              /* el borde, del color de su tierra */
     time_left = c->time;
     time_frames = 0;
     bonus_t = 0;
@@ -666,6 +667,7 @@ static int title(int *choice)
 {
     static const uint8_t logo[7] = { 15, 14, 14, 6, 6, 2, 2 };
     static int demos;
+    video_border(0);
     sound_song(SONG_TITLE);
     int idle = 0;
     for (int t = 0;; t++) {

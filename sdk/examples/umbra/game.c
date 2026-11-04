@@ -131,7 +131,13 @@ static struct {
 } pl;
 
 static uint32_t record, frame;
-static int demo, banner_t, flash_t, border;
+/* El borde: el color del nivel en la penumbra, de la tabla del techo
+ * (view_border); en un golpe parpadea en rojo y negro, como en el Spectrum:
+ * BLINK_LEN frames, BLINK_ON en rojo y BLINK_ON en negro, de la tabla 0. */
+#define BLINK_ON        4
+#define BLINK_LEN       (8 * BLINK_ON)
+
+static int demo, banner_t, flash_t, blink_t, border;
 static int light_t, light_len;          /* la luz sube desde negro: light_t de light_len */
 static int flame, flame_to;             /* lo que tiembla la llama, x 256 */
 static uint32_t flame_rng = 1;          /* aparte: la demostración no cambia */
@@ -426,11 +432,20 @@ static void frame_end(void)
     bright = bright * (256 - flame) >> 8;
     if (light_t < light_len)
         bright = bright * ++light_t / light_len;
-    /* Un golpe: un destello rojo en la vista y en el borde. */
+    /* Un golpe: un destello rojo en la vista, y el borde parpadea en rojo
+     * (BLINK_ON, arriba). */
     view_colours(bright, flash_t * 176 / (ZXV_FRAME_HZ / 4));
-    *(volatile uint8_t *)(uintptr_t)ZXV_V_BORDER = (uint8_t)(flash_t ? 2 : border);
+    if (blink_t) {
+        *(volatile uint8_t *)(uintptr_t)ZXV_V_REMAP = PAL_UI;
+        *(volatile uint8_t *)(uintptr_t)ZXV_V_BORDER = (uint8_t)((BLINK_LEN - blink_t) / BLINK_ON % 2 ? 0 : 2);
+    } else {
+        *(volatile uint8_t *)(uintptr_t)ZXV_V_REMAP = PAL_CEILING;
+        *(volatile uint8_t *)(uintptr_t)ZXV_V_BORDER = (uint8_t)view_border();
+    }
     if (flash_t)
         flash_t--;
+    if (blink_t)
+        blink_t--;
     sound_frame();
     video_end();
     frame++;
@@ -576,6 +591,7 @@ static int level_update(int in)
 #endif
         pl.hurt = 3 * ZXV_FRAME_HZ / 2;
         flash_t = ZXV_FRAME_HZ / 4;
+        blink_t = BLINK_LEN;
         sound_fx(FX_HIT);
         shadows_respawn(s, 6);
     }
@@ -816,6 +832,7 @@ int main(void)
     load_record();
     video_init();                       /* otra vez: lo que tarda lo de antes no son frames perdidos */
     video_colours_init();
+    *(volatile uint8_t *)(uintptr_t)ZXV_V_BORDER = 0;     /* el título, negro */
     input_now = 0x7FF;                  /* lo que esté pulsado al empezar no cuenta */
     for (;;) {
         int r = title();

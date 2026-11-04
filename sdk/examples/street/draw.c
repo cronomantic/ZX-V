@@ -14,8 +14,36 @@ static uint32_t last_frame, lost;
 
 static uint32_t frames_now(void) { return *(volatile uint32_t *)(uintptr_t)ZXV_SV_FRAMES; }
 
+/* El borde: negro en el título, el de cada fase mientras se juega
+ * (video_border) y, al salir, el del BASIC. */
+static uint8_t saved_border;
+static int border_saved;
+
+static void border_init(void)
+{
+    volatile uint8_t *b = (volatile uint8_t *)(uintptr_t)ZXV_V_BORDER;
+    if (!border_saved) {
+        border_saved = 1;
+        saved_border = *b;
+    }
+    *b = 0;
+}
+
+void video_border(int c)
+{
+    *(volatile uint8_t *)(uintptr_t)ZXV_V_BORDER = (uint8_t)c;
+}
+
+static void border_done(void)
+{
+    if (border_saved)
+        *(volatile uint8_t *)(uintptr_t)ZXV_V_BORDER = saved_border;
+    border_saved = 0;
+}
+
 void video_init(void)
 {
+    border_init();
     zxv_set_mode(0);
     visible = 0;
     zxv_set_page(0);
@@ -55,6 +83,7 @@ void video_end(void)
 
 void video_done(void)
 {
+    border_done();
     zxv_set_page(0);
     zxv_gfx_draw_page(0);
     zxv_gfx_target(0);

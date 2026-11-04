@@ -525,6 +525,7 @@ static void sign(int x, int y, int w, const char *s, int bg, int fg)
 static void scene_street(void)
 {
     static const uint8_t sky[] = { 0, 1, 1 };
+    video_border(sky[0]);               /* el borde, el de arriba del cielo */
     use(&far_bmp);
     sky_bands(sky, 3, SKY_H);
     for (int k = 0; k < 40; k++)
@@ -636,6 +637,7 @@ static void scene_street(void)
 static void scene_market(void)
 {
     static const uint8_t sky[] = { 5, 13, 13 };
+    video_border(sky[0]);               /* el borde, el de arriba del cielo */
     use(&far_bmp);
     sky_bands(sky, 3, SKY_H);
     for (int k = 0; k < 4; k++) {                       /* las nubes */
@@ -734,6 +736,7 @@ static void scene_market(void)
 static void scene_roofs(void)
 {
     static const uint8_t sky[] = { 1, 3, 11, 10, 14 };
+    video_border(sky[0]);               /* el borde, el de arriba del cielo */
     use(&far_bmp);
     sky_bands(sky, 5, SKY_H);
     zxv_gfx_circle(64, SKY_H - 6, 14, 14, 1);

@@ -48,6 +48,7 @@ typedef struct {
 } sprite_t;
 
 void video_init(void);
+void video_border(int c);              /* el color del borde, de los 16 de siempre */
 void video_begin(void);                 /* elige la página oculta */
 void video_end(void);                   /* la enseña en el siguiente VBLANK y lo espera */
 void video_done(void);                  /* vuelve a la página 0 */
@@ -135,6 +136,7 @@ int obj_x(int i);
  * desplazado bg_x y lo que hay en la carretera, de lejos a cerca. player
  * dibuja el coche: road_draw lo llama en su sitio, delante de lo que queda
  * detrás de él y detrás de lo que hay entre él y la cámara. */
+int road_sky(int theme);                /* el color de arriba de su cielo */
 void road_draw(int32_t z, int x, int32_t cam_y, int theme, int bg_x, void (*player)(void));
 
 /* --- sound.c ------------------------------------------------------------------ */

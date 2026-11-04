@@ -31,7 +31,7 @@ También está en el disco ROM de la máquina: `LOAD "ROM:umbra"`.
 - **Las sombras** vagan por el laberinto y te huelen a ocho pasos: entonces
   te persiguen, y se oye su susurro, más fuerte cuanto más cerca. Van más
   deprisa cuanta menos luz tienes y en los niveles de más adelante. Si te
-  tocan se beben parte del aceite (un destello rojo) y desaparecen, para
+  tocan se beben parte del aceite (un destello rojo, y el borde parpadea) y desaparecen, para
   volver a salir lejos. Si la lámpara se apaga del todo, todo se queda a
   oscuras y enciendes otra de las de repuesto; sin ninguna, se acaba la
   partida. Sus ojos rojos se ven

@@ -112,7 +112,15 @@ static uint16_t got;                    /* las marcas del juego (F_...) */
 static int dead;                        /* frames que quedan del aviso de energía agotada */
 static int charging;                    /* este frame, encima de un punto de recarga */
 static int shot_delay, shot_show, shot_hit;     /* el disparo: la espera, lo que se ve, si dio */
-static int hurt_show;                   /* el borde rojo de un golpe */
+static int hurt_show;                   /* el marco rojo de un golpe, en la vista */
+/* El borde: el color 13 de la paleta de la zona, lo de arriba del cielo o
+ * del techo (negro en el título, la introducción y el final); en un golpe
+ * parpadea en rojo y negro, como en el Spectrum: BLINK_LEN frames, BLINK_ON
+ * en rojo (el 2 del marcador) y BLINK_ON en negro (el 0). */
+#define BORDER_SKY  13
+#define BLINK_ON    4
+#define BLINK_LEN   (8 * BLINK_ON)
+static int blink_t;
 static int beam_show, beam_from;        /* el disparo de la torreta y la torreta que disparó */
 static int use_target;                  /* lo que se usaría, o -1 */
 static const char *msg;                 /* el aviso del marcador */
@@ -545,6 +553,7 @@ static void hurt(int32_t cost, const char *why)
         return;
     energy -= cost;
     hurt_show = 8;
+    blink_t = BLINK_LEN;
     say(why, 90);
 }
 
@@ -1964,6 +1973,18 @@ static void sound_update(void)
     sound_frame();
 }
 
+/* El borde de este frame: el de la zona, o el parpadeo de un golpe. */
+static void border_update(int dt)
+{
+    if (blink_t)
+        video_border((BLINK_LEN - blink_t) / BLINK_ON % 2 ? 0 : 2, 0);
+    else if (panel == P_TITLE || panel == P_INTRO || panel == P_END)
+        video_border(0, 0);
+    else
+        video_border(BORDER_SKY, 1);
+    blink_t = blink_t > dt ? blink_t - dt : 0;
+}
+
 int main(void)
 {
     lang = zxv_lang_get() == ZXV_LANG_ES ? 0 : 1;
@@ -2000,6 +2021,7 @@ int main(void)
         sound_update();
         video_end();
         palette_update();               /* recién empezado el frame: sin cortes */
+        border_update(dt < 1 ? 1 : dt);
     }
     sound_done();
     video_done();

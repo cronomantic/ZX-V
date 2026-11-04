@@ -746,6 +746,10 @@ enum { R_CLEAR, R_OVER, R_QUIT };
 
 static void stage_start(void)
 {
+    /* El borde: el espacio en el cinturón; las rocas del cañón y el casco de
+     * la fortaleza, azules. */
+    static const uint8_t border[3] = { 0, 1, 1 };
+    video_border(border[stage]);
     for (int i = 0; i < MAX_ENEMIES; i++)
         enemies[i].alive = 0;
     for (int i = 0; i < MAX_SHOTS; i++)
@@ -1236,6 +1240,7 @@ static void play(int demo_mode)
 static int title(void)
 {
     static const uint8_t logo[7] = { 15, 14, 14, 6, 10, 2, 2 };
+    video_border(0);
     sound_song(SONG_TITLE);
     for (int t = 0;; t++) {
         read_input();

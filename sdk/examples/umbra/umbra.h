@@ -161,6 +161,7 @@ void view_level(int wall);
 /* Los colores de la vista en este frame (video_pal): los del nivel, con la
  * luz bright (x 256) y el rojo de un golpe flash (x 256). */
 void view_colours(int bright, int flash);
+int view_border(void);                  /* el color del borde, en la tabla PAL_CEILING */
 int view_ui_colour(int c);              /* el más parecido al color c de siempre */
 /* Dibuja lo que se ve desde cam con la lámpara de alcance light (en celdas,
  * 16.16), y los objetos y las sombras; t, el tiempo, para animarlos. */
