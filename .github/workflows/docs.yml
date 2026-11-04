@@ -1,0 +1,56 @@
+# La documentación en HTML, en GitHub Pages: https://cronomantic.github.io/ZX-V/docs/
+#
+# Cada vez que cambia docs/ en main, se genera con dev/docs/docs_html.py (el
+# mismo generador que la de los paquetes) y sustituye a docs/ en la rama
+# gh-pages. El resto de gh-pages (la versión web) no se toca: se pone con
+# cada versión.
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'dev/docs/**'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs
+  cancel-in-progress: false
+
+jobs:
+  docs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: pages
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # La versión de Python-Markdown de Ubuntu 24.04, la de los paquetes.
+      - name: Python-Markdown
+        run: pip install markdown==3.5.2
+      - name: Generate
+        run: python dev/docs/docs_html.py docs "$RUNNER_TEMP/docs"
+      - name: Publish
+        run: |
+          rm -rf pages/docs
+          cp -r "$RUNNER_TEMP/docs" pages/docs
+          cd pages
+          git add -A docs
+          if git diff --cached --quiet; then
+            echo "The documentation has not changed."
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898283+github-actions[bot]@users.noreply.github.com' \
+              commit -q -m "Documentation from ${GITHUB_SHA::7}"
+          git push -q origin HEAD:gh-pages
