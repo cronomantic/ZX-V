@@ -166,6 +166,7 @@ CAT "ROM:"
 | `umbra.zxv` | *Umbra*, a 3D maze in the dark |
 | `keep.zxv` | *The Keep*, a four-floor dungeon adventure |
 | `chess.zxv` | *ZXV Chess*, chess against the machine or for two players |
+| `gonesilent.zxv` | *Gone Silent*, a 3D adventure in an abandoned mining colony |
 | `graphics.zxv` | A graphics demo: scrolling scenery, bouncing balls, a spinning star and a 3D floor |
 | `scroll.zxv` | Smooth scrolling over a landscape four screens wide, with parallax |
 | `digital.zxv` | Digitised sound played through the music chip |

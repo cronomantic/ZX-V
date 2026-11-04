@@ -94,7 +94,7 @@ programa.
 
 | | |
 |---|---|
-| [`sdk/`](sdk) | El SDK para programas nativos en C, con sus ejemplos y siete juegos completos en C. Licencia MIT ([`sdk/LICENSE`](sdk/LICENSE)): tus programas pueden tener la licencia que quieras |
+| [`sdk/`](sdk) | El SDK para programas nativos en C, con sus ejemplos y ocho juegos completos en C. Licencia MIT ([`sdk/LICENSE`](sdk/LICENSE)): tus programas pueden tener la licencia que quieras |
 | [`examples/`](examples) | Juegos en BASIC (`basic/`) y uno en BASIC compilado con ZX Basic (`zxbasic/stardust`). Licencia MIT ([`examples/LICENSE`](examples/LICENSE)) |
 | [`docs/`](docs) | La documentación, en español y en inglés. Licencia CC BY 4.0 ([`docs/LICENSE`](docs/LICENSE)), igual que `dev/`; sus ejemplos de código son de dominio público |
 | [`dev/`](dev) | La especificación técnica de la máquina ([`spec.md`](dev/spec.md)) y de su BASIC ([`basic.md`](dev/basic.md)): mapa de memoria, registros, la API de la ROM y los formatos de fichero |

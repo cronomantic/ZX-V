@@ -88,6 +88,9 @@ They come with the emulator, for Windows and Linux:
   of rooms seen from above, whose maps you can redraw in `zxv-gfx`.
 - [ZXV Chess, chess in C](../../sdk/examples/chess) — against the machine
   or for two players, with the keyboard, a joystick or the mouse.
+- [Gone Silent, a 3D adventure in C](../../sdk/examples/gonesilent) — solid
+  dithered polygons, pixel-art creatures and a colony to explore in your
+  suit.
 - [Stardust, a game in ZX Basic](../../examples/zxbasic/stardust) — double
   buffering, sprites and collisions with `zxv.bas`, at 60 frames per second.
 

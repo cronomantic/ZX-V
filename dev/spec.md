@@ -1060,7 +1060,7 @@ lo usan. Las constantes están en `zxv.h` (`ZXV_DBG_...`).
 | Desp. | Tipo | Nombre | Quién | Qué |
 |---|---|---|---|---|
 | `+0x00` | u32 | `MAGIC` | ROM | `0x4456585A` (`ZXVD`): esta ROM tiene depurador |
-| `+0x04` | u32 | `VERSION` | ROM | La versión del buzón: 1 |
+| `+0x04` | u32 | `VERSION` | ROM | La versión del buzón: 2 (la 1 no tenía el listado) |
 | `+0x08` | u32 | `CTRL` | anfitrión | Bit 0 conectado; bit 1 parar en los errores; bit 2 solo en los que no recoge `ON ERROR` |
 | `+0x0C` | u32 | `PAUSE` | anfitrión | Al cambiar, el programa para en la sentencia siguiente |
 | `+0x10` | u32 | `CMD` | anfitrión | La orden (byte bajo) y su argumento (`<< 8`) |
@@ -1088,8 +1088,9 @@ en pausa y calla los dos AY, y espera órdenes frame a frame (la máquina
 sigue viva); al seguir, devuelve el sonido como estaba. Si el anfitrión
 quita el bit 0, el programa sigue.
 
-**Órdenes** (solo con el programa parado; la ROM responde escribiendo `ACK`
-con el `SEQ` de la orden):
+**Órdenes** (solo con el programa parado, salvo el listado, que también se
+atiende sin programa en marcha, mientras el BASIC espera una tecla; la ROM
+responde escribiendo `ACK` con el `SEQ` de la orden):
 
 | `CMD` | Orden | `RESULT` y `TEXT` |
 |---|---|---|
@@ -1101,6 +1102,7 @@ con el `SEQ` de la orden):
 | 6 | Las variables, desde la número argumento | Una por línea (abajo) |
 | 7 | La pila, desde la llamada número argumento | `gosub⇥línea⇥sentencia` o `proc⇥línea⇥sentencia` por llamada, de la última a la primera: dónde se hizo (línea −1: desde una orden directa) |
 | 8 | Los elementos de la matriz de `TEXT` (`a`, `a$`), desde el número argumento | Uno por línea en el orden de la memoria; en las de cadenas, el texto de cada fila. `RESULT` `0xFFFFFFFF` si no existe |
+| 9 | El listado, desde la línea argumento | `línea⇥s1,s2...⇥texto` por línea del programa: el texto como lo saca `LIST`, sin el número, con la sangría de los bloques y sin los espacios del final; s1, s2..., dónde empieza cada sentencia en él (en caracteres del texto sin escapar). `RESULT`: la línea por la que seguir, 0 si están todas, o `0xFFFFFFFF` si no queda memoria para hacerlo |
 
 Las respuestas que no caben en `TEXT` siguen por páginas: `RESULT` es por
 dónde seguir (el argumento de la orden siguiente), o 0 si está todo. Las
@@ -1108,7 +1110,8 @@ variables: `nombre⇥n⇥valor` (número), `nombre⇥f⇥valor⇥límite⇥paso�
 (variable de `FOR`, con dónde está su `FOR`), `nombre$⇥s⇥longitud⇥texto`
 (cadena), `nombre⇥N⇥d1,d2...` y `nombre$⇥S⇥d1,d2...` (matrices). En el
 texto de las cadenas, lo imprimible va tal cual, `\` doblada y el resto como
-`\xHH`, hasta unos 200 caracteres (la longitud es la de verdad). Los números
+`\xHH`, hasta unos 200 caracteres (la longitud es la de verdad); el del
+listado se escapa igual, hasta 300. Los números
 salen como los escribe `PRINT`.
 
 ---

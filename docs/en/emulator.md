@@ -323,7 +323,7 @@ lists them all). These are the ones you are most likely to use:
 | `--screenshot F.bmp` | Save the screen at the end |
 | `--wav F.wav` | Record the sound to a WAV file |
 | `--strict` | Strict mode: warn about anything the real machine would not allow |
-| `--version` | Print the ZX-V version (`ZX-V 0.7.2`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
+| `--version` | Print the ZX-V version (`ZX-V 0.8.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
 
 The rest (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
 `--profile`, `--panel`, `--test`, `--fail-on-warning`) are for programmers:
@@ -464,12 +464,38 @@ The emulator is also a complete development environment for native programs:
 - in `zxv-cli`, a console debugger (`--debug`);
 - a **GDB server** (`--gdb PORT`, or Debug > GDB server... in `zxv`) to debug C
   programs with GDB, line by line;
-- the **BASIC debugger** of the ROM (`--basic-debug PORT` in `zxv-sdl` and
-  `zxv-cli`): the VS Code extension uses it to debug a ROM BASIC listing,
-  with breakpoints, steps by statement, variables and the call stack;
+- the ROM's **BASIC debugger**: in `zxv`, its window (Debug > BASIC...,
+  Alt+B), and for the VS Code extension, its server (`--basic-debug PORT` in
+  `zxv`, `zxv-sdl` and `zxv-cli`, or Debug > BASIC debugger server... in
+  `zxv`);
 - **strict mode**, which warns about anything that would fail on the real
   machine.
 
 All of this is explained in the [SDK guide](sdk/README.md), except the BASIC
-debugger, which you use from the VS Code extension.
+debugger, which is described below.
+
+### The BASIC debugger
+
+With the BASIC debugger window open (Debug > BASIC..., Alt+B), a ROM BASIC
+program stops wherever you tell it to:
+
+- **The listing** of the program, the one in the machine, with the statement
+  about to run highlighted. Click in the margin to set or clear a
+  **breakpoint** on that line; Ctrl+click a statement for one on that
+  statement (statements are separated by `:`, `THEN` and `ELSE`).
+- **Continue** (F5), **stop** (Shift+F5) and the steps: **step into** (F11,
+  the next statement, even inside a `GO SUB` or a `PROC`), **step over** (F10,
+  without going in) and **step out** (Shift+F11, until leaving the current
+  `GO SUB` or `PROC`).
+- **Stop on errors**, before `ON ERROR` or the report, or only on those that
+  `ON ERROR` does not catch.
+- Around it, **the variables** (arrays open to show their elements), **the
+  stack** of `GO SUB` and `PROC` (a click takes you to the line) and the
+  expressions you **watch**: they are evaluated at every stop by the
+  interpreter itself, so `PEEK`, `FN`, `SCREEN$`... all work.
+
+When you close the window, the program carries on without stopping. The VS
+Code extension debugs the same thing from the editor, in its panel or in an
+emulator with `--basic-debug`; while it is connected, the window steps
+aside.
 

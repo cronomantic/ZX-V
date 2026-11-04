@@ -167,6 +167,7 @@ CAT "ROM:"
 | `umbra.zxv` | *Umbra*, un laberinto en 3D a oscuras |
 | `keep.zxv` | *The Keep*, una aventura de mazmorras de cuatro plantas |
 | `chess.zxv` | *ZXV Chess*, ajedrez contra la máquina o entre dos |
+| `gonesilent.zxv` | *Gone Silent*, una aventura en 3D en una colonia minera abandonada |
 | `graphics.zxv` | Una demostración gráfica: escenario que se desplaza, pelotas que rebotan, una estrella que gira y un suelo en 3D |
 | `scroll.zxv` | Desplazamiento suave por un paisaje de cuatro pantallas de ancho, con parallax |
 | `digital.zxv` | Sonido digitalizado por el chip de música |

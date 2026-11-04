@@ -22,7 +22,7 @@ LIBC_CFLAGS  := -march=$(MARCH) -mabi=ilp32 -Os -g -Wall -Wextra -std=gnu11 --sp
 LIBC_LDFLAGS := -nostartfiles -static -T zxv.ld -Wl,--gc-sections \
                 -Wl,--no-warn-rwx-segments
 
-EXAMPLES := hello graphics scroll digital estela boardtest route128 mine street umbra keep player gfxedit chess
+EXAMPLES := hello graphics scroll digital estela boardtest route128 mine street umbra keep player gfxedit chess gonesilent
 # Sin picolibc (MSYS2 no la tiene), sin estos: lo dice y compila los demás.
 LIBC_EXAMPLES := $(if $(filter /% %:/%,$(subst \,/,$(shell $(CC) -print-file-name=picolibc.specs))),files)
 ifeq ($(LIBC_EXAMPLES),)
@@ -66,6 +66,15 @@ build/keep.elf: examples/keep/keep.h examples/keep/keep.gfx examples/keep/keep.a
                 $(wildcard examples/keep/*.pt3) $(MUSIC_SRC) music/music_int.h include/zxv_music.h
 
 build/player.elf: $(MUSIC_SRC) music/music_int.h include/zxv_music.h
+
+# Gone Silent, la aventura en 3D: va con -O2, que el 3D lo nota.
+build/gonesilent.elf: CFLAGS += -O2
+build/gonesilent.elf: examples/gonesilent/gonesilent.h examples/gonesilent/gonesilent.afb build/gonesilent.spr \
+                      $(wildcard examples/gonesilent/*.pt3) $(MUSIC_SRC) music/music_int.h include/zxv_music.h
+# Sus sprites, comprimidos (los de gonesilent.gfx, de los que solo se dibuja
+# lo que no es transparente).
+build/gonesilent.spr: examples/gonesilent/gonesilent.gfx examples/gonesilent/mkspr.py | build
+	$(PYTHON) examples/gonesilent/mkspr.py $< $@
 build/gfxedit.elf: examples/gfxedit/gfxedit.h examples/gfxedit/store.h
 
 # Las piezas y el puntero del ajedrez se dibujan en PNG: chess.gfx se hace con ellos.

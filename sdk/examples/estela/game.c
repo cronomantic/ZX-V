@@ -958,23 +958,27 @@ static void update(void)
 
 /* --- El dibujo ------------------------------------------------------------------- */
 
+/* El marcador, una línea con una raya azul debajo: los puntos; las naves que
+ * quedan, la nave en pequeño; el arma, el icono de su mejora y su nivel en
+ * tres casillas; el escudo, el icono de la suya (apagado si no se lleva); y
+ * el récord, o la vida del jefe. */
 static void draw_hud(void)
 {
+    static const uint8_t dim[16] = { 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1 };
     char buf[16];
     zxv_gfx_rect(0, 0, W, HUD_H, 0);
+    zxv_gfx_rect(0, HUD_H - 1, W, 1, 1);
     number(buf, demo ? 0 : pl.score, 6);
     text(2, 0, buf, 15);
-    for (int i = 0; i < pl.lives && i < 6; i++) {           /* las naves que quedan */
-        zxv_gfx_rect(48 + i * 9, 3, 5, 2, 7);
-        zxv_gfx_rect(48 + i * 9 + 5, 3, 2, 1, 5);
-    }
-    for (int i = 0; i < pl.weapon; i++)                     /* el arma */
-        zxv_gfx_rect(106 + i * 4, 2, 2, 4, 14);
-    if (pl.shield)
-        zxv_gfx_rect(120, 2, 4, 4, 13);
+    for (int i = 0; i < pl.lives && i < 6; i++)
+        zxv_spr_draw_scaled(s_ship.spr, 42 + i * 12, 0, 11, 7, 0, 0);
+    zxv_spr_draw_scaled(s_power[0].spr, 116, 0, 7, 7, 0, 0);
+    for (int i = 0; i < 3; i++)
+        zxv_gfx_rect(125 + i * 4, 1, 3, 5, i < pl.weapon ? 14 : 1);
+    zxv_spr_draw_scaled(s_power[1].spr, 140, 0, 7, 7, 0, pl.shield ? 0 : dim);
 #ifdef ESTELA_STATS
-    number(buf, video_frames(), 4);     /* los frames perdidos, de 126 a 149 */
-    text(126, 0, buf, 2);
+    number(buf, video_frames(), 4);     /* los frames perdidos, de 152 a 175 */
+    text(152, 0, buf, 2);
 #endif
     if (boss.alive && !boss.dying && boss.x <= (W - boss.spr->w - 12) * FX) {
         text(152, 0, T("JEFE", "BOSS"), 10);

@@ -327,7 +327,7 @@ lista todas). Estas son las que más vas a usar:
 | `--screenshot F.bmp` | Guarda la pantalla al terminar |
 | `--wav F.wav` | Graba el sonido en un fichero WAV |
 | `--strict` | Modo estricto: avisa de lo que la máquina real no permitiría |
-| `--version` | Escribe la versión de ZX-V (`ZX-V 0.7.2`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
+| `--version` | Escribe la versión de ZX-V (`ZX-V 0.8.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
 
 Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
 `--profile`, `--panel`, `--test`, `--fail-on-warning`) son para programadores:
@@ -471,11 +471,36 @@ nativos:
 - en `zxv-cli`, un depurador de consola (`--debug`);
 - un **servidor GDB** (`--gdb PUERTO`, o Depurar > Servidor GDB... en `zxv`)
   para depurar programas en C con GDB, línea a línea;
-- el **depurador del BASIC** de la ROM (`--basic-debug PUERTO` en `zxv-sdl` y
-  `zxv-cli`): la extensión de VS Code lo usa para depurar un listado del BASIC
-  de la ROM, con puntos de ruptura, pasos por sentencia, variables y la pila;
+- el **depurador del BASIC** de la ROM: en `zxv`, su ventana (Depurar > El
+  BASIC..., Alt+B), y para la extensión de VS Code, su servidor
+  (`--basic-debug PUERTO` en `zxv`, `zxv-sdl` y `zxv-cli`, o Depurar >
+  Servidor del depurador del BASIC... en `zxv`);
 - el **modo estricto**, que avisa de lo que fallaría en la máquina real.
 
 Todo esto se explica en la [guía del SDK](sdk/README.md), salvo el depurador
-del BASIC, que se usa desde la extensión de VS Code.
+del BASIC, que va aquí abajo.
+
+### El depurador del BASIC
+
+Con la ventana del depurador del BASIC abierta (Depurar > El BASIC..., Alt+B),
+un programa del BASIC de la ROM se para donde le digas:
+
+- **El listado** del programa, el que tienes en la máquina, con la sentencia
+  que va a ejecutarse resaltada. Un clic en el margen pone o quita un **punto
+  de ruptura** en esa línea; Ctrl+clic en una sentencia, en esa sentencia (las
+  separan `:`, `THEN` y `ELSE`).
+- **Seguir** (F5), **parar** (Mayús+F5) y los pasos: **paso a paso** (F11, la
+  sentencia siguiente, aunque entre en un `GO SUB` o un `PROC`), **por encima**
+  (F10, sin entrar) y **salir** (Mayús+F11, hasta salir del `GO SUB` o del
+  `PROC` en curso).
+- **Parar en los errores**, antes de `ON ERROR` o del informe, o solo en los
+  que no recoge `ON ERROR`.
+- Alrededor, **las variables** (las matrices se abren para ver sus
+  elementos), **la pila** de `GO SUB` y `PROC` (un clic lleva a la línea) y
+  las expresiones que **vigilas**: se evalúan en cada parada con el propio
+  intérprete, así que valen `PEEK`, `FN`, `SCREEN$`...
+
+Al cerrar la ventana, el programa sigue sin pararse en nada. La extensión de
+VS Code depura lo mismo desde el editor, en su panel o en un emulador con
+`--basic-debug`; mientras está conectada, la ventana se aparta.
 

@@ -46,7 +46,7 @@ read the [SDK guide](README.md) and [Graphics](graphics.md).
 | `zxvlib.c` | `memcpy`, `memmove`, `memset`, `memcmp`, for programs without the C library |
 | `include/zxv_gfxfile.h`, `gfxfile.c` | Reads `.gfx` graphics files (from `zxv-gfx`, `gfxedit` and `png2gfx.py`): sprites, tiles, maps and textures, in the `zxv_gfx.h` formats, and screens |
 | `include/zxv_music.h`, `music/` | Music and effects for the two AY chips: PT3, TurboSound, PT2, STC, ASC and PSG modules and AYFX effects |
-| `include/zxv_version.h` | The ZX-V version (`ZXV_VERSION`, for example `"0.7.2"`) |
+| `include/zxv_version.h` | The ZX-V version (`ZXV_VERSION`, for example `"0.8.0"`) |
 | `zxvc.c` | The glue between picolibc and the API (files, folders, console, heap, time, exit) |
 | `tools/elf2zxv.py` | Converts the linked `.elf` into a `.zxv` |
 | `tools/gfx/` | `zxv-gfx`, the graphics editor for the PC |

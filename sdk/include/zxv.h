@@ -49,7 +49,7 @@
  * palabra solo uno de los dos. Desplazamientos desde ZXV_DBG_BOX. */
 #define ZXV_DBG_SIZE            0x300u
 #define ZXV_DBG_MAGIC_VALUE     0x4456585Au     /* "ZXVD" */
-#define ZXV_DBG_VERSION_VALUE   1u
+#define ZXV_DBG_VERSION_VALUE   2u
 #define ZXV_DBG_MAGIC           0x00u   /* u32, ROM: ZXV_DBG_MAGIC_VALUE */
 #define ZXV_DBG_VERSION         0x04u   /* u32, ROM */
 #define ZXV_DBG_CTRL            0x08u   /* u32, anfitrión: ZXV_DBGC_... */
@@ -94,6 +94,7 @@
 #define ZXV_DBGO_VARS           6u      /* argumento: desde qué variable */
 #define ZXV_DBGO_STACK          7u      /* argumento: desde qué marco */
 #define ZXV_DBGO_ARRAY          8u      /* TEXT: el nombre; argumento: desde qué elemento */
+#define ZXV_DBGO_LIST           9u      /* argumento: desde qué línea (v2; también sin programa) */
 
 /* --- Registros de vídeo (spec §4.5) ------------------------------------- */
 #define ZXV_V_MODE              (ZXV_VIDEO_REGS + 0x00u)   /* u8  */
