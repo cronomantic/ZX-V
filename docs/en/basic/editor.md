@@ -241,6 +241,7 @@ anything.
 | Print | Sends the listing to the printer, the file `printer.txt` on the SD card, like `LLIST`. The status line says `Listing sent to the printer` |
 | Undo | Undoes the last change to the program: see [Undo](#undo) |
 | Mode 0 / Mode 1 | Switches the editor to the other mode: see [The editor in mode 0](#the-editor-in-mode-0) |
+| Key click off / Key click on | Every key in the editor clicks, as on the 128K. This option turns the click off or back on; the machine remembers it when switched off |
 | Copy here, Move here, Delete lines | Only with a block marked: see [Blocks of lines](#blocks-of-lines) |
 
 Renumber and Print work with the stored program: if the line you are on has
@@ -269,7 +270,7 @@ The line just above the bar shows:
 
 | Message | When |
 |---|---|
-| `© 2026 Cronomantic  ZX-V 0.8.0` | When ZX-V starts, and after `NEW`: the copyright and the ROM version |
+| `© 2026 Cronomantic  ZX-V 0.9.0` | When ZX-V starts, and after `NEW`: the copyright and the ROM version |
 | An error in red, such as `C Nonsense in BASIC` | When a line you tried to store or run has a mistake |
 | `Program renumbered`, `Cannot renumber` | After the Renumber option |
 | `Listing sent to the printer` | After the Print option |

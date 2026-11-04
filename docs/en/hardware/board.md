@@ -232,6 +232,12 @@ Do the first checks **before soldering the Picos**, with a multimeter.
    "Palettes CRC" must read `95AF97D6`, the same as in the emulator and as on
    the diagnostic page (Ctrl+Alt+F12), in the ULA's line: the palettes reach
    the ULA intact. P again goes back to the test.
+7. **The settings, in the clock:** the test's "Key click" line says whether
+   the editor's keys click. Go back to BASIC with Esc, change it in the EDIT
+   menu (Tab, "Key click off"), press RESET and load the test again: the
+   line must have changed. RESET restarts the firmware, which reads it back
+   from the clock; Ctrl+Alt+Del is not enough, as it does not restart it. If
+   it goes back to "on", the clock does not keep it (or there is no clock).
 
 The Picos can still be connected to a computer by their micro-USB while the
 board is powered: the protection diodes keep the two supplies apart. **Not

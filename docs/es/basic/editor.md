@@ -250,6 +250,7 @@ Elige con ↑ y ↓ y pulsa Enter. Esc o Tab cierran el menú sin hacer nada.
 | Imprimir | Manda el listado a la impresora, el fichero `printer.txt` de la tarjeta SD, como `LLIST`. La línea de estado dice `Listado enviado a la impresora` |
 | Deshacer | Deshace el último cambio del programa: ver [Deshacer](#deshacer) |
 | Modo 0 / Modo 1 | Pasa el editor al otro modo: ver [El editor en modo 0](#el-editor-en-modo-0) |
+| Quitar el clic / Poner el clic | Cada tecla del editor hace un clic, como en el 128K. Esta opción lo quita o lo vuelve a poner; la máquina lo recuerda al apagarla |
 | Copiar aquí, Mover aquí, Borrar líneas | Solo con un bloque marcado: ver [Bloques de líneas](#bloques-de-líneas) |
 
 Renumerar e Imprimir trabajan con el programa guardado: si la línea en la que
@@ -278,7 +279,7 @@ La línea que hay justo encima de la barra enseña:
 
 | Mensaje | Cuándo |
 |---|---|
-| `© 2026 Cronomantic  ZX-V 0.8.0` | Al arrancar ZX-V, y después de `NEW`: el copyright y la versión de la ROM |
+| `© 2026 Cronomantic  ZX-V 0.9.0` | Al arrancar ZX-V, y después de `NEW`: el copyright y la versión de la ROM |
 | Un error en rojo, como `C Sintaxis incorrecta` | Cuando una línea que querías guardar o ejecutar tiene un error |
 | `Programa renumerado`, `No se puede renumerar` | Tras la opción Renumerar |
 | `Listado enviado a la impresora` | Tras la opción Imprimir |

@@ -9,6 +9,12 @@
  * derecha; con T se repiten la tarjeta y el reloj; con P, la página de las
  * paletas (spec §4.6); con Esc se vuelve al BASIC. Lo que no se ve desde aquí
  * (MODO, RESET, el LED del enlace) va en las instrucciones de abajo.
+ *
+ * El clic de las teclas (spec §7.11) es el que leyó la ROM de la plataforma
+ * al arrancar: se cambia en el menú EDIT y, tras RESET (que reinicia el
+ * firmware y lo vuelve a leer del reloj), tiene que seguir igual. Un
+ * programa no lo puede probar solo: lo que escribiera lo leería de la copia
+ * del firmware, no del reloj.
  */
 #include "zxv_api.h"
 #include "zxv_gfx.h"
@@ -420,6 +426,8 @@ static void labels(void)
     at(0, 4, AZUL, TR("Clock", "Reloj"));
     at(0, 5, AZUL, TR("SD card", "Tarjeta"));
     at(0, 6, AZUL, TR("Version", "Versión"));
+    at(0, 7, AZUL, TR("Key click", "Clic"));
+    at(10, 7, NEGRO, REG32(ZXV_SV_PREFS) & ZXV_PREF_NO_CLICK ? TR("off", "no") : TR("on", "sí"));
     at(0, 8, AZUL, TR("Keyboard", "Teclado"));
     at(0, 9, AZUL, TR("Gamepad 1", "Mando 1"));
     at(0, 10, AZUL, TR("Gamepad 2", "Mando 2"));
@@ -434,6 +442,7 @@ static void labels(void)
     at(0, 19, NEGRO, TR("RESET: restarts the machine.", "RESET: reinicia la máquina."));
     at(0, 20, NEGRO, TR("SD LED: blinks in the card test", "LED SD: parpadea con la tarjeta"));
     at(0, 21, NEGRO, TR("Link LED: on, steady.", "LED ENLACE: encendido, fijo."));
+    at(0, 22, NEGRO, TR("Click: change it in EDIT, RESET", "Clic: cámbialo en EDIT y RESET"));
     at(0, 23, ROJO, TR("Esc: back to BASIC", "Esc: volver al BASIC"));
     char s[24], *p = s;
     uint32_t v = REG32(ZXV_SV_VERSION);

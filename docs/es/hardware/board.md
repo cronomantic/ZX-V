@@ -232,6 +232,12 @@ Las primeras comprobaciones, **antes de soldar las Pico**, con un polímetro.
    rampa, y el «CRC paletas» debe ser `95AF97D6`, el mismo que en el emulador y
    que el de la página de diagnóstico (Ctrl+Alt+F12), en la línea de la ULA:
    así las paletas llegan bien a la ULA. P otra vez vuelve a la prueba.
+7. **Las preferencias, en el reloj:** la línea «Clic» de la prueba dice si las
+   teclas del editor hacen clic. Vuelve al BASIC con Esc, cámbialo en el menú
+   EDIT (Tab, «Quitar el clic»), pulsa RESET y carga otra vez la prueba: la
+   línea tiene que haber cambiado. RESET reinicia el firmware, que lo vuelve
+   a leer del reloj; Ctrl+Alt+Supr no vale, porque no lo reinicia. Si vuelve
+   a «sí», el reloj no lo guarda (o no hay reloj).
 
 Las Pico se pueden conectar al ordenador por su micro-USB con la placa
 encendida: los diodos de protección separan las dos alimentaciones. **Con la

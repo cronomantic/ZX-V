@@ -564,16 +564,17 @@ reconocer interrupciones) lo hace la capa de plataforma a través de la interfaz
 interna (`0x2000_1240`): en la Pico la implementa el firmware y en el emulador el
 propio emulador.
 
-La plataforma rellena la interfaz antes de saltar a la ROM. Versión 4:
+La plataforma rellena la interfaz antes de saltar a la ROM. Versión 5:
 
 | Desp. | Contenido |
 |---|---|
-| `+0x00` | Versión de la interfaz (4) |
+| `+0x00` | Versión de la interfaz (5) |
 | `+0x04` | `void irq_ack(void)`: reconoce la interrupción de VBLANK; la ROM la llama al principio del manejador |
 | `+0x08` | `u32 time_us(void)`: contador de microsegundos |
 | `+0x0C`…`+0x40` | Sistema de ficheros de la tarjeta (desde la versión 2), en este orden: `fs_open`, `fs_read`, `fs_write`, `fs_close`, `fs_seek`, `fs_stat`, `fs_remove`, `fs_rename`, `fs_mkdir`, `fs_chdir`, `fs_getcwd`, `fs_opendir`, `fs_readdir`, `fs_closedir`. Mismas firmas que las funciones 14–17 y 21–30 de la API (§7.3) |
 | `+0x44`, `+0x48` | El reloj (desde la versión 3): `clock_get` y `clock_set`, con las firmas de las funciones 48 y 49 (§7.9) |
 | `+0x4C`, `+0x50` | El idioma (desde la versión 4): `u32 lang_get(void)` y `int lang_set(u32 idioma)` (§7.10) |
+| `+0x54`, `+0x58` | Las preferencias (desde la versión 5): `u32 prefs_get(void)` y `void prefs_set(u32 prefs)` (§7.11) |
 
 En la Pico, el sistema de ficheros es FatFs en el núcleo de servicios: la
 función de la plataforma deja la petición en un buzón y espera la respuesta. La
@@ -1030,6 +1031,34 @@ minúsculas guardado en un u32, la primera letra en el byte bajo:
   siguen siendo los bloques, los UDG y los tokens). En la impresora y en los
   ficheros, esas letras salen sin tilde.
 
+### 7.11 Preferencias
+
+La máquina guarda unas **preferencias**: bits que cambia el usuario y que
+siguen al apagarla, como el idioma. Están en la variable `PREFS` (§8.1).
+
+| Bit | Nombre (SDK) | Qué es |
+|---|---|---|
+| 0 | `ZXV_PREF_NO_CLICK` | Las teclas del editor del BASIC no hacen clic |
+| 1–3 | | Reservados, a 0 |
+
+- **El clic de las teclas**, como el del 128K: cada tecla del editor del
+  BASIC (y de `INPUT`, del menú EDIT y de las esperas de una tecla) hace un
+  clic de 2 ms en el beeper, cuatro ciclos a 2 kHz, por la cola con marca de
+  tiempo (§5.4), sin esperar. Si quedan más teclas en la cola (un texto
+  pegado o tecleado por el anfitrión), no suena: así no zumba. Los programas
+  que leen el teclado (`INKEY$`, la API) no lo hacen. Se quita y se pone en
+  el menú EDIT del editor.
+- **Dónde están.** La ROM las lee de la plataforma al arrancar en frío
+  (`prefs_get`, desde la versión 5 de la interfaz) y las deja en `PREFS`; en
+  caliente se quedan las que había. Al cambiarlas, se las pasa
+  (`prefs_set`). Con una plataforma anterior, ninguna, hasta que se apague.
+- **Persistencia.** En la Pico se guardan en el reloj, con el idioma
+  (dev/hardware-pico.md §7). En el emulador, `zxv` las guarda en sus ajustes
+  y la web en el almacenamiento del navegador; `zxv-cli` y `zxv-sdl` empiezan
+  sin ninguna, o con `--no-click`. Al cargar una instantánea, el emulador
+  pone en `PREFS` las de ahora, no las que traía la memoria: son del
+  usuario, no del programa.
+
 ---
 
 ## 8. Variables del sistema
@@ -1048,6 +1077,7 @@ minúsculas guardado en un u32, la primera letra en el byte bajo:
 | `+0x1C` | `SYSFLAGS` | u32 | Bit 0 `LINK_BUSY` (ver 4.8). Bit 1 `BREAK` (tecla de interrupción pulsada) |
 | `+0x20` | `LANG` | u32 | El idioma de la máquina (§7.10). Solo lectura: se cambia con `lang_set` |
 | `+0x24` | `EDITOR` | u32 | 1 mientras el BASIC espera una orden (en el editor o con un informe en la pantalla); 0 mientras ejecuta algo, también un programa nativo. La escribe la ROM; la página de los juegos para la web (D85) la mira para empezarlos y volver a empezarlos |
+| `+0x28` | `PREFS` | u32 | Las preferencias de la máquina (§7.11). Solo lectura: las cambia la ROM |
 
 ### 8.2 Buzón del depurador del BASIC (`0x2000_2700`)
 

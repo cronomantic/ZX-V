@@ -226,6 +226,11 @@
 #define ZXV_SV_SYSFLAGS         (ZXV_SYSVARS + 0x1Cu)
 #define ZXV_SV_LANG             (ZXV_SYSVARS + 0x20u)   /* u32: ZXV_LANG('e','s') */
 #define ZXV_SV_EDITOR           (ZXV_SYSVARS + 0x24u)   /* u32: 1 = el BASIC espera una orden */
+#define ZXV_SV_PREFS            (ZXV_SYSVARS + 0x28u)   /* u32: las preferencias (ZXV_PREF_...) */
+
+/* Las preferencias de la máquina, que guarda la plataforma (spec §7.11). */
+#define ZXV_PREF_NO_CLICK       0x01u   /* las teclas del editor, sin clic */
+#define ZXV_PREFS_MASK          0x0Fu   /* los bits que hay (los demás, a 0) */
 
 /* El idioma de la máquina: su código ISO 639-1, dos letras minúsculas. */
 #define ZXV_LANG(a, b)          ((uint32_t)(a) | (uint32_t)(b) << 8)
@@ -264,6 +269,11 @@
 #define ZXV_PIF_LANG_GET        (ZXV_PLATFORM_IF + 0x4Cu)
 #define ZXV_PIF_LANG_SET        (ZXV_PLATFORM_IF + 0x50u)
 #define ZXV_PIF_VERSION_LANG    4u
+/* Versión 5: las preferencias, que la plataforma guarda (u32 prefs_get(void),
+ * que da 0 si no sabe ninguna; void prefs_set(u32)). */
+#define ZXV_PIF_PREFS_GET       (ZXV_PLATFORM_IF + 0x54u)
+#define ZXV_PIF_PREFS_SET       (ZXV_PLATFORM_IF + 0x58u)
+#define ZXV_PIF_VERSION_PREFS   5u
 
 /* --- Números de la API (spec §7.3) -------------------------------------- */
 #define ZXV_API_VERSION         0

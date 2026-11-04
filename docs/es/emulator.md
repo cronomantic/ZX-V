@@ -238,7 +238,8 @@ a un punto conocido mientras experimentas:
 
 Una instantánea **no** guarda la tarjeta SD: al cargarla, la tarjeta es la que
 esté puesta, y los ficheros que tenía abiertos el programa se cierran (como con
-Ctrl+Alt+Supr). Tampoco guarda los ajustes del emulador.
+Ctrl+Alt+Supr). Tampoco guarda los ajustes del emulador, ni el clic de las
+teclas: se queda como lo tengas ahora.
 
 ### Capturas y sonido
 
@@ -313,6 +314,7 @@ lista todas). Estas son las que más vas a usar:
 | `--sd-image FICHERO` | Usa una imagen de tarjeta como tarjeta SD |
 | `--romdisk FICHERO` | La unidad `ROM:` (si no, `romdisk.bin` junto al programa) |
 | `--lang XX` | El idioma de la máquina, `es` o `en`, solo para esa vez. En `zxv-sdl` y `zxv-cli` es también el de los mensajes del emulador |
+| `--no-click` | Las teclas del editor, sin clic (también se quita en su menú EDIT) |
 | `--scale N` | Tamaño de la ventana, de 1 a 4 (`zxv`, `zxv-sdl`) |
 | `--border TAMAÑO` | El borde: `completo` (`full`, 640 × 480), `pequeño` (`small`) o `ninguno` (`none`) (`zxv`, `zxv-sdl`) |
 | `--no-sound` | Sin sonido (`zxv`, `zxv-sdl`) |
@@ -327,7 +329,7 @@ lista todas). Estas son las que más vas a usar:
 | `--screenshot F.bmp` | Guarda la pantalla al terminar |
 | `--wav F.wav` | Graba el sonido en un fichero WAV |
 | `--strict` | Modo estricto: avisa de lo que la máquina real no permitiría |
-| `--version` | Escribe la versión de ZX-V (`ZX-V 0.8.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
+| `--version` | Escribe la versión de ZX-V (`ZX-V 0.9.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
 
 Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
 `--profile`, `--panel`, `--test`, `--fail-on-warning`) son para programadores:

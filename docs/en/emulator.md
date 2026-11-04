@@ -235,7 +235,8 @@ known point while you experiment:
 
 A snapshot does **not** contain the SD card: when you load one, the card is the
 one in use now, and files the program had open are closed (as with
-Ctrl+Alt+Del). The emulator's settings are not saved in it either.
+Ctrl+Alt+Del). The emulator's settings are not saved in it either, nor is the
+key click: it stays as you have it now.
 
 ### Screenshots and sound
 
@@ -309,6 +310,7 @@ lists them all). These are the ones you are most likely to use:
 | `--sd-image FILE` | Use a card image as the SD card |
 | `--romdisk FILE` | The `ROM:` drive (by default, `romdisk.bin` next to the program) |
 | `--lang XX` | The machine's language, `en` or `es`, for this session only. In `zxv-sdl` and `zxv-cli` it is also the language of the emulator's messages |
+| `--no-click` | No click on the editor's keys (it can also be turned off in its EDIT menu) |
 | `--scale N` | Window size, 1 to 4 (`zxv`, `zxv-sdl`) |
 | `--border SIZE` | The border: `full` (`completo`, 640 × 480), `small` (`pequeño`) or `none` (`ninguno`) (`zxv`, `zxv-sdl`) |
 | `--no-sound` | No sound (`zxv`, `zxv-sdl`) |
@@ -323,7 +325,7 @@ lists them all). These are the ones you are most likely to use:
 | `--screenshot F.bmp` | Save the screen at the end |
 | `--wav F.wav` | Record the sound to a WAV file |
 | `--strict` | Strict mode: warn about anything the real machine would not allow |
-| `--version` | Print the ZX-V version (`ZX-V 0.8.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
+| `--version` | Print the ZX-V version (`ZX-V 0.9.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
 
 The rest (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
 `--profile`, `--panel`, `--test`, `--fail-on-warning`) are for programmers:
