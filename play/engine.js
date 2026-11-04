@@ -625,9 +625,10 @@ function langCode(s) { return s.charCodeAt(0) | s.charCodeAt(1) << 8; }
  *   card          la carpeta de la tarjeta (se guarda en IndexedDB)
  *   prepare()     antes de leer la tarjeta (poner ficheros: /romdisk.bin...)
  *   loaded(err)   con la tarjeta leída, antes de arrancar; devuelve los
- *                 idiomas [máquina, mensajes] ('es', 'en'...)
+ *                 idiomas [máquina, mensajes] ('es', 'en'...) y, si
+ *                 quiere, las preferencias de la máquina (spec §7.11)
  *   started()     la máquina en marcha
- *   onLog(texto), onLang(código), onPaused(sí), shortcut(e, pulsada),
+ *   onLog(texto), onLang(código), onPrefs(n), onPaused(sí), shortcut(e, pulsada),
  *   onBlur(), beforeFrame(), afterFrame(r), onTick() */
 function init(opts) {
     hooks = opts;
@@ -643,6 +644,7 @@ function init(opts) {
         printErr: text => console.warn(text),
         onLog: text => { console.log(text); if (hooks.onLog) hooks.onLog(text); },
         onLang: code => { if (hooks.onLang) hooks.onLang(code); },
+        onPrefs: prefs => { if (hooks.onPrefs) hooks.onPrefs(prefs); },
         onRuntimeInitialized: () => {
             const FS = E.FS = Module.FS;
             const c = (name, ret, args) => Module.cwrap('web_' + name, ret, args);
@@ -671,6 +673,8 @@ function init(opts) {
                 setStrict: c('set_strict', null, ['number']),
                 setTurbo: c('set_turbo', null, ['number']),
                 setLang: c('set_lang', null, ['number']),
+                // Las preferencias: no las tienen los núcleos anteriores a la 0.9.
+                setPrefs: Module._web_set_prefs ? c('set_prefs', null, ['number']) : null,
                 setMsgLang: c('set_msg_lang', null, ['number']),
                 view: c('view', 'number', ['number']),
                 paused: c('paused', 'number', []),
@@ -686,8 +690,10 @@ function init(opts) {
             if (opts.prepare)
                 opts.prepare();
             FS.syncfs(true, err => {
-                const [lang, msgLang] = opts.loaded(err);
+                const [lang, msgLang, prefs] = opts.loaded(err);
                 withStr(opts.card, p => E.core.start(langCode(lang), langCode(msgLang), p));
+                if (prefs && E.core.setPrefs)
+                    E.core.setPrefs(prefs);
                 bindInput();
                 draw();
                 if (opts.started)

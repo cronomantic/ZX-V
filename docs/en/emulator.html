@@ -499,7 +499,8 @@ known point while you experiment:</p>
 </ul>
 <p>A snapshot does <strong>not</strong> contain the SD card: when you load one, the card is the
 one in use now, and files the program had open are closed (as with
-Ctrl+Alt+Del). The emulator's settings are not saved in it either.</p>
+Ctrl+Alt+Del). The emulator's settings are not saved in it either, nor is the
+key click: it stays as you have it now.</p>
 <h3 id="screenshots-and-sound">Screenshots and sound<a class="ancla" href="#screenshots-and-sound" aria-hidden="true">#</a></h3>
 <ul>
 <li><strong>Alt+S</strong> (File &gt; Save screenshot) saves the screen as you see it, with the
@@ -616,6 +617,10 @@ lists them all). These are the ones you are most likely to use:</p>
 <td>The machine's language, <code>en</code> or <code>es</code>, for this session only. In <code>zxv-sdl</code> and <code>zxv-cli</code> it is also the language of the emulator's messages</td>
 </tr>
 <tr>
+<td><code>--no-click</code></td>
+<td>No click on the editor's keys (it can also be turned off in its EDIT menu)</td>
+</tr>
+<tr>
 <td><code>--scale N</code></td>
 <td>Window size, 1 to 4 (<code>zxv</code>, <code>zxv-sdl</code>)</td>
 </tr>
@@ -673,7 +678,7 @@ lists them all). These are the ones you are most likely to use:</p>
 </tr>
 <tr>
 <td><code>--version</code></td>
-<td>Print the ZX-V version (<code>ZX-V 0.8.0</code>) and exit. On Windows <code>zxv</code> has no console: its version is in <strong>Help &gt; About ZX-V</strong></td>
+<td>Print the ZX-V version (<code>ZX-V 0.9.0</code>) and exit. On Windows <code>zxv</code> has no console: its version is in <strong>Help &gt; About ZX-V</strong></td>
 </tr>
 </tbody>
 </table>

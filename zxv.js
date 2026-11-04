@@ -657,6 +657,7 @@ E.init({
     card: CARD,
     onLog: message,
     onLang: code => store('zxv-maquina', code),
+    onPrefs: prefs => store('zxv-preferencias', String(prefs)),
     onPaused: updateButtons,
     shortcut: onShortcutKey,
     onBlur: () => { altLeft = false; },
@@ -667,7 +668,7 @@ E.init({
             message(t('Este navegador no puede guardar la tarjeta: se perderá al cerrar la página.'));
         updated = E.exists('/examples') ? updateExamples() : 0;
         E.syncCard();
-        return [store('zxv-maquina') || uiLang, uiLang];
+        return [store('zxv-maquina') || uiLang, uiLang, Number(store('zxv-preferencias')) || 0];
     },
     started: () => {
         document.getElementById('cargando').remove();
