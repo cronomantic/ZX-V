@@ -673,7 +673,7 @@ lists them all). These are the ones you are most likely to use:</p>
 </tr>
 <tr>
 <td><code>--version</code></td>
-<td>Print the ZX-V version (<code>ZX-V 0.7.2</code>) and exit. On Windows <code>zxv</code> has no console: its version is in <strong>Help &gt; About ZX-V</strong></td>
+<td>Print the ZX-V version (<code>ZX-V 0.8.0</code>) and exit. On Windows <code>zxv</code> has no console: its version is in <strong>Help &gt; About ZX-V</strong></td>
 </tr>
 </tbody>
 </table>
@@ -803,14 +803,38 @@ site allows.</p>
 <li>in <code>zxv-cli</code>, a console debugger (<code>--debug</code>);</li>
 <li>a <strong>GDB server</strong> (<code>--gdb PORT</code>, or Debug &gt; GDB server... in <code>zxv</code>) to debug C
   programs with GDB, line by line;</li>
-<li>the <strong>BASIC debugger</strong> of the ROM (<code>--basic-debug PORT</code> in <code>zxv-sdl</code> and
-  <code>zxv-cli</code>): the VS Code extension uses it to debug a ROM BASIC listing,
-  with breakpoints, steps by statement, variables and the call stack;</li>
+<li>the ROM's <strong>BASIC debugger</strong>: in <code>zxv</code>, its window (Debug &gt; BASIC...,
+  Alt+B), and for the VS Code extension, its server (<code>--basic-debug PORT</code> in
+  <code>zxv</code>, <code>zxv-sdl</code> and <code>zxv-cli</code>, or Debug &gt; BASIC debugger server... in
+  <code>zxv</code>);</li>
 <li><strong>strict mode</strong>, which warns about anything that would fail on the real
   machine.</li>
 </ul>
 <p>All of this is explained in the <a href="sdk/index.html">SDK guide</a>, except the BASIC
-debugger, which you use from the VS Code extension.</p>
+debugger, which is described below.</p>
+<h3 id="the-basic-debugger">The BASIC debugger<a class="ancla" href="#the-basic-debugger" aria-hidden="true">#</a></h3>
+<p>With the BASIC debugger window open (Debug &gt; BASIC..., Alt+B), a ROM BASIC
+program stops wherever you tell it to:</p>
+<ul>
+<li><strong>The listing</strong> of the program, the one in the machine, with the statement
+  about to run highlighted. Click in the margin to set or clear a
+  <strong>breakpoint</strong> on that line; Ctrl+click a statement for one on that
+  statement (statements are separated by <code>:</code>, <code>THEN</code> and <code>ELSE</code>).</li>
+<li><strong>Continue</strong> (F5), <strong>stop</strong> (Shift+F5) and the steps: <strong>step into</strong> (F11,
+  the next statement, even inside a <code>GO SUB</code> or a <code>PROC</code>), <strong>step over</strong> (F10,
+  without going in) and <strong>step out</strong> (Shift+F11, until leaving the current
+  <code>GO SUB</code> or <code>PROC</code>).</li>
+<li><strong>Stop on errors</strong>, before <code>ON ERROR</code> or the report, or only on those that
+  <code>ON ERROR</code> does not catch.</li>
+<li>Around it, <strong>the variables</strong> (arrays open to show their elements), <strong>the
+  stack</strong> of <code>GO SUB</code> and <code>PROC</code> (a click takes you to the line) and the
+  expressions you <strong>watch</strong>: they are evaluated at every stop by the
+  interpreter itself, so <code>PEEK</code>, <code>FN</code>, <code>SCREEN$</code>... all work.</li>
+</ul>
+<p>When you close the window, the program carries on without stopping. The VS
+Code extension debugs the same thing from the editor, in its panel or in an
+emulator with <code>--basic-debug</code>; while it is connected, the window steps
+aside.</p>
 <nav class="pasos"><a class="anterior" href="getting-started.html"><small>Previous</small>← Getting started</a><a class="siguiente" href="machine.html"><small>Next</small>The machine →</a></nav>
 <footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
 </main>

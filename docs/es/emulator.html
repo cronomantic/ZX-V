@@ -677,7 +677,7 @@ lista todas). Estas son las que más vas a usar:</p>
 </tr>
 <tr>
 <td><code>--version</code></td>
-<td>Escribe la versión de ZX-V (<code>ZX-V 0.7.2</code>) y termina. En Windows, <code>zxv</code> no tiene consola: su versión está en <strong>Ayuda &gt; Acerca de ZX-V</strong></td>
+<td>Escribe la versión de ZX-V (<code>ZX-V 0.8.0</code>) y termina. En Windows, <code>zxv</code> no tiene consola: su versión está en <strong>Ayuda &gt; Acerca de ZX-V</strong></td>
 </tr>
 </tbody>
 </table>
@@ -810,13 +810,36 @@ nativos:</p>
 <li>en <code>zxv-cli</code>, un depurador de consola (<code>--debug</code>);</li>
 <li>un <strong>servidor GDB</strong> (<code>--gdb PUERTO</code>, o Depurar &gt; Servidor GDB... en <code>zxv</code>)
   para depurar programas en C con GDB, línea a línea;</li>
-<li>el <strong>depurador del BASIC</strong> de la ROM (<code>--basic-debug PUERTO</code> en <code>zxv-sdl</code> y
-  <code>zxv-cli</code>): la extensión de VS Code lo usa para depurar un listado del BASIC
-  de la ROM, con puntos de ruptura, pasos por sentencia, variables y la pila;</li>
+<li>el <strong>depurador del BASIC</strong> de la ROM: en <code>zxv</code>, su ventana (Depurar &gt; El
+  BASIC..., Alt+B), y para la extensión de VS Code, su servidor
+  (<code>--basic-debug PUERTO</code> en <code>zxv</code>, <code>zxv-sdl</code> y <code>zxv-cli</code>, o Depurar &gt;
+  Servidor del depurador del BASIC... en <code>zxv</code>);</li>
 <li>el <strong>modo estricto</strong>, que avisa de lo que fallaría en la máquina real.</li>
 </ul>
 <p>Todo esto se explica en la <a href="sdk/index.html">guía del SDK</a>, salvo el depurador
-del BASIC, que se usa desde la extensión de VS Code.</p>
+del BASIC, que va aquí abajo.</p>
+<h3 id="el-depurador-del-basic">El depurador del BASIC<a class="ancla" href="#el-depurador-del-basic" aria-hidden="true">#</a></h3>
+<p>Con la ventana del depurador del BASIC abierta (Depurar &gt; El BASIC..., Alt+B),
+un programa del BASIC de la ROM se para donde le digas:</p>
+<ul>
+<li><strong>El listado</strong> del programa, el que tienes en la máquina, con la sentencia
+  que va a ejecutarse resaltada. Un clic en el margen pone o quita un <strong>punto
+  de ruptura</strong> en esa línea; Ctrl+clic en una sentencia, en esa sentencia (las
+  separan <code>:</code>, <code>THEN</code> y <code>ELSE</code>).</li>
+<li><strong>Seguir</strong> (F5), <strong>parar</strong> (Mayús+F5) y los pasos: <strong>paso a paso</strong> (F11, la
+  sentencia siguiente, aunque entre en un <code>GO SUB</code> o un <code>PROC</code>), <strong>por encima</strong>
+  (F10, sin entrar) y <strong>salir</strong> (Mayús+F11, hasta salir del <code>GO SUB</code> o del
+  <code>PROC</code> en curso).</li>
+<li><strong>Parar en los errores</strong>, antes de <code>ON ERROR</code> o del informe, o solo en los
+  que no recoge <code>ON ERROR</code>.</li>
+<li>Alrededor, <strong>las variables</strong> (las matrices se abren para ver sus
+  elementos), <strong>la pila</strong> de <code>GO SUB</code> y <code>PROC</code> (un clic lleva a la línea) y
+  las expresiones que <strong>vigilas</strong>: se evalúan en cada parada con el propio
+  intérprete, así que valen <code>PEEK</code>, <code>FN</code>, <code>SCREEN$</code>...</li>
+</ul>
+<p>Al cerrar la ventana, el programa sigue sin pararse en nada. La extensión de
+VS Code depura lo mismo desde el editor, en su panel o en un emulador con
+<code>--basic-debug</code>; mientras está conectada, la ventana se aparta.</p>
 <nav class="pasos"><a class="anterior" href="getting-started.html"><small>Anterior</small>← Primeros pasos</a><a class="siguiente" href="machine.html"><small>Siguiente</small>La máquina →</a></nav>
 <footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
 </main>

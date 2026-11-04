@@ -7,8 +7,9 @@
  * ganchos de ZXV.init.
  *
  * El ritmo: con sonido, se hacen los frames que faltan para tener unos 60 ms
- * en la cola (como zxv y zxv-sdl); sin sonido (hasta la primera tecla o el
- * primer clic, que el navegador no deja sonar antes), uno cada 1/60 s.
+ * en la cola (como zxv y zxv-sdl; más, hasta 150, si el sonido se corta);
+ * sin sonido (hasta la primera tecla o el primer clic, que el navegador no
+ * deja sonar antes), uno cada 1/60 s.
  */
 window.ZXV = (() => {
 'use strict';
@@ -17,6 +18,7 @@ const W = 640, H = 480, RATE = 48000;     // el cuadro (D81)
 const FRAME_HZ = 60;                        // ZXV_FRAME_HZ (D81)
 const FRAME_SAMPLES = RATE / FRAME_HZ;      // 800
 const AUDIO_AHEAD = 0.06;                   // segundos en la cola
+const AUDIO_MAX = 0.15;                     // ... como mucho, si se corta
 
 /* Los ganchos de la página (init). */
 let hooks = {};
@@ -90,6 +92,11 @@ const E = {
 let image = null;
 let audio = null, audioNext = 0;
 let clockNext = 0;
+/* El sonido por AudioWorklet (ver playFrame): el nodo, cómo va ('none',
+ * 'loading', 'ready' o 'failed'), las muestras mandadas y las tocadas (lo que
+ * dice el nodo), sus cortes y la cola que se pide. */
+let worklet = null, workletState = 'none';
+let wSent = 0, wPlayed = 0, wUnder = 0, audioAhead = AUDIO_AHEAD;
 
 /* Se pinta con WebGL: el cuadro va a una textura y el escalado lo hace la
  * tarjeta gráfica. Con el canvas 2D (si no hay WebGL), escalar costaba en
@@ -273,11 +280,112 @@ function canvasPixel(x, y) {
 
 /* --- El sonido y el ritmo ------------------------------------------------------ */
 
+/* El sonido va por un AudioWorklet: toca, en el hilo del sonido, de una cola
+ * de frames que le manda playFrame por su puerto, y cada 512 muestras dice
+ * cuántas ha tocado y cuántas veces se ha quedado sin nada. Cada corte hace
+ * la cola un poco más larga (hasta AUDIO_MAX): así aguanta los parones del
+ * hilo de la página (un GC, una pestaña ocupada), que con un
+ * AudioBufferSourceNode por frame se oían, sobre todo en Firefox. Sin
+ * AudioWorklet, como antes: uno por frame, cada uno detrás del anterior. */
+const WORKLET_SRC = `
+class ZxvOut extends AudioWorkletProcessor {
+    constructor() {
+        super();
+        this.q = []; this.pos = 0; this.played = 0; this.under = 0; this.empty = true; this.n = 0;
+        this.port.onmessage = e => {
+            this.q.push(e.data);
+            while (this.q.length > 30) {               // medio segundo: lo de antes, fuera
+                this.played += (this.q[0].length >> 1) - this.pos;
+                this.q.shift();
+                this.pos = 0;
+            }
+        };
+    }
+    process(inputs, outputs) {
+        const l = outputs[0][0], r = outputs[0][1] || l;
+        let i = 0;
+        while (i < l.length && this.q.length) {
+            const b = this.q[0], n = Math.min(l.length - i, (b.length >> 1) - this.pos);
+            for (let k = 0; k < n; k++) {
+                l[i + k] = b[2 * (this.pos + k)];
+                r[i + k] = b[2 * (this.pos + k) + 1];
+            }
+            i += n;
+            this.pos += n;
+            this.played += n;
+            if (this.pos >= b.length >> 1) {
+                this.q.shift();
+                this.pos = 0;
+            }
+        }
+        if (i < l.length) {
+            l.fill(0, i);
+            r.fill(0, i);
+            if (!this.empty)
+                this.under++;
+            this.empty = true;
+        } else {
+            this.empty = false;
+        }
+        if (++this.n % 4 === 0)
+            this.port.postMessage([this.played, this.under]);
+        return true;
+    }
+}
+registerProcessor('zxv-out', ZxvOut);
+`;
+
+function setupWorklet() {
+    if (workletState !== 'none')
+        return;
+    if (!audio.audioWorklet || typeof AudioWorkletNode === 'undefined') {
+        workletState = 'failed';
+        return;
+    }
+    workletState = 'loading';
+    const url = URL.createObjectURL(new Blob([WORKLET_SRC], { type: 'application/javascript' }));
+    audio.audioWorklet.addModule(url).then(() => {
+        const node = new AudioWorkletNode(audio, 'zxv-out', { numberOfInputs: 0, outputChannelCount: [2] });
+        node.port.onmessage = e => {
+            wPlayed = e.data[0];
+            if (e.data[1] > wUnder) {
+                wUnder = e.data[1];
+                if (audioPaced())               // no los de callarlo o pararlo
+                    audioAhead = Math.min(AUDIO_MAX, audioAhead + 0.02);
+            }
+        };
+        node.connect(audio.destination);
+        worklet = node;
+        workletState = 'ready';
+    }).catch(() => {
+        workletState = 'failed';
+    }).finally(() => URL.revokeObjectURL(url));
+}
+
+/* Los segundos de sonido que quedan por tocar. */
+function audioQueued() {
+    return worklet ? Math.max(0, wSent - wPlayed) / RATE : audioNext - audio.currentTime;
+}
+
+/* Para las pruebas: cómo va el sonido. */
+function audioStats() {
+    return { mode: worklet ? 'worklet' : workletState === 'failed' ? 'buffers' : workletState,
+             under: wUnder, ahead: audioAhead, queued: audio ? audioQueued() : 0 };
+}
+
 function playFrame() {
     if (!audio || audio.state !== 'running' || E.muted || E.silent)
         return;
-    const buf = audio.createBuffer(2, FRAME_SAMPLES, RATE);
     const pcm = new Int16Array(Module.HEAPU8.buffer, E.core.audio(), FRAME_SAMPLES * 2);
+    if (worklet) {
+        const f = new Float32Array(FRAME_SAMPLES * 2);
+        for (let i = 0; i < FRAME_SAMPLES * 2; i++)
+            f[i] = pcm[i] / 32768;
+        worklet.port.postMessage(f, [f.buffer]);
+        wSent += FRAME_SAMPLES;
+        return;
+    }
+    const buf = audio.createBuffer(2, FRAME_SAMPLES, RATE);
     const l = buf.getChannelData(0), r = buf.getChannelData(1);
     for (let i = 0; i < FRAME_SAMPLES; i++) {
         l[i] = pcm[i * 2] / 32768;
@@ -312,7 +420,9 @@ function frame() {
     return r;
 }
 
-function audioPaced() { return audio && audio.state === 'running' && !E.muted && !E.silent; }
+function audioPaced() {
+    return audio && audio.state === 'running' && !E.muted && !E.silent && workletState !== 'loading';
+}
 
 function tick() {
     if (!E.paused && !E.manual && !E.hold) {
@@ -321,7 +431,7 @@ function tick() {
                 frame();
             clockNext = performance.now();
         } else if (audioPaced()) {
-            for (let i = 0; i < 4 && audioNext - audio.currentTime < AUDIO_AHEAD; i++)
+            for (let i = 0; i < 4 && audioQueued() < audioAhead; i++)
                 frame();
             clockNext = performance.now();
         } else {
@@ -346,6 +456,7 @@ function startAudio() {
         } catch (e) {
             return;
         }
+        setupWorklet();
     }
     if (audio.state === 'suspended')
         audio.resume();
@@ -592,7 +703,7 @@ function init(opts) {
 
 Object.assign(E, {
     init, langCode, withStr, draw, present, shownRect, frame, frameCanvasNow, pixel, canvasPixel,
-    showStill, clearStill, startAudio, audioPaced, syncCard, isDir, exists, focusKeys, extraJoy,
+    showStill, clearStill, startAudio, audioPaced, audioStats, syncCard, isDir, exists, focusKeys, extraJoy,
 });
 return E;
 })();
