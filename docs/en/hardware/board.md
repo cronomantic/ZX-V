@@ -9,10 +9,12 @@ designed so that JLCPCB can make it **with all the small surface-mount (SMD)
 parts already soldered**. When it arrives you only solder the two Picos and a
 few large through-hole parts.
 
-> **The board has not been manufactured or tested yet.** The design is
-> complete and passes KiCad's checks, but nobody has built one. If you order
-> it, check everything this page asks you to check, and be ready for surprises.
-> The design files will be published once a board has been built and tested; until then, this page shows what ordering it will involve.
+> **The first boards have been made and one has been tested:** with the two
+> Picos together it passes `boardtest` and uses the microSD card; the
+> clock's coin cell is still to be tried. If you order it, check
+> everything this page asks you to check.
+> The design files are in [`pcb/`](../../../pcb/) (KiCad), as open hardware:
+> CERN-OHL-W v2 licence.
 
 ![The top of the board, without the Picos. The front edge, with the controls,
 is at the bottom.](../../images/hardware-board-top.png)
@@ -23,8 +25,9 @@ in Spanish (see [Connectors and controls](#connectors-and-controls)).*
 
 ## Ordering it from JLCPCB
 
-These are the files you will upload, once they are published; you
-will not need KiCad to order the board.
+Everything you upload is in [`pcb/fabrication/`](../../../pcb/fabrication/).
+The files are generated and checked by `pcb/tools/fabricate.py`; you do not need
+KiCad to order the board.
 
 | File | What it is | Where it goes |
 |---|---|---|

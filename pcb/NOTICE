@@ -1,0 +1,81 @@
+ZX-V board, revision 1 (v0.1)
+Copyright Cronomantic 2026.
+
+This source describes Open Hardware and is licensed under the CERN-OHL-W v2.
+
+You may redistribute and modify this source and make products using it under
+the terms of the CERN-OHL-W v2 (https://ohwr.org/cern_ohl_w_v2.txt, and the
+file LICENSE in this folder).
+
+This source is distributed WITHOUT ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING
+OF MERCHANTABILITY, SATISFACTORY QUALITY AND FITNESS FOR A PARTICULAR PURPOSE.
+Please see the CERN-OHL-W v2 for applicable conditions.
+
+Source location: https://github.com/cronomantic/ZX-V (folder pcb/)
+
+As per CERN-OHL-W v2 section 4.1, should You produce hardware based on this
+source, You must maintain the Source Location visible on the board, as the
+silkscreen of this one does ("github.com/cronomantic/ZX-V"), or on its case,
+packaging or documentation.
+
+What the licence covers
+-----------------------
+
+- The KiCad project (ZX-V/ZX-V/: schematic, board, rules, the zxv symbol
+  library and the zxv.pretty footprints), the fabrication files (fabrication/:
+  Gerber, drill, BOM, CPL and the schematic in PDF) and this folder's README.
+
+Exceptions
+----------
+
+- tools/ (the Python scripts that draw the schematic, place, route and make
+  the fabrication files): MIT licence, in tools/LICENSE.
+- Four footprints in zxv.pretty are modified copies of footprints from the
+  KiCad libraries (Jack_3.5mm_PJ-320D_TRS, LED_D3.0mm_Horizontal_O1.27mm_Z2.0mm,
+  RaspberryPi_Pico2_Common and SW_SPST_Omron_B3F-315x_Angled). They keep the
+  KiCad libraries' licence, CC BY-SA 4.0 with its exception for designs that
+  use them: https://www.kicad.org/libraries/license/ . Each one says in its
+  description where it comes from and what was changed.
+- Four footprints in zxv.pretty (BatteryHolder_CR2032-BS-6-1,
+  HDMI_A_HC-HDMI0019T-1, SW_Slide_SK12D07VG4_Angled and
+  USB_A_904-131A2032S10100) started from the EasyEDA/LCSC component library
+  (converted with easyeda2kicad) and were corrected against the
+  manufacturers' drawings, as their descriptions say. EasyEDA does not state a
+  licence for that library; only the changes made here are licensed under the
+  CERN-OHL-W.
+- Their 3D models (zxv.3dshapes/*.step) also come from EasyEDA and are not
+  published here: the 3D viewer shows those four parts without a body. They
+  can be fetched with easyeda2kicad from the LCSC part numbers in the
+  footprints ("LCSC Part"). They are not needed to make the board.
+- The Raspberry Pi Pico 2 and the other parts are External Material and
+  Available Components in the terms of the licence: their own designs are not
+  part of this source.
+
+The name
+--------
+
+The licence covers the design, not the name. "ZX-V" and its logo are not
+licensed: a board made or modified from this source can say that it is based
+on the ZX-V board, but it must not be presented as the ZX-V board itself or
+as endorsed by the ZX-V project without permission. When You modify the
+design, change or remove the name and the version on the silkscreen, and add
+the modification notice that section 3.3(b) of the licence asks for.
+
+---
+
+Placa de ZX-V, revisión 1 (v0.1). Copyright Cronomantic 2026.
+
+Este fuente describe hardware abierto y tiene la licencia CERN-OHL-W v2
+(LICENSE, en esta carpeta; arriba, en inglés, el aviso que manda la licencia).
+Se distribuye SIN NINGUNA GARANTÍA. Dónde está: https://github.com/cronomantic/ZX-V
+(carpeta pcb/); quien fabrique placas a partir de él debe dejar ese sitio a la
+vista, como lo lleva la serigrafía de esta.
+
+Las excepciones, arriba: los guiones de tools/ son MIT; cuatro huellas son
+copias cambiadas de las de KiCad y siguen con su licencia (CC BY-SA 4.0, con
+su excepción para los diseños que las usan); otras cuatro salieron de la
+biblioteca de EasyEDA/LCSC, corregidas con los planos de los fabricantes, y
+solo los cambios hechos aquí tienen la CERN-OHL-W; sus modelos 3D no se
+publican (se sacan con easyeda2kicad del número LCSC). La licencia no da el
+nombre: «ZX-V» y su logotipo no se licencian; una placa cambiada puede decir
+que se basa en la de ZX-V, pero no hacerse pasar por ella.

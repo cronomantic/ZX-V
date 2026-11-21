@@ -1,0 +1,349 @@
+(footprint "SW_Slide_SK12D07VG4_Angled"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "Deslizante SPDT THT en ángulo recto, Shou Han SK12D07VG4 (LCSC C393937): cuerpo 8,7 x 4,4 mm, palanca hacia +y. De EasyEDA (easyeda2kicad), con las patillas de sujeción sin número.")
+	(tags "switch slide SPDT angled SK12D07VG4")
+	(property "Reference" "REF**"
+		(at 0 -4 0)
+		(layer "F.SilkS")
+		(uuid "a47f2e35-c50a-45a5-90c9-f76ab59cb4ad")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "SW-TH_SK12D07VG4"
+		(at 0 4 0)
+		(layer "F.Fab")
+		(uuid "f9d9caef-fa5a-4098-b57a-eedd6ae4bb18")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "3ab76aea-0082-4c7e-b00d-b702e9fe517b")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "13d8fce5-e488-40f1-8006-5064a19e8376")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "LCSC Part" "C393937"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "5b5c3151-1588-4a0b-b325-6447c6777c28")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr through_hole)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_line
+		(start -4.35 -2.2)
+		(end 4.35 -2.2)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "0ddc0190-c8cf-4d93-87fc-329969fe4d5e")
+	)
+	(fp_line
+		(start -4.35 -1.31)
+		(end -4.35 -2.2)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "970c54f6-11da-4067-b98d-8e58663c4e62")
+	)
+	(fp_line
+		(start 4.35 -2.2)
+		(end 4.35 -1.31)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "618dfde6-69c4-40df-8127-4712db099720")
+	)
+	(fp_line
+		(start -5.1 -2.45)
+		(end 5.1 -2.45)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "2c54d7e7-627e-4ee1-a3da-f96a8f41dd49")
+	)
+	(fp_line
+		(start -5.1 2.45)
+		(end -5.1 -2.45)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "e2e1dd35-ff3b-48c0-9e98-0a5372f502c3")
+	)
+	(fp_line
+		(start -4.35 -2.2)
+		(end 4.35 -2.2)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "2f47e9ab-8ea2-4975-87bf-61c2bc2bf4a5")
+	)
+	(fp_line
+		(start -4.35 2.2)
+		(end -4.35 -2.2)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "2a6e6527-c5b4-49b1-b971-1ec951a6c92f")
+	)
+	(fp_line
+		(start 4.35 -2.2)
+		(end 4.35 2.2)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "edc561a8-fe28-452f-9007-f356e7e0879b")
+	)
+	(fp_line
+		(start 4.35 2.2)
+		(end -4.35 2.2)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "9bd13e4c-3d8b-4f4e-b82f-d521e402434c")
+	)
+	(fp_line
+		(start 5.1 -2.45)
+		(end 5.1 2.45)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "e6391141-b5ad-45f1-b90c-ecf8cc62ceb8")
+	)
+	(fp_line
+		(start 5.1 2.45)
+		(end -5.1 2.45)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(layer "F.CrtYd")
+		(uuid "dc324b19-988e-4be4-acdc-c41e1906d2e1")
+	)
+	(fp_line
+		(start -4.35 -2.2)
+		(end 4.35 -2.2)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "e44f03d6-50b9-44cd-b0b1-92671cc2cb7f")
+	)
+	(fp_line
+		(start -4.35 2.2)
+		(end -4.35 -2.2)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "7e2f495d-3129-4c26-beee-abb2d64a8606")
+	)
+	(fp_line
+		(start -4.35 2.2)
+		(end -4.35 1.31)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "d3e8fd6c-9a7a-4ae6-bf91-50655b06ef0a")
+	)
+	(fp_line
+		(start -2.01 2.2)
+		(end -2.01 4.85)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "f91504db-d241-4f0b-9ee7-43255efca813")
+	)
+	(fp_line
+		(start -2.01 4.85)
+		(end 0 4.85)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "3099e8b1-b987-4a7a-b101-7d66ad8feb68")
+	)
+	(fp_line
+		(start 0 4.85)
+		(end 0 2.2)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "6a285d30-858a-41d4-89fb-ff7ee10db8c0")
+	)
+	(fp_line
+		(start 4.35 -2.2)
+		(end 4.35 2.2)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "2069edc0-51f5-42b9-8be9-10ae7db34fd9")
+	)
+	(fp_line
+		(start 4.35 1.31)
+		(end 4.35 2.2)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "64b4975e-c001-4d9c-987e-7f12f349010c")
+	)
+	(fp_line
+		(start 4.35 2.2)
+		(end -4.35 2.2)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "F.Fab")
+		(uuid "50755c99-2e88-4fcf-9e9d-4d0712be4bd2")
+	)
+	(fp_line
+		(start 4.35 2.2)
+		(end -4.35 2.2)
+		(stroke
+			(width 0.25)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "b1c1d2d1-0af6-477f-ac36-2b9900128e45")
+	)
+	(fp_circle
+		(center -4.47 2.2)
+		(end -4.44 2.2)
+		(stroke
+			(width 0.06)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+		(uuid "497839ea-4a4d-46fe-8ae5-eed208f368e2")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "457eb8ad-8a42-4497-b81e-508ae78f3b6d")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "" thru_hole oval
+		(at -4.15 0)
+		(size 1.4 2.2)
+		(drill oval 0.799998 1.599997)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "17fd198e-9024-4e6c-a2b6-b110edd7f786")
+	)
+	(pad "" thru_hole oval
+		(at 4.15 0)
+		(size 1.4 2.2)
+		(drill oval 0.799998 1.599997)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "f73ea5bf-fdc7-4ac6-af8d-dbad084d9f29")
+	)
+	(pad "1" thru_hole circle
+		(at -2 0)
+		(size 1.524 1.524)
+		(drill 0.9144)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "af049460-0cde-4837-813c-0351a498d81b")
+	)
+	(pad "2" thru_hole circle
+		(at 0 0)
+		(size 1.524 1.524)
+		(drill 0.9144)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "792d079a-7204-458b-9ee5-99445f8faa21")
+	)
+	(pad "3" thru_hole circle
+		(at 2 0)
+		(size 1.524 1.524)
+		(drill 0.9144)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "cfa844d2-84d0-488c-8737-68f8d1cd0fdb")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/zxv.3dshapes/SW_Slide_SK12D07VG4_Angled.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

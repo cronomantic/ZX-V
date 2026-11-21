@@ -1,0 +1,36 @@
+(version 1)
+
+# Los pares diferenciales (los traza pcb/tools/pairs.py). KiCad los reconoce
+# por la P y la N del final del nombre de la red; las clases, en place.py.
+# La diferencia de largo, en cada par entre dos pads (de la Pico a la
+# resistencia, y de ella al conector), por separado. La separación, fuera de
+# las zonas «Abanico» (donde las líneas se abren para llegar a los pads, y las
+# ondas que igualan el largo): eso cuenta como trozo sin acoplar.
+
+(rule "HDMI: separación del par"
+  (condition "A.NetClass == 'HDMI' && !A.enclosedByArea('Abanico')")
+  (constraint diff_pair_gap (min 0.14mm) (opt 0.15mm) (max 0.16mm)))
+
+(rule "HDMI: largo"
+  (condition "A.NetClass == 'HDMI'")
+  (constraint diff_pair_uncoupled (max 6mm))
+  (constraint skew (max 0.05mm) (within_diff_pairs)))
+
+(rule "USB: separación del par"
+  (condition "A.NetClass == 'USB' && !A.enclosedByArea('Abanico')")
+  (constraint diff_pair_gap (min 0.14mm) (opt 0.15mm) (max 0.16mm)))
+
+(rule "USB: largo"
+  (condition "A.NetClass == 'USB'")
+  (constraint diff_pair_uncoupled (max 8mm))
+  (constraint skew (max 0.05mm) (within_diff_pairs)))
+
+# Los planos, con más margen que el mínimo de JLCPCB (0,3 al borde y 0,254 a
+# un agujero sin metalizar): las pistas y los conectores siguen a 0,3.
+(rule "Planos: al borde"
+  (condition "A.Type == 'Zone'")
+  (constraint edge_clearance (min 0.5mm)))
+
+(rule "Planos: a los agujeros"
+  (condition "A.Type == 'Zone'")
+  (constraint hole_clearance (min 0.3mm)))

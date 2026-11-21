@@ -1,0 +1,284 @@
+(footprint "HDMI_A_HC-HDMI0019T-1"
+	(version 20260206)
+	(generator "pcbnew")
+	(generator_version "10.0")
+	(layer "F.Cu")
+	(descr "HDMI tipo A hembra en ángulo recto, Hong Cheng HC-HDMI0019T-1 (LCSC C7501809). De EasyEDA (easyeda2kicad); pads de la carcasa renombrados a SH y atributo SMD, que JLCPCB la monta por SMT. Fila de señales alineada con el borde de los pads traseros de la carcasa, como el plano del fabricante (EasyEDA la tenía 0,13 mm más atrás). El borde de la placa va 4,57 mm por delante de los taladros delanteros (y = 8.01). Sin la serigrafía que pisaba sus pads o el borde de la placa")
+	(property "Reference" "REF**"
+		(at 0 -7.44 0)
+		(layer "F.SilkS")
+		(uuid "652ce730-b734-4c6e-a2aa-730ffa3e9f4c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "HDMI_A_HC-HDMI0019T-1"
+		(at 0 7.44 0)
+		(layer "F.Fab")
+		(uuid "450f6d40-06fe-4fcf-8cf7-1d4cb4b702ef")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "cd7e4c97-5246-4471-8b0a-92079f2a8a7d")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "890f1ff4-0b8e-465e-a07a-9156afe5a803")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(property "LCSC Part" "C7501809"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "96e34921-e868-42d3-8eba-55df8f48c6f0")
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+	)
+	(attr smd)
+	(duplicate_pad_numbers_are_jumpers no)
+	(fp_circle
+		(center 5.08 -4.77)
+		(end 5.28 -4.77)
+		(stroke
+			(width 0.4)
+			(type solid)
+		)
+		(fill no)
+		(layer "Cmts.User")
+		(uuid "11203bad-9f74-450f-a542-cef8ae2f8c18")
+	)
+	(fp_line
+		(start -7.53 -4.09)
+		(end 7.52 -4.09)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "0e6f3d05-6647-47d6-bd17-e2e731fa2392")
+	)
+	(fp_line
+		(start -7.53 8.01)
+		(end -7.53 -4.09)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "cf7b6fc5-8321-4c1a-9482-faee361f5fdd")
+	)
+	(fp_line
+		(start 7.52 -4.09)
+		(end 7.52 8.01)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "89a4c199-07b8-472b-80e2-dc3f206834b4")
+	)
+	(fp_line
+		(start 7.52 8.01)
+		(end -7.53 8.01)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "2856a1db-9e05-46a0-a044-32a73f6a4af8")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "24ffe390-4820-4614-9d38-600f54702d1c")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" smd rect
+		(at 4.5 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "ba5c1ef1-6cba-4365-b331-6162016f36ce")
+	)
+	(pad "2" smd rect
+		(at 4 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "be2885c8-60d7-4df2-84ec-1b664bedfa93")
+	)
+	(pad "3" smd rect
+		(at 3.5 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "5e7c7e7c-2044-4ad5-b334-61d2e408b806")
+	)
+	(pad "4" smd rect
+		(at 3 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "48e73ef1-5aa3-48e0-bdd0-b58c646d788f")
+	)
+	(pad "5" smd rect
+		(at 2.5 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "86446b7b-f382-4581-b3ea-04b43558741e")
+	)
+	(pad "6" smd rect
+		(at 2 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "278e3e6d-5866-4563-9356-79bf6a131043")
+	)
+	(pad "7" smd rect
+		(at 1.5 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "12bb58e5-51cd-4dbc-ad92-4506845470cb")
+	)
+	(pad "8" smd rect
+		(at 1 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "5c5f24c7-8c1c-43fd-a630-97ddedae6619")
+	)
+	(pad "9" smd rect
+		(at 0.5 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "50926aca-82b7-495b-aa64-ea37f4f9a862")
+	)
+	(pad "10" smd rect
+		(at 0 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "bcd2eb2f-879a-497e-b33c-92c89b3a7eaa")
+	)
+	(pad "11" smd rect
+		(at -0.5 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "334e3e40-b1ec-4c78-8bee-014505ec8ee7")
+	)
+	(pad "12" smd rect
+		(at -1 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "8638472c-afbc-4dae-a15d-912fb89ca81e")
+	)
+	(pad "13" smd rect
+		(at -1.5 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "2e07ab0f-f9b0-4752-af8f-4c41fbc37c55")
+	)
+	(pad "14" smd rect
+		(at -2 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "942a5df5-817e-471e-afc4-d76fbb496ef0")
+	)
+	(pad "15" smd rect
+		(at -2.5 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "832739a4-a57e-456c-96ae-1c5f325cc4b6")
+	)
+	(pad "16" smd rect
+		(at -3 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "3f3987a2-0116-4d8f-b665-06ef82e7743a")
+	)
+	(pad "17" smd rect
+		(at -3.5 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "6cf941e5-9e14-449a-9798-cfce1baa9d11")
+	)
+	(pad "18" smd rect
+		(at -4 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "b7cd9ba3-3e73-4149-a7e9-0cdc0b4f819c")
+	)
+	(pad "19" smd rect
+		(at -4.5 -3.31)
+		(size 0.3 2)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "33273e6b-cfbf-4299-a8f1-128cfec71dbf")
+	)
+	(pad "SH" thru_hole oval
+		(at -7.25 -2.56)
+		(size 1.35 3.5)
+		(drill oval 0.750012 2.499995)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "6e62269e-a447-4efc-8ef8-af2b091b5e2b")
+	)
+	(pad "SH" thru_hole oval
+		(at -7.25 3.44)
+		(size 1.35 2.5)
+		(drill oval 0.750012 1.599997)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "79e63e93-a152-49d3-ac16-456cbec5bc1f")
+	)
+	(pad "SH" thru_hole oval
+		(at 7.25 -2.56)
+		(size 1.35 3.5)
+		(drill oval 0.750012 2.499995)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "d0a583aa-17ee-4f43-b9cb-be7647665ea4")
+	)
+	(pad "SH" thru_hole oval
+		(at 7.25 3.44)
+		(size 1.35 2.5)
+		(drill oval 0.750012 1.599997)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "51ace3bc-b263-461b-ba0a-fce5ec3f9a35")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/zxv.3dshapes/HDMI_A_HC-HDMI0019T-1.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
+)

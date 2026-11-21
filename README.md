@@ -95,6 +95,7 @@ program.
 | [`sdk/`](sdk) | The SDK for native programs in C, with its examples and eight complete games in C. MIT licence ([`sdk/LICENSE`](sdk/LICENSE)): your programs can have any licence |
 | [`examples/`](examples) | Games in BASIC (`basic/`) and one in compiled BASIC with ZX Basic (`zxbasic/stardust`). MIT licence ([`examples/LICENSE`](examples/LICENSE)) |
 | [`docs/`](docs) | The documentation, in English and Spanish. CC BY 4.0 licence ([`docs/LICENSE`](docs/LICENSE)), the same as `dev/`; its code examples are public domain |
+| [`pcb/`](pcb) | The printed circuit board, revision 1: the KiCad project, the files to order it from JLCPCB and the scripts that made it. Open hardware, CERN-OHL-W v2 licence ([`pcb/LICENSE`](pcb/LICENSE), with the exceptions in [`pcb/NOTICE`](pcb/NOTICE)); the scripts, MIT |
 | [`dev/`](dev) | The technical specification of the machine ([`spec.md`](dev/spec.md)) and of its BASIC ([`basic.md`](dev/basic.md)), in Spanish: memory map, registers, the ROM API, file formats |
 | [Releases](https://github.com/cronomantic/ZX-V/releases) | The emulator, the ROM and the firmware, as binaries. Free, and you can pass them on unchanged and free of charge: the terms are in [`TERMS.txt`](TERMS.txt) |
 

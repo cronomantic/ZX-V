@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "zxv")(type "KiCad")(uri "${KIPRJMOD}/zxv.pretty")(options "")(descr "Huellas de ZX-V que no están en las bibliotecas de KiCad"))
+)

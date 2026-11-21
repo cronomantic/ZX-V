@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "zxv")(type "KiCad")(uri "${KIPRJMOD}/zxv.kicad_sym")(options "")(descr "Símbolos de ZX-V: la Pico con GND (pin 3) y AGND pasivos, para que dos Pico no choquen en GND"))
+)

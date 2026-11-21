@@ -9,10 +9,11 @@ pensada para que JLCPCB la haga **con todas las piezas pequeñas de montaje
 superficial (SMD) ya soldadas**. Cuando llega, solo te quedan por soldar las
 dos Pico y unas pocas piezas grandes de agujero pasante.
 
-> **La placa todavía no se ha fabricado ni probado.** El diseño está
-> terminado y pasa las comprobaciones de KiCad, pero nadie ha montado una
-> todavía. Si la pides, comprueba todo lo que dice esta página y cuenta con
-> alguna sorpresa. El diseño se publicará cuando se haya montado y probado una; hasta entonces, esta página cuenta lo que supondrá pedirla.
+> **Las primeras placas ya están hechas y una se ha probado:** con las dos
+> Pico juntas pasa `boardtest` y usa la tarjeta microSD; falta por probar la
+> pila del reloj. Si la pides, comprueba todo lo que dice esta
+> página. El diseño está en [`pcb/`](../../../pcb/) (KiCad), como hardware
+> abierto: licencia CERN-OHL-W v2.
 
 ![La cara de arriba de la placa, sin las Pico. El frontal, con los mandos,
 está abajo.](../../images/hardware-board-top.png)
@@ -23,8 +24,9 @@ español (ver [Conectores y mandos](#conectores-y-mandos)).*
 
 ## Cómo pedirla a JLCPCB
 
-Estos son los ficheros que habrá que subir, cuando se publiquen;
-para pedirla no hará falta KiCad.
+Todo lo que hay que subir está en
+[`pcb/fabrication/`](../../../pcb/fabrication/). Lo genera y lo comprueba
+`pcb/tools/fabricate.py`; para pedirla no hace falta KiCad.
 
 | Fichero | Qué es | Dónde va |
 |---|---|---|
