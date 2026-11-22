@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Novedades · ZX-V</title>
+<meta name="description" content="Las versiones nuevas de ZX-V y las noticias del proyecto.">
+<link rel="icon" type="image/png" href="../../img/icon.png">
+<link rel="apple-touch-icon" href="../../img/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="canonical" href="https://cronomantic.github.io/ZX-V/es/news/">
+<link rel="alternate" hreflang="en" href="https://cronomantic.github.io/ZX-V/news/">
+<link rel="alternate" hreflang="es" href="https://cronomantic.github.io/ZX-V/es/news/">
+<link rel="alternate" hreflang="x-default" href="https://cronomantic.github.io/ZX-V/news/">
+<link rel="alternate" type="application/rss+xml" title="ZX-V · Novedades" href="feed.xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ZX-V">
+<meta property="og:title" content="ZX-V · Novedades">
+<meta property="og:url" content="https://cronomantic.github.io/ZX-V/es/news/">
+<meta property="og:image" content="https://cronomantic.github.io/ZX-V/img/og-es.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../site.css">
+</head>
+<body>
+<a class="skip" href="#content">Ir al contenido</a>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="logo" href="../" aria-label="ZX-V">
+      <svg viewBox="-2 -2 216 86" role="img" aria-label="ZX-V">
+        <g fill="#f0f6fc">
+          <polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/>
+          <polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/>
+          <rect x="120" y="25" width="28" height="11"/>
+          <polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/>
+        </g>
+        <rect x="0" y="72" width="53" height="9" fill="#d70000"/>
+        <rect x="53" y="72" width="53" height="9" fill="#d7d700"/>
+        <rect x="106" y="72" width="53" height="9" fill="#00d700"/>
+        <rect x="159" y="72" width="53" height="9" fill="#00d7d7"/>
+      </svg>
+    </a>
+    <nav>
+      <a href="../#machine">La máquina</a>
+      <a href="../#program">Programar</a>
+      <a href="../#hardware">Hardware</a>
+      <a href="../#download">Descargar</a>
+      <a href="./" aria-current="page">Novedades</a>
+      <a href="../../docs/es/">Documentación</a>
+    </nav>
+    <div class="lang" role="group" aria-label="Idioma"><a href="../../news/" hreflang="en" lang="en">EN</a><span>·</span><b>ES</b></div>
+    <a class="btn small" href="https://github.com/cronomantic/ZX-V">GitHub</a>
+  </div>
+</header>
+
+<main id="content">
+<section class="news">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Novedades</div>
+      <h1>Lo nuevo de ZX-V.</h1>
+      <p>Las versiones nuevas y las noticias del proyecto, de lo más nuevo a lo más antiguo. <a class="rss" href="feed.xml">Síguelas por RSS</a></p>
+    </div>
+<article class="release" id="v0.10.0" style="--c: var(--red)">
+  <div class="when">
+    <a class="ver" href="#v0.10.0">v0.10.0</a><span class="latest">La última</span>
+    <time datetime="2026-11-22">22 de noviembre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Doce canales de muestras, programas mandados desde el PC y la placa como hardware abierto</h2>
+<ul>
+<li><strong>Doce canales de muestras</strong> en la ULA, junto a los dos chips AY y el beeper: sonidos grabados, en 8 bits o ADPCM, en 96 KB de memoria de sonido. Desde el BASIC los toca <strong><code>SAMPLE</code></strong> (<code>LOAD "golpe.wav" SAMPLE 0: SAMPLE 0</code>); desde C, las funciones <code>zxv_smp_*</code> y el ejemplo nuevo <code>samples</code>.</li>
+<li><strong>Música en un formato propio, <code>.zxm</code></strong>, con pistas del AY y pistas de muestras. <code>MUSIC</code> carga también los <strong>MOD, S3M y XM</strong> tal cual (los convierte al cargarlos) y toca los <strong>VGM</strong> de los chips AY (<code>.vgm</code>, <code>.vgz</code>). <strong><code>zxv-music</code></strong> convierte a <code>.zxm</code> los PT3, TurboSound, MOD, S3M y XM: <code>--free KB</code> deja sitio para <code>SAMPLE</code>, y <code>--channels</code> elige cuáles van de un módulo de más de 12 (si no, los 12 que más notas tocan). <strong><code>zxv-tracker</code></strong> edita las pistas de muestras y pregunta qué canales se quedan al abrir uno así. ZX Basic tiene también <code>SAMPLE</code>, <code>.zxm</code> y VGM.</li>
+<li><strong>Programas desde el PC a la placa</strong>, por la UART de la placa (J5) y un adaptador USB-serie de 3,3 V: <strong><code>zxv-link</code></strong> (de consola) y <strong><code>zxv-link-gui</code></strong> (con ventana) mandan un programa con sus ficheros y lo ejecutan. La extensión de VS Code ejecuta los programas en la placa y depura allí el BASIC. El protocolo es público: lo puede hacer cualquier aparato.</li>
+<li><strong>La unidad <code>EXT:</code></strong>: una carpeta servida por otro equipo (<code>zxv-link serve --folder</code>), que la máquina lee y escribe como la tarjeta, sin copiar nada en ella. En <code>zxv</code>, Archivo &gt; Unidad EXT:; en <code>zxv-cli</code> y <code>zxv-sdl</code>, <code>--ext</code>; y en el navegador, una carpeta de tu PC (Chrome y Edge).</li>
+<li><strong>La placa</strong>: las primeras ya están hechas y funcionan. Es <strong>hardware abierto</strong> (CERN-OHL-W v2), con el diseño de KiCad en <a href="https://github.com/cronomantic/ZX-V/tree/main/pcb"><code>pcb/</code></a>. El firmware de las dos Pico <strong>se actualiza desde la tarjeta microSD</strong>, y <strong>la fecha y la hora</strong> se ponen desde el menú EDIT (la barra de estado avisa si el reloj no tiene hora).</li>
+<li><strong>Ctrl+Alt+Supr reinicia la máquina entera</strong>, en la placa y en todos los emuladores.</li>
+<li><strong><code>zxv</code> dibuja con la tarjeta gráfica</strong>: Ver &gt; Dibujar con: Direct3D 11 (Windows), OpenGL o la CPU, cambiándolo en el momento. Con la tarjeta gráfica gasta unas tres veces y media menos CPU en pantalla completa. El paquete de Windows pasa de 25,6 a 16,2 MB (sin el OpenGL por software, que no usaba).</li>
+<li><strong>La versión web</strong>: la unidad <code>EXT:</code>, Pegar texto (Alt+V), Grabar el sonido, y un <code>.bas</code> se abre con <code>LOAD</code> como en el escritorio.</li>
+<li><strong>Petit Soccer</strong>, fútbol 7 en ZX Basic, en la unidad ROM:.</li>
+<li><strong>Una web</strong>: <a href="https://cronomantic.github.io/ZX-V/">cronomantic.github.io/ZX-V</a>, con los juegos para jugar en el navegador y las novedades. El emulador pasa a <a href="https://cronomantic.github.io/ZX-V/emulator/">/emulator</a>.</li>
+<li>La síntesis del sonido de la máquina es ya pública, en <code>sdk/sound</code> (MIT).</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.10.0">Descargas de la v0.10.0 →</a></p>
+  </div>
+</article>
+<article class="release" id="2026-11-19-las-placas" style="--c: var(--yellow)">
+  <div class="when">
+    <a class="kind" href="#2026-11-19-las-placas">Noticia</a>
+    <time datetime="2026-11-19">19 de noviembre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Ya están aquí las primeras placas</h2>
+<p>Ya están aquí las primeras placas de ZX-V. JLCPCB las hace con todas las piezas pequeñas ya soldadas; las dos Raspberry Pi Pico 2 se ponen a mano (en esta, en zócalos), con los pulsadores, el interruptor y los LED.</p>
+<figure><img src="../../news/2026-11-19-placa.jpg" alt="La placa de ZX-V vista desde arriba: las dos Pico 2 en sus zócalos, la ULA a la izquierda y la CPU a la derecha, con los conectores HDMI, USB-C y de audio en el borde de arriba, y el soporte de la pila del reloj y la ranura microSD a la derecha" width="1600" height="1600" loading="lazy"></figure>
+<p><strong>Funciona.</strong> Con el firmware 0.9.0, la primera placa arranca en el BASIC en una pantalla HDMI, y el programa <code>boardtest</code> de su disco ROM pasa: la imagen y las paletas, el sonido, el teclado USB, los mandos, el ratón, el botón MODO y el reloj. Faltan por probar la tarjeta microSD y la pila del reloj, en cuanto lleguen.</p>
+<figure><img src="../../news/2026-11-19-placa-lado.jpg" alt="La misma placa de frente, algo inclinada: el interruptor y el botón MODO a la izquierda, el conector USB-A en el centro, y RESET con los LED verde y azul a la derecha" width="1600" height="1067" loading="lazy"></figure>
+<p>Si quieres montar una, <a href="https://cronomantic.github.io/ZX-V/docs/es/hardware/board.html">la guía de la placa</a> tiene los ficheros para JLCPCB, la lista de piezas y cómo poner las Pico.</p>
+  </div>
+</article>
+<article class="release" id="v0.9.0" style="--c: var(--green)">
+  <div class="when">
+    <a class="ver" href="#v0.9.0">v0.9.0</a>
+    <time datetime="2026-11-04">4 de noviembre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Un clic en las teclas del editor y bordes en los juegos</h2>
+<ul>
+<li><strong>El clic de las teclas</strong>, como en el 128K: cada tecla del editor del BASIC (y de <code>INPUT</code> y del menú EDIT) hace un clic corto. Si te molesta, quítalo en el menú EDIT (Tab, <strong>Quitar el clic</strong>), y la máquina lo recuerda: en la placa, en su reloj, con el idioma (con el firmware nuevo de la CPU); en <code>zxv</code>, en sus ajustes, y en la web, en el navegador. <code>zxv-cli</code> y <code>zxv-sdl</code> arrancan sin él con <code>--no-click</code>. Al cargar una instantánea se queda el ajuste que tienes ahora.</li>
+<li><strong>Bordes en los juegos</strong>: negro en las pantallas de título y, mientras se juega, el color de cada fase, en The Mine, Street Justice, Route 128, Estela, The Keep, Umbra y Gone Silent. En Umbra y Gone Silent el borde toma el color de la escena, y parpadea en rojo con cada golpe, como en el Spectrum. Al acabar un juego vuelve el borde del BASIC (también en ZXV Chess).</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.9.0">Descargas de la v0.9.0 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.8.0" style="--c: var(--cyan)">
+  <div class="when">
+    <a class="ver" href="#v0.8.0">v0.8.0</a>
+    <time datetime="2026-11-04">4 de noviembre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Una aventura en 3D, un depurador del BASIC en el emulador y el sonido de la web sin cortes</h2>
+<ul>
+<li><strong>Gone Silent</strong> (<code>gonesilent.zxv</code>, también en la unidad <code>ROM:</code>): una aventura en 3D en una colonia minera que ha dejado de responder. Explora con tu traje el exterior y cuatro instalaciones, lee los registros que dejaron los colonos y encuentra las cuatro piezas que le faltan a tu módulo. Polígonos sólidos con sombreado en tramas, criaturas y objetos en pixel art, un sensor de movimiento, un mapa (M) y la partida guardada en los puntos de recarga. Su código está entre los ejemplos del SDK.</li>
+<li><strong>El depurador del BASIC en <code>zxv</code></strong>: <strong>Depurar &gt; El BASIC...</strong> (Alt+B) abre una ventana con el listado del programa, la sentencia que va a ejecutarse resaltada y los puntos de ruptura con un clic; seguir, parar, paso a paso, por encima y salir; parar en los errores; las variables (también las matrices), la pila de <code>GO SUB</code> y <code>PROC</code> y las expresiones que vigilas. <code>zxv</code> también sirve ya el depurador de la extensión de VS Code (<code>--basic-debug PUERTO</code>, o <strong>Depurar &gt; Servidor del depurador del BASIC...</strong>), como <code>zxv-sdl</code>.</li>
+<li><strong>El sonido de la web</strong> sin cortes en Firefox: ahora suena por un AudioWorklet, que aguanta los parones de una página ocupada.</li>
+<li><strong>Estela</strong> tiene un marcador más claro: las naves que te quedan, el nivel del arma y el escudo.</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.8.0">Descargas de la v0.8.0 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.7.2" style="--c: var(--red)">
+  <div class="when">
+    <a class="ver" href="#v0.7.2">v0.7.2</a>
+    <time datetime="2026-11-02">2 de noviembre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Un juego nuevo y la documentación en la web</h2>
+<ul>
+<li><strong>ZXV Chess</strong> (<code>chess.zxv</code>, también en la unidad <code>ROM:</code>): ajedrez contra la máquina, en cuatro niveles, o para dos jugadores, con el teclado, un joystick o el ratón. Lo ha hecho un colaborador, y su código está entre los ejemplos del SDK. Sus piezas son un fichero <code>chess.gfx</code>: con otro junto al juego se cambian sin compilar.</li>
+<li><strong>La documentación en la web</strong>, en <a href="https://cronomantic.github.io/ZX-V/docs/">cronomantic.github.io/ZX-V/docs</a>, con un índice al lado para moverse y la página anterior y la siguiente al final. La copia que trae el emulador se ve igual, y <strong>Ayuda &gt; La documentación</strong> de la versión web lleva a ella.</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.7.2">Descargas de la v0.7.2 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.7.1" style="--c: var(--yellow)">
+  <div class="when">
+    <a class="ver" href="#v0.7.1">v0.7.1</a>
+    <time datetime="2026-11-01">1 de noviembre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Una pequeña actualización de la 0.7.0</h2>
+<ul>
+<li><strong><code>zxv-check --keywords</code></strong> da las palabras clave del BASIC como JSON, sacadas del propio tokenizador de la ROM: sus códigos, cuáles son funciones y dónde se reconocen. <code>zxv-check.js</code>, en <code>zxv-web.zip</code>, da lo mismo con <code>check_keywords()</code>, para que los editores, como la extensión de ZX-V para VS Code, sigan al BASIC tal cual.</li>
+<li><strong><code>zxv-tracker</code>:</strong> la ayuda del editor en inglés vuelve a decir que Esc también para la música.</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.7.1">Descargas de la v0.7.1 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.7.0" style="--c: var(--green)">
+  <div class="when">
+    <a class="ver" href="#v0.7.0">v0.7.0</a>
+    <time datetime="2026-10-31">31 de octubre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Paletas de colores, ficheros en los formatos de ZX-V, pantallas de carga, programas protegidos y un depurador para el BASIC</h2>
+<ul>
+<li><strong>Paletas:</strong> cada una de las cuatro tablas de colores tiene ahora su paleta de 16 colores de entre 65.536, así que una pantalla puede tener 16 colores por línea y hasta 64 a la vez. En el BASIC, <code>PALETTE color, r, g, b</code>; en C, <code>ZXV_PALETTE(t)</code> y <code>ZXV_RGB(r, g, b)</code>. Los 15 colores de siempre siguen siendo los de partida, y el 8 sigue siendo el transparente de los sprites. Umbra las usa para una lámpara que se apaga y tiembla y una niebla de oscuros de verdad.</li>
+<li><strong>Ficheros en los formatos de ZX-V:</strong> <code>SAVE</code> graba los programas en <code>.zvb</code> (con sus variables, como en el Spectrum), las matrices (<code>DATA</code>) en <code>.zvd</code> y <code>CODE</code> en <code>.bin</code>, sin el límite de 64 KB. El <code>.tap</code> queda para llevar programas a los emuladores del Spectrum y traerlos; los <code>.tap</code> de las versiones anteriores de ZX-V se siguen cargando.</li>
+<li><strong>La pantalla de ZX-V en un fichero:</strong> <code>SAVE "x" SCREEN$</code> graba la pantalla (su modo, su borde, su paleta y cada píxel) como una pantalla de un <code>.gfx</code>, que se edita en <code>zxv-gfx</code>; el <code>.scr</code> es solo el del Spectrum. <code>SAVE "x" LINE 10 SCREEN$</code> la mete en el programa como <strong>pantalla de carga</strong>, y los programas nativos también pueden llevar una (<code>elf2zxv.py --screen</code>, <code>png2gfx.py --screen</code>). La página web de un juego la enseña mientras arranca.</li>
+<li><strong>Programas protegidos:</strong> <code>SAVE "x" LINE 10 PROTECT</code> graba un programa que arranca solo y se borra al pararse, así que no se puede listar. Las herramientas de ZX-V tampoco lo enseñan.</li>
+<li><strong>Depurador del BASIC:</strong> puntos de parada, paso a paso, variables, matrices y la pila de llamadas, desde la extensión de ZX-V para VS Code, con el emulador (<code>--basic-debug PUERTO</code> en <code>zxv-sdl</code> y <code>zxv-cli</code>).</li>
+<li><strong>Además:</strong> el cursor del editor parpadea en cian y azul, como el del +2; <code>boardtest</code> tiene una página de las paletas (tecla P) para probarlas en la placa; y la documentación se ha repasado con el código.</li>
+<li><strong>Cambios a tener en cuenta:</strong> la cabecera de los <code>.zxv</code> tiene ahora 72 bytes: los programas hechos con versiones anteriores tienen que pasar otra vez por <code>elf2zxv.py</code>. ZX Basic necesita la <a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.5">1.19.0-zxv.5</a> (los <code>.zxv</code> de la zxv.4 no cargan). Las instantáneas de la 0.6 se siguen cargando.</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.7.0">Descargas de la v0.7.0 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.6.2" style="--c: var(--cyan)">
+  <div class="when">
+    <a class="ver" href="#v0.6.2">v0.6.2</a>
+    <time datetime="2026-10-30">30 de octubre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Un comprobador del BASIC para el PC, y arreglos en dos de los juegos nuevos</h2>
+<ul>
+<li><strong><code>zxv-check</code></strong> comprueba un listado BASIC (<code>.bas</code>) en el PC, sin la máquina: lee cada línea como <code>LOAD</code>, con el mismo tokenizador y la misma comprobación de la sintaxis que el editor, y dice todas las líneas con errores (y los números de línea repetidos) como los compiladores, con la línea y la columna, en español o en inglés, o en JSON. Viene en los paquetes de Windows, de Linux y en la AppImage, y <code>zxv-web.zip</code> lo trae como <code>zxv-check.js</code> (WebAssembly, para Node y el navegador). La extensión de ZX-V para VS Code lo usa para marcar los errores mientras escribes.</li>
+<li><strong>Umbra:</strong> el suelo y el techo ya no salen con franjas rayadas y mal escaladas cuando se ve lejos.</li>
+<li><strong>The Keep:</strong> las puertas y las zarzas están ahora en la sala desde la que se llega, así que se ven antes de chocar con ellas; y si empujas las zarzas sin la espada grande, te dice por qué no te dejan pasar.</li>
+<li><strong>Documentación:</strong> <code>MUSIC</code> y <code>SFX</code> en el índice de palabras clave del BASIC, y la página de ZX Basic enlaza su última versión (<a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.4">1.19.0-zxv.4</a>).</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.6.2">Descargas de la v0.6.2 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.6.1" style="--c: var(--red)">
+  <div class="when">
+    <a class="ver" href="#v0.6.1">v0.6.1</a>
+    <time datetime="2026-10-30">30 de octubre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Tres juegos nuevos, y una página para publicar el tuyo en la web</h2>
+<ul>
+<li><strong>Tres juegos de ejemplo nuevos</strong>, con sus gráficos, niveles, música y efectos en ficheros que se editan con <code>zxv-gfx</code> y <code>zxv-tracker</code>: <strong>Umbra</strong>, un laberinto en 3D a oscuras en C (paredes por raycasting, suelo y techo con el modo 7 y una lámpara cuya luz se acorta al gastarse el aceite; sus niveles son mapas de <code>umbra.gfx</code>); <strong>The Keep</strong>, una aventura de mazmorras vista desde arriba en C, con cuatro plantas de salas y un hechicero en lo alto (sus plantas son mapas de <code>keep.gfx</code>); y <strong>Cascade</strong>, un puzle de gemas que caen, en BASIC. Los tres están en la unidad <code>ROM:</code>.</li>
+<li><strong>Publica tu juego en la web:</strong> <code>sdk/tools/mkweb.py</code> convierte un juego (<code>.zxv</code>, <code>.tap</code>, <code>.tzx</code> o <code>.bas</code>, con sus ficheros) en una página que solo tiene ese juego, lista para subirla a itch.io o a cualquier web. Empieza directamente en el juego, sin el BASIC, lo vuelve a empezar cuando acaba, guarda sus récords en el navegador y tiene controles táctiles en móviles y tabletas. La página que usa está en la carpeta <code>play/</code> de <code>zxv-web.zip</code>.</li>
+<li><strong>Los programas en BASIC encuentran sus ficheros:</strong> un programa cargado de <code>ROM:</code> (o de otra carpeta) busca lo que carga en su propia carpeta si no está en la actual, así que <code>LOAD "ROM:platformer"</code> ya funciona. Un fichero con el mismo nombre en la carpeta actual sigue yendo antes.</li>
+<li><strong>Ningún texto pisa a otro</strong> en los juegos en C: la flecha «GO» de Street Justice, la pausa sobre el letrero de la fase en Estela y The Mine, la barra del jefe de Estela y la pancarta de salida que asomaba en el título de Route 128.</li>
+<li><strong>La ROM</strong> tiene una variable del sistema nueva, <code>EDITOR</code> (<code>0x2000_0724</code>): 1 mientras el BASIC espera una orden.</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.6.1">Descargas de la v0.6.1 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.6.0" style="--c: var(--yellow)">
+  <div class="when">
+    <a class="ver" href="#v0.6.0">v0.6.0</a>
+    <time datetime="2026-10-30">30 de octubre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Música, efectos de sonido y dos editores para hacerlos, y también los gráficos</h2>
+<ul>
+<li><strong>Música y efectos para los AY:</strong> el SDK toca módulos de Pro Tracker 3 y Vortex Tracker, TurboSound (un módulo en cada AY), Pro Tracker 2, Sound Tracker, ASC Sound Master y volcados PSG, y efectos AYFX (<code>zxv_music.h</code>). Va a sus 50 pasos por segundo, a su hora exacta, vaya la pantalla al ritmo que vaya.</li>
+<li><strong>En el BASIC:</strong> <code>MUSICLOAD</code>, <code>MUSICPLAY</code>, <code>MUSICSTOP</code>, <code>MUSICPAUSE</code>, <code>MUSICCONTINUE</code> y la función <code>MUSIC</code>, y <code>SFXLOAD</code>, <code>SFX</code>, <code>SFXSTOP</code> y <code>SFXPLAYING</code> para los efectos. La música suena de fondo mientras el programa sigue, y <code>BEEP</code> suena también mientras tanto.</li>
+<li><strong>Dos editores para el PC</strong>, en los paquetes de Windows, Linux y la AppImage: <strong><code>zxv-gfx</code></strong>, para los ficheros de gráficos (<code>.gfx</code>: sprites, tiles, mapas y texturas del modo 7), y <strong><code>zxv-tracker</code></strong>, un tracker de música PT3 y efectos AYFX que suena con el mismo código que la máquina. En español o en inglés. Y <strong><code>gfxedit</code></strong>, un editor de gráficos que va en el propio ZX-V.</li>
+<li><strong>Route 128 y Estela tienen música nueva y más larga</strong>, una para cada fase en Estela, y sus gráficos y su música son ahora ficheros: un <code>.gfx</code> o un <code>.pt3</code> editado junto al juego y lo usa, sin compilar nada. La tecla <strong>S</strong> quita la música. En Route 128 el coche ya no se ve a través del arco de la salida, y la carretera ya no da un salto al coronar un cambio de rasante.</li>
+<li><strong>El SDK</strong> lee los ficheros <code>.gfx</code> desde C (<code>zxv_gfxfile.h</code>), y tiene <code>zxv_beeper_event_at</code> (API 55), para poner el beeper a la hora de la música, y <code>zxv_music_update_until</code>, para mezclar la música con sonido digitalizado.</li>
+<li><strong>La versión web</strong> recibe las teclas muertas (<code>"</code> y espacio con una distribución internacional), la tecla Compose, los métodos de entrada y los teclados de las pantallas táctiles.</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.6.0">Descargas de la v0.6.0 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.5.0" style="--c: var(--green)">
+  <div class="when">
+    <a class="ver" href="#v0.5.0">v0.5.0</a>
+    <time datetime="2026-10-29">29 de octubre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>ZX-V va ahora a 60 imágenes por segundo</h2>
+<p><strong>ZX-V va ahora a 60 imágenes por segundo</strong>, el ritmo de todas las pantallas HDMI, los monitores de PC y los navegadores. Antes iba a 50, y en una pantalla de 60 Hz repetía una imagen de cada cinco.</p>
+<ul>
+<li><strong>Lo que cuenta imágenes de ZX-V va ahora a 60 por segundo:</strong> <code>TIME</code>, <code>WAIT</code>, el gancho de frame, <code>zxv_wait_vblank()</code> y el contador de <code>0x2000_0700</code> (<code>ZXV_FRAME_HZ</code> en el SDK). Un programa que mide los tiempos en imágenes va una quinta parte más deprisa: escribe los tiempos con <code>ZXV_FRAME_HZ</code>, o en segundos.</li>
+<li><strong>Lo que imita al Spectrum sigue en su tiempo, en cincuentavos de segundo:</strong> <code>PAUSE</code>, <code>FRAMES</code> en 23672 y el parpadeo de <code>FLASH</code> y del cursor. Los programas del Spectrum van como antes.</li>
+<li><strong>La pantalla es de 640 × 480</strong>, lo mismo que llega al monitor: un borde de 64 píxeles a cada lado y 48 líneas arriba y abajo. La tabla por línea tiene 480 entradas (240 en modo 0), y <code>RASTER</code> va de −48 a 431 en modo 1 (de −24 a 215 en modo 0).</li>
+<li><strong>El emulador</strong> enseña el borde completo (los 640 × 480 enteros), pequeño o ninguno. Las instantáneas guardadas con la 0.4 (a 50 Hz) no se pueden cargar.</li>
+<li><strong>La versión web</strong> dibuja con WebGL y va mucho más deprisa en Firefox. El emulador también es un 15 % más rápido.</li>
+<li><strong>Los juegos</strong> mantienen su velocidad en segundos. El terreno de Estela y el jugador de Muncher avanzan un píxel por imagen, así que se mueven más suaves (Muncher va una quinta parte más rápido). Route 128 ya no pierde una imagen al cambiar de etapa. Los títulos de Sentry y Muncher vuelven a estar centrados (Sentry tenía un bloque azul detrás del nombre).</li>
+<li><strong>El firmware de las Pico</strong> tiene una sola imagen, 640 × 480 a 60 Hz, en HDMI con sonido (el modo de partida) o DVI (el modo seguro). <strong>Actualiza las dos Pico a la vez</strong>: el enlace entre ellas ha cambiado. La ULA olvida el modo que tenía guardado y arranca en HDMI.</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.5.0">Descargas de la v0.5.0 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.4.1" style="--c: var(--cyan)">
+  <div class="when">
+    <a class="ver" href="#v0.4.1">v0.4.1</a>
+    <time datetime="2026-10-28">28 de octubre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Versión 0.4.1</h2>
+<ul>
+<li>La línea que enseña ZX-V al arrancar, y después de <code>NEW</code>, dice ahora quién tiene el copyright, como hacía el Spectrum: <code>© 2026 Cronomantic  ZX-V 0.4.1</code>. Antes decía <code>© 2026 ZX-V 0.4.0</code>.</li>
+</ul>
+<p>Todo lo demás es como en la <a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.4.0">0.4.0</a>: tres juegos nuevos (Muncher, The Mine y Street Justice), marchas a mano en Route 128, el BASIC más rápido en programas largos, el editor en modo 0, el borde y el escalado en el emulador, la documentación dentro de los paquetes y una AppImage para Linux.</p>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.4.1">Descargas de la v0.4.1 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.4.0" style="--c: var(--red)">
+  <div class="when">
+    <a class="ver" href="#v0.4.0">v0.4.0</a>
+    <time datetime="2026-10-28">28 de octubre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Tres juegos nuevos</h2>
+<p><strong>Tres juegos nuevos</strong>, en la unidad <code>ROM:</code> y en la carpeta de los ejemplos:</p>
+<ul>
+<li><strong>Muncher</strong>, un juego de laberinto en BASIC: cuatro perseguidores, cada uno con su forma de buscarte, píldoras, fruta, niveles y demostración, a 50 imágenes por segundo con un mapa de tiles y sprites. <code>LOAD "muncher"</code>.</li>
+<li><strong>The Mine</strong>, un juego de cavar en C: piedras y diamantes que caen y ruedan, bichos que siguen las paredes, musgo que crece y doce cuevas más grandes que la pantalla, con scroll suave. <code>LOAD "mine"</code>.</li>
+<li><strong>Street Justice</strong>, un juego de peleas callejeras en C: luchadores que dibuja el motor gráfico a partir de un esqueleto en poses, profundidad, agarres y un jefe en cada una de las tres fases. <code>LOAD "street"</code>.</li>
+</ul>
+<h3>Los demás juegos</h3>
+<ul>
+<li><strong>Route 128</strong> tiene marchas a mano, como en las recreativas: Z (o el botón 3, o Select en un mando) cambia entre LO, que tira fuerte hasta unos 193 km/h, y HI, que llega a 290 pero por debajo de 120 apenas tira.</li>
+<li><strong>Sentry</strong> se puede jugar sin ratón (con los cursores o un mando), y <strong>Estela</strong> es más fácil.</li>
+<li>La ayuda de los juegos dice O, P, Q, A, el orden del Spectrum.</li>
+</ul>
+<h3>El BASIC</h3>
+<ul>
+<li>Los programas largos van mucho más deprisa: el BASIC recuerda dónde encontró la última vez cada línea y cada variable, en vez de buscarlas desde el principio cada vez.</li>
+<li>El editor a pantalla completa también funciona en modo 0: <em>Modo 0</em> en el menú EDIT da 32 × 24 caracteres de letra doble, como en el 128K.</li>
+</ul>
+<h3>El emulador</h3>
+<ul>
+<li><em>Ver &gt; Borde</em> elige cuánto borde se ve (completo, mediano, pequeño o ninguno), y <em>Ver &gt; Escalado</em>, cómo llena la imagen la ventana: manteniendo la proporción, a un múltiplo exacto o llenándola entera. La versión web tiene los dos en <em>Ver &gt; Opciones</em>.</li>
+<li><em>Ver &gt; Tamaño</em> funciona también con la ventana maximizada.</li>
+<li>Los paquetes traen la documentación en HTML, para leerla sin conexión: <code>docs/index.html</code>, o <em>Ayuda &gt; Documentación</em>.</li>
+<li>Linux tiene una <strong>AppImage</strong>, con Qt y SDL dentro: funciona en casi todas las distribuciones sin instalar nada.</li>
+</ul>
+<h3>Nombres, licencias y este repositorio</h3>
+<ul>
+<li>Los programas y las carpetas se llaman ahora en inglés: <code>hello</code>, <code>graphics</code>, <code>files</code>, <code>boardtest</code>, <code>route128</code>, <code>sentry</code>, <code>platformer</code>, <code>rps</code>...</li>
+<li>El SDK, los ejemplos y la documentación están en este repositorio: el SDK y los ejemplos con la licencia MIT, la documentación con CC BY 4.0. Los binarios son gratis y se pueden repartir sin cambios (<a href="https://github.com/cronomantic/ZX-V/blob/main/TERMS.txt">TERMS.txt</a>).</li>
+<li>Los programas en BASIC también se pueden compilar a programas nativos con <strong>ZX Basic</strong>: ver <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/es/zxbasic.md">Compilar BASIC</a>.</li>
+<li>La versión web está también en línea, sin descargar nada: <a href="https://cronomantic.github.io/ZX-V/">cronomantic.github.io/ZX-V</a>.</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.4.0">Descargas de la v0.4.0 →</a></p>
+  </div>
+</article>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="stripe diag" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <p style="margin-top:16px;max-width:22em">Un ordenador para aficionados de Cronomantic. Inspirado en el ZX Spectrum; sin relación con Sinclair ni Amstrad.</p>
+    </div>
+    <div><h4>Úsalo</h4><ul><li><a href="../../emulator/?lang=es">Pruébalo en línea</a></li><li><a href="../#download">Descargar</a></li><li><a href="../../docs/es/getting-started.html">Primeros pasos</a></li></ul></div>
+    <div><h4>Aprende</h4><ul><li><a href="../../docs/es/basic/reference.html">Referencia del BASIC</a></li><li><a href="../../docs/es/sdk/index.html">SDK</a></li><li><a href="../../docs/es/machine.html">La máquina</a></li><li><a href="../../docs/es/hardware/board.html">La placa</a></li></ul></div>
+    <div><h4>Proyecto</h4><ul><li><a href="https://github.com/cronomantic/ZX-V">GitHub</a></li><li><a href="../news/">Novedades</a></li><li><a href="../#thanks">Gracias</a></li><li><a href="https://github.com/cronomantic/ZX-V/releases">Versiones</a></li><li><a href="https://github.com/cronomantic/ZX-V/blob/main/README.es.md#qué-hay-aquí">Licencias</a></li></ul></div>
+    <div class="legal">SDK y ejemplos MIT · Documentación CC BY 4.0 · Hardware CERN-OHL-W v2 · © 2026 Cronomantic</div>
+  </div>
+</footer>
+</body>
+</html>

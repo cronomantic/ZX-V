@@ -1,117 +1,326 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ZX-V</title>
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="stylesheet" href="style.css">
+<title>ZX-V — a 32-bit computer in the spirit of the ZX Spectrum</title>
+<meta name="description" content="ZX-V is a 32-bit hobby computer inspired by the ZX Spectrum: switch it on and you are in BASIC. Emulator for Windows, Linux and the browser; real hardware with two Raspberry Pi Pico 2.">
+<link rel="icon" type="image/png" href="img/icon.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="canonical" href="https://cronomantic.github.io/ZX-V/">
+<link rel="alternate" hreflang="en" href="https://cronomantic.github.io/ZX-V/">
+<link rel="alternate" hreflang="es" href="https://cronomantic.github.io/ZX-V/es/">
+<link rel="alternate" type="application/rss+xml" title="ZX-V · News" href="news/feed.xml">
+<link rel="alternate" hreflang="x-default" href="https://cronomantic.github.io/ZX-V/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ZX-V">
+<meta property="og:title" content="ZX-V — a 32-bit computer in the spirit of the ZX Spectrum">
+<meta property="og:description" content="ZX-V is a 32-bit hobby computer inspired by the ZX Spectrum: switch it on and you are in BASIC. Emulator for Windows, Linux and the browser; real hardware with two Raspberry Pi Pico 2.">
+<meta property="og:url" content="https://cronomantic.github.io/ZX-V/">
+<meta property="og:image" content="https://cronomantic.github.io/ZX-V/img/og-en.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The ZX-V logo, the motto "Switch it on. You're in BASIC." and four of its built-in games">
+<meta property="og:locale" content="en_GB">
+<meta property="og:locale:alternate" content="es_ES">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="fonts/space-grotesk-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/zxv8x8.woff" as="font" type="font/woff" crossorigin>
+<link rel="stylesheet" href="site.css">
 </head>
 <body>
-<header>
-  <span class="marca">ZX-V</span>
-  <nav>
-    <div class="menu"><button class="titulo" data-t="Archivo"></button>
-      <div class="items">
-        <button id="b-abrir"><span data-t="Abrir..."></span><kbd>Alt+O</kbd></button>
-        <button id="b-tarjeta"><span data-t="La tarjeta SD..."></span></button>
-        <button id="b-grabar"><span data-t="Grabar el programa..."></span><kbd>Alt+G</kbd></button>
-        <hr>
-        <button id="b-guardar"><span data-t="Guardar una instantánea"></span><kbd>Alt+I</kbd></button>
-        <button id="b-volver" disabled><span data-t="Volver a la instantánea"></span><kbd>Alt+U</kbd></button>
-        <button id="b-descargar" disabled><span data-t="Descargar la instantánea"></span></button>
-        <hr>
-        <button id="b-imagen"><span data-t="Guardar la imagen"></span><kbd>Alt+S</kbd></button>
-      </div>
-    </div>
-    <div class="menu"><button class="titulo" data-t="Máquina"></button>
-      <div class="items">
-        <button id="b-reiniciar"><span data-t="Reiniciar"></span><kbd>Alt+R</kbd></button>
-        <button id="b-cad"><span data-t="Ctrl+Alt+Supr (vuelve al BASIC)"></span></button>
-        <hr>
-        <button id="b-parar"><span data-t="Parar"></span><kbd>Alt+P</kbd></button>
-        <button id="b-paso"><span data-t="Una instrucción"></span><kbd>Alt+N</kbd></button>
-        <button id="b-depurar"><span data-t="Panel de depuración"></span><kbd>Alt+D</kbd></button>
-      </div>
-    </div>
-    <div class="menu"><button class="titulo" data-t="Ver"></button>
-      <div class="items">
-        <button id="b-sonido"><span data-t="Sonido"></span></button>
-        <button id="b-borde"><span data-t="Cambiar el borde"></span><kbd>Alt+B</kbd></button>
-        <button id="b-completa"><span data-t="Pantalla completa"></span><kbd data-t="Alt+Intro"></kbd></button>
-        <button id="b-opciones"><span data-t="Opciones..."></span></button>
-        <button id="b-pestana" hidden><span data-t="Abrir en una pestaña aparte"></span></button>
-      </div>
-    </div>
-    <div class="menu"><button class="titulo" data-t="Ayuda"></button>
-      <div class="items">
-        <button id="b-ayuda"><span data-t="El teclado y los atajos"></span></button>
-        <a class="item" id="b-docs" href="https://cronomantic.github.io/ZX-V/docs/" target="_blank" rel="noopener" data-t="La documentación"></a>
-        <a class="item" href="https://github.com/cronomantic/ZX-V" target="_blank" rel="noopener" data-t="El proyecto (GitHub)"></a>
-        <a class="item" href="LICENSE.txt" target="_blank" rel="noopener" data-t="Términos de uso"></a>
-        <a class="item" href="THIRD_PARTY_NOTICES.txt" target="_blank" rel="noopener" data-t="Avisos de terceros"></a>
-      </div>
-    </div>
-  </nav>
+<a class="skip" href="#content">Skip to the content</a>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="logo" href="./" aria-label="ZX-V">
+      <svg viewBox="-2 -2 216 86" role="img" aria-label="ZX-V">
+        <g fill="#f0f6fc">
+          <polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/>
+          <polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/>
+          <rect x="120" y="25" width="28" height="11"/>
+          <polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/>
+        </g>
+        <rect x="0" y="72" width="53" height="9" fill="#d70000"/>
+        <rect x="53" y="72" width="53" height="9" fill="#d7d700"/>
+        <rect x="106" y="72" width="53" height="9" fill="#00d700"/>
+        <rect x="159" y="72" width="53" height="9" fill="#00d7d7"/>
+      </svg>
+    </a>
+    <nav>
+      <a href="#machine">The machine</a>
+      <a href="#program">Program it</a>
+      <a href="#hardware">Hardware</a>
+      <a href="#download">Download</a>
+      <a href="news/">News</a>
+      <a href="docs/en/">Docs</a>
+    </nav>
+    <div class="lang" role="group" aria-label="Language"><b>EN</b><span>·</span><a href="es/" hreflang="es" lang="es">ES</a></div>
+    <a class="btn small" href="https://github.com/cronomantic/ZX-V">GitHub</a>
+  </div>
 </header>
 
-<main>
-  <div id="marco">
-    <canvas id="pantalla" width="640" height="480" tabindex="0"></canvas>
-    <textarea id="teclado" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-    <div id="cargando" data-t="Cargando..."></div>
+<main id="content">
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">A 32-bit hobby computer</div>
+      <h1>Switch it on.<br>You're in <span class="nowrap">BASIC.<span class="cursor"></span></span></h1>
+      <p class="lead">
+        ZX-V is a new machine in the spirit of the <strong>ZX Spectrum</strong> —
+        not a clone, not an emulator. Bright colours with no colour clash,
+        two AY chips and twelve sample channels, an SD card for a tape, and a <strong>RISC-V</strong> heart
+        built from two Raspberry Pi Pico 2.
+      </p>
+      <div class="ctas">
+        <a class="btn primary" href="emulator/?lang=en"><span aria-hidden="true">▶</span>&nbsp; Try it in your browser</a>
+        <a class="btn" href="#download">Download the emulator</a>
+      </div>
+      <div class="meta">
+        <span>Windows · Linux · Web</span>
+        <span>Free</span>
+        <span>English &amp; Spanish</span>
+      </div>
+    </div>
+    <a class="monitor" href="emulator/?lang=en" aria-label="Try ZX-V in your browser: a monitor typing and running a BASIC program">
+      <div class="screen"><canvas id="demo" width="320" height="240" aria-hidden="true"></canvas></div>
+      <div class="bezel"><span><span class="led"></span>ZX-V</span><span class="try">▶ Try it</span></div>
+    </a>
   </div>
+</section>
+
+<div class="stripe"></div>
+
+<!-- ============ THE MACHINE ============ -->
+<section id="machine">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">The machine</div>
+      <h2>What a Spectrum fan would have built with today's chips.</h2>
+      <p>It keeps what made the Spectrum special — instant BASIC, bright colours, a
+        machine you can understand whole — and drops the limits that were only there
+        because of 1982's budget.</p>
+    </div>
+    <div class="features">
+      <div class="feature" style="--c: var(--red)">
+        <div class="palette">
+          <i style="background:#000"></i><i style="background:#0000d7"></i><i style="background:#d70000"></i><i style="background:#d700d7"></i>
+          <i style="background:#00d700"></i><i style="background:#00d7d7"></i><i style="background:#d7d700"></i><i style="background:#d7d7d7"></i>
+        </div>
+        <h3>Colour without clash</h3>
+        <p>Every pixel has its own colour: the Spectrum's palette, or any other, 16 per line from 65,536 (up to 64 on screen). Fades and colour cycling come free.</p>
+      </div>
+      <div class="feature" style="--c: var(--yellow)">
+        <svg class="icon" viewBox="0 0 11 11"><rect width="11" height="11" fill="#1d1d28"/><path fill="#d7d700" d="M2 3h1v1H2zM3 4h1v1H3zM4 5h1v1H4zM3 6h1v1H3zM2 7h1v1H2zM6 7h3v1H6z"/></svg>
+        <h3>A real BASIC</h3>
+        <p>Compatible with Sinclair BASIC, with a full-screen editor, procedures, structured loops, sprites, tile maps, scrolling and music.</p>
+      </div>
+      <div class="feature" style="--c: var(--green)">
+        <svg class="icon" viewBox="0 0 11 11"><rect width="11" height="11" fill="#1d1d28"/><path fill="#00d700" d="M1 5h1v1H1zM2 3h1v5H2zM3 1h1v9H3zM4 4h1v3H4zM5 2h1v7H5zM6 4h1v3H6zM7 3h1v5H7zM8 5h1v1H8zM9 4h1v3H9z"/></svg>
+        <h3>Two AY chips and samples</h3>
+        <p>Six AY-3-8912 channels and twelve sample channels in stereo, plus the beeper. Music in <code>.zxm</code>, PT3, MOD, XM and more; WAV sounds; AYFX effects.</p>
+      </div>
+      <div class="feature" style="--c: var(--cyan)">
+        <svg class="icon" viewBox="0 0 11 11"><rect width="11" height="11" fill="#1d1d28"/><path fill="#00d7d7" d="M3 1h4l2 2v7H3zM4 2v2h1V2zm2 0v2h1V2z"/></svg>
+        <h3>SD card, not tape</h3>
+        <p>Load and save in an instant. It even reads the Spectrum's <code>.TAP</code> and <code>.TZX</code> files. Games and examples come built into the ROM.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GAMES ============ -->
+<section class="alt" id="games">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">On the ROM: drive</div>
+      <h2>Games come built in.</h2>
+      <p>Type <code class="kbd">CAT "ROM:"</code> and they're all there, ready to <code class="kbd">LOAD</code>.
+        Every one is also an example: its source code is in the repository.
+        Click one to play it right here, in your browser.</p>
+    </div>
+    <div class="games">
+      <figure class="game big"><a href="play/route128/?lang=en" target="_blank" rel="noopener"><img src="img/game-route128.png" alt="A red sports car on a road through palm trees, with the score and the time at the top" loading="lazy"><span class="play"><span aria-hidden="true">▶</span> Play</span><figcaption><span class="lang c">C</span><b>Route 128</b><span class="desc">A race against the clock, with bends and blind crests</span></figcaption></a></figure>
+      <figure class="game "><a href="play/gonesilent/?lang=en" target="_blank" rel="noopener"><img src="img/game-gonesilent.png" alt="A mining colony in 3D under a purple sky, with the status panel below" loading="lazy"><span class="play"><span aria-hidden="true">▶</span> Play</span><figcaption><span class="lang c">C</span><b>Gone Silent</b><span class="desc">A 3D adventure in an abandoned mining colony</span></figcaption></a></figure>
+      <figure class="game "><a href="play/umbra/?lang=en" target="_blank" rel="noopener"><img src="img/game-umbra.png" alt="A stone corridor in 3D, with the map and the oil of the lamp at the bottom" loading="lazy"><span class="play"><span aria-hidden="true">▶</span> Play</span><figcaption><span class="lang c">C</span><b>Umbra</b><span class="desc">A 3D maze in the dark</span></figcaption></a></figure>
+      <figure class="game "><a href="play/street/?lang=en" target="_blank" rel="noopener"><img src="img/game-street.png" alt="A fighter on a city street, in front of a row of shops" loading="lazy"><span class="play"><span aria-hidden="true">▶</span> Play</span><figcaption><span class="lang c">C</span><b>Street Justice</b><span class="desc">Brawling through the neighbourhood</span></figcaption></a></figure>
+      <figure class="game "><a href="play/mine/?lang=en" target="_blank" rel="noopener"><img src="img/game-mine.png" alt="A cave of red earth with boulders and diamonds" loading="lazy"><span class="play"><span aria-hidden="true">▶</span> Play</span><figcaption><span class="lang c">C</span><b>The Mine</b><span class="desc">Dig for diamonds under falling boulders</span></figcaption></a></figure>
+      <figure class="game "><a href="play/estela/?lang=en" target="_blank" rel="noopener"><img src="img/game-estela.png" alt="A small spaceship facing a big round boss in space" loading="lazy"><span class="play"><span aria-hidden="true">▶</span> Play</span><figcaption><span class="lang c">C</span><b>Estela</b><span class="desc">A three-level space shooter</span></figcaption></a></figure>
+      <figure class="game "><a href="play/keep/?lang=en" target="_blank" rel="noopener"><img src="img/game-keep.png" alt="A dungeon room of blue bricks seen from above, with the hero and some enemies" loading="lazy"><span class="play"><span aria-hidden="true">▶</span> Play</span><figcaption><span class="lang c">C</span><b>The Keep</b><span class="desc">A four-floor dungeon adventure</span></figcaption></a></figure>
+      <figure class="game big"><a href="play/petitsoccer/?lang=en" target="_blank" rel="noopener"><img src="img/game-petitsoccer.png" alt="A goal on a green pitch: GOAL! over the players, and the net behind them" loading="lazy"><span class="play"><span aria-hidden="true">▶</span> Play</span><figcaption><span class="lang zxb">ZX BASIC</span><b>Petit Soccer</b><span class="desc">Seven-a-side football, against the machine or a friend</span></figcaption></a></figure>
+      <figure class="game "><a href="play/chess/?lang=en" target="_blank" rel="noopener"><img src="img/game-chess.png" alt="A blue and cyan chessboard with a game that has just started" loading="lazy"><span class="play"><span aria-hidden="true">▶</span> Play</span><figcaption><span class="lang c">C</span><b>ZXV Chess</b><span class="desc">By ximoKom: against the machine, or for two players</span></figcaption></a></figure>
+      <figure class="game "><a href="play/cascade/?lang=en" target="_blank" rel="noopener"><img src="img/game-cascade.png" alt="Coloured gems falling into a blue well" loading="lazy"><span class="play"><span aria-hidden="true">▶</span> Play</span><figcaption><span class="lang basic">BASIC</span><b>Cascade</b><span class="desc">Line up three gems before the well fills</span></figcaption></a></figure>
+    </div>
+    <p class="more">Also on board: <b>Sentry</b>, <b>Muncher</b>, a platformer and Rock, Paper, Scissors in BASIC; a music player, a demo of the sample channels, a sprite editor and a board test.</p>
+  </div>
+</section>
+
+<!-- ============ PROGRAM IT ============ -->
+<section id="program">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Program it</div>
+      <h2>Start in BASIC. Go as deep as you like.</h2>
+      <p>Like on the Spectrum, there's BASIC for everyone and "machine code" for the
+        brave — except the machine code is C on a 144 MHz RISC-V.</p>
+    </div>
+    <div class="levels">
+      <div class="level" style="--c: var(--yellow)">
+        <div class="top"><div class="tag">Level 1</div><h3>ZX-V BASIC</h3>
+          <p>Built into the ROM. Type it, RUN it. Errors point at the exact spot.</p></div>
+<pre><span class="n">10</span> <span class="k">BORDER</span> <span class="n">0</span>: <span class="k">PAPER</span> <span class="n">0</span>: <span class="k">CLS</span>
+<span class="n">20</span> <span class="k">PRINT</span> <span class="s">"Hello, I am ZX-V!"</span>
+<span class="n">30</span> <span class="k">FOR</span> i=<span class="n">1</span> <span class="k">TO</span> <span class="n">7</span>
+<span class="n">40</span>   <span class="k">CIRCLE INK</span> i;<span class="n">128</span>,<span class="n">88</span>,i*<span class="n">10</span>
+<span class="n">50</span> <span class="k">NEXT</span> i</pre>
+      </div>
+      <div class="level" style="--c: var(--green)">
+        <div class="top"><div class="tag">Level 2</div><h3>ZX Basic, compiled</h3>
+          <p>Boriel's ZX Basic compiler targets ZX-V: write BASIC on your PC, get native speed.</p></div>
+<pre><span class="c">#include</span> <span class="s">&lt;zxv.bas&gt;</span>
+
+<span class="k">GRABSTR</span> <span class="n">1</span>, <span class="n">8</span>, <span class="s">"...ee..."</span>
+<span class="k">PAPER</span> <span class="n">0</span>: <span class="k">INK</span> <span class="n">7</span>: <span class="k">BORDER</span> <span class="n">0</span>
+<span class="k">PRINT AT</span> <span class="n">8</span>, <span class="n">12</span>; <span class="k">INK</span> <span class="n">14</span>; <span class="s">"STARDUST"</span></pre>
+      </div>
+      <div class="level" style="--c: var(--cyan)">
+        <div class="top"><div class="tag">Level 3</div><h3>C with the SDK</h3>
+          <p>RISC-V native programs with GCC, the ROM's sprite and tile engine, and the music player.</p></div>
+<pre><span class="c">#include</span> <span class="s">"zxv_api.h"</span>
+
+<span class="k">int</span> main(<span class="k">void</span>) {
+  zxv_cls(<span class="n">7</span>);
+  zxv_print_str(<span class="s">"Hello from C!"</span>);
+  <span class="k">while</span> (zxv_key_get() &lt; <span class="n">0</span>)
+    zxv_wait_vblank();
+  <span class="k">return</span> <span class="n">0</span>;
+}</pre>
+      </div>
+    </div>
+    <div class="tools">
+      <a class="chip" href="docs/en/sdk/graphics.html"><span aria-hidden="true">🎨</span> Graphics editor</a>
+      <a class="chip" href="docs/en/sdk/index.html#the-tracker-for-the-pc-zxv-tracker"><span aria-hidden="true">🎵</span> Tracker for AY and samples</a>
+      <a class="chip" href="https://github.com/cronomantic/zxv-vscode"><span aria-hidden="true">🧩</span> VS Code extension</a>
+      <a class="chip" href="docs/en/emulator.html#the-basic-debugger"><span aria-hidden="true">🐞</span> BASIC debugger, also on the board</a>
+      <a class="chip" href="docs/en/hardware/firmware.html#loading-programs-from-the-pc-j5"><span aria-hidden="true">📡</span> Run it on the board from the PC</a>
+      <a class="chip" href="docs/en/getting-started.html"><span aria-hidden="true">📼</span> Spectrum TAP/TZX files</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HARDWARE ============ -->
+<section class="alt" id="hardware">
+  <div class="wrap hw">
+    <div>
+      <div class="board">
+        <span class="badge">THE REAL THING · ROUTE 128</span>
+        <img src="img/board-running.jpg" width="1000" height="1000" loading="lazy"
+             alt="The ZX-V board on a desk, plugged into a monitor that shows the racing game Route 128 in its demo, with a USB keyboard in front">
+      </div>
+      <div class="board">
+        <span class="badge">THE FIRST BOARD</span>
+        <img src="img/board-top.jpg" width="1000" height="1000" loading="lazy"
+             alt="The ZX-V board seen from above: the two Pico 2, ULA and CPU, with the USB-A, HDMI, USB-C, audio, microSD and coin cell holder around them">
+      </div>
+    </div>
+    <div>
+      <div class="sec-head" style="margin-bottom:28px">
+        <div class="eyebrow">Hardware</div>
+        <h2>Two Picos: a CPU and a “ULA”.</h2>
+        <p>One Raspberry Pi Pico 2 runs the RISC-V CPU and BASIC; the other draws the
+          picture and makes the sound, like the Spectrum's ULA.</p>
+        <p style="margin-top:12px">The board is open hardware (CERN-OHL-W v2): JLCPCB makes it with the small parts
+          already soldered, from the files in <a href="https://github.com/cronomantic/ZX-V/tree/main/pcb">the repository</a>, and you
+          solder the two Picos and a few big parts. <a href="docs/en/hardware/board.html">The board guide</a>.</p>
+      </div>
+      <table class="specs">
+        <tr><th>CPU</th><td>Hazard3 RISC-V (RV32IMAC) at 144 MHz</td></tr>
+        <tr><th>Memory</th><td>248 KB for your programs, plus video RAM</td></tr>
+        <tr><th>Video</th><td>HDMI / DVI, 640×480 at 60 Hz · 256×192 with border</td></tr>
+        <tr><th>Sound</th><td>2 × AY-3-8912, 12 sample channels (96 KB, 8-bit or ADPCM) + beeper, stereo over HDMI</td></tr>
+        <tr><th>Storage</th><td>microSD, FAT32 · ROM drive with examples</td></tr>
+        <tr><th>Input</th><td>USB keyboard, gamepads and mouse</td></tr>
+        <tr><th>Clock</th><td>Real-time clock, kept by a coin cell</td></tr>
+        <tr><th>Link</th><td>A UART to send programs from the PC and serve the <code>EXT:</code> drive</td></tr>
+      </table>
+      <ul class="timeline">
+        <li class="done">Emulator and ROM with BASIC<small>Windows, Linux and the browser</small></li>
+        <li class="done">Each Pico's firmware, tested on a breadboard</li>
+        <li class="done">The first board works · November 2026<small>The two Picos together, with <code>boardtest</code></small></li>
+        <li class="done">Open hardware release of the PCB<small>CERN-OHL-W v2, the KiCad design in <a href="https://github.com/cronomantic/ZX-V/tree/main/pcb">pcb/</a></small></li>
+        <li class="now">The last check<small>The clock's coin cell (the microSD card works)</small></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DOWNLOAD ============ -->
+<section id="download">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Download · <span data-version>v0.10.0</span></div>
+      <h2>Get the emulator.</h2>
+      <p>Free, with the ROM, the examples and the documentation included.</p>
+    </div>
+    <div class="dl">
+      <a href="https://github.com/cronomantic/ZX-V/releases/latest" style="--c: var(--cyan)"><span class="os">Windows</span><strong>Windows x64</strong><span>Unzip and run. Nothing to install.</span><code>zxv-windows-x64.zip</code></a>
+      <a href="https://github.com/cronomantic/ZX-V/releases/latest" style="--c: var(--yellow)"><span class="os">Linux</span><strong>Linux x86-64</strong><span>AppImage or a plain tarball.</span><code>.AppImage · .tar.gz</code></a>
+      <a href="emulator/?lang=en" style="--c: var(--green)"><span class="os">Web</span><strong>In the browser</strong><span>Play now, or download it to use offline.</span><code>zxv-web.zip</code></a>
+      <a href="https://github.com/cronomantic/ZX-V/releases/latest" style="--c: var(--red)"><span class="os">Pico 2</span><strong>Firmware</strong><span>For the two Picos of the real machine; later updates, from the microSD card.</span><code>zxv-uf2.zip</code></a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THANKS ============ -->
+<section class="alt" id="thanks">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Thanks</div>
+      <h2>Made with other people's work.</h2>
+      <p>ZX-V is better thanks to them.</p>
+    </div>
+    <div class="thanks">
+      <div class="thank" style="--c: var(--red)">
+        <div class="tag">ZXV Chess</div>
+        <h3>ximoKom</h3>
+        <p>Wrote ZXV Chess, the chess game on the ROM disk: against the machine, or for two players. ximoKom also makes ZX Spectrum games.</p>
+        <div class="links"><a href="play/chess/?lang=en">Play ZXV Chess</a><a href="https://ximokom.itch.io/">ximoKom on itch.io</a></div>
+      </div>
+      <div class="thank" style="--c: var(--green)">
+        <div class="tag">ZX Basic</div>
+        <h3>José Rodríguez (Boriel)</h3>
+        <p>Wrote ZX Basic, the BASIC compiler for the ZX Spectrum that now also makes programs for ZX-V. Petit Soccer and Stardust are written with it.</p>
+        <div class="links"><a href="https://zxbasic.readthedocs.io">ZX Basic</a><a href="docs/en/zxbasic.html">ZX Basic on ZX-V</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="band">
+  <div class="wrap">
+    <h2>10 PRINT "HELLO"<br>20 GO TO 10</h2>
+    <a class="btn primary" href="emulator/?lang=en"><span aria-hidden="true">▶</span>&nbsp; Open ZX-V in your browser</a>
+  </div>
+</div>
+
 </main>
 
 <footer>
-  <span id="estado"></span>
-  <span id="aviso"></span>
+  <div class="wrap">
+    <div>
+      <div class="stripe diag" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <p style="margin-top:16px;max-width:22em">A hobby computer by Cronomantic. Inspired by the ZX Spectrum; not affiliated with Sinclair or Amstrad.</p>
+    </div>
+    <div><h4>Use it</h4><ul><li><a href="emulator/?lang=en">Try it online</a></li><li><a href="#download">Download</a></li><li><a href="docs/en/getting-started.html">Getting started</a></li></ul></div>
+    <div><h4>Learn</h4><ul><li><a href="docs/en/basic/reference.html">BASIC reference</a></li><li><a href="docs/en/sdk/index.html">SDK</a></li><li><a href="docs/en/machine.html">The machine</a></li><li><a href="docs/en/hardware/board.html">The board</a></li></ul></div>
+    <div><h4>Project</h4><ul><li><a href="https://github.com/cronomantic/ZX-V">GitHub</a></li><li><a href="news/">News</a></li><li><a href="#thanks">Thanks</a></li><li><a href="https://github.com/cronomantic/ZX-V/releases">Releases</a></li><li><a href="https://github.com/cronomantic/ZX-V#what-is-here">Licences</a></li></ul></div>
+    <div class="legal">SDK and examples MIT · Documentation CC BY 4.0 · Hardware CERN-OHL-W v2 · © 2026 Cronomantic</div>
+  </div>
 </footer>
 
-<input type="file" id="fichero" multiple hidden>
-<input type="file" id="subir" multiple hidden>
-
-<dialog id="d-tarjeta">
-  <h2 data-t="La tarjeta SD"></h2>
-  <p class="nota" data-t="La tarjeta se guarda en este navegador. Los ficheros que se suben, o se arrastran a la página, van a la carpeta que se ve."></p>
-  <div class="ruta"><button id="t-arriba">..</button> <span id="t-ruta"></span></div>
-  <table id="t-lista"></table>
-  <div class="botones">
-    <button id="t-subir" data-t="Subir ficheros..."></button>
-    <button id="t-carpeta" data-t="Nueva carpeta..."></button>
-    <button id="t-cerrar" data-t="Cerrar"></button>
-  </div>
-</dialog>
-
-<dialog id="d-opciones">
-  <h2 data-t="Opciones"></h2>
-  <label><span data-t="Idioma"></span>
-    <select id="o-idioma"><option value="es">Español</option><option value="en">English</option></select></label>
-  <label><span data-t="Borde"></span>
-    <select id="o-borde">
-      <option value="0" data-t="Completo (640 x 480)"></option>
-      <option value="1" data-t="Pequeño (576 x 432)"></option>
-      <option value="2" data-t="Sin borde (512 x 384)"></option>
-    </select></label>
-  <label><span data-t="Escalado"></span>
-    <select id="o-escalado">
-      <option value="proporcion" data-t="Mantener la proporción"></option>
-      <option value="entera" data-t="Escala entera (los píxeles, todos iguales)"></option>
-      <option value="llenar" data-t="Llenar la ventana (deformando la imagen)"></option>
-    </select></label>
-  <label><input type="checkbox" id="o-estricto"> <span data-t="Modo estricto (avisa de lo que no haría la máquina)"></span></label>
-  <label><input type="checkbox" id="o-turbo"> <span data-t="CPU sin límite de velocidad"></span></label>
-  <label><input type="checkbox" id="o-puntero"> <span data-t="Ocultar el puntero sobre la imagen"></span></label>
-  <p class="nota" data-t="El idioma de la máquina cambia al reiniciar."></p>
-  <div class="botones"><button id="o-cerrar" data-t="Cerrar"></button></div>
-</dialog>
-
-<dialog id="d-ayuda">
-  <div id="ayuda-texto"></div>
-  <div class="botones"><button id="a-cerrar" data-t="Cerrar"></button></div>
-</dialog>
-
-<script src="engine.js"></script>
-<script src="zxv.js"></script>
+<script src="demo.js"></script>
 </body>
 </html>

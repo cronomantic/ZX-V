@@ -179,6 +179,8 @@ dialog label { display: block; margin: 8px 0; }
 .nota { color: var(--tenue); font-size: 12px; }
 .botones { display: flex; gap: 6px; justify-content: flex-end; margin-top: 12px; }
 .ruta { margin: 6px 0; font-family: monospace; }
+.fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.fila label { margin: 0; white-space: nowrap; }
 
 #t-lista { width: 100%; border-collapse: collapse; }
 #t-lista td { padding: 3px 6px; border-bottom: 1px solid var(--borde); }

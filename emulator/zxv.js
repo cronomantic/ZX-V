@@ -25,8 +25,35 @@ const EN = {
     'Volver a la instantánea': 'Back to the snapshot',
     'Descargar la instantánea': 'Download the snapshot',
     'Guardar la imagen': 'Save the image',
+    'Grabar el sonido': 'Record the sound',
+    'Parar la grabación del sonido': 'Stop recording the sound',
+    'grabando el sonido: %1 s': 'recording the sound: %1 s',
+    'Sonido grabado: %1 s': 'Sound recorded: %1 s',
+    'Pegar texto': 'Paste text',
+    'No hay texto que pegar': 'There is no text to paste',
+    'Tecleando lo pegado (%1 caracteres)': 'Typing the pasted text (%1 characters)',
+    'El navegador no deja leer el portapapeles: %1': 'The browser does not allow reading the clipboard: %1',
+    'Unidad EXT: una carpeta del PC...': 'EXT: drive: a folder on the PC...',
+    'Unidad EXT: sin servidor': 'EXT: drive: no server',
+    'Unidad EXT:: %1': 'EXT: drive: %1',
+    'La unidad EXT: no tiene servidor': 'The EXT: drive has no server',
+    'EXT: %1': 'EXT: %1',
+    'Copiando la carpeta %1...': 'Copying the folder %1...',
+    'La carpeta %1 es demasiado grande para la unidad EXT: (%2 MB; como mucho, %3)':
+        'The folder %1 is too big for the EXT: drive (%2 MB; at most %3)',
+    'Este navegador no deja usar una carpeta del PC como unidad EXT: (Chrome y Edge, sí)':
+        'This browser cannot use a folder on the PC as the EXT: drive (Chrome and Edge can)',
+    'Aquí no se puede elegir una carpeta del PC: ábrelo en una pestaña aparte (Ver)':
+        'A folder on the PC cannot be chosen here: open it in a separate tab (View)',
+    'La carpeta de la unidad EXT: ya no está, o no deja escribir: %1':
+        'The EXT: drive folder is gone, or cannot be written: %1',
+    'En la tarjeta: %1. Para oírla: LOAD "%2" MUSIC: MUSIC PLAY':
+        'On the card: %1. To hear it: LOAD "%2" MUSIC: MUSIC PLAY',
+    'En la tarjeta: %1. Para usarlo: LOAD "%2" SAMPLE 0': 'On the card: %1. To use it: LOAD "%2" SAMPLE 0',
+    'En la tarjeta: %1 (no es un programa: lo usan los programas)':
+        'On the card: %1 (not a program: programs use it)',
     'Reiniciar': 'Reset',
-    'Ctrl+Alt+Supr (vuelve al BASIC)': 'Ctrl+Alt+Del (back to BASIC)',
+    'Ctrl+Alt+Supr (reinicia la máquina)': 'Ctrl+Alt+Del (restarts the machine)',
     'Parar': 'Stop',
     'Seguir': 'Continue',
     'Una instrucción': 'One instruction',
@@ -60,6 +87,8 @@ const EN = {
     'Subir ficheros...': 'Upload files...',
     'Nueva carpeta...': 'New folder...',
     'Cerrar': 'Close',
+    'Solo programas': 'Programs only',
+    '(sin programas en esta carpeta)': '(no programs in this folder)',
     'Idioma': 'Language',
     'Modo estricto (avisa de lo que no haría la máquina)': 'Strict mode (warns about what the machine would not do)',
     'CPU sin límite de velocidad': 'CPU with no speed limit',
@@ -102,15 +131,20 @@ typed letter by letter. Click on the image so it gets the keyboard.</p>
 <tr><td><kbd>Alt+G</kbd></td><td>save the BASIC program to the card (SAVE)</td></tr>
 <tr><td><kbd>Alt+I</kbd>, <kbd>Alt+U</kbd></td><td>save a snapshot; go back to it</td></tr>
 <tr><td><kbd>Alt+R</kbd></td><td>reset</td></tr>
+<tr><td><kbd>Ctrl+Alt+Del</kbd></td><td>restart the machine (also from the Machine menu, if the browser keeps those keys)</td></tr>
+<tr><td><kbd>Alt+V</kbd></td><td>paste text from the clipboard (it is typed into the machine)</td></tr>
 <tr><td><kbd>Alt+P</kbd>, <kbd>Alt+N</kbd></td><td>stop or continue; one instruction</td></tr>
 <tr><td><kbd>Alt+D</kbd></td><td>debug panel (CPU, VRAM, sound, line table)</td></tr>
 <tr><td><kbd>Alt+S</kbd></td><td>save the image (PNG)</td></tr>
 <tr><td><kbd>Alt+B</kbd></td><td>change the border (full, small, none)</td></tr>
 <tr><td><kbd>Alt+Enter</kbd></td><td>full screen</td></tr>
 </table>
-<p>You can drag files onto the page: they are copied to the card and the first one is opened.
-The card (Card button) keeps its files in this browser; download the ones you want to keep
-elsewhere.</p>`,
+<p>You can drag files onto the page: they are copied to the card, to the folder shown in File >
+The SD card..., and the first one is opened. The card keeps its files in this browser; download
+the ones you want to keep elsewhere.</p>
+<p>File > EXT: drive: a folder on the PC... makes a folder on your computer the machine's
+<code>EXT:</code> drive (Chrome and Edge): what you change in it, the machine sees, and what the
+machine saves there (<code>SAVE "EXT:x"</code>) goes to the folder.</p>`,
 };
 
 const ES_HELP = `<h2>ZX-V</h2>
@@ -133,15 +167,20 @@ teclado.</p>
 <tr><td><kbd>Alt+G</kbd></td><td>grabar el programa BASIC en la tarjeta (SAVE)</td></tr>
 <tr><td><kbd>Alt+I</kbd>, <kbd>Alt+U</kbd></td><td>guardar una instantánea; volver a ella</td></tr>
 <tr><td><kbd>Alt+R</kbd></td><td>reiniciar</td></tr>
+<tr><td><kbd>Ctrl+Alt+Supr</kbd></td><td>reiniciar la máquina (también en el menú Máquina, si el navegador se queda esas teclas)</td></tr>
+<tr><td><kbd>Alt+V</kbd></td><td>pegar un texto del portapapeles (se teclea en la máquina)</td></tr>
 <tr><td><kbd>Alt+P</kbd>, <kbd>Alt+N</kbd></td><td>parar o seguir; una instrucción</td></tr>
 <tr><td><kbd>Alt+D</kbd></td><td>panel de depuración (CPU, VRAM, sonido, tabla por línea)</td></tr>
 <tr><td><kbd>Alt+S</kbd></td><td>guardar la imagen (PNG)</td></tr>
 <tr><td><kbd>Alt+B</kbd></td><td>cambiar el borde (completo, pequeño, ninguno)</td></tr>
 <tr><td><kbd>Alt+Intro</kbd></td><td>pantalla completa</td></tr>
 </table>
-<p>Se pueden arrastrar ficheros a la página: se copian a la tarjeta y se abre el primero. La
-tarjeta (botón Tarjeta) guarda sus ficheros en este navegador; descarga los que quieras
-conservar en otro sitio.</p>`;
+<p>Se pueden arrastrar ficheros a la página: se copian a la tarjeta, a la carpeta que se ve en
+Archivo > La tarjeta SD..., y se abre el primero. La tarjeta guarda sus ficheros en este
+navegador; descarga los que quieras conservar en otro sitio.</p>
+<p>Archivo > Unidad EXT: una carpeta del PC... hace de una carpeta de tu ordenador la unidad
+<code>EXT:</code> de la máquina (Chrome y Edge): lo que cambies en ella lo ve la máquina, y lo
+que la máquina guarde ahí (<code>SAVE "EXT:x"</code>) va a la carpeta.</p>`;
 
 let uiLang = 'es';
 
@@ -166,7 +205,10 @@ function translatePage() {
         el.textContent = t(el.dataset.t);
     keysIn.setAttribute('aria-label', t('Teclado de ZX-V'));
     document.getElementById('b-docs').href = 'https://cronomantic.github.io/ZX-V/docs/' + uiLang + '/';
-    document.getElementById('ayuda-texto').innerHTML = uiLang === 'es' ? ES_HELP : EN.AYUDA;
+    const help = (uiLang === 'es' ? ES_HELP : EN.AYUDA);
+    const version = E.core && E.core.version();
+    document.getElementById('ayuda-texto').innerHTML = version ? help.replace('<h2>ZX-V</h2>', `<h2>ZX-V ${version}</h2>`)
+                                                              : help;
 }
 
 /* --- La máquina ------------------------------------------------------------------ */
@@ -201,6 +243,10 @@ function status() {
         parts.push(t('%1 avisos del modo estricto', w));
     if (!E.audioPaced() && !E.muted)
         parts.push(t('sin sonido: pulsa una tecla o haz clic'));
+    if (extDir)
+        parts.push(t('EXT: %1', extDir.name));
+    if (E.record)
+        parts.push(t('grabando el sonido: %1 s', Math.floor(E.record.length / E.FRAME_HZ)));
     const s = parts.join(' · ');
     if (s !== statusText) {
         statusText = s;
@@ -329,15 +375,26 @@ function openFile(path) {
     const rel = path.slice(CARD.length + 1);
     if (ext === '.zxvs')
         return loadSnapshot(path);
-    if (ext === '.bas' || ext === '.txt') {
+    if (ext === '.txt') {
         E.core.reset();
         E.withStr(new TextDecoder().decode(E.FS.readFile(path)), p => E.core.paste(p, 40));
-    } else if (ext === '.zvb' || ext === '.zxv' || ext === '.tap' || ext === '.tzx') {
+    } else if (ext === '.zvb' || ext === '.zxv' || ext === '.tap' || ext === '.tzx' || ext === '.bas') {
+        /* Como zxv: con CD a su carpeta (así encuentra sus ficheros: su
+         * música, sus sonidos...) y LOAD; un .bas lo tokeniza el BASIC. */
         E.core.reset();
         const slash = rel.lastIndexOf('/');
-        const base = rel.slice(slash + 1).replace(/\.[^.]*$/, '');
+        const base = ext === '.bas' ? rel.slice(slash + 1) : rel.slice(slash + 1).replace(/\.[^.]*$/, '');
         const keys = (slash > 0 ? `CD "/${rel.slice(0, slash)}"\\n` : '') + `LOAD "${base}"\\n`;
         E.withStr(keys, p => E.core.type(p, 25));
+    } else if (/^\.(zxm|pt3|mod|s3m|xm|vgm|vgz)$/.test(ext)) {
+        message(t('En la tarjeta: %1. Para oírla: LOAD "%2" MUSIC: MUSIC PLAY', rel, '/' + rel));
+        return false;
+    } else if (ext === '.wav') {
+        message(t('En la tarjeta: %1. Para usarlo: LOAD "%2" SAMPLE 0', rel, '/' + rel));
+        return false;
+    } else if (/^\.(afb|afx|gfx|scr|zsc|pal|bin)$/.test(ext)) {
+        message(t('En la tarjeta: %1 (no es un programa: lo usan los programas)', rel));
+        return false;
     } else {
         message(t('No sé abrir %1: los programas son .zvb, .zxv, .tap o .tzx; los listados, .bas o .txt; las instantáneas, .zxvs', name));
         return false;
@@ -378,17 +435,23 @@ function download(name, data, type) {
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-/* El diálogo de la tarjeta. */
+/* El diálogo de la tarjeta. Con «Solo programas» (se recuerda) quedan las
+ * carpetas y lo que se carga con LOAD y se ejecuta: los programas y los
+ * listados .bas. */
+const PROGRAM = /\.(zvb|zxv|tap|tzx|bas)$/i;
 let cardDir = CARD;
+let onlyPrograms = store('zxv-solo-programas') === '1';
 function showCard() {
     const list = document.getElementById('t-lista');
     list.innerHTML = '';
     document.getElementById('t-ruta').textContent = cardDir.slice(CARD.length) || '/';
     document.getElementById('t-arriba').disabled = cardDir === CARD;
-    const names = E.FS.readdir(cardDir).filter(n => n !== '.' && n !== '..')
+    document.getElementById('t-programas').checked = onlyPrograms;
+    const all = E.FS.readdir(cardDir).filter(n => n !== '.' && n !== '..');
+    const names = all.filter(n => !onlyPrograms || PROGRAM.test(n) || E.isDir(cardDir + '/' + n))
         .sort((a, b) => (E.isDir(cardDir + '/' + b) - E.isDir(cardDir + '/' + a)) || a.localeCompare(b));
     if (!names.length)
-        list.insertRow().insertCell().textContent = t('(vacía)');
+        list.insertRow().insertCell().textContent = t(all.length ? '(sin programas en esta carpeta)' : '(vacía)');
     for (const name of names) {
         const path = cardDir + '/' + name;
         const row = list.insertRow();
@@ -430,6 +493,313 @@ function showCard() {
     }
 }
 
+/* --- La unidad EXT: (spec §7.7) --------------------------------------------------
+ *
+ * En la placa la sirve otro equipo; en zxv, una carpeta elegida a propósito.
+ * Aquí, una carpeta del PC elegida con showDirectoryPicker (Chrome, Edge...):
+ * se copia a /ext (en memoria) y la máquina la ve como EXT:. Cada EXT_SYNC ms
+ * se comparan las dos con lo que había la vez anterior (extSeen): lo que ha
+ * cambiado la máquina (SAVE...) va a la carpeta, y lo que ha cambiado en el PC
+ * (un listado editado en VS Code), a la máquina; si cambian las dos, gana la
+ * máquina. Lo que se borra en un lado se borra en el otro. Los ficheros que
+ * empiezan por punto no van, como en zxv-link. La carpeta se recuerda
+ * (IndexedDB); al volver, si el navegador lo deja sin preguntar, se usa. */
+
+const EXT = '/ext';
+const EXT_SYNC = 1500;
+const EXT_MAX = 256;                    /* MB: todo va a la memoria */
+let extDir = null;                      /* la carpeta (FileSystemDirectoryHandle) */
+let extSeen = new Map();                /* fichero -> { pc: lastModified, mem: mtime } */
+let extDirs = new Set();                /* las carpetas que había en los dos lados */
+let extRun = Promise.resolve(), extBusy = false, extTimer = 0;
+
+/* La carpeta recordada, en IndexedDB (un handle no cabe en localStorage). */
+function extDb(f) {
+    return new Promise((res, rej) => {
+        const r = indexedDB.open('zxv-ext', 1);
+        r.onupgradeneeded = () => r.result.createObjectStore('h');
+        r.onerror = () => rej(r.error);
+        r.onsuccess = () => {
+            const tx = r.result.transaction('h', 'readwrite');
+            const q = f(tx.objectStore('h'));
+            tx.oncomplete = () => { r.result.close(); res(q && q.result); };
+            tx.onerror = () => { r.result.close(); rej(tx.error); };
+        };
+    });
+}
+
+/* Los ficheros y carpetas de la del PC: ruta relativa -> { h, file } (las
+ * carpetas acaban en /). */
+async function pcTree(dir, rel = '', out = new Map()) {
+    for await (const [name, h] of dir.entries()) {
+        if (name.startsWith('.'))
+            continue;
+        if (h.kind === 'directory') {
+            out.set(rel + name + '/', { h });
+            await pcTree(h, rel + name + '/', out);
+        } else {
+            out.set(rel + name, { h, file: await h.getFile() });
+        }
+    }
+    return out;
+}
+
+/* Los de /ext: ruta relativa -> { mtime, size } (las carpetas acaban en /). */
+function memTree(dir = EXT, rel = '', out = new Map()) {
+    for (const name of E.FS.readdir(dir)) {
+        if (name === '.' || name === '..' || name.startsWith('.'))
+            continue;
+        const path = dir + '/' + name, st = E.FS.stat(path);
+        if (E.FS.isDir(st.mode)) {
+            out.set(rel + name + '/', {});
+            memTree(path, rel + name + '/', out);
+        } else {
+            out.set(rel + name, { mtime: st.mtime.getTime(), size: st.size });
+        }
+    }
+    return out;
+}
+
+function memMkdirs(rel) {
+    let d = EXT;
+    for (const part of rel.split('/').slice(0, -1)) {
+        d += '/' + part;
+        if (!E.exists(d))
+            E.FS.mkdir(d);
+    }
+}
+
+function memRemove(path) {
+    if (!E.exists(path))
+        return;
+    if (E.isDir(path)) {
+        for (const n of E.FS.readdir(path))
+            if (n !== '.' && n !== '..')
+                memRemove(path + '/' + n);
+        E.FS.rmdir(path);
+    } else {
+        E.FS.unlink(path);
+    }
+}
+
+/* La carpeta (handle) del PC donde va rel, creándola si hace falta. */
+async function pcDirOf(rel, create) {
+    let d = extDir;
+    for (const part of rel.split('/').slice(0, -1))
+        d = await d.getDirectoryHandle(part, { create });
+    return d;
+}
+
+async function pcWrite(rel) {
+    const d = await pcDirOf(rel, true);
+    const fh = await d.getFileHandle(rel.split('/').pop(), { create: true });
+    const w = await fh.createWritable();
+    await w.write(E.FS.readFile(EXT + '/' + rel));
+    await w.close();
+    return (await fh.getFile()).lastModified;
+}
+
+async function pcRemove(rel) {
+    const dir = rel.endsWith('/');
+    const name = rel.replace(/\/$/, '').split('/').pop();
+    try {
+        const d = await pcDirOf(rel.replace(/\/$/, ''), false);
+        await d.removeEntry(name, { recursive: dir });
+    } catch (e) {
+        if (e.name !== 'NotFoundError')
+            throw e;
+    }
+}
+
+function memWrite(rel, bytes) {
+    memMkdirs(rel);
+    E.FS.writeFile(EXT + '/' + rel, bytes);
+    return E.FS.stat(EXT + '/' + rel).mtime.getTime();
+}
+
+/* Elegir la carpeta: Archivo > Unidad EXT: una carpeta del PC... */
+async function chooseExt() {
+    if (!window.showDirectoryPicker) {
+        message(t('Este navegador no deja usar una carpeta del PC como unidad EXT: (Chrome y Edge, sí)'));
+        return;
+    }
+    let handle;
+    try {
+        let start;
+        try { start = await extDb(st => st.get('dir')); } catch (e) { /* sin IndexedDB */ }
+        handle = await window.showDirectoryPicker({ id: 'zxv-ext', mode: 'readwrite', startIn: start || 'documents' });
+    } catch (e) {
+        if (e.name === 'SecurityError')
+            message(t('Aquí no se puede elegir una carpeta del PC: ábrelo en una pestaña aparte (Ver)'));
+        else if (e.name !== 'AbortError')
+            message(e.message || String(e));
+        return;
+    }
+    if (await mountExt(handle))
+        try { await extDb(st => st.put(handle, 'dir')); } catch (e) { /* no se recordará */ }
+}
+
+/* Al arrancar: la carpeta de la vez anterior, si el navegador deja usarla
+ * sin preguntar (Chrome: «permitir en cada visita»). */
+async function restoreExt() {
+    if (!window.showDirectoryPicker)
+        return;
+    try {
+        const handle = await extDb(st => st.get('dir'));
+        if (handle && await handle.queryPermission({ mode: 'readwrite' }) === 'granted')
+            await mountExt(handle);
+    } catch (e) { /* se elegirá otra vez */ }
+}
+
+/* La carpeta, copiada a /ext, como EXT: de la máquina. */
+async function mountExt(handle) {
+    if (extDir)
+        await unmountExt(false);
+    message(t('Copiando la carpeta %1...', handle.name));
+    try {
+        const pc = await pcTree(handle);
+        let bytes = 0;
+        for (const v of pc.values())
+            bytes += v.file ? v.file.size : 0;
+        if (bytes > EXT_MAX * 1048576) {
+            message(t('La carpeta %1 es demasiado grande para la unidad EXT: (%2 MB; como mucho, %3)',
+                      handle.name, Math.ceil(bytes / 1048576), EXT_MAX));
+            return false;
+        }
+        memRemove(EXT);
+        E.FS.mkdir(EXT);
+        extSeen = new Map();
+        extDirs = new Set();
+        for (const [rel, v] of pc) {
+            if (rel.endsWith('/')) {
+                memMkdirs(rel + 'x');
+                extDirs.add(rel);
+            } else {
+                extSeen.set(rel, { pc: v.file.lastModified, mem: memWrite(rel, new Uint8Array(await v.file.arrayBuffer())) });
+            }
+        }
+    } catch (e) {
+        message(t('La carpeta de la unidad EXT: ya no está, o no deja escribir: %1', e.message || String(e)));
+        return false;
+    }
+    extDir = handle;
+    E.withStr(EXT, p => E.core.setExt(p));
+    extTimer = setInterval(() => { if (!extBusy) syncExt(); }, EXT_SYNC);
+    message(t('Unidad EXT:: %1', handle.name));
+    updateButtons();
+    return true;
+}
+
+/* Sin servidor: lo último a la carpeta y fuera; forget, también se olvida. */
+async function unmountExt(forget) {
+    if (extDir) {
+        await syncExt();
+        clearInterval(extTimer);
+        extDir = null;
+        E.withStr('', p => E.core.setExt(p));
+        memRemove(EXT);
+        extSeen = new Map();
+        message(t('La unidad EXT: no tiene servidor'));
+    }
+    if (forget)
+        try { await extDb(st => st.delete('dir')); } catch (e) { /* nada que olvidar */ }
+    updateButtons();
+}
+
+/* Una vuelta: lo que ha cambiado en cada lado, al otro. Un fichero que la
+ * máquina acaba de tocar (hace menos de medio segundo) espera a la vuelta
+ * siguiente: puede estar a medio escribir. Las vueltas van en fila: la que
+ * se pide con otra en marcha se hace después. */
+function syncExt() {
+    extRun = extRun.then(syncExtNow);
+    return extRun;
+}
+
+async function syncExtNow() {
+    if (!extDir)
+        return;
+    extBusy = true;
+    try {
+        const pc = await pcTree(extDir), mem = memTree(), now = Date.now();
+        const files = new Set([...pc.keys(), ...mem.keys(), ...extSeen.keys()].filter(r => !r.endsWith('/')));
+        for (const rel of files) {
+            const p = pc.get(rel), m = mem.get(rel), seen = extSeen.get(rel);
+            const pcChanged = p && (!seen || p.file.lastModified !== seen.pc);
+            const memChanged = m && (!seen || m.mtime !== seen.mem);
+            if (m && memChanged && now - m.mtime < 500)
+                continue;
+            if (p && m) {
+                if (memChanged)
+                    extSeen.set(rel, { pc: await pcWrite(rel), mem: m.mtime });
+                else if (pcChanged)
+                    extSeen.set(rel, { pc: p.file.lastModified, mem: memWrite(rel, new Uint8Array(await p.file.arrayBuffer())) });
+            } else if (m) {
+                if (seen && !memChanged) {                  /* borrado en el PC */
+                    memRemove(EXT + '/' + rel);
+                    extSeen.delete(rel);
+                } else {                                    /* nuevo en la máquina */
+                    extSeen.set(rel, { pc: await pcWrite(rel), mem: m.mtime });
+                }
+            } else if (p) {
+                if (seen && !pcChanged) {                   /* borrado por la máquina */
+                    await pcRemove(rel);
+                    extSeen.delete(rel);
+                } else {                                    /* nuevo en el PC */
+                    extSeen.set(rel, { pc: p.file.lastModified, mem: memWrite(rel, new Uint8Array(await p.file.arrayBuffer())) });
+                }
+            } else {
+                extSeen.delete(rel);
+            }
+        }
+        /* Las carpetas, después de los ficheros: una nueva en un lado, al
+         * otro; una que había en los dos y falta en uno se ha borrado ahí, y
+         * se borra en el otro si ya está vacía (si no, tiene algo nuevo: se
+         * queda, y vuelve al lado que la borró). Las de dentro, antes. */
+        const pc2 = await pcTree(extDir), mem2 = memTree();
+        const dirs = [...new Set([...pc2.keys(), ...mem2.keys(), ...extDirs])].filter(r => r.endsWith('/'))
+            .sort((a, b) => b.length - a.length);
+        for (const rel of dirs) {
+            const inPc = pc2.has(rel), inMem = mem2.has(rel), seen = extDirs.has(rel);
+            const memEmpty = () => E.FS.readdir(EXT + '/' + rel).length <= 2;
+            if (inPc && inMem) {
+                extDirs.add(rel);
+            } else if (inMem) {
+                if (seen && memEmpty()) {
+                    memRemove(EXT + '/' + rel);
+                    extDirs.delete(rel);
+                } else {
+                    await pcDirOf(rel + 'x', true);
+                    extDirs.add(rel);
+                }
+            } else if (inPc) {
+                let gone = false;
+                if (seen) {
+                    try {
+                        await (await pcDirOf(rel.slice(0, -1), false)).removeEntry(rel.slice(0, -1).split('/').pop());
+                        gone = true;
+                    } catch (e) { /* no está vacía: se queda */ }
+                }
+                if (gone) {
+                    extDirs.delete(rel);
+                } else {
+                    memMkdirs(rel + 'x');
+                    extDirs.add(rel);
+                }
+            } else {
+                extDirs.delete(rel);
+            }
+        }
+    } catch (e) {
+        clearInterval(extTimer);
+        extDir = null;
+        E.withStr('', p => E.core.setExt(p));
+        message(t('La carpeta de la unidad EXT: ya no está, o no deja escribir: %1', e.message || String(e)));
+        updateButtons();
+    } finally {
+        extBusy = false;
+    }
+}
+
 /* --- Órdenes ------------------------------------------------------------------- */
 
 function saveSnapshot() {
@@ -448,6 +818,57 @@ function saveProgram() {
     E.withStr('{CTRL+END}', p => E.core.type(p, 0));
     E.withStr(`SAVE "${name.replace(/"/g, '')}"\n`, p => E.core.paste(p, 8));
     E.focusKeys();
+}
+
+/* Alt+V: el texto del portapapeles, tecleado en la máquina (como zxv). */
+function pasteText() {
+    if (!navigator.clipboard || !navigator.clipboard.readText) {
+        message(t('El navegador no deja leer el portapapeles: %1', '-'));
+        return Promise.resolve();
+    }
+    return navigator.clipboard.readText().then(text => {
+        if (!text) {
+            message(t('No hay texto que pegar'));
+            return;
+        }
+        E.withStr(text, p => E.core.paste(p, 0));
+        message(t('Tecleando lo pegado (%1 caracteres)', [...text].length));
+        E.focusKeys();
+    }).catch(e => message(t('El navegador no deja leer el portapapeles: %1', e.message || String(e))));
+}
+
+/* Grabar el sonido: los frames de la máquina, a un WAV de 48 kHz en estéreo
+ * (como zxv), que se descarga al parar. */
+function toggleWav() {
+    if (!E.record) {
+        E.record = [];
+        updateButtons();
+        return;
+    }
+    const frames = E.record;
+    E.record = null;
+    const n = frames.reduce((a, f) => a + f.length, 0);     // muestras (de 16 bits)
+    const data = new DataView(new ArrayBuffer(44 + n * 2));
+    const str = (o, s) => { for (let i = 0; i < s.length; i++) data.setUint8(o + i, s.charCodeAt(i)); };
+    str(0, 'RIFF');
+    data.setUint32(4, 36 + n * 2, true);
+    str(8, 'WAVEfmt ');
+    data.setUint32(16, 16, true);
+    data.setUint16(20, 1, true);                 // PCM
+    data.setUint16(22, 2, true);                 // estéreo
+    data.setUint32(24, E.RATE, true);
+    data.setUint32(28, E.RATE * 4, true);
+    data.setUint16(32, 4, true);
+    data.setUint16(34, 16, true);
+    str(36, 'data');
+    data.setUint32(40, n * 2, true);
+    let o = 44;
+    for (const f of frames)
+        for (let i = 0; i < f.length; i++, o += 2)
+            data.setInt16(o, f[i], true);
+    download('zxv.wav', data.buffer, 'audio/wav');
+    message(t('Sonido grabado: %1 s', Math.round(frames.length / E.FRAME_HZ)));
+    updateButtons();
 }
 
 function setPaused(on) {
@@ -488,6 +909,8 @@ function updateButtons() {
     document.getElementById('b-paso').disabled = !E.paused;
     document.getElementById('b-depurar').classList.toggle('activo', E.view !== 0);
     document.getElementById('b-sonido').classList.toggle('activo', !E.muted);
+    document.querySelector('#b-wav span').textContent = t(E.record ? 'Parar la grabación del sonido' : 'Grabar el sonido');
+    document.getElementById('b-ext-no').disabled = !extDir;
 }
 
 /* Los atajos con Alt izquierda (Alt derecha puede ser AltGr). */
@@ -504,6 +927,7 @@ function shortcut(code) {
     case 'KeyD': cycleView(); return true;
     case 'KeyS': screenshot(); return true;
     case 'KeyB': setBorder((E.border + 1) % E.BORDER_SIDES.length); return true;
+    case 'KeyV': pasteText(); return true;
     case 'Enter': toggleFullScreen(); return true;
     }
     return false;
@@ -559,6 +983,10 @@ function bindUi() {
     on('b-paso', () => E.core.step());
     on('b-depurar', cycleView);
     on('b-imagen', screenshot);
+    on('b-wav', toggleWav);
+    on('b-pegar', pasteText);
+    on('b-ext', chooseExt);
+    on('b-ext-no', () => unmountExt(true));
     on('b-sonido', () => { E.muted = !E.muted; store('zxv-silencio', E.muted ? '1' : '0'); updateButtons(); });
     on('b-completa', toggleFullScreen);
     on('b-borde', () => setBorder((E.border + 1) % E.BORDER_SIDES.length));
@@ -578,6 +1006,12 @@ function bindUi() {
         showCard();
     });
     on('t-arriba', () => { cardDir = cardDir.slice(0, cardDir.lastIndexOf('/')) || CARD; showCard(); });
+    const programs = document.getElementById('t-programas');
+    programs.addEventListener('change', () => {
+        onlyPrograms = programs.checked;
+        store('zxv-solo-programas', onlyPrograms ? '1' : '0');
+        showCard();
+    });
     on('t-carpeta', () => {
         const name = prompt(t('Nombre de la carpeta:'));
         if (name && !/[\/\\]/.test(name)) {
@@ -632,22 +1066,31 @@ function bindUi() {
     document.addEventListener('drop', async e => {
         e.preventDefault();
         marco.classList.remove('arrastrando');
-        const paths = await importFiles([...e.dataTransfer.files], CARD);
+        const paths = await importFiles([...e.dataTransfer.files], E.exists(cardDir) ? cardDir : CARD);
         if (paths.length)
             openFile(paths[0]);
     });
 
     /* Antes de irse, la tarjeta a IndexedDB; y de vez en cuando, por lo que
      * escriban los programas. */
-    document.addEventListener('visibilitychange', () => { if (document.hidden) E.syncCard(); });
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            E.syncCard();
+            syncExt();
+        }
+    });
     window.addEventListener('pagehide', E.syncCard);
     setInterval(E.syncCard, 3000);
 }
 
 /* --- Arranque ---------------------------------------------------------------------- */
 
+/* El idioma de la página: el de ?lang=es|en en la dirección (la web del
+ * proyecto la abre en el suyo), el elegido antes o el del navegador. El de
+ * la máquina, el que tenía (LANGUAGE) o, la primera vez, este. */
 const pageLang = (navigator.language || 'en').slice(0, 2).toLowerCase() === 'es' ? 'es' : 'en';
-uiLang = store('zxv-idioma') || pageLang;
+const urlLang = new URLSearchParams(location.search).get('lang');
+uiLang = urlLang === 'es' || urlLang === 'en' ? urlLang : store('zxv-idioma') || pageLang;
 translatePage();
 
 let updated = 0;                    /* los ejemplos puestos al día al arrancar */
@@ -677,7 +1120,8 @@ E.init({
         E.focusKeys();
         if (updated)
             message(t('Ejemplos actualizados en la tarjeta: %1', updated));
-        window.zxv.resolve();
+        translatePage();                    /* con la versión */
+        restoreExt().finally(() => window.zxv.resolve());
     },
 });
 
@@ -708,6 +1152,15 @@ window.zxv = {
     sync: () => new Promise(res => E.FS.syncfs(false, res)),
     get message() { return lastLog; },
     get paused() { return E.paused; },
+    /* La unidad EXT: con una carpeta (un FileSystemDirectoryHandle: en las
+     * pruebas, una del almacenamiento privado del navegador), y una vuelta
+     * de sincronizarla. */
+    mountExt: handle => mountExt(handle),
+    unmountExt: () => unmountExt(false),
+    syncExt: () => syncExt(),
+    pasteText,
+    toggleWav,
+    get recording() { return !!E.record; },
 };
 window.zxv.ready = new Promise(res => { window.zxv.resolve = res; });
 })();

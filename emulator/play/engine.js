@@ -14,6 +14,10 @@
 window.ZXV = (() => {
 'use strict';
 
+/* La carpeta de este fichero: zxv-core.js va al lado. Así varias páginas
+ * pueden usar el mismo kit desde otra carpeta (mkweb.py --kit-url). */
+const HERE = document.currentScript ? new URL('.', document.currentScript.src).href : '';
+
 const W = 640, H = 480, RATE = 48000;     // el cuadro (D81)
 const FRAME_HZ = 60;                        // ZXV_FRAME_HZ (D81)
 const FRAME_SAMPLES = RATE / FRAME_HZ;      // 800
@@ -73,7 +77,7 @@ let glTex = null, glProg = null, glSrc = null, glPrescale = null;
 const BORDER_SIDES = [[64, 48], [32, 24], [0, 0]];
 
 const E = {
-    W, H, FRAME_HZ, HID, JOY, BORDER_SIDES,
+    W, H, RATE, FRAME_HZ, HID, JOY, BORDER_SIDES,
     core: null,                 // las funciones de web_main.c
     FS: null,
     border: 0,
@@ -87,6 +91,7 @@ const E = {
     manual: false,              // las pruebas hacen los frames a mano
     hold: false,                // la página de un juego, quieta hasta que se pulsa jugar
     still: false,               // se enseña una imagen fija (showStill), no la máquina
+    record: null,               // grabando el sonido: los frames (Int16Array, estéreo)
 };
 
 let image = null;
@@ -406,8 +411,11 @@ function frame() {
     if (hooks.beforeFrame)
         hooks.beforeFrame();
     const r = E.core.frame();
-    if (r & 1)
+    if (r & 1) {
         playFrame();
+        if (E.record)                   /* grabando el sonido (zxv.js) */
+            E.record.push(new Int16Array(Module.HEAPU8.buffer, E.core.audio(), FRAME_SAMPLES * 2).slice());
+    }
     if (r & 3)
         draw();
     if (!!(r & 2) !== E.paused) {
@@ -684,6 +692,9 @@ function init(opts) {
                 // los núcleos anteriores a la 0.7.
                 dbgRead: c('dbg_read', 'number', ['number', 'number']),
                 dbgWrite: c('dbg_write', null, ['number', 'number', 'number']),
+                // La unidad EXT: y la versión: desde la 0.10.
+                setExt: Module._web_set_ext ? c('set_ext', 'number', ['number']) : null,
+                version: Module._web_version ? c('version', 'string', []) : () => '',
             };
             FS.mkdir(opts.card);
             FS.mount(FS.filesystems.IDBFS, {}, opts.card);
@@ -703,7 +714,7 @@ function init(opts) {
         },
     };
     const script = document.createElement('script');
-    script.src = 'zxv-core.js';
+    script.src = HERE + 'zxv-core.js';
     document.body.append(script);
 }
 

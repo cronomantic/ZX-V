@@ -30,8 +30,12 @@ const LOAD_LIMIT = 15 * 60;     // frames para que arranque (si no, algo va mal)
 const SHORT = 3 * 60;           // una partida más corta que esto cuenta como fallo
 const RUSH = 8;                 // frames por vuelta mientras no se ve
 
+/* El idioma: el de ?lang=es|en en la dirección (un sitio que enlaza la página
+ * desde su versión en un idioma), el de game.js o el del navegador. */
+const urlLang = new URLSearchParams(location.search).get('lang');
 const pageLang = (navigator.language || 'en').slice(0, 2).toLowerCase() === 'es' ? 'es' : 'en';
-const lang = G && (G.lang === 'es' || G.lang === 'en') ? G.lang : pageLang;
+const lang = urlLang === 'es' || urlLang === 'en' ? urlLang
+    : G && (G.lang === 'es' || G.lang === 'en') ? G.lang : pageLang;
 const ES = lang === 'es';
 const T = {
     play: ES ? 'Haz clic para jugar' : 'Click to play',
