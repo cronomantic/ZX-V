@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="../index.html">ZX-V</a>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
 <a class="ir" href="../../en/basic/reference.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -53,6 +54,12 @@
 </li>
 <li><a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="../sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
+</li>
+<li><a href="../hardware/firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="../hardware/firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
+</li>
 <li><a href="../sdk/web.html">Publicar tu juego en la web</a>
 </li>
 </ul>
@@ -70,6 +77,8 @@
 <li><a href="../hardware/firmware.html">El firmware</a>
 </li>
 <li><a href="../hardware/protoboard.html">En una protoboard</a>
+</li>
+<li><a href="../hardware/protocol.html">El protocolo</a>
 </li>
 </ul>
 </aside>
@@ -135,7 +144,7 @@ el 128K, no con una sola tecla.</p>
 <li><a href="#sprites-mapas-de-tiles-y-gráficos-rápidos">Sprites, mapas de tiles y gráficos rápidos</a>:
   <code>GRAB</code>, <code>SPRITE</code>, <code>TILE</code>, <code>MAP</code>, <code>FLOOR</code>, <code>BOX</code>, <code>DISC</code>, <code>POLY</code>...</li>
 <li><a href="#sonido-y-música">Sonido y música</a>: <code>BEEP</code>, <code>PLAY</code>, <code>SOUND</code>, <code>MUSIC</code>,
-  <code>SFX</code></li>
+  <code>SFX</code>, <code>SAMPLE</code></li>
 <li><a href="#teclado-mando-y-ratón">Teclado, mando y ratón</a>: <code>INPUT</code>, <code>INKEY$</code>,
   <code>KEY</code>, <code>JOY</code>, <code>MOUSE</code></li>
 <li><a href="#ficheros-y-la-tarjeta-sd">Ficheros y la tarjeta SD</a>: <code>SAVE</code>, <code>LOAD</code>,
@@ -1455,9 +1464,10 @@ cualquier cosa dibujada en la pantalla.</p>
 <pre><code>10 BOX 4,10,10,20,20: PRINT PIXEL(15,15); &quot; &quot;; PIXEL(5,5); &quot; &quot;; PIXEL(-1,0)
 </code></pre>
 <h2 id="sonido-y-música">Sonido y música<a class="ancla" href="#sonido-y-música" aria-hidden="true">#</a></h2>
-<p>ZX-V tiene un <em>beeper</em> (un altavoz sencillo, el que usa <code>BEEP</code>) y dos chips
+<p>ZX-V tiene un <em>beeper</em> (un altavoz sencillo, el que usa <code>BEEP</code>), dos chips
 de sonido AY de tres canales cada uno (los que usan <code>PLAY</code>, <code>SOUND</code>, <code>MUSIC</code>
-y <code>SFX</code>).</p>
+y <code>SFX</code>) y doce canales de muestras, que tocan sonidos grabados (los de
+<code>SAMPLE</code> y los de la música de muestras).</p>
 <h3 id="beep">BEEP<a class="ancla" href="#beep" aria-hidden="true">#</a></h3>
 <pre><code>BEEP duración, tono
 </code></pre>
@@ -1570,7 +1580,13 @@ que los comparten sus tres voces.</p>
 <p>Escribe directamente en los registros de los chips AY, para hacer efectos de
 sonido. Los registros del 0 al 15 son los del primer chip y del 16 al 31, los
 del segundo (con el mismo significado, 16 más arriba); los valores van de 0 a
-255. Un registro mayor que 31 da <code>B Entero fuera de rango</code>.</p>
+255. Del 64 al 159 son los de los doce canales de muestras, ocho por canal
+(el canal c empieza en el 64 + 8 × c): la muestra (una entrada de la tabla:
+las de <code>SAMPLE</code> son de la 224 a la 255), el volumen (0–64), el panorama, el
+control (1 la arranca, 2 la para), los tres bytes del paso (8.16: 65 536 es
+48 kHz) y desde dónde empieza; ver los canales de muestras en la
+<a href="../sdk/reference.html">referencia del SDK</a>. Otro registro da <code>B Entero fuera
+de rango</code>.</p>
 <table>
 <thead>
 <tr>
@@ -1620,11 +1636,27 @@ MUSIC                          (función)
 </code></pre>
 <p>Toca música hecha con un tracker, de fondo: el programa sigue mientras
 suena, como en los juegos. <code>LOAD nombre$ MUSIC</code> carga un módulo (sin
-extensión, <code>nombre.pt3</code>): de Pro Tracker 3 o Vortex Tracker II (<code>.pt3</code>, el
-que guarda el tracker de ZX-V, <a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker"><code>zxv-tracker</code></a>),
+extensión, el primero que haya de <code>nombre.zxm</code>, <code>nombre.pt3</code>,
+<code>nombre.mod</code>, <code>nombre.s3m</code>, <code>nombre.xm</code>, <code>nombre.vgm</code> y <code>nombre.vgz</code>): del formato propio de ZX-V
+(<code>.zxm</code>, con los dos chips AY y los canales de muestras: el que guarda
+<a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker"><code>zxv-tracker</code></a> o
+<a href="../sdk/index.html#el-formato-propio-zxm-y-zxv-music"><code>zxv-music</code></a>), un MOD,
+un S3M (Scream Tracker 3) o un XM (FastTracker 2), que convierte al
+cargarlos y suenan en los canales de muestras (hasta 12: de los que tengan
+más, los 12 que más notas tocan), de Pro Tracker 3 o Vortex Tracker II (<code>.pt3</code>, que
+también guarda <code>zxv-tracker</code>),
 un TurboSound (dos módulos, uno en cada chip AY: seis voces), de Pro
-Tracker 2, Sound Tracker, ASC Sound Master o un volcado PSG. Un fichero que
-no es ninguno de esos da <code>R Error al cargar</code>.</p>
+Tracker 2, Sound Tracker, ASC Sound Master, un volcado PSG o un VGM (<code>.vgm</code>
+o comprimido, <code>.vgz</code>: los registros de los AY, como los graban los
+emuladores; ver <a href="../sdk/index.html#vgm-los-ay">VGM</a>).
+Un fichero que no es ninguno de esos da <code>R Error al cargar</code>.</p>
+<p>Las muestras de un MOD, un S3M, un XM o un <code>.zxm</code> van del fichero a la
+memoria de sonido (96 KB) al cargarlo, y en la memoria del BASIC solo se
+queda la canción (los patrones que se repiten, una vez): el fichero puede
+ser más grande que ella (caben, por ejemplo, un MOD de 300 KB o un XM de
+1,6 MB). Con más de 96 KB de muestras, las más grandes van en ADPCM, y si
+ni así caben, además, a la mitad (con menos agudos): suenan mejor los que
+tienen hasta unos 96 KB de muestras, y casi igual hasta unos 170 KB.</p>
 <ul>
 <li><code>MUSIC PLAY</code> lo toca desde el principio, y al acabar vuelve a la
   posición de vuelta del módulo, sin fin. Sin un módulo cargado, <code>A
@@ -1633,14 +1665,22 @@ no es ninguno de esos da <code>R Error al cargar</code>.</p>
   CONTINUE</code> sigue donde estaba.</li>
 <li>La función <code>MUSIC</code> vale 1 mientras suena y 0 si no.</li>
 </ul>
-<p>Suena en el primer chip AY (un TurboSound, en los dos), con el mismo código
-que el tracker y que los programas en C. Se para con <code>MUSIC STOP</code>, BREAK,
-<code>RUN</code>, <code>NEW</code>, <code>PLAY</code> (que usa los chips a su manera) y al cargar un
+<p>Un <code>.zxm</code> con pistas de muestras las toca en los canales de muestras desde
+el 0 (uno por pista; los demás quedan libres), y al empezar sube sus
+muestras al principio de la memoria de sonido y de su tabla.</p>
+<p>Un módulo de los AY suena en el primer chip (un TurboSound o un VGM de dos
+AY, en los dos); un MOD, un S3M o un XM, en los canales de muestras; y un
+<code>.zxm</code>, en los chips y los canales de muestras que usan sus pistas. Lo toca
+el mismo código que el tracker y que los programas en C. Se para con
+<code>MUSIC STOP</code>, BREAK, <code>RUN</code>, <code>NEW</code>, <code>PLAY</code> (que usa los chips a su manera) y al cargar un
 programa nativo; si el programa acaba o da un error, sigue sonando. Lo que
 escriba <code>SOUND</code> en el chip de la música dura hasta que la música vuelve a
 escribir ese registro.</p>
-<p>El módulo ocupa lo que pesa su fichero (de 2 a 15 KB uno normal) y va con
-los gráficos: se conserva con <code>RUN</code> y <code>CLEAR</code> y <code>NEW</code> lo borra.</p>
+<p>En la memoria del BASIC, un módulo de los AY o un VGM ocupa lo que pesa su
+fichero (de 2 a 15 KB un PT3 normal; un <code>.vgz</code>, además, 32 KB para
+descomprimirlo mientras suena), y un MOD, un S3M, un XM o un <code>.zxm</code>, solo
+su canción: sus muestras van a la memoria de sonido. El módulo va con los
+gráficos: se conserva con <code>RUN</code> y <code>CLEAR</code> y <code>NEW</code> lo borra.</p>
 <pre><code>10 LOAD &quot;tema&quot; MUSIC: MUSIC PLAY
 20 PRINT &quot;Suena...&quot;
 30 IF INKEY$=&quot;&quot; THEN GO TO 30
@@ -1670,6 +1710,48 @@ es un banco da <code>R Error al cargar</code>.</p>
 paran; el banco se conserva como el módulo.</p>
 <pre><code>10 LOAD &quot;efectos&quot; SFX
 20 IF INKEY$=&quot; &quot; THEN SFX 0
+30 GO TO 20
+</code></pre>
+<h3 id="sample">SAMPLE<a class="ancla" href="#sample" aria-hidden="true">#</a></h3>
+<pre><code>LOAD nombre$ SAMPLE n
+SAMPLE n [, tono [, volumen [, panorama]]] [; canal]
+SAMPLE STOP [canal]
+SAMPLE                         (función)
+</code></pre>
+<p>Sonidos grabados (golpes, voces, instrumentos) en los doce canales de
+muestras, sin esperar, a la vez que la música y lo demás.</p>
+<ul>
+<li><code>LOAD nombre$ SAMPLE n</code> carga un WAV (sin extensión, <code>nombre.wav</code>) en la
+  muestra <code>n</code>, de la 0 a la 31: de 8 o 16 bits, mono o estéreo (se mezcla),
+  a cualquier frecuencia. Va a la memoria de sonido (96 KB), en 8 bits; en
+  la del BASIC no ocupa nada. Si el WAV trae un bucle (el que guardan
+  Audacity y los editores de sonido), la muestra se repite en él hasta que
+  se para. Un fichero que no es un WAV así da <code>R Error al cargar</code>, y uno que
+  no cabe, <code>4 Sin memoria</code>.</li>
+<li><code>SAMPLE n</code> la toca a su altura, a todo volumen y en el centro. <code>tono</code> va
+  en semitonos sobre la altura a la que se grabó (0 igual, 12 una octava más
+  aguda, -12 una más grave; puede llevar decimales), <code>volumen</code> de 0 a 64 y
+  <code>panorama</code> de 0 (izquierda) a 255 (derecha), con 128 en el centro.</li>
+<li>Sin <code>; canal</code>, suena en un canal que no usa la música (si no queda
+  ninguno, en el que lleva más tiempo con un efecto). Con <code>; canal</code>, de 0 a
+  11, en ese: si es de la música, la tapa mientras suena, y la música sigue
+  en él en su nota siguiente.</li>
+<li><code>SAMPLE STOP</code> para todas; con <code>canal</code>, la de ese canal.</li>
+<li>La función <code>SAMPLE</code> vale 1 mientras suena alguna.</li>
+<li>Sin la muestra cargada, <code>A Argumento no válido</code>.</li>
+</ul>
+<p><strong>Con la música:</strong> las muestras de la canción van a la memoria de sonido
+desde abajo y las de <code>SAMPLE</code>, desde arriba. Carga primero las de <code>SAMPLE</code>:
+una canción que se carga después se ajusta al sitio que queda (con ADPCM, o
+con menos agudos si hace falta), y una muestra que se carga después de una
+canción solo usa lo que esta deja libre. Un <code>.zxm</code> ya está convertido y no
+se ajusta: si no cabe, <code>4 Sin memoria</code>; hazlo con
+<a href="../sdk/index.html#el-formato-propio-zxm-y-zxv-music"><code>zxv-music --free</code></a>
+para que deje sitio. BREAK, <code>RUN</code> y <code>NEW</code> paran las
+muestras; las cargadas se conservan como el banco de <code>SFX</code>, y <code>NEW</code> las
+borra.</p>
+<pre><code>10 LOAD &quot;golpe&quot; SAMPLE 0: LOAD &quot;tema&quot; MUSIC: MUSIC PLAY
+20 IF INKEY$=&quot; &quot; THEN SAMPLE 0, RND*4-2
 30 GO TO 20
 </code></pre>
 <h2 id="teclado-mando-y-ratón">Teclado, mando y ratón<a class="ancla" href="#teclado-mando-y-ratón" aria-hidden="true">#</a></h2>
@@ -1926,7 +2008,10 @@ el puntero: lo dibuja tu programa, por ejemplo con un sprite.</p>
 </code></pre>
 <h2 id="ficheros-y-la-tarjeta-sd">Ficheros y la tarjeta SD<a class="ancla" href="#ficheros-y-la-tarjeta-sd" aria-hidden="true">#</a></h2>
 <p>Los programas y los datos se guardan en la tarjeta SD. Hay además una unidad
-de solo lectura, <code>ROM:</code>, con los ejemplos que trae la máquina.</p>
+de solo lectura, <code>ROM:</code>, con los ejemplos que trae la máquina, y la unidad
+externa, <code>EXT:</code>: una carpeta que sirve otro equipo (por la tira J5 de la
+placa, o en el emulador con <code>--ext</code>), en la que se lee y se escribe como en
+la tarjeta (ver <a href="../hardware/firmware.html#la-unidad-ext">La unidad EXT:</a>).</p>
 <h3 id="nombres-de-fichero-y-unidades">Nombres de fichero y unidades<a class="ancla" href="#nombres-de-fichero-y-unidades" aria-hidden="true">#</a></h3>
 <ul>
 <li>Un nombre tiene hasta 63 caracteres, sin <code>\ : * ? " &lt; &gt; |</code>, sin letras con
@@ -1935,10 +2020,11 @@ de solo lectura, <code>ROM:</code>, con los ejemplos que trae la máquina.</p>
 <li>Las carpetas se separan con <code>/</code>. Una ruta que empieza por <code>/</code> parte de la
   raíz de la unidad; si no, de la carpeta actual (ver <a href="#cd-dir">CD</a>). <code>..</code>
   es la carpeta de arriba.</li>
-<li><code>ROM:</code> y <code>SD:</code> al principio eligen la unidad, desde su raíz:
-  <code>LOAD "ROM:hello"</code>, <code>CAT "SD:/juegos"</code>. Sin unidad, se usa la de la carpeta
-  actual. Escribir en <code>ROM:</code> (<code>SAVE</code>, <code>ERASE</code>, <code>MKDIR</code>...) da <code>V Error de
-  disco (no se puede)</code>.</li>
+<li><code>ROM:</code>, <code>SD:</code> y <code>EXT:</code> al principio eligen la unidad, desde su raíz:
+  <code>LOAD "ROM:hello"</code>, <code>CAT "SD:/juegos"</code>, <code>SAVE "EXT:copia"</code>. Sin unidad, se
+  usa la de la carpeta actual. Escribir en <code>ROM:</code> (<code>SAVE</code>, <code>ERASE</code>,
+  <code>MKDIR</code>...) da <code>V Error de disco (no se puede)</code>. Sin un servidor
+  conectado, todo lo de <code>EXT:</code> da <code>V Error de disco (EXT: sin servidor)</code>.</li>
 <li><strong>Comodines</strong> en <code>CAT</code>, <code>ERASE</code>, <code>MOVE</code> y <code>COPY</code>: <code>*</code> vale por cualquier
   grupo de caracteres (también ninguno) y <code>?</code> por uno, solo en la última parte
   de la ruta: <code>"*.zvb"</code>, <code>"juegos/nivel?.dat"</code>. Si no encaja nada,
@@ -1947,8 +2033,8 @@ de solo lectura, <code>ROM:</code>, con los ejemplos que trae la máquina.</p>
 <p>Los errores de ficheros más corrientes son <code>F Nombre de fichero no válido</code>,
 <code>T Fichero no encontrado</code>, <code>U No hay tarjeta SD</code> y <code>V Error de disco</code>, que
 añade el motivo cuando se sabe: <code>(ya existe)</code>, <code>(la carpeta no está vacía)</code>,
-<code>(es una carpeta)</code>, <code>(no es una carpeta)</code>, <code>(la tarjeta está llena)</code> o
-<code>(no se puede)</code>.</p>
+<code>(es una carpeta)</code>, <code>(no es una carpeta)</code>, <code>(la tarjeta está llena)</code>,
+<code>(no se puede)</code> o <code>(EXT: sin servidor)</code>.</p>
 <h3 id="save">SAVE<a class="ancla" href="#save" aria-hidden="true">#</a></h3>
 <pre><code>SAVE nombre$ [LINE línea [SCREEN$] [PROTECT]]
 SAVE nombre$ CODE inicio, longitud
@@ -2008,6 +2094,7 @@ LOAD nombre$ DATA letra$()
 LOAD nombre$ GRAPHICS
 LOAD nombre$ MUSIC
 LOAD nombre$ SFX
+LOAD nombre$ SAMPLE n
 </code></pre>
 <p>Carga de la tarjeta SD (o de la unidad <code>ROM:</code>):</p>
 <ul>
@@ -2039,8 +2126,9 @@ LOAD nombre$ SFX
   mismo número; los demás se quedan, así que puedes cargar los sprites de un
   fichero y un nivel de otro. Un fichero que no es válido da <code>R Error al
   cargar</code>.</li>
-<li><code>MUSIC</code> y <code>SFX</code>: un módulo de música o un banco de efectos (ver
-  <a href="#music"><code>MUSIC</code></a> y <a href="#sfx"><code>SFX</code></a>).</li>
+<li><code>MUSIC</code>, <code>SFX</code> y <code>SAMPLE</code>: un módulo de música, un banco de efectos o
+  un sonido grabado (ver <a href="#music"><code>MUSIC</code></a>, <a href="#sfx"><code>SFX</code></a> y
+  <a href="#sample"><code>SAMPLE</code></a>).</li>
 </ul>
 <p><code>LOAD ""</code> (con el nombre vacío) carga el bloque siguiente de la cinta puesta
 (ver <a href="#ficheros-de-cinta">Ficheros de cinta</a>).</p>
@@ -2131,9 +2219,10 @@ CAT &quot;*.zvb&quot;
 DIR$
 </code></pre>
 <p><code>CD</code> cambia la carpeta actual: <code>CD "juegos"</code>, <code>CD ".."</code> (la de arriba),
-<code>CD "/"</code> (la raíz de la unidad), <code>CD "ROM:"</code> (la unidad de los ejemplos) y
-<code>CD "SD:"</code> (vuelta a la tarjeta). La función <code>DIR$</code> da la carpeta actual,
-como <code>"/juegos"</code> o <code>"ROM:/"</code>.</p>
+<code>CD "/"</code> (la raíz de la unidad), <code>CD "ROM:"</code> (la unidad de los ejemplos),
+<code>CD "EXT:"</code> (la unidad externa) y <code>CD "SD:"</code> (vuelta a la tarjeta). La
+función <code>DIR$</code> da la carpeta actual, como <code>"/juegos"</code>, <code>"ROM:/"</code> o
+<code>"EXT:/"</code>.</p>
 <pre><code>CD &quot;ROM:&quot;: PRINT DIR$: CAT
 </code></pre>
 <p>Un programa que carga más ficheros (como el juego de plataformas) los busca
@@ -2184,7 +2273,8 @@ variables han desaparecido</strong>, así que graba antes tu programa en BASIC.<
   da uno: <code>W Fichero dañado (5), 0:1</code>.</li>
 <li><code>W Error en el código nativo, 0:1</code> si ha fallado (por ejemplo, al leer de
   una dirección prohibida).</li>
-<li><code>L BREAK en el programa, 0:1</code> si lo has parado con Ctrl+Alt+Supr.</li>
+<li>Ninguno si lo has parado con Ctrl+Alt+Supr: la máquina vuelve a arrancar,
+  como al encenderla.</li>
 </ul>
 <p>El informe es del programa nativo: tu programa BASIC ha desaparecido en todos
 los casos.</p>
@@ -2441,7 +2531,8 @@ CLOCK año, mes, día, hora, minutos [, segundos]
 la hora, 4 los minutos, 5 los segundos y 6 el día de la semana (1 lunes ...
 7 domingo). Da 0 si el reloj no está en hora. La orden pone el reloj en hora
 (años de 2000 a 2099); una fecha que no existe da <code>A Argumento no válido</code>. Los
-ficheros que se graban en la tarjeta llevan esa fecha.</p>
+ficheros que se graban en la tarjeta llevan esa fecha. Sin programa, también
+lo pone en hora el menú del editor: <a href="editor.html#la-fecha-y-la-hora">Fecha y hora</a>.</p>
 <pre><code>PRINT CLOCK 2; &quot;/&quot;; CLOCK 1; &quot;/&quot;; CLOCK 0; &quot; &quot;; CLOCK 3; &quot;:&quot;; CLOCK 4
 </code></pre>
 <h3 id="speed">SPEED<a class="ancla" href="#speed" aria-hidden="true">#</a></h3>
@@ -2795,7 +2886,7 @@ es el 10, la <code>B</code> el 11... la <code>Z</code> el 35; la tabla de abajo 
 <td>R</td>
 <td>27</td>
 <td>Error al cargar</td>
-<td>Tape loading error</td>
+<td>Loading error</td>
 <td>Un fichero que no es válido o no es del tipo pedido, <code>LOAD ""</code> sin cinta puesta, o <code>VERIFY</code> ha encontrado diferencias.</td>
 </tr>
 <tr>
@@ -2859,7 +2950,7 @@ es el 10, la <code>B</code> el 11... la <code>Z</code> el 35; la tabla de abajo 
 <p>Los motivos de <code>V Error de disco</code>: <code>ya existe</code> / <code>already exists</code>, <code>la carpeta
 no está vacía</code> / <code>folder not empty</code>, <code>es una carpeta</code> / <code>it is a folder</code>,
 <code>no es una carpeta</code> / <code>not a folder</code>, <code>la tarjeta está llena</code> / <code>card full</code>,
-<code>no se puede</code> / <code>not allowed</code>.</p>
+<code>no se puede</code> / <code>not allowed</code>, <code>EXT: sin servidor</code> / <code>no server for EXT:</code>.</p>
 <h2 id="juego-de-caracteres">Juego de caracteres<a class="ancla" href="#juego-de-caracteres" aria-hidden="true">#</a></h2>
 <p>Cada carácter tiene un código del 0 al 255 (<code>CODE</code> y <code>CHR$</code> pasan de uno a
 otro):</p>
@@ -3711,6 +3802,11 @@ usuario se escriben con <code>CHR$</code>.</p>
 <td><code>RUN</code></td>
 <td>orden</td>
 <td><a href="#run">RUN</a></td>
+</tr>
+<tr>
+<td><code>SAMPLE</code></td>
+<td>función, orden; en <code>LOAD</code></td>
+<td><a href="#sample">SAMPLE</a>, <a href="#load">LOAD</a></td>
 </tr>
 <tr>
 <td><code>SAVE</code></td>

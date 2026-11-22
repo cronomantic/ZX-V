@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The protocol of the EXT: drive and of remote loading · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
+<span class="seccion">Documentation</span>
+<span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
+<a class="ir" href="../../es/hardware/protocol.html" hreflang="es" lang="es">Español</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
+</header>
+<div class="marco">
+<aside>
+<p>Start here</p>
+<ul>
+<li><a href="../getting-started.html">Getting started</a>
+</li>
+<li><a href="../emulator.html">The emulator</a>
+</li>
+<li><a href="../machine.html">The machine</a>
+</li>
+</ul>
+<p>Programming in BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Learn BASIC</a>
+</li>
+<li><a href="../basic/editor.html">The editor</a>
+</li>
+<li><a href="../basic/reference.html">BASIC reference</a>
+</li>
+</ul>
+<p>Programming in C</p>
+<ul>
+<li><a href="../sdk/index.html">Native programs (SDK)</a>
+</li>
+<li><a href="../sdk/graphics.html">Graphics</a>
+</li>
+<li><a href="../sdk/reference.html">API reference</a>
+</li>
+</ul>
+<p>Tools for the PC</p>
+<ul>
+<li><a href="../sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../sdk/index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a>
+</li>
+<li><a href="firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
+</li>
+<li><a href="firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>
+</li>
+<li><a href="../sdk/web.html">Publishing your game on the web</a>
+</li>
+</ul>
+<p>Compiling BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>The real machine</p>
+<ul>
+<li><a href="index.html">Build the hardware</a>
+</li>
+<li><a href="board.html">The board</a>
+</li>
+<li><a href="firmware.html">The firmware</a>
+</li>
+<li><a href="protoboard.html">On a protoboard</a>
+</li>
+<li><a href="protocol.html" class="aqui">The protocol</a>
+<ul>
+</ul>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="the-protocol-of-the-ext-drive-and-of-remote-loading">The protocol of the EXT: drive and of remote loading</h1>
+<p>This document is for anyone who wants to write <strong>a server for the <code>EXT:</code>
+drive</strong> (a program that serves a folder to the ZX-V: on a PC, a Raspberry Pi,
+a phone, another machine...) or to talk to the board through its <strong>J5</strong>
+header on their own. <code>zxv-link</code> (in <a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/tools/link"><code>sdk/tools/link</code></a>,
+MIT) is the reference implementation of the two sides that belong to the PC:
+<code>zxvlink.c</code> (the frames), <code>linkcore.c</code> (remote loading) and <code>extserve.c</code> (the
+<code>EXT:</code> server).</p>
+<p>What <code>EXT:</code> is for the machine's programs (the paths, the names, the file
+numbers) is in <a href="https://github.com/cronomantic/ZX-V/blob/main/dev/spec.md">the specification, §7.7</a> (in Spanish). Here, what
+travels.</p>
+<h2 id="the-link">The link<a class="ancla" href="#the-link" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>Today, the board's J5 header:</strong> the CPU Pico's UART0 (GP12 goes out of
+  the machine, GP13 comes in), at <strong>921,600 baud</strong>, 8 bits, no parity, 1 stop
+  bit, no flow control, at <strong>3.3 V</strong>. With a 3.3 V USB-serial adapter: its RX
+  to the board's TX, its TX to the RX, and ground to ground.</li>
+<li><strong>Later, others</strong> (the Wi-Fi of a Pico 2 W): the same messages by another
+  way. If there is a server on each one at the same time, the machine uses
+  the one on the cable.</li>
+</ul>
+<h2 id="the-frames">The frames<a class="ancla" href="#the-frames" aria-hidden="true">#</a></h2>
+<p>Each message goes in a frame: its bytes in <strong>COBS</strong>, followed by a <strong>zero</strong>.
+The receiver picks up again by itself at the next zero even if something is
+lost. Before COBS, in little endian:</p>
+<table>
+<thead>
+<tr>
+<th>Offset</th>
+<th>What</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+0</td>
+<td>The channel (below)</td>
+</tr>
+<tr>
+<td>+1</td>
+<td>The type: the request's; in its reply, the same with bit 7 set (plus <code>0x80</code>)</td>
+</tr>
+<tr>
+<td>+2</td>
+<td>The request number (0-255): set by the one who asks, and the reply repeats it</td>
+</tr>
+<tr>
+<td>+3</td>
+<td>The data: up to <strong>516 bytes</strong></td>
+</tr>
+<tr>
+<td>...</td>
+<td>The <strong>CRC-32</strong> of everything before it (zlib's: polynomial <code>0xEDB88320</code>, starting and ending with <code>0xFFFFFFFF</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>A frame with a wrong CRC, cut short or longer than fits is thrown away
+without a reply: the one who asked repeats the request when its wait runs
+out.</p>
+<p><strong>Replies</strong> always start with a <strong>status</strong> (i32): 0 or more, fine (in some,
+a number: bytes, a position); negative, a machine error (<code>ZXV_E_*</code>, see
+<a href="../sdk/reference.html#error-codes">Error codes</a>; for example, −1 does not
+exist).</p>
+<h2 id="the-channels">The channels<a class="ancla" href="#the-channels" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Channel</th>
+<th>Value</th>
+<th>Who asks</th>
+<th>What for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CTRL</code></td>
+<td>0</td>
+<td>The outside device</td>
+<td>Remote loading: sending files to the card, running, debugging; and announcing itself as the <code>EXT:</code> server</td>
+</tr>
+<tr>
+<td><code>LOG</code></td>
+<td>1</td>
+<td>Nobody: the machine sends it on its own</td>
+<td>The machine's report (UTF-8 text, type <code>0x40</code>): it is not answered</td>
+</tr>
+<tr>
+<td><code>EXT</code></td>
+<td>2</td>
+<td>The machine</td>
+<td>What programs ask of the <code>EXT:</code> drive</td>
+</tr>
+</tbody>
+</table>
+<p>Each side numbers its own requests, and on each channel there is <strong>at most
+one pending request</strong>: the next one is not sent until the reply has arrived
+(or until giving up).</p>
+<h2 id="announcing-itself-as-a-server">Announcing itself as a server<a class="ancla" href="#announcing-itself-as-a-server" aria-hidden="true">#</a></h2>
+<p>A server tells the machine it is there with a request on the <code>CTRL</code> channel:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Data</th>
+<th>Reply</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SERVE</code> (10)</td>
+<td><code>u8</code>: 1 I serve <code>EXT:</code>, 0 I stop serving it</td>
+<td>status; the machine's boot number (u32)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Every second</strong> while it serves. The machine considers the drive served
+  as long as a <code>SERVE</code> arrives at least every <strong>3 seconds</strong>; if not, <code>EXT:</code>
+  gives <code>ZXV_E_OFFLINE</code> without waiting for anyone.</li>
+<li><strong>The boot number</strong> changes every time the machine starts (when switched
+  on, with Ctrl+Alt+Del or when it restarts to run another program). If it
+  changes, the server <strong>closes everything it had open</strong> for it: the machine
+  no longer knows anything about that.</li>
+<li>When it stops serving (<code>SERVE</code> with 0, or when the port is closed), the
+  same.</li>
+</ul>
+<h2 id="what-the-machine-asks-ext-channel">What the machine asks (EXT channel)<a class="ancla" href="#what-the-machine-asks-ext-channel" aria-hidden="true">#</a></h2>
+<p>The machine asks on the <code>EXT</code> channel and the server replies with the same
+type plus <code>0x80</code> and the same number. <strong>If the same request arrives again</strong>
+(the same number, after a reply that was lost), the server <strong>repeats the
+reply without doing it again</strong>: writing, deleting or renaming twice would not
+be the same. The machine waits <strong>half a second</strong> for each reply, asks up to
+<strong>three times</strong> and, if there is still nothing, considers the drive lost
+(<code>ZXV_E_OFFLINE</code>) until the next <code>SERVE</code>.</p>
+<p>Open files and folders go by <strong>slot</strong>: the machine has 8 file slots (0-7)
+and 4 folder slots (0-3) on <code>EXT:</code>, and says which one in each request. The
+server keeps what is in each one.</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Data</th>
+<th>Reply, after the status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OPEN</code> (1)</td>
+<td>slot (u8), mode (u32: the <code>ZXV_O_*</code> of <code>file_open</code>), path</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>READ</code> (2)</td>
+<td>slot (u8), how many (u16, up to 512)</td>
+<td>Status = bytes read (0, the end); after it, those bytes</td>
+</tr>
+<tr>
+<td><code>WRITE</code> (3)</td>
+<td>slot (u8), the bytes (up to 512)</td>
+<td>Status = bytes written</td>
+</tr>
+<tr>
+<td><code>CLOSE</code> (4)</td>
+<td>slot (u8)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>SEEK</code> (5)</td>
+<td>slot (u8), offset (i32), from (u8: 0 the start, 1 where it is, 2 the end)</td>
+<td>Status = the new position</td>
+</tr>
+<tr>
+<td><code>STAT</code> (6)</td>
+<td>path</td>
+<td>Size (u32) and attributes (u32: bit 0, folder)</td>
+</tr>
+<tr>
+<td><code>REMOVE</code> (7)</td>
+<td>path</td>
+<td>— (deletes a file or an empty folder)</td>
+</tr>
+<tr>
+<td><code>RENAME</code> (8)</td>
+<td>source path, a 0, destination path</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>MKDIR</code> (9)</td>
+<td>path</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>OPENDIR</code> (10)</td>
+<td>folder slot (u8), path</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>READDIR</code> (11)</td>
+<td>folder slot (u8)</td>
+<td>Status = 1 and the entry: size (u32), attributes (u32) and name (without the zero); 0, no more</td>
+</tr>
+<tr>
+<td><code>CLOSEDIR</code> (12)</td>
+<td>folder slot (u8)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>The machine keeps the current folder: changing folder is a <code>STAT</code> that
+checks that it exists and is a folder.</p>
+<h2 id="the-paths">The paths<a class="ancla" href="#the-paths" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>Absolute from the root</strong> of what the server serves, with <code>/</code>
+  (<code>/games/a.bas</code>; <code>/</code> is the root). The machine has already resolved <code>.</code>,
+  <code>..</code> and the current folder: they do not arrive.</li>
+<li><strong>The server does not leave its folder.</strong> A path that would try to (with
+  <code>..</code>, <code>\</code> or a drive letter) is <code>ZXV_E_NAME</code>.</li>
+<li><strong>Names</strong>, as on the card (<a href="https://github.com/cronomantic/ZX-V/blob/main/dev/spec.md">spec §7.7</a>): up to 63 printable ASCII
+  characters, without <code>\ : * ? " &lt; &gt; |</code>, not ending in a space or a dot;
+  paths of up to 255. <strong>Case-insensitive</strong>: <code>GAME.BAS</code> opens <code>game.bas</code>;
+  when creating, the spelling the machine asks for is kept.</li>
+<li><strong>What does not follow the rules</strong> (a name with accents, for example) does
+  not appear in listings and cannot be opened. Hidden or system files do not
+  appear either.</li>
+<li><strong><code>READDIR</code></strong> gives the entries in alphabetical order, case-insensitive,
+  like the card.</li>
+</ul>
+<h2 id="what-is-recommended-for-a-server">What is recommended for a server<a class="ancla" href="#what-is-recommended-for-a-server" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>Not replacing what the machine did not write:</strong> if an <code>OPEN</code> for
+  writing, a <code>REMOVE</code> or a <code>RENAME</code> would spoil a file in the folder that the
+  machine did not write (what was already there, with other contents), reply
+  <code>ZXV_E_ACCESS</code>, unless whoever runs the server allows it. The reference one
+  notes what the machine writes.</li>
+<li><strong>Writing whole or not at all:</strong> keep what arrives aside and give it its
+  name when it is closed, so that a cut does not leave the file half done.</li>
+<li><strong>Replying quickly:</strong> the machine waits half a second for each reply.</li>
+</ul>
+<h2 id="what-the-outside-device-asks-ctrl-channel">What the outside device asks (CTRL channel)<a class="ancla" href="#what-the-outside-device-asks-ctrl-channel" aria-hidden="true">#</a></h2>
+<p>Remote loading, for anyone who wants to do it on their own (<code>zxv-link</code> is the
+reference one):</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Data</th>
+<th>Reply, after the status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HELLO</code> (1)</td>
+<td>—</td>
+<td>Protocol version (u16), whether BASIC is waiting for a command (u8), specification version (u32) and firmware version (text)</td>
+</tr>
+<tr>
+<td><code>OPEN</code> (2)</td>
+<td>size (u32), path on the card</td>
+<td>— (what arrives is written aside and gets its name when closed)</td>
+</tr>
+<tr>
+<td><code>DATA</code> (3)</td>
+<td>position (u32), up to 512 bytes</td>
+<td>The next position (u32). Out of order: <code>ZXV_E_INVAL</code> and the one it expects; with no file open, <code>ZXV_E_BADF</code></td>
+</tr>
+<tr>
+<td><code>CLOSE</code> (4)</td>
+<td>CRC-32 of everything (u32)</td>
+<td>— (if it does not match, <code>ZXV_E_IO</code> and nothing is written)</td>
+</tr>
+<tr>
+<td><code>RUN</code> (5)</td>
+<td>the text that is typed, with Enter after it</td>
+<td>— (with a program running, status 1: below)</td>
+</tr>
+<tr>
+<td><code>STAT</code> (6)</td>
+<td>path on the card</td>
+<td>Size (u32) and CRC-32 (u32)</td>
+</tr>
+<tr>
+<td><code>READY</code> (7)</td>
+<td>—</td>
+<td>— (when BASIC is waiting for a command; with a program running, status 1)</td>
+</tr>
+<tr>
+<td><code>DBG_READ</code> (8)</td>
+<td>from (u16), how many (u16)</td>
+<td>Those bytes of the BASIC debugger's mailbox</td>
+</tr>
+<tr>
+<td><code>DBG_WRITE</code> (9)</td>
+<td>from (u16), the bytes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>SERVE</code> (10)</td>
+<td>above</td>
+<td>above</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Status 1 in <code>RUN</code> and <code>READY</code>:</strong> a program was running and the machine
+restarts completely, as with Ctrl+Alt+Del; what was asked is not done. It
+answers again after a boot (one or two seconds): send <code>HELLO</code> until it says
+that BASIC is waiting for a command, and ask again.</p>
+<h2 id="the-versions">The versions<a class="ancla" href="#the-versions" aria-hidden="true">#</a></h2>
+<p><code>HELLO</code> gives the machine's protocol version. <strong>This is 4:</strong> the <code>EXT:</code> drive
+(the <code>EXT</code> channel and <code>SERVE</code>). Version 3 brought the machine restart in
+<code>RUN</code> and <code>READY</code>; version 2, <code>STAT</code>, <code>READY</code> and the debugger. An <code>EXT:</code>
+server needs a machine with 4 or later.</p>
+<nav class="pasos"><a class="anterior" href="protoboard.html"><small>Previous</small>← On a protoboard</a></nav>
+<footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

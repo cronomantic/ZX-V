@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="index.html">ZX-V</a>
+<a class="marca" href="index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
 <a class="ir" href="../es/emulator.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -53,6 +54,13 @@
 </li>
 <li><a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="sdk/index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a>
+</li>
+<li><a href="hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
+</li>
+<li><a href="hardware/firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>
+</li>
 <li><a href="sdk/web.html">Publishing your game on the web</a>
 </li>
 </ul>
@@ -70,6 +78,8 @@
 <li><a href="hardware/firmware.html">The firmware</a>
 </li>
 <li><a href="hardware/protoboard.html">On a protoboard</a>
+</li>
+<li><a href="hardware/protocol.html">The protocol</a>
 </li>
 </ul>
 </aside>
@@ -116,11 +126,23 @@ other way round. It comes in several forms:</p>
 </tr>
 <tr>
 <td><strong><code>zxv-tracker</code></strong></td>
-<td>The tracker: music for the two AY chips in PT3 modules and AYFX effects, the ones the SDK music library plays (see the <a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker">SDK guide</a>)</td>
+<td>The tracker: music for the two AY chips and the sample channels (<code>.zxm</code> songs and PT3 modules) and AYFX effects, the ones the SDK music library plays (see the <a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker">SDK guide</a>)</td>
+</tr>
+<tr>
+<td><strong><code>zxv-music</code></strong></td>
+<td>Converts PT3, TurboSound, MOD, S3M and XM to the own music format, <code>.zxm</code> (see the <a href="sdk/index.html#the-own-format-zxm-and-zxv-music">SDK guide</a>)</td>
+</tr>
+<tr>
+<td><strong><code>zxv-link</code></strong></td>
+<td>Sends programs from the PC to the real machine and runs them, through the board's J5 header with a USB-serial adapter, and serves a folder as its <code>EXT:</code> drive (see <a href="hardware/firmware.html#loading-programs-from-the-pc-j5">The firmware</a>)</td>
+</tr>
+<tr>
+<td><strong><code>zxv-link-gui</code></strong></td>
+<td>The same as <code>zxv-link</code>, with a window, in steps: the board, the program, where the board loads it from (the <code>EXT:</code> drive or the card), run or only copy, and the result; with the recent programs and the machine's report</td>
 </tr>
 </tbody>
 </table>
-<p>The Windows and Linux packages contain <code>zxv</code>, <code>zxv-sdl</code>, <code>zxv-cli</code>, <code>sdimg</code>, <code>zxv-check</code>, <code>zxv-gfx</code> and <code>zxv-tracker</code>,
+<p>The Windows and Linux packages contain <code>zxv</code>, <code>zxv-sdl</code>, <code>zxv-cli</code>, <code>sdimg</code>, <code>zxv-check</code>, <code>zxv-gfx</code>, <code>zxv-tracker</code>, <code>zxv-music</code>, <code>zxv-link</code> and <code>zxv-link-gui</code>,
 plus the examples (the <code>ejemplos</code> folder) and the <code>ROM:</code> drive
 (<code>romdisk.bin</code>). How to download them is explained in
 <a href="getting-started.html#download">Getting started</a>.</p>
@@ -172,6 +194,10 @@ time.</p>
 <td>Choose the card: a folder, a card image, the usual one (Documents/ZX-V) or no card; and open the card folder on your PC</td>
 </tr>
 <tr>
+<td>EXT: drive</td>
+<td>The folder that serves the <code>EXT:</code> drive: a folder or none (no server); and open that folder on your PC (<a href="#the-ext-drive">see below</a>)</td>
+</tr>
+<tr>
 <td>Save screenshot (Alt+S)</td>
 <td>Save the screen as a PNG in your <em>Pictures/ZX-V</em> folder</td>
 </tr>
@@ -203,8 +229,8 @@ time.</p>
 <td>A full reset, like switching it off and on: the program in memory is lost</td>
 </tr>
 <tr>
-<td>Ctrl+Alt+Del (back to BASIC)</td>
-<td>The emergency reset: stops whatever is running and goes back to BASIC, keeping your BASIC program</td>
+<td>Ctrl+Alt+Del (restarts the machine)</td>
+<td>The emergency reset: stops whatever is running and restarts the machine, like Ctrl+Alt+Del on the board; the BASIC program in memory is lost</td>
 </tr>
 <tr>
 <td>Paste text (Alt+V)</td>
@@ -223,6 +249,14 @@ scale</strong> (only x1, x2, x3..., with every pixel the same size) or <strong>F
 window</strong>, even if the picture gets stretched. When the scale is not a whole
 number, the picture is enlarged with the pixel edges smoothed, without some
 rows thicker than others.</p>
+<p><strong>Draw with</strong> says what does that work: the graphics card, with
+<strong>Direct3D 11</strong> (on Windows) or <strong>OpenGL</strong>, or <strong>the CPU</strong>. With the
+graphics card the emulator uses much less CPU, above all in full screen (at
+1900 × 1000, about three and a half times less), and the picture is the
+same. <strong>Automatic</strong>, the usual, uses Direct3D 11 on Windows and OpenGL on
+Linux, and says which one it is using. It changes at once (the window
+flickers when it switches) and is remembered; if the one chosen does not
+work on your PC, the CPU draws and the status bar says so.</p>
 <p><strong>Options</strong></p>
 <table>
 <thead>
@@ -296,12 +330,12 @@ key is what you get. BASIC and its editor use the PC keys directly:</p>
 </tr>
 <tr>
 <td>Ctrl+Alt+Del</td>
-<td>Emergency reset: back to BASIC, keeping the program</td>
+<td>Emergency reset: restarts the machine; the program in memory is lost</td>
 </tr>
 </tbody>
 </table>
 <p>Windows keeps Ctrl+Alt+Del for itself, and some Linux desktops do too: if
-that happens, use <strong>Machine &gt; Ctrl+Alt+Del (back to BASIC)</strong>.</p>
+that happens, use <strong>Machine &gt; Ctrl+Alt+Del (restarts the machine)</strong>.</p>
 <p>The editor is explained in <a href="basic/editor.html">The editor</a>.</p>
 <p>Because Ctrl belongs to the machine, all the emulator's shortcuts use <strong>Alt</strong>.
 Alt on its own does not open the menu bar.</p>
@@ -438,6 +472,22 @@ sdimg ls card.img /                  # list a folder, with dates
 <p>(<code>sdimg</code> speaks only Spanish for now.)</p>
 <p><strong>The <code>ROM:</code> drive</strong>, with the built-in examples, is the <code>romdisk.bin</code> file that
 sits next to the emulator. If it is missing, <code>ROM:</code> is empty.</p>
+<h3 id="the-ext-drive">The EXT: drive<a class="ancla" href="#the-ext-drive" aria-hidden="true">#</a></h3>
+<p><strong>The <code>EXT:</code> drive</strong> is the folder that, on the real machine, another device
+serves through the J5 header (see <a href="hardware/firmware.html#the-ext-drive">The EXT:
+drive</a>). In the emulator the emulator
+itself serves it; in <code>zxv</code>, from <strong>File &gt; EXT: drive</strong>:</p>
+<ul>
+<li><strong>A folder...:</strong> that folder is <code>EXT:</code>. The machine can read and write in
+  it, with the same name rules as the card. <strong>Open the folder</strong> shows it in
+  your file manager.</li>
+<li><strong>No server:</strong> like the board with nothing connected: everything on <code>EXT:</code>
+  gives <code>V Disk error (no server for EXT:)</code>.</li>
+</ul>
+<p>It can be changed while the machine is running, without restarting it, and
+it is remembered. In <code>zxv-sdl</code> and <code>zxv-cli</code>, with <code>--ext FOLDER</code>; without
+it, <code>EXT:</code> has no server. In the web version, from its File menu, in Chrome
+and Edge (see <a href="#the-web-version">The web version</a>).</p>
 <h3 id="opening-files">Opening files<a class="ancla" href="#opening-files" aria-hidden="true">#</a></h3>
 <p><strong>File &gt; Open...</strong> (Alt+O), dragging a file onto the window, or naming it on
 the command line (<code>zxv game.zvb</code>) all do the same:</p>
@@ -573,7 +623,7 @@ mouse as in <code>zxv</code>, and you control the emulator with these keys:</p>
 </tr>
 <tr>
 <td>Ctrl+Alt+Del</td>
-<td>Emergency reset: back to BASIC</td>
+<td>Emergency reset: restarts the whole machine, as in <code>zxv</code> and the web version</td>
 </tr>
 <tr>
 <td>Alt+Q</td>
@@ -607,6 +657,10 @@ lists them all). These are the ones you are most likely to use:</p>
 <tr>
 <td><code>--sd-image FILE</code></td>
 <td>Use a card image as the SD card</td>
+</tr>
+<tr>
+<td><code>--ext FOLDER</code></td>
+<td>Serve FOLDER as the <code>EXT:</code> drive (otherwise <code>EXT:</code> has no server)</td>
 </tr>
 <tr>
 <td><code>--romdisk FILE</code></td>
@@ -669,6 +723,10 @@ lists them all). These are the ones you are most likely to use:</p>
 <td>Save the screen at the end</td>
 </tr>
 <tr>
+<td><code>--shots PREFIX</code></td>
+<td>Save the screen of every frame, <code>PREFIX00001.bmp</code>, <code>PREFIX00002.bmp</code>... (<code>zxv-cli</code>): the frames of an animation. With <code>--shots-every N</code>, only one of every N frames; with <code>--shots-from N</code>, from frame N on</td>
+</tr>
+<tr>
 <td><code>--wav F.wav</code></td>
 <td>Record the sound to a WAV file</td>
 </tr>
@@ -678,7 +736,7 @@ lists them all). These are the ones you are most likely to use:</p>
 </tr>
 <tr>
 <td><code>--version</code></td>
-<td>Print the ZX-V version (<code>ZX-V 0.9.0</code>) and exit. On Windows <code>zxv</code> has no console: its version is in <strong>Help &gt; About ZX-V</strong></td>
+<td>Print the ZX-V version (<code>ZX-V 0.10.0</code>) and exit. On Windows <code>zxv</code> has no console: its version is in <strong>Help &gt; About ZX-V</strong></td>
 </tr>
 </tbody>
 </table>
@@ -744,11 +802,11 @@ left Alt key):</p>
 <tbody>
 <tr>
 <td>File</td>
-<td>Open... (Alt+O), The SD card..., Save the program... (Alt+G), Save a snapshot (Alt+I), Back to the snapshot (Alt+U), Download the snapshot, Save the image (Alt+S)</td>
+<td>Open... (Alt+O), The SD card..., EXT: drive: a folder on the PC..., EXT: drive: no server, Save the program... (Alt+G), Save a snapshot (Alt+I), Back to the snapshot (Alt+U), Download the snapshot, Save the image (Alt+S), Record the sound</td>
 </tr>
 <tr>
 <td>Machine</td>
-<td>Reset (Alt+R), Ctrl+Alt+Del (back to BASIC), Stop/Continue (Alt+P), One instruction (Alt+N), Debug panel (Alt+D)</td>
+<td>Reset (Alt+R), Ctrl+Alt+Del (restarts the machine), Paste text (Alt+V), Stop/Continue (Alt+P), One instruction (Alt+N), Debug panel (Alt+D)</td>
 </tr>
 <tr>
 <td>View</td>
@@ -756,7 +814,7 @@ left Alt key):</p>
 </tr>
 <tr>
 <td>Help</td>
-<td>The keyboard and shortcuts, the documentation (on the web)</td>
+<td>The keyboard and shortcuts (with the ZX-V version in its title), the documentation (on the web), the project (GitHub), the terms of use and the third-party notices</td>
 </tr>
 </tbody>
 </table>
@@ -766,24 +824,62 @@ keys for itself.</p>
 you open the page. The first time, it contains the examples. <strong>File &gt; The SD
 card...</strong> shows it: you can browse folders, <strong>upload files</strong> from your PC,
 <strong>download</strong> files to your PC, create folders, delete files and open them.
+With the <strong>Programs only</strong> box ticked, the list keeps just the folders and what
+can be run (the <code>.zxv</code>, <code>.zvb</code>, <code>.tap</code> and <code>.tzx</code> programs and the <code>.bas</code>
+listings), without their graphics or music; the box is remembered.
 Files you drag onto the page are copied to the card (to the folder shown in the
 card window) and the first one is opened. What programs save is written to the
 browser's storage every three seconds and when you leave the page.</p>
 <p>The card lives in that browser only: another browser, or another computer, has
 its own card. If you clear the site's data in your browser, the card is
 erased. Download the files you want to keep.</p>
+<p><strong>Open</strong> (Alt+O) copies the file to the main folder of the card and opens it
+as <code>zxv</code> does:</p>
+<ul>
+<li>A program (<code>.zvb</code>, <code>.zxv</code>, <code>.tap</code>, <code>.tzx</code>) or a <code>.bas</code> listing: the
+  machine restarts and loads it with <code>CD</code> to its folder and <code>LOAD</code>. The
+  BASIC turns the <code>.bas</code> into a program and checks each line.</li>
+<li>A <code>.txt</code> is typed into the editor; a <code>.zxvs</code> snapshot is loaded.</li>
+<li>A music file (<code>.zxm</code>, <code>.pt3</code>, <code>.mod</code>, <code>.s3m</code>, <code>.xm</code>, <code>.vgm</code>, <code>.vgz</code>) or a
+  <code>.wav</code> sound stays on the card, and the page tells you how to use it:
+  <code>LOAD "/x.pt3" MUSIC: MUSIC PLAY</code> to hear the music, or
+  <code>LOAD "/x.wav" SAMPLE 0</code> for the sound.</li>
+</ul>
+<p><strong>Paste text</strong> (Machine, Alt+V) types the text on the clipboard into the
+machine, as in <code>zxv</code>. The browser may ask for permission to read it.</p>
+<p><strong>Record the sound</strong> (File) records everything that plays until you choose
+the same item again, which is then called <strong>Stop recording the sound</strong>:
+<code>zxv.wav</code> is downloaded (48 kHz, stereo).</p>
+<p><strong>The <code>EXT:</code> drive</strong> can be a folder on your PC, in <strong>Chrome and Edge</strong>
+only (Firefox and Safari cannot). <strong>File &gt; EXT: drive: a folder on the
+PC...</strong> chooses it, and <strong>EXT: drive: no server</strong> lets it go:</p>
+<ul>
+<li>The folder is copied to the page's memory (256 MB at most) and kept in
+  sync every second and a half, both ways: what the machine saves or deletes
+  on <code>EXT:</code> goes to the folder, and what you change in the folder (a listing
+  you edit in your editor) reaches the machine. If both change at the same
+  time, the machine wins.</li>
+<li>Files whose names start with a dot are left alone.</li>
+<li>The browser remembers the folder. If Chrome asks and you choose to allow
+  it on every visit, when you open the page again it uses the folder again
+  without asking.</li>
+<li>Without a folder, <code>EXT:</code> has no server, like the board with nothing
+  connected.</li>
+</ul>
 <p><strong>Snapshots</strong>: Alt+I keeps a snapshot inside the page and Alt+U goes back to
 it; <strong>File &gt; Download the snapshot</strong> saves it as a <code>.zxvs</code> file, which you can
 open later in the web version or in <code>zxv</code>.</p>
 <p><strong>Options</strong> (View &gt; Options...): the language (of the page and of the machine;
-by default, your browser's), the border and the scaling (the same as in <code>zxv</code>:
+by default, your browser's; the address can also carry it:
+<code>index.html?lang=en</code> or <code>?lang=es</code>), the border and the scaling (the same as in <code>zxv</code>:
 the picture takes all the room of the page, keeping the aspect ratio, in whole
 multiples or filling it), strict mode, unlimited CPU speed and hiding the
 pointer over the picture. The machine's language changes when you reset it.
 The border and the scaling are remembered, and Save the image (Alt+S) saves
 what you see, with that border.</p>
 <p><strong>What it does not have:</strong> card images (<code>.img</code>), the GDB server and the
-debugger windows. The debug panel (Alt+D) is there.</p>
+debugger windows; in Firefox and Safari, the <code>EXT:</code> drive with a folder on
+the PC. The debug panel (Alt+D) is there.</p>
 <h3 id="putting-it-on-your-website">Putting it on your website<a class="ancla" href="#putting-it-on-your-website" aria-hidden="true">#</a></h3>
 <p>The contents of <code>zxv-web.zip</code> can be uploaded as they are to any web server, or
 to sites like <strong>itch.io</strong>: create a project of type <em>HTML</em>, upload the zip and
@@ -796,8 +892,9 @@ its own is better, one that starts it without going through the BASIC:
 some browsers (Safari, and possibly Firefox) do not let such frames store
 anything. Then the card only lasts while the page is open, and the page tells
 you so. <strong>View &gt; Open in a separate tab</strong> opens the emulator on its own, where
-the card is stored normally. Downloads from inside a frame depend on what the
-site allows.</p>
+the card is stored normally. Inside a frame you cannot choose the folder for
+the <code>EXT:</code> drive either: for that, open it in a separate tab too. Downloads
+from inside a frame depend on what the site allows.</p>
 <h2 id="debugging">Debugging<a class="ancla" href="#debugging" aria-hidden="true">#</a></h2>
 <p>The emulator is also a complete development environment for native programs:</p>
 <ul>
@@ -839,7 +936,8 @@ program stops wherever you tell it to:</p>
 <p>When you close the window, the program carries on without stopping. The VS
 Code extension debugs the same thing from the editor, in its panel or in an
 emulator with <code>--basic-debug</code>; while it is connected, the window steps
-aside.</p>
+aside. It also debugs BASIC on the board, through the J5 header (see
+<a href="hardware/firmware.html#loading-programs-from-the-pc-j5">Loading programs from the PC</a>).</p>
 <nav class="pasos"><a class="anterior" href="getting-started.html"><small>Previous</small>← Getting started</a><a class="siguiente" href="machine.html"><small>Next</small>The machine →</a></nav>
 <footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
 </main>

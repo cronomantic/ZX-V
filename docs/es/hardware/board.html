@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="../index.html">ZX-V</a>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
 <a class="ir" href="../../en/hardware/board.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -51,6 +52,12 @@
 </li>
 <li><a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="../sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
+</li>
+<li><a href="firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
+</li>
 <li><a href="../sdk/web.html">Publicar tu juego en la web</a>
 </li>
 </ul>
@@ -71,6 +78,8 @@
 </li>
 <li><a href="protoboard.html">En una protoboard</a>
 </li>
+<li><a href="protocol.html">El protocolo</a>
+</li>
 </ul>
 </aside>
 <main>
@@ -82,10 +91,11 @@ pensada para que JLCPCB la haga <strong>con todas las piezas pequeñas de montaj
 superficial (SMD) ya soldadas</strong>. Cuando llega, solo te quedan por soldar las
 dos Pico y unas pocas piezas grandes de agujero pasante.</p>
 <blockquote>
-<p><strong>La placa todavía no se ha fabricado ni probado.</strong> El diseño está
-terminado y pasa las comprobaciones de KiCad, pero nadie ha montado una
-todavía. Si la pides, comprueba todo lo que dice esta página y cuenta con
-alguna sorpresa. El diseño se publicará cuando se haya montado y probado una; hasta entonces, esta página cuenta lo que supondrá pedirla.</p>
+<p><strong>Las primeras placas ya están hechas y una se ha probado:</strong> con las dos
+Pico juntas pasa <code>boardtest</code> y usa la tarjeta microSD; falta por probar la
+pila del reloj. Si la pides, comprueba todo lo que dice esta
+página. El diseño está en <a href="https://github.com/cronomantic/ZX-V/tree/main/pcb"><code>pcb/</code></a> (KiCad), como hardware
+abierto: licencia CERN-OHL-W v2.</p>
 </blockquote>
 <p><img alt="La cara de arriba de la placa, sin las Pico. El frontal, con los mandos,
 está abajo." src="../../images/hardware-board-top.png" /></p>
@@ -93,8 +103,9 @@ está abajo." src="../../images/hardware-board-top.png" /></p>
 conectores solo se ven por sus pads. Los rótulos de la serigrafía están en
 español (ver <a href="#conectores-y-mandos">Conectores y mandos</a>).</em></p>
 <h2 id="cómo-pedirla-a-jlcpcb">Cómo pedirla a JLCPCB<a class="ancla" href="#cómo-pedirla-a-jlcpcb" aria-hidden="true">#</a></h2>
-<p>Estos son los ficheros que habrá que subir, cuando se publiquen;
-para pedirla no hará falta KiCad.</p>
+<p>Todo lo que hay que subir está en
+<a href="https://github.com/cronomantic/ZX-V/tree/main/pcb/fabrication"><code>pcb/fabrication/</code></a>. Lo genera y lo comprueba
+<code>pcb/tools/fabricate.py</code>; para pedirla no hace falta KiCad.</p>
 <table>
 <thead>
 <tr>
@@ -250,6 +261,13 @@ Los mismos números LCSC de <code>zxv-bom.csv</code> valen en LCSC o en cualquie
 <td>No hacen falta si sueldas las Pico por sus bordes, o si tus Pico ya las traen</td>
 </tr>
 <tr>
+<td>(U1, U2)</td>
+<td>Tira de pines hembra de 1 × 20, 2,54 mm (opcional)</td>
+<td>4</td>
+<td>—</td>
+<td>Zócalos, para poder quitar las Pico; con las tiras macho en las Pico</td>
+</tr>
+<tr>
 <td>SW1, SW2</td>
 <td>Pulsador de 6 × 6 mm en ángulo recto (Omron B3F-3152)</td>
 <td>2</td>
@@ -323,18 +341,32 @@ sobre la placa.</p>
 </ul>
 <h3 id="las-tiras-opcionales">Las tiras opcionales<a class="ancla" href="#las-tiras-opcionales" aria-hidden="true">#</a></h3>
 <p><strong>J5</strong> (3 pines, <code>UART</code>) y <strong>J6</strong> (4 pines, <code>I2C</code>) están detrás a la derecha.
-Solo hacen falta para depurar (J5) o para conectar un módulo I2C, como un
-reloj DS3231 (J6). Tiras macho rectas de 2,54 mm.</p>
+Solo hacen falta para la carga remota (J5: mandar programas desde el PC,
+depurar el BASIC en la placa y servir la unidad <code>EXT:</code>; ver
+<a href="firmware.html#cargar-programas-desde-el-pc-j5">Cargar programas desde el PC</a>)
+o para conectar un módulo I2C, como un reloj DS3231 (J6). Tiras macho rectas
+de 2,54 mm.</p>
 <h3 id="las-pico">Las Pico<a class="ancla" href="#las-pico" aria-hidden="true">#</a></h3>
-<p>La huella admite las Pico de dos maneras:</p>
+<p>La huella admite las Pico de tres maneras:</p>
 <ul>
-<li><strong>Con tiras de pines</strong> (lo más fácil de soldar): suelda dos tiras de 1 × 20
-  a la Pico, o cómpralas con las tiras ya puestas, y luego suelda las tiras en
+<li><strong>En zócalos</strong> (lo recomendado en una placa que estás probando): suelda dos
+  tiras hembra de 1 × 20 en los agujeros de la placa, y dos tiras macho en la
+  Pico (o cómprala con ellas puestas). La Pico se enchufa y se quita sin
+  desoldar nada: puedes cambiarla por otra, intercambiar las dos o medir la
+  placa sin ellas. Queda más alta, a unos 8,5 mm de la placa: mírala si la vas
+  a meter en una caja.</li>
+<li><strong>Con tiras de pines</strong>: las tiras macho de la Pico, soldadas directamente en
   los agujeros de la placa. La Pico queda un poco separada de la placa.</li>
 <li><strong>Por sus bordes almenados</strong>: apoya la Pico sobre la placa, cada medio
-  agujero sobre su pad, y suelda los dos lados. La mitad de soldaduras y más
-  baja; más difícil de quitar.</li>
+  agujero sobre su pad, y suelda los dos lados. La mitad de soldaduras y la
+  más baja; la más difícil de quitar.</li>
 </ul>
+<p><strong>Para que queden rectas</strong>, usa la placa de plantilla: mete las tiras en sus
+agujeros (en los zócalos, las hembra con las macho encajadas), apoya la Pico
+encima y suelda primero las cuatro esquinas por arriba. Mira que la Pico queda
+plana, suelda el resto y luego, con la Pico puesta para que no se tuerzan, las
+tiras por debajo de la placa, también empezando por las esquinas. Hazlo sin
+nada enchufado y repasa con lupa que no haya puentes entre pines vecinos.</p>
 <p><strong>La orientación:</strong> los componentes de la Pico hacia arriba y su <strong>conector
 micro-USB hacia el frontal</strong> (hacia el USB-A y los pulsadores). La <strong>Pico ULA
 va a la izquierda</strong> y la <strong>Pico CPU a la derecha</strong>, vistas desde delante; la
@@ -361,7 +393,8 @@ idioma y la distribución del teclado.</p>
       <code>zxv_ula_link.uf2</code> en la Pico ULA.</li>
 <li>[ ] La Pico ULA a la izquierda, la Pico CPU a la derecha, con el micro-USB
       hacia delante.</li>
-<li>[ ] Los 80 pines de las Pico soldados (40 cada una).</li>
+<li>[ ] Los 80 pines de las Pico soldados (40 cada una), o en sus zócalos con
+      los 80 de los zócalos soldados.</li>
 <li>[ ] La CR2032 puesta, con el <code>+</code> hacia arriba.</li>
 </ul>
 <h2 id="el-primer-encendido">El primer encendido<a class="ancla" href="#el-primer-encendido" aria-hidden="true">#</a></h2>
@@ -399,8 +432,8 @@ idioma y la distribución del teclado.</p>
    teclas del editor hacen clic. Vuelve al BASIC con Esc, cámbialo en el menú
    EDIT (Tab, «Quitar el clic»), pulsa RESET y carga otra vez la prueba: la
    línea tiene que haber cambiado. RESET reinicia el firmware, que lo vuelve
-   a leer del reloj; Ctrl+Alt+Supr no vale, porque no lo reinicia. Si vuelve
-   a «sí», el reloj no lo guarda (o no hay reloj).</li>
+   a leer del reloj (Ctrl+Alt+Supr también vale, porque también lo reinicia).
+   Si vuelve a «sí», el reloj no lo guarda (o no hay reloj).</li>
 </ol>
 <p>Las Pico se pueden conectar al ordenador por su micro-USB con la placa
 encendida: los diodos de protección separan las dos alimentaciones. <strong>Con la
@@ -487,7 +520,7 @@ enlace. Si algo no funciona, mira <a href="firmware.html#si-no-hay-imagen-o-no-h
 <td><code>UART</code> <code>GND</code> <code>TX</code> <code>RX</code></td>
 <td>Detrás, a la derecha</td>
 <td>J5 (sin montar)</td>
-<td>El puerto serie de depuración de la Pico CPU, a 3,3 V y 921600 baudios. <code>TX</code> es la salida de la Pico</td>
+<td>La carga remota: programas desde el PC con <code>zxv-link</code> y un adaptador USB-serie de 3,3 V (<a href="firmware.html#cargar-programas-desde-el-pc-j5">cómo</a>). <code>TX</code> es la salida de la Pico</td>
 </tr>
 <tr>
 <td><code>I2C</code> <code>3V3</code> <code>GND</code> <code>SDA</code> <code>SCL</code></td>

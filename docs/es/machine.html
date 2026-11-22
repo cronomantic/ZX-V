@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="index.html">ZX-V</a>
+<a class="marca" href="index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
 <a class="ir" href="../en/machine.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -53,6 +54,12 @@
 </li>
 <li><a href="sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
+</li>
+<li><a href="hardware/firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="hardware/firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
+</li>
 <li><a href="sdk/web.html">Publicar tu juego en la web</a>
 </li>
 </ul>
@@ -70,6 +77,8 @@
 <li><a href="hardware/firmware.html">El firmware</a>
 </li>
 <li><a href="hardware/protoboard.html">En una protoboard</a>
+</li>
+<li><a href="hardware/protocol.html">El protocolo</a>
 </li>
 </ul>
 </aside>
@@ -109,11 +118,11 @@ emulador y en el hardware real.</p>
 </tr>
 <tr>
 <td>Sonido</td>
-<td>Dos chips de música AY-3-8912 (6 voces) y un beeper, en estéreo</td>
+<td>Dos chips de música AY-3-8912 (6 voces), doce canales de muestras para sonidos grabados y un beeper, en estéreo</td>
 </tr>
 <tr>
 <td>Almacenamiento</td>
-<td>Tarjeta SD, y la unidad <code>ROM:</code> de serie con los ejemplos</td>
+<td>Tarjeta SD, y la unidad <code>ROM:</code> de serie con los ejemplos; y <code>EXT:</code>, una carpeta que sirve otro equipo</td>
 </tr>
 <tr>
 <td>Entrada</td>
@@ -348,7 +357,7 @@ estándar: una letra con tilde, diéresis o cedilla tecleada sale sin ella (<cod
 sale <code>e</code>, <code>ñ</code> sale <code>n</code>), <code>¿</code> y <code>¡</code> salen <code>?</code> y <code>!</code>, y los demás caracteres se
 ignoran.</p>
 <h2 id="el-sonido">El sonido<a class="ancla" href="#el-sonido" aria-hidden="true">#</a></h2>
-<p>ZX-V tiene tres fuentes de sonido, mezcladas en <strong>estéreo</strong>:</p>
+<p>ZX-V tiene estas fuentes de sonido, mezcladas en <strong>estéreo</strong>:</p>
 <ul>
 <li><strong>El beeper</strong>: un altavoz sencillo que solo está encendido o apagado, como el
   de los primeros ordenadores domésticos. Con buena programación puede tocar
@@ -360,12 +369,24 @@ ignoran.</p>
   nota. Con dos chips hay seis voces a la vez: la música en un chip y los
   efectos en el otro, por ejemplo. El segundo chip empieza en silencio, así que
   la música escrita para un solo chip suena exactamente como en el original.</li>
+<li><strong>Doce canales de muestras</strong>, como los del Amiga, que tocan <strong>sonidos
+  grabados</strong> (golpes, voces, instrumentos) a cualquier altura, cada uno con
+  su volumen y su panorama. Las muestras se guardan en una <strong>memoria de
+  sonido</strong> de 96 KB, aparte de la RAM del procesador.</li>
 </ul>
-<p>Las voces se reparten por el estéreo (la A a la izquierda, la B en el centro y
-la C a la derecha). En el BASIC, <code>PLAY</code> toca música escrita como notas, con
-hasta seis voces, y <code>SOUND</code> maneja los chips directamente. Los programas
-nativos también pueden reproducir sonido digitalizado (ver el ejemplo
-<code>digital</code>).</p>
+<p>Las voces de los AY se reparten por el estéreo (la A a la izquierda, la B en
+el centro y la C a la derecha). En el BASIC, <code>PLAY</code> toca música escrita como
+notas, con hasta seis voces, y <code>SOUND</code> maneja los chips directamente.
+<code>SAMPLE</code> toca sonidos grabados, que se cargan de ficheros WAV. <code>MUSIC</code> toca
+de fondo la música de los trackers: el formato propio de ZX-V, <code>.zxm</code> (con
+los dos AY y los canales de muestras), el <code>.pt3</code> y otros formatos del AY,
+los MOD, S3M y XM (que convierte al cargarlos) y los VGM. Los detalles, en
+<a href="basic/reference.html#sonido-y-música">Sonido y música</a>, en la referencia del
+BASIC.</p>
+<p>Los programas nativos tocan los canales de muestras con las funciones de
+<a href="sdk/reference.html#canales-de-muestras">Canales de muestras</a> (ver el ejemplo
+<code>samples</code>), y también pueden reproducir sonido digitalizado por un chip AY
+(ver el ejemplo <code>digital</code>).</p>
 <p>El sonido sale por HDMI con la imagen y, en la máquina real, también por una
 salida analógica de línea.</p>
 <h2 id="los-dispositivos-de-entrada">Los dispositivos de entrada<a class="ancla" href="#los-dispositivos-de-entrada" aria-hidden="true">#</a></h2>
@@ -386,8 +407,9 @@ salida analógica de línea.</p>
 </ul>
 <p>En la máquina real, el teclado, el ratón y los mandos se conectan a un hub USB.</p>
 <p><strong>Ctrl+Alt+Supr</strong> es el reset de emergencia: esté en marcha lo que esté,
-incluso un programa colgado, la máquina vuelve al BASIC. Un programa BASIC se
-conserva; uno nativo, no.</p>
+incluso un programa colgado, la máquina se reinicia entera, como al
+encenderla, y vuelve al BASIC. La memoria se borra, así que el programa BASIC
+que no hayas guardado se pierde; el idioma y el clic de las teclas se quedan.</p>
 <h2 id="la-memoria">La memoria<a class="ancla" href="#la-memoria" aria-hidden="true">#</a></h2>
 <p>El procesador tiene 520 KB de RAM. La mayor parte se reparte así:</p>
 <table>
@@ -424,11 +446,11 @@ del propio BASIC.</p>
 248 KB. En el modo 0 cada página de vídeo solo necesita 24 KB para la
 pantalla, así que un programa que no use un campo virtual grande puede usar
 también los otros 72 KB de cada página.</p>
-<p>La ROM, con el BASIC, ocupa 512 KB, y la unidad <code>ROM:</code> hasta 3,25 MB; las dos
+<p>La ROM, con el BASIC, ocupa 512 KB, y la unidad <code>ROM:</code> hasta 2,5 MB; las dos
 son de solo lectura y no forman parte de la RAM.</p>
 <h2 id="el-almacenamiento-y-los-ficheros">El almacenamiento y los ficheros<a class="ancla" href="#el-almacenamiento-y-los-ficheros" aria-hidden="true">#</a></h2>
-<h3 id="la-tarjeta-sd-y-la-unidad-rom">La tarjeta SD y la unidad <code>ROM:</code><a class="ancla" href="#la-tarjeta-sd-y-la-unidad-rom" aria-hidden="true">#</a></h3>
-<p>La máquina tiene dos <strong>unidades</strong>:</p>
+<h3 id="la-tarjeta-sd-y-las-unidades-rom-y-ext">La tarjeta SD y las unidades <code>ROM:</code> y <code>EXT:</code><a class="ancla" href="#la-tarjeta-sd-y-las-unidades-rom-y-ext" aria-hidden="true">#</a></h3>
+<p>La máquina tiene tres <strong>unidades</strong>:</p>
 <ul>
 <li><strong><code>SD:</code></strong>, la <strong>tarjeta SD</strong>, donde se carga y se graba. Puede estar
   formateada en FAT, FAT32 o exFAT, así que también la puedes usar en tu PC.
@@ -436,6 +458,13 @@ son de solo lectura y no forman parte de la RAM.</p>
 <li><strong><code>ROM:</code></strong>, un disco de solo lectura que va dentro de la máquina, con los
   ejemplos. No se puede escribir en él: si se intenta, sale
   <code>V Error de disco (no se puede)</code>.</li>
+<li><strong><code>EXT:</code></strong>, la <strong>unidad externa</strong>: los ficheros de una carpeta que sirve
+  otro equipo (un PC, una Raspberry Pi, otra ZX-V...), hoy por la tira J5 de
+  la placa. Se lee y se escribe como la tarjeta, pero solo mientras hay un
+  servidor: si no, sale <code>V Error de disco (EXT: sin servidor)</code>. Ver <a href="hardware/firmware.html#la-unidad-ext">La
+  unidad EXT:</a>; en el emulador, una
+  carpeta de tu PC, con la opción <code>--ext</code> o <strong>Archivo &gt; Unidad EXT:</strong> (ver
+  <a href="emulator.html#la-unidad-ext">La unidad EXT:</a> en el emulador).</li>
 </ul>
 <p>Se usan con las órdenes de siempre del BASIC: <code>CAT</code> lista una carpeta, <code>CD</code>
 cambia de carpeta, <code>MKDIR</code> y <code>RMDIR</code> crean y borran carpetas, y <code>COPY</code>, <code>MOVE</code>
@@ -502,9 +531,29 @@ nombre. Las carpetas se separan con <code>/</code>.</p>
 <td><code>SAVE "nombre" GRAPHICS</code>, <code>LOAD "nombre" GRAPHICS</code>; las pantallas, <code>SAVE "nombre" SCREEN$</code>, <code>LOAD "nombre" SCREEN$</code>. También se pueden hacer a partir de imágenes PNG en el PC (ver el <a href="sdk/index.html">SDK</a>)</td>
 </tr>
 <tr>
+<td><code>.zxm</code></td>
+<td>Música en el formato propio de ZX-V, con los dos AY y los canales de muestras (la guarda <code>zxv-tracker</code>)</td>
+<td><code>LOAD "nombre" MUSIC</code></td>
+</tr>
+<tr>
 <td><code>.pt3</code></td>
 <td>Música hecha con un tracker (también Pro Tracker 2, Sound Tracker, ASC, PSG y TurboSound)</td>
 <td><code>LOAD "nombre" MUSIC</code></td>
+</tr>
+<tr>
+<td><code>.mod</code>, <code>.s3m</code>, <code>.xm</code></td>
+<td>Música de los trackers de muestras (ProTracker, Scream Tracker 3, FastTracker 2), que se convierte al cargarla</td>
+<td><code>LOAD "nombre" MUSIC</code></td>
+</tr>
+<tr>
+<td><code>.vgm</code>, <code>.vgz</code></td>
+<td>Lo que un emulador escribió en los AY, con su hora; <code>.vgz</code>, comprimido</td>
+<td><code>LOAD "nombre" MUSIC</code></td>
+</tr>
+<tr>
+<td><code>.wav</code></td>
+<td>Un sonido grabado</td>
+<td><code>LOAD "nombre" SAMPLE n</code></td>
 </tr>
 <tr>
 <td><code>.afb</code>, <code>.afx</code></td>
@@ -533,8 +582,9 @@ pantalla de presentación, el juego) igual que en el Spectrum.</p>
 <p>ZX-V sabe la <strong>fecha y la hora</strong>. En la máquina real, un chip de reloj con pila
 las mantiene con la máquina apagada; el emulador usa el reloj de tu PC. Los
 ficheros se fechan al grabarlos, y los programas pueden leer la hora (en el
-BASIC, <code>PRINT CLOCK 3;":";CLOCK 4</code> enseña la hora y los minutos). <code>CLOCK</code> con
-una fecha lo pone en hora.</p>
+BASIC, <code>PRINT CLOCK 3;":";CLOCK 4</code> enseña la hora y los minutos). Se pone en
+hora desde el menú del editor, con <a href="basic/editor.html#la-fecha-y-la-hora">Fecha y hora</a>,
+o con <code>CLOCK</code> y una fecha.</p>
 <p>Si el reloj no se ha puesto nunca en hora, la máquina funciona igual y los
 ficheros se fechan el 1 de enero de 2026.</p>
 <p>Para medir el tiempo dentro de un programa, la máquina cuenta <strong>imágenes</strong>
@@ -596,7 +646,7 @@ curiosidad.</p>
 <tr>
 <td>Sonido</td>
 <td>Beeper / beeper y un AY</td>
-<td>Beeper y dos AY, en estéreo</td>
+<td>Beeper, dos AY y doce canales de muestras, en estéreo</td>
 </tr>
 <tr>
 <td>Almacenamiento</td>

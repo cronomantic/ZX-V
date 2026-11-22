@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="index.html">ZX-V</a>
+<a class="marca" href="index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
 <a class="ir" href="../es/machine.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -53,6 +54,13 @@
 </li>
 <li><a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="sdk/index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a>
+</li>
+<li><a href="hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
+</li>
+<li><a href="hardware/firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>
+</li>
 <li><a href="sdk/web.html">Publishing your game on the web</a>
 </li>
 </ul>
@@ -70,6 +78,8 @@
 <li><a href="hardware/firmware.html">The firmware</a>
 </li>
 <li><a href="hardware/protoboard.html">On a protoboard</a>
+</li>
+<li><a href="hardware/protocol.html">The protocol</a>
 </li>
 </ul>
 </aside>
@@ -109,11 +119,11 @@ machine in the emulator and in the real hardware.</p>
 </tr>
 <tr>
 <td>Sound</td>
-<td>Two AY-3-8912 music chips (6 voices) and a beeper, in stereo</td>
+<td>Two AY-3-8912 music chips (6 voices), twelve sample channels for recorded sounds and a beeper, in stereo</td>
 </tr>
 <tr>
 <td>Storage</td>
-<td>SD card, plus the built-in <code>ROM:</code> drive with the examples</td>
+<td>SD card, plus the built-in <code>ROM:</code> drive with the examples; and <code>EXT:</code>, a folder served by another device</td>
 </tr>
 <tr>
 <td>Input</td>
@@ -343,7 +353,7 @@ diaeresis, a tilde or a cedilla typed on the keyboard comes out without it
 (<code>é</code> as <code>e</code>, <code>ñ</code> as <code>n</code>), <code>¿</code> and <code>¡</code> come out as <code>?</code> and <code>!</code>, and other
 characters are ignored.</p>
 <h2 id="sound">Sound<a class="ancla" href="#sound" aria-hidden="true">#</a></h2>
-<p>ZX-V has three sound sources, mixed in <strong>stereo</strong>:</p>
+<p>ZX-V has these sound sources, mixed in <strong>stereo</strong>:</p>
 <ul>
 <li><strong>The beeper</strong>: a simple speaker that is either on or off, like the one in
   the first home computers. With clever programming it can play surprisingly
@@ -355,11 +365,24 @@ characters are ignored.</p>
   chips there are six voices at once: music on one chip and sound effects on
   the other, for example. The second chip starts silent, so music written for
   one chip plays exactly as on the original.</li>
+<li><strong>Twelve sample channels</strong>, like the Amiga's, which play <strong>recorded
+  sounds</strong> (hits, voices, instruments) at any pitch, each with its own volume
+  and pan. The samples are kept in a 96 KB <strong>sound memory</strong>, separate from
+  the processor's RAM.</li>
 </ul>
-<p>The voices are spread across the stereo picture (A on the left, B in the
-centre, C on the right). In BASIC, <code>PLAY</code> plays music written as notes, with
-up to six voices, and <code>SOUND</code> controls the chips directly. Native programs can
-also play digitised samples (see the <code>digital</code> example).</p>
+<p>The voices of the AY chips are spread across the stereo picture (A on the
+left, B in the centre, C on the right). In BASIC, <code>PLAY</code> plays music written
+as notes, with up to six voices, and <code>SOUND</code> controls the chips directly.
+<code>SAMPLE</code> plays recorded sounds, loaded from WAV files. <code>MUSIC</code> plays tracker
+music in the background: ZX-V's own format, <code>.zxm</code> (with both AY chips and
+the sample channels), <code>.pt3</code> and other AY formats, MOD, S3M and XM (which it
+converts when loading) and VGM. The details are in
+<a href="basic/reference.html#sound-and-music">Sound and music</a>, in the BASIC
+reference.</p>
+<p>Native programs play the sample channels with the functions in
+<a href="sdk/reference.html#sample-channels">Sample channels</a> (see the <code>samples</code>
+example), and they can also play digitised sound through an AY chip (see the
+<code>digital</code> example).</p>
 <p>The sound comes out through HDMI with the picture and, on the real machine,
 also through an analogue line output.</p>
 <h2 id="input-devices">Input devices<a class="ancla" href="#input-devices" aria-hidden="true">#</a></h2>
@@ -379,8 +402,9 @@ also through an analogue line output.</p>
 </ul>
 <p>On the real machine, the keyboard, mouse and gamepads plug into a USB hub.</p>
 <p><strong>Ctrl+Alt+Del</strong> is the emergency reset: whatever is running, even a program
-that has hung, the machine goes back to BASIC. A BASIC program is kept; a
-native program is not.</p>
+that has hung, the whole machine restarts, as if switched off and on, and
+goes back to BASIC. Memory is cleared, so a BASIC program you have not saved
+is lost; the language and the key click are kept.</p>
 <h2 id="memory">Memory<a class="ancla" href="#memory" aria-hidden="true">#</a></h2>
 <p>The processor has 520 KB of RAM. Most of it is shared like this:</p>
 <table>
@@ -417,17 +441,24 @@ own working space.</p>
 248 KB. In mode 0 each video page only needs 24 KB for the screen, so a
 program that does not use a large virtual playfield can also use the other
 72 KB of each page.</p>
-<p>The ROM, with the BASIC, takes 512 KB, and the <code>ROM:</code> drive up to 3.25 MB;
+<p>The ROM, with the BASIC, takes 512 KB, and the <code>ROM:</code> drive up to 2.5 MB;
 both are read-only and are not part of the RAM.</p>
 <h2 id="storage-and-files">Storage and files<a class="ancla" href="#storage-and-files" aria-hidden="true">#</a></h2>
-<h3 id="the-sd-card-and-the-rom-drive">The SD card and the <code>ROM:</code> drive<a class="ancla" href="#the-sd-card-and-the-rom-drive" aria-hidden="true">#</a></h3>
-<p>The machine has two <strong>drives</strong>:</p>
+<h3 id="the-sd-card-and-the-rom-and-ext-drives">The SD card and the <code>ROM:</code> and <code>EXT:</code> drives<a class="ancla" href="#the-sd-card-and-the-rom-and-ext-drives" aria-hidden="true">#</a></h3>
+<p>The machine has three <strong>drives</strong>:</p>
 <ul>
 <li><strong><code>SD:</code></strong>, the <strong>SD card</strong>, where you load and save. It can be formatted as
   FAT, FAT32 or exFAT, so you can also use it in your PC. In the emulator, a
   folder of your PC plays the card.</li>
 <li><strong><code>ROM:</code></strong>, a read-only disk built into the machine, with the examples. It
   cannot be written to: trying it gives <code>V Disk error (not allowed)</code>.</li>
+<li><strong><code>EXT:</code></strong>, the <strong>external drive</strong>: the files of a folder served by
+  another device (a PC, a Raspberry Pi, another ZX-V...), today through the
+  board's J5 header. It is read and written like the card, but only while
+  there is a server: otherwise you get <code>V Disk error (no server for EXT:)</code>.
+  See <a href="hardware/firmware.html#the-ext-drive">The EXT: drive</a>; in the emulator,
+  a folder of your PC, with the <code>--ext</code> option or <strong>File &gt; EXT: drive</strong> (see
+  <a href="emulator.html#the-ext-drive">The EXT: drive</a> in the emulator).</li>
 </ul>
 <p>You use them with the usual BASIC commands: <code>CAT</code> lists a folder, <code>CD</code> changes
 folder, <code>MKDIR</code> and <code>RMDIR</code> create and remove folders, and <code>COPY</code>, <code>MOVE</code> and
@@ -493,9 +524,29 @@ separated with <code>/</code>.</p>
 <td><code>SAVE "name" GRAPHICS</code>, <code>LOAD "name" GRAPHICS</code>; screens, <code>SAVE "name" SCREEN$</code>, <code>LOAD "name" SCREEN$</code>. They can also be made from PNG images on your PC (see the <a href="sdk/index.html">SDK</a>)</td>
 </tr>
 <tr>
+<td><code>.zxm</code></td>
+<td>Music in ZX-V's own format, with both AY chips and the sample channels (<code>zxv-tracker</code> saves it)</td>
+<td><code>LOAD "name" MUSIC</code></td>
+</tr>
+<tr>
 <td><code>.pt3</code></td>
 <td>Music made with a tracker (also Pro Tracker 2, Sound Tracker, ASC, PSG and TurboSound)</td>
 <td><code>LOAD "name" MUSIC</code></td>
+</tr>
+<tr>
+<td><code>.mod</code>, <code>.s3m</code>, <code>.xm</code></td>
+<td>Music from the sample trackers (ProTracker, Scream Tracker 3, FastTracker 2), converted when it is loaded</td>
+<td><code>LOAD "name" MUSIC</code></td>
+</tr>
+<tr>
+<td><code>.vgm</code>, <code>.vgz</code></td>
+<td>What an emulator wrote to the AY chips, with its timing; <code>.vgz</code>, compressed</td>
+<td><code>LOAD "name" MUSIC</code></td>
+</tr>
+<tr>
+<td><code>.wav</code></td>
+<td>A recorded sound</td>
+<td><code>LOAD "name" SAMPLE n</code></td>
 </tr>
 <tr>
 <td><code>.afb</code>, <code>.afx</code></td>
@@ -524,8 +575,9 @@ did on the Spectrum.</p>
 <p>ZX-V knows the <strong>date and time</strong>. On the real machine a clock chip with a
 battery keeps it while the machine is off; the emulator uses your PC's clock.
 Files are dated when they are saved, and programs can read the time (in BASIC,
-<code>PRINT CLOCK 3;":";CLOCK 4</code> shows the hour and minutes). <code>CLOCK</code> with a date
-sets it.</p>
+<code>PRINT CLOCK 3;":";CLOCK 4</code> shows the hour and minutes). It is set from the
+editor's menu, with <a href="basic/editor.html#the-date-and-time">Date and time</a>, or with
+<code>CLOCK</code> and a date.</p>
 <p>If the clock has never been set, the machine works normally and files are
 dated 1 January 2026.</p>
 <p>For measuring time inside a program, the machine counts <strong>frames</strong>: 60 per
@@ -586,7 +638,7 @@ curious about it.</p>
 <tr>
 <td>Sound</td>
 <td>Beeper / beeper and one AY</td>
-<td>Beeper and two AY chips, stereo</td>
+<td>Beeper, two AY chips and twelve sample channels, stereo</td>
 </tr>
 <tr>
 <td>Storage</td>

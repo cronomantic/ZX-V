@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="../index.html">ZX-V</a>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
 <a class="ir" href="../../en/hardware/index.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -51,6 +52,12 @@
 </li>
 <li><a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="../sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
+</li>
+<li><a href="firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
+</li>
 <li><a href="../sdk/web.html">Publicar tu juego en la web</a>
 </li>
 </ul>
@@ -71,6 +78,8 @@
 </li>
 <li><a href="protoboard.html">En una protoboard</a>
 </li>
+<li><a href="protocol.html">El protocolo</a>
+</li>
 </ul>
 </aside>
 <main>
@@ -80,15 +89,12 @@ enchufarla a la tele. Está hecha con dos placas <strong>Raspberry Pi Pico 2</st
 cuantos conectores y unas decenas de piezas pequeñas. No hace falta programar
 nada: el software de las dos Pico viene listo para copiarlo en ellas.</p>
 <blockquote>
-<p><strong>Estado.</strong> El firmware de las dos Pico está escrito, y <strong>cada Pico se ha
-probado por separado</strong>: la imagen y el sonido por HDMI con una sola Pico 2,
-y la CPU, que ejecuta los programas exactamente igual que el emulador.
-<strong>Las dos Pico todavía no se han probado juntas</strong>, así que la máquina
-completa está sin probar, tanto en la placa como en una protoboard. La
-<strong>placa de circuito impreso (PCB) está diseñada del todo, pero todavía no
-se ha fabricado ni probado</strong>. Si la montas ahora, serás de los primeros en
-hacerlo: lee con calma <a href="board.html">La placa</a> y cuenta con que puede haber
-algo que corregir.</p>
+<p><strong>Estado.</strong> <strong>La primera placa funciona</strong>, con las dos Pico juntas:
+arranca en el BASIC en una pantalla HDMI, y el programa <code>boardtest</code> pasa la
+imagen y las paletas, el sonido, el teclado USB, los mandos, el ratón, el
+botón MODO y el reloj, y la tarjeta microSD lee, guarda y actualiza el
+firmware. <strong>Falta por probar en ella:</strong> la pila del reloj. En una protoboard nadie ha montado todavía la máquina. Si la
+montas ahora, serás de los primeros: lee con calma <a href="board.html">La placa</a>.</p>
 </blockquote>
 <h2 id="qué-necesitas">Qué necesitas<a class="ancla" href="#qué-necesitas" aria-hidden="true">#</a></h2>
 <ul>
@@ -106,6 +112,10 @@ algo que corregir.</p>
 <li><strong>Un cargador de móvil USB-C</strong> de 5 V que dé 2 A, con su cable.</li>
 <li>Si quieres, <strong>unos altavoces con amplificador</strong> para la salida de audio, y
   <strong>una pila de botón CR2032</strong> para que el reloj no pierda la fecha y la hora.</li>
+<li>Si quieres, <strong>un adaptador USB-serie de 3,3 V</strong> para la tira J5 de la
+  placa: con él mandas programas desde el PC y los ejecutas sin sacar la
+  tarjeta, depuras el BASIC en la placa y sirves una carpeta del PC como la
+  unidad <code>EXT:</code> (<a href="firmware.html#cargar-programas-desde-el-pc-j5">Cargar programas desde el PC</a>).</li>
 <li>Soldador, estaño, y un ordenador con un cable micro-USB para cargar el
   firmware en las Pico.</li>
 </ul>
@@ -126,7 +136,7 @@ algo que corregir.</p>
 </tr>
 <tr>
 <td>Qué se suelda</td>
-<td>Solo las dos Pico, dos pulsadores, un interruptor, dos LED y la pila: todo de agujero pasante</td>
+<td>Solo las dos Pico, dos pulsadores, un interruptor, dos LED, la pila y, si quieres, la tira J5 para la carga remota: todo de agujero pasante</td>
 <td>Muchos cables; el HDMI y el enlace entre las Pico piden cables cortos y ordenados</td>
 </tr>
 <tr>
@@ -136,8 +146,8 @@ algo que corregir.</p>
 </tr>
 <tr>
 <td>Estado</td>
-<td>Diseñada, <strong>sin fabricar ni probar</strong></td>
-<td>Cada Pico probada por separado; <strong>juntas, todavía no</strong></td>
+<td><strong>Funciona</strong>: la primera placa pasa <code>boardtest</code> y usa la tarjeta microSD (falta por probar la pila)</td>
+<td>Cada Pico probada por separado; el cableado de las dos juntas en una protoboard, <strong>todavía no</strong> (juntas funcionan en la placa)</td>
 </tr>
 <tr>
 <td>Guía</td>
@@ -205,8 +215,9 @@ y la mayoría de los mandos.</p>
 <ul>
 <li><strong>Ctrl+Alt+F1</strong>, <strong>F2</strong> y <strong>F3</strong> eligen la distribución del teclado:
   española, británica o de EE. UU. La máquina la recuerda.</li>
-<li><strong>Ctrl+Alt+Supr</strong> es el reinicio de emergencia: vuelve al BASIC aunque un
-  programa se haya colgado, y conserva tu programa en BASIC.</li>
+<li><strong>Ctrl+Alt+Supr</strong> es el reinicio de emergencia: reinicia la máquina, como
+  al encenderla, aunque un programa se haya colgado. El programa en BASIC que
+  no hayas guardado se pierde.</li>
 <li><strong>Ctrl+Alt+F12</strong> enseña o quita la página de diagnóstico (ver
   <a href="firmware.html#la-página-de-diagnóstico">El firmware</a>).</li>
 </ul>
@@ -230,8 +241,10 @@ USB. El USB-C solo lleva corriente, no datos.</p>
 <h3 id="el-reloj-y-el-idioma">El reloj y el idioma<a class="ancla" href="#el-reloj-y-el-idioma" aria-hidden="true">#</a></h3>
 <p>La placa tiene un reloj con una pila CR2032. Con la máquina apagada conserva la
 fecha y la hora (con ellas se fechan los ficheros que guardas), el idioma de la
-máquina y la distribución del teclado. La hora se pone desde el BASIC con
-<code>CLOCK</code>, por ejemplo <code>CLOCK 2026,10,20,18,30</code> (año, mes, día, hora y minutos).</p>
+máquina y la distribución del teclado. Para ponerlo en hora, abre el menú del
+editor (EDIT, la tecla Tab) y elige <strong>Fecha y hora</strong> (<a href="../basic/editor.html#la-fecha-y-la-hora">cómo
+funciona</a>), o usa <code>CLOCK</code> en el BASIC,
+por ejemplo <code>CLOCK 2026,10,20,18,30</code> (año, mes, día, hora y minutos).</p>
 <p>La máquina empieza en <strong>inglés</strong>. Para pasar al español, <code>LANGUAGE "es"</code>; con
 la pila puesta, se recuerda.</p>
 <h2 id="en-esta-sección">En esta sección<a class="ancla" href="#en-esta-sección" aria-hidden="true">#</a></h2>
@@ -244,6 +257,8 @@ la pila puesta, se recuerda.</p>
   o no hay sonido.</li>
 <li><strong><a href="protoboard.html">En una protoboard</a></strong>: ZX-V sin la placa, con el cableado
   entre las dos Pico y a cada conector.</li>
+<li><strong><a href="protocol.html">El protocolo</a></strong>: lo que viaja por J5, para quien quiera
+  hacer su propio servidor de la unidad <code>EXT:</code> o hablar con la placa.</li>
 </ul>
 <nav class="pasos"><a class="anterior" href="../zxbasic.html"><small>Anterior</small>← ZX Basic</a><a class="siguiente" href="board.html"><small>Siguiente</small>La placa →</a></nav>
 <footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>

@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="../../index.html">ZX-V</a>
+<a class="marca" href="../../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
 <a class="ir" href="../../../es/basic/tutorial/10-sound-and-music.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -67,6 +68,13 @@
 </li>
 <li><a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="../../sdk/index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a>
+</li>
+<li><a href="../../hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
+</li>
+<li><a href="../../hardware/firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>
+</li>
 <li><a href="../../sdk/web.html">Publishing your game on the web</a>
 </li>
 </ul>
@@ -85,16 +93,20 @@
 </li>
 <li><a href="../../hardware/protoboard.html">On a protoboard</a>
 </li>
+<li><a href="../../hardware/protocol.html">The protocol</a>
+</li>
 </ul>
 </aside>
 <main>
 <h1 id="10-sound-and-music">10. Sound and music</h1>
 <p><strong>In this chapter you will learn</strong> to make simple beeps with <code>BEEP</code>, to
-play tunes of up to six voices with <code>PLAY</code>, and to create sound effects for
-games with <code>SOUND</code>.</p>
-<p>ZX-V has two kinds of sound: the <strong>beeper</strong>, a simple loudspeaker like the
-one in the first Spectrum, and two <strong>sound chips</strong> (called AY), like the
-one in the Spectrum 128, each able to play three notes at once.</p>
+play tunes of up to six voices with <code>PLAY</code>, to create sound effects for
+games with <code>SOUND</code>, and to play recorded sounds with <code>SAMPLE</code> and background
+music with <code>MUSIC</code>.</p>
+<p>ZX-V has three kinds of sound: the <strong>beeper</strong>, a simple loudspeaker like the
+one in the first Spectrum; two <strong>sound chips</strong> (called AY), like the one in
+the Spectrum 128, each able to play three notes at once; and twelve
+<strong>sample channels</strong>, which play recorded sounds.</p>
 <h2 id="beep"><code>BEEP</code><a class="ancla" href="#beep" aria-hidden="true">#</a></h2>
 <p><code>BEEP duration,pitch</code> plays one note. The duration is in seconds, and the
 pitch is the number of semitones above middle C (0 is middle C, 12 is the C
@@ -238,11 +250,31 @@ you will see it again in the next chapters.</p>
 the chip plays. That is what games need. The sound keeps playing until you
 change it, so remember to silence it with <code>SOUND 8,0</code>. Registers 16 to 31
 are the same ones for the second chip.</p>
+<h2 id="recorded-sounds-sample">Recorded sounds: <code>SAMPLE</code><a class="ancla" href="#recorded-sounds-sample" aria-hidden="true">#</a></h2>
+<p>A drum hit, a voice or a dog's bark are not made with notes: they are
+recorded. To try it you need a sound in a WAV file on the card, for example
+<code>hit.wav</code> (you can record or trim it on your PC with a sound editor such as
+Audacity). <code>LOAD "hit" SAMPLE 0</code> loads it into sample 0 (there are 0 to
+31), and <code>SAMPLE 0</code> plays it:</p>
+<pre><code>10 LOAD &quot;hit&quot; SAMPLE 0
+20 FOR p=0 TO 12 STEP 2
+30 SAMPLE 0,p
+40 PAUSE 15
+50 NEXT p
+</code></pre>
+<p>The number after the sample is the pitch, in semitones, as in <code>BEEP</code>: 0
+sounds as it was recorded and 12 an octave higher. After it can come the
+volume (0 to 64) and the pan (from 0, on the left, to 255, on the right):
+<code>SAMPLE 0,0,32,255</code> plays it at half volume, on the right.</p>
+<p>Like <code>SOUND</code>, <code>SAMPLE</code> does not wait: the program goes on while it plays.
+There are twelve channels, so twelve sounds can play at once, with the music
+too. <code>SAMPLE STOP</code> stops them all.</p>
 <h2 id="real-music-music-and-sfx">Real music: <code>MUSIC</code> and <code>SFX</code><a class="ancla" href="#real-music-music-and-sfx" aria-hidden="true">#</a></h2>
 <p>The music for a game is made with a <em>tracker</em>, a program for composing like
 the ones Spectrum musicians used. ZX-V comes with one for the PC,
 <a href="../../sdk/index.html#the-tracker-for-the-pc-zxv-tracker"><code>zxv-tracker</code></a>,
-which saves the song in a <code>.pt3</code> file and the sound effects in an <code>.afb</code>.
+which saves the song in a <code>.zxm</code> file (or a <code>.pt3</code>, if it only uses the AY
+chips) and the sound effects in an <code>.afb</code>.
 BASIC plays them <strong>in the background</strong>, while the program goes on:</p>
 <pre><code>10 LOAD &quot;tune&quot; MUSIC: MUSIC PLAY
 20 LOAD &quot;effects&quot; SFX
@@ -250,8 +282,12 @@ BASIC plays them <strong>in the background</strong>, while the program goes on:<
 40 GO TO 30
 </code></pre>
 <p><code>MUSIC STOP</code> stops the music and <code>SFX n</code> plays effect number <code>n</code> without
-silencing it. Everything else is in the reference: <a href="../reference.html#music"><code>MUSIC</code></a>
-and <a href="../reference.html#sfx"><code>SFX</code></a>.</p>
+silencing it.</p>
+<p><code>MUSIC</code> also loads the music of other trackers: MOD, S3M and XM modules from
+the sample trackers, which it converts when loading, and VGM files, AY music
+as emulators record it. Everything else is in the reference:
+<a href="../reference.html#music"><code>MUSIC</code></a>, <a href="../reference.html#sfx"><code>SFX</code></a> and
+<a href="../reference.html#sample"><code>SAMPLE</code></a>.</p>
 <h2 id="try-it">Try it<a class="ancla" href="#try-it" aria-hidden="true">#</a></h2>
 <ol>
 <li>Play the beginning of a tune you know with <code>PLAY</code>.</li>
@@ -275,7 +311,8 @@ wait a few frames with <code>WAIT 4</code>, set a smaller period (a higher note)
 <hr />
 <p><strong>Reference:</strong> <a href="../reference.html#beep"><code>BEEP</code></a>, <a href="../reference.html#play"><code>PLAY</code></a>,
 <a href="../reference.html#sound"><code>SOUND</code></a>, <a href="../reference.html#wait"><code>WAIT</code></a>,
-<a href="../reference.html#music"><code>MUSIC</code></a>, <a href="../reference.html#sfx"><code>SFX</code></a>.</p>
+<a href="../reference.html#sample"><code>SAMPLE</code></a>, <a href="../reference.html#music"><code>MUSIC</code></a>,
+<a href="../reference.html#sfx"><code>SFX</code></a>.</p>
 <p><strong>Next:</strong> <a href="11-keyboard-and-joystick.html">11. Keyboard and joystick</a> ·
 <strong>Previous:</strong> <a href="09-drawing.html">9. Drawing</a></p>
 <nav class="pasos"><a class="anterior" href="09-drawing.html"><small>Previous</small>← 9. Drawing</a><a class="siguiente" href="11-keyboard-and-joystick.html"><small>Next</small>11. Keyboard and joystick →</a></nav>

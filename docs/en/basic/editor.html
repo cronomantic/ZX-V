@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="../index.html">ZX-V</a>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
 <a class="ir" href="../../es/basic/editor.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -53,6 +54,13 @@
 </li>
 <li><a href="../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="../sdk/index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a>
+</li>
+<li><a href="../hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
+</li>
+<li><a href="../hardware/firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>
+</li>
 <li><a href="../sdk/web.html">Publishing your game on the web</a>
 </li>
 </ul>
@@ -70,6 +78,8 @@
 <li><a href="../hardware/firmware.html">The firmware</a>
 </li>
 <li><a href="../hardware/protoboard.html">On a protoboard</a>
+</li>
+<li><a href="../hardware/protocol.html">The protocol</a>
 </li>
 </ul>
 </aside>
@@ -378,6 +388,14 @@ anything.</p>
 <td>Every key in the editor clicks, as on the 128K. This option turns the click off or back on; the machine remembers it when switched off</td>
 </tr>
 <tr>
+<td>Date and time</td>
+<td>Sets the machine's clock: see <a href="#the-date-and-time">The date and time</a></td>
+</tr>
+<tr>
+<td>Update firmware</td>
+<td>On the real machine, updates its firmware from the <code>zxv-update.bin</code> file on the SD card: see <a href="../hardware/firmware.html#updating">The firmware</a>. In the emulator it only says that there is nothing to update</td>
+</tr>
+<tr>
 <td>Copy here, Move here, Delete lines</td>
 <td>Only with a block marked: see <a href="#blocks-of-lines">Blocks of lines</a></td>
 </tr>
@@ -386,6 +404,27 @@ anything.</p>
 <p>Renumber and Print work with the stored program: if the line you are on has
 been changed, it is stored first (and if it has a mistake, the menu closes so
 that you can fix it).</p>
+<h2 id="the-date-and-time">The date and time<a class="ancla" href="#the-date-and-time" aria-hidden="true">#</a></h2>
+<p>The machine has a clock, with a battery on the board, that stamps the files
+saved on the card and that programs read with <code>CLOCK</code>. If it is not set when
+the machine is switched on (a new board, or without its battery), the status
+line says so instead of the copyright. The <strong>Date and time</strong> option in the
+EDIT menu sets it without typing any command:</p>
+<p><img alt="The date and time" src="../../images/editor-clock-en.png" /></p>
+<ul>
+<li><strong>↑ and ↓</strong> choose the day, the month, the year, the hour or the minutes.</li>
+<li><strong>← and →</strong> change it, one at a time; past the last value it goes back to
+  the first (after 59 minutes, 0).</li>
+<li>Or <strong>type the number</strong>: <code>18</code> for the day, <code>11</code> for November, <code>2026</code> for
+  the year.</li>
+<li>Below the minutes is the day of the week, to check the date.</li>
+<li><strong>Enter</strong> sets the clock (the seconds start at 0) and the status line says
+  <code>Clock set</code>; <strong>Esc</strong> or <strong>Tab</strong> close it without changing anything.</li>
+</ul>
+<p>The day never goes past the days of its month: February 30 cannot be set. If
+the clock has never been set, the box starts on the date of the ROM. The same
+can be done from a program with the <a href="reference.html#clock"><code>CLOCK</code></a> statement.
+In the emulator, the clock follows the computer's own unless you set it.</p>
 <h2 id="the-editor-in-mode-0">The editor in mode 0<a class="ancla" href="#the-editor-in-mode-0" aria-hidden="true">#</a></h2>
 <p>The editor starts in screen mode 1: 64 columns and 46 rows for the listing,
 in small letters. The <strong>Mode 0</strong> option in the EDIT menu switches it to mode
@@ -409,8 +448,12 @@ editor goes back to mode 1.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>© 2026 Cronomantic  ZX-V 0.9.0</code></td>
+<td><code>© 2026 Cronomantic  ZX-V 0.10.0</code></td>
 <td>When ZX-V starts, and after <code>NEW</code>: the copyright and the ROM version</td>
+</tr>
+<tr>
+<td><code>The clock is not set: EDIT &gt; Date and time</code></td>
+<td>Instead of the copyright when ZX-V starts, if the clock has no time: see <a href="#the-date-and-time">The date and time</a></td>
 </tr>
 <tr>
 <td>An error in red, such as <code>C Nonsense in BASIC</code></td>

@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="../index.html">ZX-V</a>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
 <a class="ir" href="../../es/sdk/reference.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -53,6 +54,13 @@
 </li>
 <li><a href="index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a>
+</li>
+<li><a href="../hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
+</li>
+<li><a href="../hardware/firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>
+</li>
 <li><a href="web.html">Publishing your game on the web</a>
 </li>
 </ul>
@@ -70,6 +78,8 @@
 <li><a href="../hardware/firmware.html">The firmware</a>
 </li>
 <li><a href="../hardware/protoboard.html">On a protoboard</a>
+</li>
+<li><a href="../hardware/protocol.html">The protocol</a>
 </li>
 </ul>
 </aside>
@@ -148,11 +158,15 @@ read the <a href="index.html">SDK guide</a> and <a href="graphics.html">Graphics
 </tr>
 <tr>
 <td><code>include/zxv_music.h</code>, <code>music/</code></td>
-<td>Music and effects for the two AY chips: PT3, TurboSound, PT2, STC, ASC and PSG modules and AYFX effects</td>
+<td>Music and effects: the own <code>.zxm</code> format, PT3, TurboSound, PT2, STC, ASC, PSG and VGM modules, and AYFX effects</td>
+</tr>
+<tr>
+<td><code>sound/</code></td>
+<td>The machine's sound, the same code that plays in the Pico ULA, in the emulator and in <code>zxv-tracker</code>: the two AY chips (<code>aysynth</code>), the twelve sample channels (<code>smpsynth</code>, with the ADPCM encoder) and the mix (<code>sndsynth</code>, with the registers of <code>sndregs.h</code>)</td>
 </tr>
 <tr>
 <td><code>include/zxv_version.h</code></td>
-<td>The ZX-V version (<code>ZXV_VERSION</code>, for example <code>"0.9.0"</code>)</td>
+<td>The ZX-V version (<code>ZXV_VERSION</code>, for example <code>"0.10.0"</code>)</td>
 </tr>
 <tr>
 <td><code>zxvc.c</code></td>
@@ -168,7 +182,15 @@ read the <a href="index.html">SDK guide</a> and <a href="graphics.html">Graphics
 </tr>
 <tr>
 <td><code>tools/tracker/</code></td>
-<td><code>zxv-tracker</code>, the tracker for the PC: PT3 music and AYFX effects</td>
+<td><code>zxv-tracker</code>, the tracker for the PC: <code>.zxm</code> and PT3 music, and AYFX effects</td>
+</tr>
+<tr>
+<td><code>tools/music/</code></td>
+<td><code>zxv-music</code>, the converter from PT3, TurboSound, MOD, S3M and XM to the <code>.zxm</code> format</td>
+</tr>
+<tr>
+<td><code>tools/link/</code></td>
+<td><code>zxv-link</code> and <code>zxv-link-gui</code> (with a window), remote loading: they send programs to the board through the J5 header and run them, and serve a folder on the PC as the <code>EXT:</code> drive</td>
 </tr>
 <tr>
 <td><code>tools/png2gfx.py</code></td>
@@ -436,7 +458,7 @@ is empty. Keys held down repeat (after 500 ms, 20 times a second).</p>
 </tr>
 </tbody>
 </table>
-<p>Ctrl+Alt+Delete never arrives: it returns to BASIC.</p>
+<p>Ctrl+Alt+Delete never arrives: it restarts the machine.</p>
 <h3 id="zxv_joy_read"><code>zxv_joy_read</code><a class="ancla" href="#zxv_joy_read" aria-hidden="true">#</a></h3>
 <pre><code class="language-c">uint32_t zxv_joy_read(int n);
 </code></pre>
@@ -624,6 +646,109 @@ same: <code>zxv_beeper_event_at(zxv_time_us() + ZXV_MUSIC_AHEAD_US, level)</code
 </tr>
 </tbody>
 </table>
+<h3 id="sample-channels">Sample channels<a class="ancla" href="#sample-channels" aria-hidden="true">#</a></h3>
+<p>Twelve channels that play samples from the <strong>sound memory</strong>, 96 KB on the
+machine's ULA Pico, like an Amiga's Paula: music from MOD files, recorded
+effects and voices, or a byte you write that sounds at once (the DAC).
+Each channel has its note (its step), its volume and its pan, and mixes
+with the two AYs.</p>
+<pre><code class="language-c">int  zxv_smp_upload(uint32_t dst, const void *src, uint32_t len);
+int  zxv_smp_define(int slot, uint32_t addr, int fmt, uint32_t len, uint32_t loop);
+void zxv_smp_play(int ch, int slot, uint32_t step, int vol, int pan);
+void zxv_smp_prepare(int ch, int slot, uint32_t step, int vol, int pan);
+void zxv_smp_start(uint32_t mask);
+void zxv_smp_stop(int ch);
+void zxv_smp_write(int ch, int reg, int val);
+uint32_t zxv_smp_step(uint32_t sample_hz);
+</code></pre>
+<ul>
+<li><code>zxv_smp_upload</code> copies <code>len</code> bytes (a multiple of 4) from your RAM to the
+  sound memory, from <code>dst</code>, and waits until it is there (a few frames).
+  Returns <code>ZXV_OK</code>, or <code>ZXV_E_RANGE</code> if it does not fit.</li>
+<li><code>zxv_smp_define</code> fills entry <code>slot</code> (0–255) of the <strong>sample table</strong>: where
+  the sample starts in the sound memory, its format (<code>ZXV_SMP_PCM8</code>, 8-bit
+  signed, or <code>ZXV_SMP_ADPCM</code>), how many samples it has and the one where its
+  loop starts again (<code>len</code> or more: no loop, it stops at the end).</li>
+<li><code>zxv_smp_play</code> plays sample <code>slot</code> on channel <code>ch</code> (0–11) from the start,
+  with its step, volume (0–64) and pan (0 left, 128 centre, 255 right).
+  <code>zxv_smp_step(hz)</code> is the step for a sample recorded at <code>hz</code> to sound at its
+  own pitch; twice that is an octave higher.</li>
+<li><code>zxv_smp_prepare</code> sets up a channel just like <code>zxv_smp_play</code>, but without
+  starting it, and <code>zxv_smp_start</code> starts the channels in <code>mask</code> (bit n,
+  channel n) <strong>together</strong>, on the same sample. Use them for a chord or a row
+  of music: with <code>zxv_smp_play</code> on each channel, if there are many, some may
+  start slightly before others, and with the same sample on two channels you
+  can hear it.</li>
+<li><code>zxv_smp_write</code> writes one register of a channel (below), through the AY
+  queue, in order with the AY writes. <code>zxv_ay_event(t, ZXV_SMP_REG(ch, reg),
+  val)</code> does it at its time.</li>
+</ul>
+<pre><code class="language-c">static const int8_t wave[32] = { 0, 24, 48, /* ... a sine */ };
+zxv_smp_upload(0, wave, sizeof wave);
+zxv_smp_define(0, 0, ZXV_SMP_PCM8, 32, 0);              /* a loop of 32 */
+zxv_smp_play(0, 0, zxv_smp_step(440 * 32), 64, 128);    /* 440 Hz */
+
+/* A chord: A, C# and E, starting together. */
+zxv_smp_prepare(1, 0, zxv_smp_step(440 * 32), 40, 64);
+zxv_smp_prepare(2, 0, zxv_smp_step(554 * 32), 40, 128);
+zxv_smp_prepare(3, 0, zxv_smp_step(659 * 32), 40, 192);
+zxv_smp_start(1 &lt;&lt; 1 | 1 &lt;&lt; 2 | 1 &lt;&lt; 3);
+</code></pre>
+<p>The <a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/samples/samples.c"><code>samples</code></a> example uses all of
+it, with an ADPCM encoder.</p>
+<p><strong>The registers of a channel</strong> (<code>ZXV_SMP_REG(ch, reg)</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Register</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_SMP_SLOT</code></td>
+<td>The sample: an entry of the table. Counts when it is started</td>
+</tr>
+<tr>
+<td><code>ZXV_SMP_VOL</code></td>
+<td>Volume, 0–64</td>
+</tr>
+<tr>
+<td><code>ZXV_SMP_PAN</code></td>
+<td>Pan: 0 left, 128 centre, 255 right</td>
+</tr>
+<tr>
+<td><code>ZXV_SMP_CTRL</code></td>
+<td>Writing it: <code>ZXV_SMP_KEY</code> starts the sample, <code>ZXV_SMP_STOP</code> stops it; and these stay: <code>ZXV_SMP_NOINTERP</code> (no interpolation, the raw sound of an Amiga) and <code>ZXV_SMP_DIRECT</code> (direct mode)</td>
+</tr>
+<tr>
+<td><code>ZXV_SMP_STEP</code></td>
+<td>Three bytes (8.16): how far it moves for each 48 kHz output sample</td>
+</tr>
+<tr>
+<td><code>ZXV_SMP_OFFSET</code></td>
+<td>Where it starts, in steps of 256 samples (a MOD's <code>9xx</code>). In direct mode, the value that sounds (signed)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>ADPCM</strong> is IMA ADPCM in independent blocks of 64 samples (36 bytes):
+  it sounds like 16 bits and takes a little over half of 8 bits. Each
+  sample is worked out from the one before, so a high note also decodes the
+  ones it skips: an ADPCM channel goes <strong>no higher than step 2</strong>
+  (<code>ZXV_SMP_ADPCM_MAX_STEP</code>, an octave above how it was recorded); a higher
+  step counts as 2. An 8-bit channel takes any step.</li>
+<li><strong>Interpolation</strong>, on by default, smooths the low notes; the last sample
+  of a loop goes towards the first, so a short waveform in a loop sounds
+  round.</li>
+<li><strong>Direct mode</strong> (<code>ZXV_SMP_DIRECT</code>) plays the value of <code>ZXV_SMP_OFFSET</code>
+  as it is written, with no sample: an 8-bit DAC, like the SpecDrum. With
+  <code>zxv_ay_event</code> each value sounds at its time.</li>
+<li><code>ZXV_S_SMP_VOLUME</code> (0–255, 255 at start-up) is the volume of all the
+  channels: one channel at full volume is as loud as one AY channel, and
+  twelve at full volume saturate.</li>
+<li>In the emulator they sound the same, with the same code.</li>
+</ul>
 <h2 id="music-and-effects">Music and effects<a class="ancla" href="#music-and-effects" aria-hidden="true">#</a></h2>
 <p>Declared in <code>zxv_music.h</code>. Build it with the files of <code>sdk/music</code>. The
 explanations and an example are in the
@@ -632,6 +757,11 @@ explanations and an example are in the
 <pre><code class="language-c">int zxv_music_info(const void *data, uint32_t size, zxv_music_info_t *info);
 int zxv_music_play(const void *data, uint32_t size, int flags);
 void zxv_music_stop(void);
+void zxv_music_samples(uint32_t base, int slot);
+void zxv_music_work(void *buf);
+void zxv_music_smp_fx(int ch, int slot, uint32_t step, int vol, int pan, uint32_t dur_us);
+void zxv_music_smp_fx_stop(int ch);
+int zxv_music_smp_tracks(void);
 void zxv_music_pause(int on);
 int zxv_music_playing(void);
 uint32_t zxv_music_steps(void);
@@ -646,9 +776,26 @@ void zxv_music_update_until(uint32_t t_us);
   <code>ZXV_MUSIC_AY2</code> (a one-AY module plays on the second chip).</li>
 <li><code>zxv_music_info</code> gives the format, title and author of a module, without
   playing it.</li>
+<li>A <code>.zxm</code> (<code>ZXV_MUSIC_ZXM</code>, the own format) plays its sample tracks on the
+  channels from 0 on and, when it starts, uploads its samples to the sound
+  memory. <code>zxv_music_samples(base, slot)</code>, before <code>zxv_music_play</code>, says
+  where: from byte <code>base</code> of the sound memory and entry <code>slot</code> of its table
+  (by default, 0 and 0); put yours after them.</li>
+<li><strong>A VGM</strong> (<code>ZXV_MUSIC_VGM</code>) plays the AY chips (writes to other chips
+  are skipped). A <code>.vgz</code> is decompressed while it plays:
+  <code>zxv_music_work(buf)</code> gives it 32 KB of work memory (without them, it
+  does not play).</li>
+<li><strong>A sample as an effect, together with the song:</strong>
+  <code>zxv_music_smp_fx(ch, slot, step, vol, pan, dur_us)</code> plays it on channel
+  <code>ch</code> for <code>dur_us</code> (0: until <code>zxv_music_smp_fx_stop(ch)</code>, for a looped
+  sample). With the music running it goes in step with it, with the same
+  lead; if the channel belongs to the song, it covers it while it plays,
+  and the song carries on there at its next note. <code>zxv_music_smp_tracks()</code>
+  says how many channels the playing song uses (the first ones): put the
+  effects above them. It is what <code>SAMPLE</code> uses in the BASIC.</li>
 <li><code>zxv_music_pause(1)</code> pauses the music and <code>zxv_music_pause(0)</code> resumes it.
   <code>zxv_music_playing</code> returns 1 while it plays; <code>zxv_music_steps</code>, the
-  1/50 s steps it has played.</li>
+  1/50 s steps it has played (in a <code>.zxm</code>, the ticks of its tempo).</li>
 <li><code>zxv_music_update</code> prepares the steps of the next <code>ZXV_MUSIC_AHEAD_US</code>
   (35 ms): call it every frame, or from the frame hook.
   <code>zxv_music_update_until(t)</code> prepares only those before <code>t</code>, to mix the
@@ -713,6 +860,11 @@ the second).</p>
 <td>Pro Tracker 2, Sound Tracker 1.x, ASC Sound Master</td>
 </tr>
 <tr>
+<td><code>ZXV_MUSIC_ZXM</code>, <code>_VGM</code></td>
+<td>7, 8</td>
+<td>The own format (<code>.zxm</code>); a VGM (<code>.vgm</code> or <code>.vgz</code>) with AY chips</td>
+</tr>
+<tr>
 <td><code>ZXV_MUSIC_LOOP</code>, <code>ZXV_MUSIC_AY2</code></td>
 <td>1, 2</td>
 <td>Options of <code>zxv_music_play</code></td>
@@ -730,18 +882,25 @@ the second).</p>
 </tbody>
 </table>
 <h2 id="files-and-folders">Files and folders<a class="ancla" href="#files-and-folders" aria-hidden="true">#</a></h2>
-<p>Paths may start with a drive: <code>SD:</code> (the SD card) or <code>ROM:</code> (the
-read-only built-in drive), upper or lower case; <code>ROM:game</code> is the same as
-<code>ROM:/game</code>. Without a drive, a path is relative to the current folder, or
-absolute if it starts with <code>/</code>. <code>.</code> and <code>..</code> work, and <code>..</code> at the root
-stays at the root. Case does not matter. Names have up to 63 printable
-ASCII characters (not <code>\ : * ? " &lt; &gt; |</code>, not ending in a space or a dot);
-paths, up to 255.</p>
+<p>Paths may start with a drive: <code>SD:</code> (the SD card), <code>ROM:</code> (the
+read-only built-in drive) or <code>EXT:</code> (the external drive: a folder served by
+another device, see <a href="../hardware/firmware.html#the-ext-drive">The EXT: drive</a>),
+upper or lower case; <code>ROM:game</code> is the same as <code>ROM:/game</code>. Without a
+drive, a path is relative to the current folder, or absolute if it starts
+with <code>/</code>. <code>.</code> and <code>..</code> work, and <code>..</code> at the root stays at the root. Case
+does not matter. Names have up to 63 printable ASCII characters (not
+<code>\ : * ? " &lt; &gt; |</code>, not ending in a space or a dot); paths, up to 255.</p>
 <p>Up to 8 files and 4 folders can be open at once on each drive. Buffers
 must be in RAM (or, for reading, in the ROM); otherwise the function
 returns <code>ZXV_E_FAULT</code>. On a real SD card, a file that is open cannot be
 deleted, renamed or opened again for writing, and hidden or system files
 do not appear in listings.</p>
+<p>On <code>EXT:</code> you read and write as on the card (files are numbers 16-23 and
+folders 8-11), but only while there is a server: otherwise every call
+returns <code>ZXV_E_OFFLINE</code>. If the server goes away, the first call waits 1.5
+seconds and the next ones fail at once until it comes back. The server may
+refuse to replace or delete a file the machine did not write
+(<code>ZXV_E_ACCESS</code>).</p>
 <h3 id="zxv_file_open"><code>zxv_file_open</code><a class="ancla" href="#zxv_file_open" aria-hidden="true">#</a></h3>
 <pre><code class="language-c">int zxv_file_open(const char *name, uint32_t flags);
 </code></pre>
@@ -841,10 +1000,12 @@ int zxv_dir_read(int d, zxv_dirent_t *e);       /* next entry: 1, or 0 at the en
 int zxv_dir_close(int d);
 </code></pre>
 <ul>
-<li><code>zxv_dir_change("ROM:")</code> enters the ROM drive and <code>zxv_dir_change("SD:")</code>
-  goes back to the root of the card.</li>
-<li><code>zxv_dir_current</code> gives <code>/...</code> on the card and <code>ROM:/...</code> on the ROM
-  drive; if <code>buf</code> is too small it returns <code>ZXV_E_RANGE</code>.</li>
+<li><code>zxv_dir_change("ROM:")</code> enters the ROM drive, <code>zxv_dir_change("EXT:")</code>
+  the external drive, and <code>zxv_dir_change("SD:")</code> goes back to the root of
+  the card.</li>
+<li><code>zxv_dir_current</code> gives <code>/...</code> on the card, <code>ROM:/...</code> on the ROM drive
+  and <code>EXT:/...</code> on the external one; if <code>buf</code> is too small it returns
+  <code>ZXV_E_RANGE</code>.</li>
 <li><code>zxv_dir_read</code> returns the entries in alphabetical order, ignoring case.</li>
 </ul>
 <h3 id="constants-3">Constants<a class="ancla" href="#constants-3" aria-hidden="true">#</a></h3>
@@ -1589,6 +1750,30 @@ and punctuation signs press SYMBOL SHIFT with the right key.</p>
 <td>system</td>
 <td>The same for the second AY</td>
 </tr>
+<tr>
+<td><code>ZXV_S_SMP_VOLUME</code></td>
+<td>8 bits</td>
+<td>program</td>
+<td>Volume of the sample channels, 0–255 (255 at start-up)</td>
+</tr>
+<tr>
+<td><code>ZXV_S_SMP_REGS</code></td>
+<td>96 × 8 bits</td>
+<td>system</td>
+<td>Read-only copy of the registers of the 12 sample channels (8 each; <code>ZXV_SMP_CTRL</code> without <code>KEY</code> and <code>STOP</code>)</td>
+</tr>
+<tr>
+<td><code>ZXV_S_SMP_SRC</code>, <code>ZXV_S_SMP_DST</code>, <code>ZXV_S_SMP_LEN</code></td>
+<td>32 bits each</td>
+<td>program</td>
+<td>An upload to the sound memory: from, to and how many bytes</td>
+</tr>
+<tr>
+<td><code>ZXV_S_SMP_UPLOAD</code></td>
+<td>8 bits</td>
+<td>program, system</td>
+<td>1 starts the upload; the system leaves 0 when it is done, or 0x80 if it could not</td>
+</tr>
 </tbody>
 </table>
 <p>The queues are easier to use through <code>zxv_ay_write</code>, <code>zxv_beeper_event</code> and
@@ -1744,6 +1929,11 @@ with the same letter are added together.</p>
 <td>−17</td>
 <td><code>ZXV_E_INVAL</code></td>
 <td>Value not valid</td>
+</tr>
+<tr>
+<td>−18</td>
+<td><code>ZXV_E_OFFLINE</code></td>
+<td>The <code>EXT:</code> drive has no server</td>
 </tr>
 </tbody>
 </table>
@@ -2027,10 +2217,10 @@ can replace an entry to intercept a routine.</p>
 <td>Read, execute</td>
 </tr>
 <tr>
-<td><code>0x100C_0000</code></td>
-<td><code>0x103F_FFFF</code></td>
-<td>3.25 MB</td>
-<td>The <code>ROM:</code> drive (<code>ZXV_ROMDISK_BASE</code>)</td>
+<td><code>0x1040_0000</code></td>
+<td><code>0x1067_AFFF</code></td>
+<td>2,540 KB</td>
+<td>The <code>ROM:</code> drive (<code>ZXV_ROMDISK_BASE</code>, <code>ZXV_ROMDISK_SIZE</code>)</td>
 <td>Through the file functions</td>
 </tr>
 <tr>
@@ -2379,6 +2569,66 @@ together with the <code>.gfx</code> format. Sprite numbers go from 0 to 255, til
 from 0 to 4095, maps from 0 to 15 and textures from 0 to 3, as in BASIC,
 and screens from 0 to 255.
 It reads any PNG except interlaced ones, without other Python packages.</p>
+<h3 id="zxv-music"><code>zxv-music</code><a class="ancla" href="#zxv-music" aria-hidden="true">#</a></h3>
+<pre><code class="language-sh">zxv-music [--free KB] [--channels LIST] INPUT OUTPUT.zxm
+</code></pre>
+<p>Converts a PT3, TurboSound, MOD, S3M or XM file to the own format, <code>.zxm</code>,
+and says what it could not carry over and how much the samples take. It
+comes with the emulator packages. What it keeps of each format is in the
+<a href="index.html#the-own-format-zxm-and-zxv-music">guide</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--free KB</code></td>
+<td>Leaves that many KB of the sound memory (96) free for other samples, such as the sounds of <code>SAMPLE</code> in BASIC: the song's samples that do not fit go in ADPCM, at half the samples or, if even that fails, are left out</td>
+</tr>
+<tr>
+<td><code>--channels LIST</code></td>
+<td>Of a MOD, S3M or XM, the channels to keep, up to 12, with the tracker's numbers, from 1 (<code>1-8,11,13</code>). Without it, of a module with more than 12 channels, the 12 that play the most notes are kept</td>
+</tr>
+</tbody>
+</table>
+<h3 id="zxv-link-and-zxv-link-gui"><code>zxv-link</code> and <code>zxv-link-gui</code><a class="ancla" href="#zxv-link-and-zxv-link-gui" aria-hidden="true">#</a></h3>
+<pre><code class="language-sh">zxv-link ports
+zxv-link --port PORT info | send FILE [DEST] | run FILE [MORE...] | log
+zxv-link --port PORT serve [--folder FOLDER [--run PROGRAM]] [--basic-debug TCP_PORT] [FILE...]
+</code></pre>
+<p>Remote loading: they send programs to the board through the J5 header, with
+a 3.3 V USB-serial adapter, run them and serve a folder on the PC as the
+<code>EXT:</code> drive. <code>zxv-link-gui</code> does the same with a window. They come with the
+emulator packages. How to use them is in <a href="../hardware/firmware.html#loading-programs-from-the-pc-j5">Loading programs from the PC
+(J5)</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--port PORT</code></td>
+<td>The adapter's port: <code>COM5</code> on Windows, <code>/dev/ttyUSB0</code> on Linux (<code>zxv-link ports</code> lists them)</td>
+</tr>
+<tr>
+<td><code>--overwrite</code></td>
+<td>Also replaces on the card what <code>zxv-link</code> did not put there, and lets the machine replace or delete in the <code>EXT:</code> folder what it did not write itself</td>
+</tr>
+<tr>
+<td><code>--lang es\|en</code></td>
+<td>The language of the messages (by default, the system's)</td>
+</tr>
+</tbody>
+</table>
+<p>It exits with code 3 if it cannot open the port, and with 4 if it would
+have to replace on the card something it did not put there (without
+<code>--overwrite</code>).</p>
 <h2 id="the-standard-c-library-picolibc">The standard C library (picolibc)<a class="ancla" href="#the-standard-c-library-picolibc" aria-hidden="true">#</a></h2>
 <p>Programs compiled with picolibc and <code>zxvc.c</code> (see the
 <a href="index.html#two-ways-to-write-c">guide</a>) can use:</p>

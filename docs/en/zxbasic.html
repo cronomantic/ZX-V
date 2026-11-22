@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="index.html">ZX-V</a>
+<a class="marca" href="index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
 <a class="ir" href="../es/zxbasic.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -51,6 +52,13 @@
 </li>
 <li><a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="sdk/index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a>
+</li>
+<li><a href="hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
+</li>
+<li><a href="hardware/firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>
+</li>
 <li><a href="sdk/web.html">Publishing your game on the web</a>
 </li>
 </ul>
@@ -70,6 +78,8 @@
 <li><a href="hardware/firmware.html">The firmware</a>
 </li>
 <li><a href="hardware/protoboard.html">On a protoboard</a>
+</li>
+<li><a href="hardware/protocol.html">The protocol</a>
 </li>
 </ul>
 </aside>
@@ -133,11 +143,15 @@ BOX 4, 100, 20, 20, 20
 </tr>
 <tr>
 <td><code>MUSICLOAD</code>, <code>MUSICPLAY</code>, <code>MUSICSTOP</code>, <code>MUSICPAUSE</code>, <code>MUSICCONTINUE</code>, <code>MUSIC</code></td>
-<td>Music from a tracker (a <code>.pt3</code> from <a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker"><code>zxv-tracker</code></a>...), in the background while the program goes on</td>
+<td>Music from a tracker (a <code>.zxm</code> or a <code>.pt3</code> from <a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker"><code>zxv-tracker</code></a>...), in the background while the program goes on</td>
 </tr>
 <tr>
 <td><code>SFXLOAD</code>, <code>SFX</code>, <code>SFXSTOP</code>, <code>SFXPLAYING</code></td>
 <td>Sound effects from an AYFX bank</td>
+</tr>
+<tr>
+<td><code>SAMPLELOAD</code>, <code>SAMPLE</code>, <code>SAMPLESTOP</code>, <code>SAMPLEPLAYING</code></td>
+<td>Recorded sounds (WAV) on the sample channels</td>
 </tr>
 </tbody>
 </table>
@@ -148,7 +162,12 @@ parentheses (<code>KEY(9)</code>); <code>REMAP</code> and <code>SOUND</code> tak
 are <code>REMAPRESET</code> and <code>PALETTERESET</code>; <code>POLY</code> takes up to 8 points; and music and effects are loaded with <code>MUSICLOAD f$</code> and
 <code>SFXLOAD f$</code> (<code>LOAD f$ MUSIC</code> and <code>SFX</code> in ZX-V's), played with <code>MUSICPLAY</code>,
 <code>MUSICSTOP</code>... and the function that says whether an effect plays is
-<code>SFXPLAYING</code>.</p>
+<code>SFXPLAYING</code>; recorded sounds, with <code>SAMPLELOAD f$, n</code> (<code>LOAD f$ SAMPLE n</code>),
+<code>SAMPLE n, tone, vol, pan, c</code> (<code>; c</code> in ZX-V's) and <code>SAMPLEPLAYING</code> (the
+function <code>SAMPLE</code>). <code>MUSICLOAD</code> plays <code>.zxm</code>, PT3, TurboSound, PT2, STC, ASC,
+PSG and AY VGM (also <code>.vgz</code>), but not MOD, S3M or XM, which ZX-V's BASIC
+converts while loading: so as not to carry the converter in every program,
+they are turned into a <code>.zxm</code> first with <code>zxv-music</code>.</p>
 <p><code>SAVE</code>, <code>LOAD</code> and <code>VERIFY</code> use the SD card as ZX-V's BASIC does: without an
 extension, the screen goes in a <code>.gfx</code> (the ZX-V one, with its colours if they
 are not the standard ones) and <code>CODE</code> and <code>DATA</code> in a <code>.bin</code>, just the bytes; with the extension <code>.tap</code>, in a Spectrum tape. Compiled with
@@ -156,8 +175,8 @@ are not the standard ones) and <code>CODE</code> and <code>DATA</code> in a <cod
 the libraries there are, is in its
 <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md">target documentation</a>.</p>
 <h2 id="installing-it">Installing it<a class="ancla" href="#installing-it" aria-hidden="true">#</a></h2>
-<p><strong>On Windows:</strong> download <code>zxbasic-1.19.0-zxv.5-win64.zip</code> from the
-<a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.5">release page</a>
+<p><strong>On Windows:</strong> download <code>zxbasic-1.19.0-zxv.6-win64.zip</code> from the
+<a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.6">release page</a>
 and unzip it anywhere. It has <code>zxbc.exe</code>, which does not need Python.</p>
 <p><strong>On Linux and macOS:</strong> download the source code from that same page (or
 clone the fork's <code>zxv</code> branch). You need Python 3.14; the compiler is
@@ -183,16 +202,27 @@ or the error) stays at the bottom until you press a key, as on the Spectrum.</p>
 <p>With <code>--loading-screen title.png</code> (or a <code>.gfx</code> with a screen), the <code>.zxv</code>
 carries a loading screen, as <code>elf2zxv.py --screen</code> does. The machine shows it
 while it loads the program.</p>
+<p>With <code>--embed song.pt3</code> (as many as needed: music, effects, <code>.gfx</code>, data), the
+<code>.zxv</code> carries those files inside, as the C games do. <code>LOAD</code>, <code>MUSICLOAD</code> and
+<code>SFXLOAD</code> use the file in the current folder if there is one and, if not, the
+one inside: the program works alone, also from <code>ROM:</code>, and a file on the card
+with the same name takes the place of the one inside.</p>
 <p><strong>Mind the types.</strong> Without <code>DIM</code>, a variable takes the smallest type that fits
 it: here, without the first line, <code>x</code> would be a <code>UByte</code> (0 to 255). And
 between integers, <code>/</code> divides as integers: <code>x / 20</code> would give 0, 0, 0... 1, 1,
 1, and the curve would come out in steps. And the <code>FOR</code> would never end,
 because a <code>UByte</code> never gets past 255. Declare as <code>FLOAT</code> whatever needs
 decimals, and with a bigger type the counters that reach the limit.</p>
-<h2 id="an-example">An example<a class="ancla" href="#an-example" aria-hidden="true">#</a></h2>
+<h2 id="two-examples">Two examples<a class="ancla" href="#two-examples" aria-hidden="true">#</a></h2>
 <p><a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/stardust/README.md">Stardust</a> is a small game made
 with <code>zxv.bas</code>: double buffering, sprites from strings, collisions, keyboard
 or joystick and sound, at 60 frames per second.</p>
+<p><a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/petitsoccer/README.md">Petit Soccer</a> is a big one:
+seven-a-side football against the machine or between two players, with a
+pitch bigger than the screen and scroll, sprites from a PNG sheet, and music
+and effects from a tracker. It carries its music and effects inside
+(<code>zxbc --embed</code>), so it also runs from the <code>ROM:</code> drive, where it comes built in:
+<code>LOAD "ROM:petitsoccer"</code>.</p>
 <h2 id="the-licence-of-your-programs">The licence of your programs<a class="ancla" href="#the-licence-of-your-programs" aria-hidden="true">#</a></h2>
 <p>The compiler is AGPL 3, but what goes inside your programs (ZX Basic's runtime
 and libraries, and the parts of the ZX-V SDK) is MIT: your programs can have

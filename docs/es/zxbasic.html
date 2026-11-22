@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="index.html">ZX-V</a>
+<a class="marca" href="index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
 <a class="ir" href="../en/zxbasic.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -51,6 +52,12 @@
 </li>
 <li><a href="sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
+</li>
+<li><a href="hardware/firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="hardware/firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
+</li>
 <li><a href="sdk/web.html">Publicar tu juego en la web</a>
 </li>
 </ul>
@@ -70,6 +77,8 @@
 <li><a href="hardware/firmware.html">El firmware</a>
 </li>
 <li><a href="hardware/protoboard.html">En una protoboard</a>
+</li>
+<li><a href="hardware/protocol.html">El protocolo</a>
 </li>
 </ul>
 </aside>
@@ -133,11 +142,15 @@ BOX 4, 100, 20, 20, 20
 </tr>
 <tr>
 <td><code>MUSICLOAD</code>, <code>MUSICPLAY</code>, <code>MUSICSTOP</code>, <code>MUSICPAUSE</code>, <code>MUSICCONTINUE</code>, <code>MUSIC</code></td>
-<td>La música de un tracker (un <code>.pt3</code> de <a href="sdk/index.html#el-tracker-para-el-pc-zxv-tracker"><code>zxv-tracker</code></a>...), de fondo mientras el programa sigue</td>
+<td>La música de un tracker (un <code>.zxm</code> o un <code>.pt3</code> de <a href="sdk/index.html#el-tracker-para-el-pc-zxv-tracker"><code>zxv-tracker</code></a>...), de fondo mientras el programa sigue</td>
 </tr>
 <tr>
 <td><code>SFXLOAD</code>, <code>SFX</code>, <code>SFXSTOP</code>, <code>SFXPLAYING</code></td>
 <td>Los efectos de sonido de un banco AYFX</td>
+</tr>
+<tr>
+<td><code>SAMPLELOAD</code>, <code>SAMPLE</code>, <code>SAMPLESTOP</code>, <code>SAMPLEPLAYING</code></td>
+<td>Los sonidos grabados (WAV) en los canales de muestras</td>
 </tr>
 </tbody>
 </table>
@@ -147,7 +160,13 @@ paréntesis (<code>KEY(9)</code>); <code>REMAP</code> y <code>SOUND</code> van d
 color en color, solo en la tabla 0 (sin <code>#t</code>); <code>REMAP</code> y <code>PALETTE</code> solos son
 <code>REMAPRESET</code> y <code>PALETTERESET</code>; <code>POLY</code> admite hasta 8 puntos; y la música y los efectos se cargan con <code>MUSICLOAD f$</code> y
 <code>SFXLOAD f$</code> (<code>LOAD f$ MUSIC</code> y <code>SFX</code> en el de ZX-V), se tocan con <code>MUSICPLAY</code>,
-<code>MUSICSTOP</code>... y la función que dice si suena un efecto es <code>SFXPLAYING</code>.</p>
+<code>MUSICSTOP</code>... y la función que dice si suena un efecto es <code>SFXPLAYING</code>; los
+sonidos grabados, con <code>SAMPLELOAD f$, n</code> (<code>LOAD f$ SAMPLE n</code>), <code>SAMPLE n, tono,
+vol, pan, c</code> (<code>; c</code> en el de ZX-V) y <code>SAMPLEPLAYING</code> (la función <code>SAMPLE</code>).
+<code>MUSICLOAD</code> toca <code>.zxm</code>, PT3, TurboSound, PT2, STC, ASC, PSG y VGM de AY
+(también <code>.vgz</code>), pero no MOD, S3M ni XM, que el BASIC de ZX-V convierte al
+cargarlos: para no llevar el conversor en cada programa, se pasan antes a
+<code>.zxm</code> con <code>zxv-music</code>.</p>
 <p><code>SAVE</code>, <code>LOAD</code> y <code>VERIFY</code> usan la tarjeta SD como el BASIC de ZX-V: sin
 extensión, la pantalla va en un <code>.gfx</code> (la de ZX-V, con sus colores si no son
 los de siempre) y <code>CODE</code> y <code>DATA</code> en un <code>.bin</code>, los bytes sin más; con la extensión <code>.tap</code>, en una cinta del Spectrum. Compilado con
@@ -155,8 +174,8 @@ los de siempre) y <code>CODE</code> y <code>DATA</code> en un <code>.bin</code>,
 y las librerías que hay, está en su
 <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md">documentación del target</a>.</p>
 <h2 id="instalarlo">Instalarlo<a class="ancla" href="#instalarlo" aria-hidden="true">#</a></h2>
-<p><strong>En Windows:</strong> descarga <code>zxbasic-1.19.0-zxv.5-win64.zip</code> de la
-<a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.5">página de la versión</a>
+<p><strong>En Windows:</strong> descarga <code>zxbasic-1.19.0-zxv.6-win64.zip</code> de la
+<a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.6">página de la versión</a>
 y descomprímelo donde quieras. Trae <code>zxbc.exe</code>, que no necesita Python.</p>
 <p><strong>En Linux y macOS:</strong> descarga el código de esa misma página (o clona la rama
 <code>zxv</code> del fork). Hace falta Python 3.14; el compilador es <code>zxbc.py</code>.</p>
@@ -181,16 +200,27 @@ queda abajo hasta que pulsas una tecla, como en el Spectrum.</p>
 <p>Con <code>--loading-screen titulo.png</code> (o un <code>.gfx</code> con una pantalla), el <code>.zxv</code>
 lleva una pantalla de carga, como con <code>elf2zxv.py --screen</code>. La máquina la
 enseña mientras carga el programa.</p>
+<p>Con <code>--embed cancion.pt3</code> (tantos como hagan falta: música, efectos, <code>.gfx</code>,
+datos), el <code>.zxv</code> lleva esos ficheros dentro, como los juegos en C. <code>LOAD</code>,
+<code>MUSICLOAD</code> y <code>SFXLOAD</code> usan el de la carpeta actual si lo hay y, si no, el de
+dentro: el programa funciona solo, también desde <code>ROM:</code>, y un fichero de la
+tarjeta con el mismo nombre ocupa el lugar del de dentro.</p>
 <p><strong>Ojo con los tipos.</strong> Sin <code>DIM</code>, una variable toma el tipo más pequeño que
 le vale: aquí, sin la primera línea, <code>x</code> sería un <code>UByte</code> (de 0 a 255). Y
 entre enteros, <code>/</code> divide como enteros: <code>x / 20</code> daría 0, 0, 0... 1, 1, 1, y
 la curva saldría a escalones. Y el <code>FOR</code> no acabaría nunca, porque un <code>UByte</code>
 no llega a pasar de 255. Declara como <code>FLOAT</code> lo que necesite decimales, y
 con un tipo más grande los contadores que lleguen al límite.</p>
-<h2 id="un-ejemplo">Un ejemplo<a class="ancla" href="#un-ejemplo" aria-hidden="true">#</a></h2>
+<h2 id="dos-ejemplos">Dos ejemplos<a class="ancla" href="#dos-ejemplos" aria-hidden="true">#</a></h2>
 <p><a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/stardust/README.es.md">Stardust</a> es un juego pequeño
 hecho con <code>zxv.bas</code>: doble buffer, sprites de cadenas, choques, teclado o
 mando y sonido, a 60 imágenes por segundo.</p>
+<p><a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/petitsoccer/README.es.md">Petit Soccer</a> es uno
+grande: fútbol 7 contra la máquina o entre dos jugadores, con un campo más
+grande que la pantalla y scroll, los sprites de una hoja PNG, y la música y
+los efectos de un tracker. Lleva dentro la música y los efectos
+(<code>zxbc --embed</code>), así que también funciona desde la unidad <code>ROM:</code>, donde viene
+incluido: <code>LOAD "ROM:petitsoccer"</code>.</p>
 <h2 id="la-licencia-de-tus-programas">La licencia de tus programas<a class="ancla" href="#la-licencia-de-tus-programas" aria-hidden="true">#</a></h2>
 <p>El compilador tiene la licencia AGPL 3, pero lo que va dentro de tus programas
 (el runtime y las librerías de ZX Basic, y las partes del SDK de ZX-V) es MIT:

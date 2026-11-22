@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El protocolo de la unidad EXT: y de la carga remota · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
+<a class="ir" href="../../en/hardware/protocol.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../emulator.html">El emulador</a>
+</li>
+<li><a href="../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Aprende BASIC</a>
+</li>
+<li><a href="../basic/editor.html">El editor</a>
+</li>
+<li><a href="../basic/reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="../sdk/index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="../sdk/graphics.html">Gráficos</a>
+</li>
+<li><a href="../sdk/reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="../sdk/graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="../sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
+</li>
+<li><a href="firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
+</li>
+<li><a href="../sdk/web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="index.html">Construir el hardware</a>
+</li>
+<li><a href="board.html">La placa</a>
+</li>
+<li><a href="firmware.html">El firmware</a>
+</li>
+<li><a href="protoboard.html">En una protoboard</a>
+</li>
+<li><a href="protocol.html" class="aqui">El protocolo</a>
+<ul>
+</ul>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="el-protocolo-de-la-unidad-ext-y-de-la-carga-remota">El protocolo de la unidad EXT: y de la carga remota</h1>
+<p>Este documento es para quien quiera hacer <strong>un servidor de la unidad <code>EXT:</code></strong>
+(un programa que sirve una carpeta a la ZX-V: en un PC, una Raspberry Pi, un
+móvil, otra máquina...) o hablar con la placa por su tira <strong>J5</strong> por su cuenta.
+<code>zxv-link</code> (en <a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/tools/link"><code>sdk/tools/link</code></a>, MIT) es la
+implementación de referencia de los dos lados que tocan al PC: <code>zxvlink.c</code>
+(las tramas), <code>linkcore.c</code> (la carga remota) y <code>extserve.c</code> (el servidor de
+<code>EXT:</code>).</p>
+<p>Lo que es <code>EXT:</code> para los programas de la máquina (las rutas, los nombres, los
+números de los ficheros) está en
+<a href="https://github.com/cronomantic/ZX-V/blob/main/dev/spec.md">la especificación, §7.7</a>.
+Aquí, lo que viaja.</p>
+<h2 id="el-enlace">El enlace<a class="ancla" href="#el-enlace" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>Hoy, la tira J5 de la placa:</strong> la UART0 de la Pico CPU (GP12 sale de la
+  máquina, GP13 entra), a <strong>921.600 baudios</strong>, 8 bits, sin paridad, 1 bit de
+  parada, sin control de flujo, a <strong>3,3 V</strong>. Con un adaptador USB-serie de
+  3,3 V: su RX al TX de la placa, su TX al RX, y masa con masa.</li>
+<li><strong>Más adelante, otros</strong> (el Wi-Fi de una Pico 2 W): los mismos mensajes por
+  otro camino. Si hay un servidor por cada uno a la vez, la máquina usa el del
+  cable.</li>
+</ul>
+<h2 id="las-tramas">Las tramas<a class="ancla" href="#las-tramas" aria-hidden="true">#</a></h2>
+<p>Cada mensaje va en una trama: sus bytes en <strong>COBS</strong>, con un <strong>cero</strong> detrás.
+El que recibe se engancha solo en el cero siguiente aunque se pierda algo.
+Antes de COBS, en little endian:</p>
+<table>
+<thead>
+<tr>
+<th>Desplazamiento</th>
+<th>Qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+0</td>
+<td>El canal (abajo)</td>
+</tr>
+<tr>
+<td>+1</td>
+<td>El tipo: el de la petición; en su respuesta, el mismo con el bit 7 puesto (más <code>0x80</code>)</td>
+</tr>
+<tr>
+<td>+2</td>
+<td>El número de la petición (0-255): lo pone quien pide y la respuesta lo repite</td>
+</tr>
+<tr>
+<td>+3</td>
+<td>Los datos: hasta <strong>516 bytes</strong></td>
+</tr>
+<tr>
+<td>...</td>
+<td>El <strong>CRC-32</strong> de todo lo anterior (el de zlib: polinomio <code>0xEDB88320</code>, empezando y acabando con <code>0xFFFFFFFF</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Una trama con el CRC mal, cortada o más larga de lo que cabe se tira sin
+contestar: quien pidió repite la petición cuando se le acaba la espera.</p>
+<p><strong>Las respuestas</strong> empiezan siempre por un <strong>estado</strong> (i32): 0 o más, bien
+(en algunas, un número: bytes, una posición); negativo, un error de la
+máquina (<code>ZXV_E_*</code>, ver <a href="../sdk/reference.html#códigos-de-error">Códigos de error</a>;
+por ejemplo, −1 no existe).</p>
+<h2 id="los-canales">Los canales<a class="ancla" href="#los-canales" aria-hidden="true">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Canal</th>
+<th>Valor</th>
+<th>Quién pide</th>
+<th>Para qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CTRL</code></td>
+<td>0</td>
+<td>El equipo de fuera</td>
+<td>La carga remota: mandar ficheros a la tarjeta, ejecutar, depurar; y anunciarse como servidor de <code>EXT:</code></td>
+</tr>
+<tr>
+<td><code>LOG</code></td>
+<td>1</td>
+<td>Nadie: la máquina lo manda sola</td>
+<td>El informe de la máquina (texto UTF-8, tipo <code>0x40</code>): no se contesta</td>
+</tr>
+<tr>
+<td><code>EXT</code></td>
+<td>2</td>
+<td>La máquina</td>
+<td>Lo que los programas piden a la unidad <code>EXT:</code></td>
+</tr>
+</tbody>
+</table>
+<p>Cada lado numera sus propias peticiones, y en cada canal hay <strong>una petición
+pendiente como mucho</strong>: no se pide la siguiente hasta tener la respuesta (o
+rendirse).</p>
+<h2 id="anunciarse-como-servidor">Anunciarse como servidor<a class="ancla" href="#anunciarse-como-servidor" aria-hidden="true">#</a></h2>
+<p>Un servidor dice a la máquina que está con una petición del canal <code>CTRL</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Datos</th>
+<th>Respuesta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SERVE</code> (10)</td>
+<td><code>u8</code>: 1 sirvo <code>EXT:</code>, 0 dejo de servirla</td>
+<td>estado; el número de arranque de la máquina (u32)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Cada segundo</strong> mientras sirve. La máquina tiene la unidad por servida
+  mientras le llegue un <code>SERVE</code> al menos cada <strong>3 segundos</strong>; si no, <code>EXT:</code> da
+  <code>ZXV_E_OFFLINE</code> sin esperar a nadie.</li>
+<li><strong>El número de arranque</strong> cambia cada vez que la máquina arranca (al
+  encenderla, con Ctrl+Alt+Supr o al reiniciarse para ejecutar otro
+  programa). Si cambia, el servidor <strong>cierra todo lo que tenía abierto</strong> de
+  ella: la máquina ya no sabe nada de eso.</li>
+<li>Al dejar de servir (<code>SERVE</code> con 0, o al cerrar el puerto), lo mismo.</li>
+</ul>
+<h2 id="lo-que-pide-la-máquina-canal-ext">Lo que pide la máquina (canal EXT)<a class="ancla" href="#lo-que-pide-la-máquina-canal-ext" aria-hidden="true">#</a></h2>
+<p>La máquina pide en el canal <code>EXT</code> y el servidor contesta con el mismo tipo
+más <code>0x80</code> y el mismo número. <strong>Si llega otra vez la misma petición</strong> (el mismo
+número, después de una respuesta que se perdió), el servidor <strong>repite la
+respuesta sin volver a hacerlo</strong>: escribir, borrar o renombrar dos veces no
+sería lo mismo. La máquina espera cada respuesta <strong>medio segundo</strong>, lo pide
+hasta <strong>tres veces</strong> y, si no, da la unidad por perdida (<code>ZXV_E_OFFLINE</code>)
+hasta el siguiente <code>SERVE</code>.</p>
+<p>Los ficheros y las carpetas abiertos van por <strong>ranura</strong>: la máquina tiene 8
+ranuras de ficheros (0-7) y 4 de carpetas (0-3) en <code>EXT:</code>, y dice en cada
+petición cuál. El servidor guarda lo que hay en cada una.</p>
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Datos</th>
+<th>Respuesta, tras el estado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OPEN</code> (1)</td>
+<td>ranura (u8), modo (u32: los <code>ZXV_O_*</code> de <code>file_open</code>), ruta</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>READ</code> (2)</td>
+<td>ranura (u8), cuántos (u16, hasta 512)</td>
+<td>Estado = bytes leídos (0, el final); detrás, esos bytes</td>
+</tr>
+<tr>
+<td><code>WRITE</code> (3)</td>
+<td>ranura (u8), los bytes (hasta 512)</td>
+<td>Estado = bytes escritos</td>
+</tr>
+<tr>
+<td><code>CLOSE</code> (4)</td>
+<td>ranura (u8)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>SEEK</code> (5)</td>
+<td>ranura (u8), desplazamiento (i32), desde (u8: 0 el principio, 1 donde está, 2 el final)</td>
+<td>Estado = la posición nueva</td>
+</tr>
+<tr>
+<td><code>STAT</code> (6)</td>
+<td>ruta</td>
+<td>Tamaño (u32) y atributos (u32: bit 0, carpeta)</td>
+</tr>
+<tr>
+<td><code>REMOVE</code> (7)</td>
+<td>ruta</td>
+<td>— (borra un fichero o una carpeta vacía)</td>
+</tr>
+<tr>
+<td><code>RENAME</code> (8)</td>
+<td>ruta de origen, un 0, ruta de destino</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>MKDIR</code> (9)</td>
+<td>ruta</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>OPENDIR</code> (10)</td>
+<td>ranura de carpeta (u8), ruta</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>READDIR</code> (11)</td>
+<td>ranura de carpeta (u8)</td>
+<td>Estado = 1 y la entrada: tamaño (u32), atributos (u32) y nombre (sin el cero); 0, se acabó</td>
+</tr>
+<tr>
+<td><code>CLOSEDIR</code> (12)</td>
+<td>ranura de carpeta (u8)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>La carpeta actual la lleva la máquina: cambiar de carpeta es un <code>STAT</code> que
+comprueba que existe y es una carpeta.</p>
+<h2 id="las-rutas">Las rutas<a class="ancla" href="#las-rutas" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>Absolutas desde la raíz</strong> de lo que sirve el servidor, con <code>/</code> (<code>/juegos/a.bas</code>;
+  <code>/</code> es la raíz). La máquina ya ha resuelto <code>.</code>, <code>..</code> y la carpeta actual: no
+  llegan.</li>
+<li><strong>El servidor no sale de su carpeta.</strong> Una ruta que lo intentaría (con <code>..</code>,
+  <code>\</code> o una letra de unidad) es <code>ZXV_E_NAME</code>.</li>
+<li><strong>Los nombres</strong>, como en la tarjeta (<a href="https://github.com/cronomantic/ZX-V/blob/main/dev/spec.md">spec §7.7</a>): hasta 63 caracteres ASCII
+  imprimibles, sin <code>\ : * ? " &lt; &gt; |</code>, sin acabar en espacio ni en punto; rutas
+  de hasta 255. <strong>Sin distinguir mayúsculas</strong>: <code>JUEGO.BAS</code> abre <code>juego.bas</code>;
+  al crear, se conserva la grafía que pide la máquina.</li>
+<li><strong>Lo que no cumple las reglas</strong> (un nombre con acentos, por ejemplo) no sale
+  en los listados y no se puede abrir. Tampoco salen los ficheros ocultos o
+  de sistema.</li>
+<li><strong><code>READDIR</code></strong> da las entradas en orden alfabético, sin distinguir
+  mayúsculas, como la tarjeta.</li>
+</ul>
+<h2 id="lo-que-se-recomienda-a-un-servidor">Lo que se recomienda a un servidor<a class="ancla" href="#lo-que-se-recomienda-a-un-servidor" aria-hidden="true">#</a></h2>
+<ul>
+<li><strong>No sustituir lo que no escribió la máquina:</strong> si un <code>OPEN</code> para escribir,
+  un <code>REMOVE</code> o un <code>RENAME</code> estropearía un fichero de la carpeta que la
+  máquina no escribió (lo que ya había, con otro contenido), contestar
+  <code>ZXV_E_ACCESS</code>, salvo que quien maneja el servidor lo permita. El de
+  referencia apunta lo que escribe la máquina.</li>
+<li><strong>Escribir entero o no escribir:</strong> guardar lo que llega aparte y ponerle su
+  nombre al cerrar, para que un corte no deje el fichero a medias.</li>
+<li><strong>Contestar deprisa:</strong> la máquina espera medio segundo por respuesta.</li>
+</ul>
+<h2 id="lo-que-pide-el-equipo-de-fuera-canal-ctrl">Lo que pide el equipo de fuera (canal CTRL)<a class="ancla" href="#lo-que-pide-el-equipo-de-fuera-canal-ctrl" aria-hidden="true">#</a></h2>
+<p>La carga remota, para quien quiera hacerla por su cuenta (<code>zxv-link</code> es la de
+referencia):</p>
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Datos</th>
+<th>Respuesta, tras el estado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HELLO</code> (1)</td>
+<td>—</td>
+<td>Versión del protocolo (u16), si el BASIC espera una orden (u8), versión de la especificación (u32) y del firmware (texto)</td>
+</tr>
+<tr>
+<td><code>OPEN</code> (2)</td>
+<td>tamaño (u32), ruta en la tarjeta</td>
+<td>— (lo que llega se escribe aparte y pasa a su nombre al cerrar)</td>
+</tr>
+<tr>
+<td><code>DATA</code> (3)</td>
+<td>posición (u32), hasta 512 bytes</td>
+<td>La posición siguiente (u32). Fuera de orden: <code>ZXV_E_INVAL</code> y la que espera; sin fichero abierto, <code>ZXV_E_BADF</code></td>
+</tr>
+<tr>
+<td><code>CLOSE</code> (4)</td>
+<td>CRC-32 de todo (u32)</td>
+<td>— (si no cuadra, <code>ZXV_E_IO</code> y no se escribe nada)</td>
+</tr>
+<tr>
+<td><code>RUN</code> (5)</td>
+<td>el texto que se teclea, con Intro detrás</td>
+<td>— (con un programa en marcha, estado 1: abajo)</td>
+</tr>
+<tr>
+<td><code>STAT</code> (6)</td>
+<td>ruta en la tarjeta</td>
+<td>Tamaño (u32) y CRC-32 (u32)</td>
+</tr>
+<tr>
+<td><code>READY</code> (7)</td>
+<td>—</td>
+<td>— (cuando el BASIC espera una orden; con un programa en marcha, estado 1)</td>
+</tr>
+<tr>
+<td><code>DBG_READ</code> (8)</td>
+<td>desde (u16), cuántos (u16)</td>
+<td>Esos bytes del buzón del depurador del BASIC</td>
+</tr>
+<tr>
+<td><code>DBG_WRITE</code> (9)</td>
+<td>desde (u16), los bytes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>SERVE</code> (10)</td>
+<td>arriba</td>
+<td>arriba</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Estado 1 en <code>RUN</code> y <code>READY</code>:</strong> había un programa en marcha y la máquina se
+reinicia entera, como con Ctrl+Alt+Supr; lo pedido no se hace. Contesta otra
+vez al cabo de un arranque (uno o dos segundos): hay que mandar <code>HELLO</code>
+hasta que diga que el BASIC espera una orden, y pedirlo de nuevo.</p>
+<h2 id="las-versiones">Las versiones<a class="ancla" href="#las-versiones" aria-hidden="true">#</a></h2>
+<p><code>HELLO</code> dice la versión del protocolo de la máquina. <strong>Esta es la 4:</strong> la
+unidad <code>EXT:</code> (el canal <code>EXT</code> y <code>SERVE</code>). La 3 trajo el reinicio de la
+máquina en <code>RUN</code> y <code>READY</code>; la 2, <code>STAT</code>, <code>READY</code> y el depurador. Un servidor
+de <code>EXT:</code> necesita una máquina con la 4 o más.</p>
+<nav class="pasos"><a class="anterior" href="protoboard.html"><small>Anterior</small>← En una protoboard</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

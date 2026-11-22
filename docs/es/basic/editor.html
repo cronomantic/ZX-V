@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="../index.html">ZX-V</a>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
 <a class="ir" href="../../en/basic/editor.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -53,6 +54,12 @@
 </li>
 <li><a href="../sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="../sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
+</li>
+<li><a href="../hardware/firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="../hardware/firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
+</li>
 <li><a href="../sdk/web.html">Publicar tu juego en la web</a>
 </li>
 </ul>
@@ -70,6 +77,8 @@
 <li><a href="../hardware/firmware.html">El firmware</a>
 </li>
 <li><a href="../hardware/protoboard.html">En una protoboard</a>
+</li>
+<li><a href="../hardware/protocol.html">El protocolo</a>
 </li>
 </ul>
 </aside>
@@ -387,6 +396,14 @@ la pantalla:</p>
 <td>Cada tecla del editor hace un clic, como en el 128K. Esta opción lo quita o lo vuelve a poner; la máquina lo recuerda al apagarla</td>
 </tr>
 <tr>
+<td>Fecha y hora</td>
+<td>Pone en hora el reloj de la máquina: ver <a href="#la-fecha-y-la-hora">La fecha y la hora</a></td>
+</tr>
+<tr>
+<td>Actualizar firmware</td>
+<td>En la máquina real, actualiza su firmware desde el fichero <code>zxv-update.bin</code> de la tarjeta SD: ver <a href="../hardware/firmware.html#cómo-se-actualiza">El firmware</a>. En el emulador solo dice que no hay nada que actualizar</td>
+</tr>
+<tr>
 <td>Copiar aquí, Mover aquí, Borrar líneas</td>
 <td>Solo con un bloque marcado: ver <a href="#bloques-de-líneas">Bloques de líneas</a></td>
 </tr>
@@ -395,6 +412,28 @@ la pantalla:</p>
 <p>Renumerar e Imprimir trabajan con el programa guardado: si la línea en la que
 estás ha cambiado, primero se guarda (y si tiene un error, el menú se cierra
 para que lo arregles).</p>
+<h2 id="la-fecha-y-la-hora">La fecha y la hora<a class="ancla" href="#la-fecha-y-la-hora" aria-hidden="true">#</a></h2>
+<p>La máquina tiene un reloj, con una pila en la placa, que pone la fecha a los
+ficheros que se graban en la tarjeta y que los programas leen con <code>CLOCK</code>. Si
+no está en hora al encender la máquina (una placa nueva, o sin su pila), la
+línea de estado lo dice en lugar del copyright. La opción <strong>Fecha y hora</strong> del
+menú EDIT lo pone en hora sin escribir ninguna orden:</p>
+<p><img alt="La fecha y la hora" src="../../images/editor-clock-es.png" /></p>
+<ul>
+<li><strong>↑ y ↓</strong> eligen el día, el mes, el año, la hora o los minutos.</li>
+<li><strong>← y →</strong> lo cambian, de uno en uno; al pasar del último valor vuelve al
+  primero (después de 59 minutos, 0).</li>
+<li>O <strong>teclea el número</strong>: <code>18</code> para el día, <code>11</code> para noviembre, <code>2026</code>
+  para el año.</li>
+<li>Debajo de los minutos está el día de la semana, para comprobar la fecha.</li>
+<li><strong>Enter</strong> pone el reloj en hora (los segundos empiezan en 0) y la línea de
+  estado dice <code>Reloj en hora</code>; <strong>Esc</strong> o <strong>Tab</strong> lo cierran sin cambiar nada.</li>
+</ul>
+<p>El día nunca pasa de los de su mes: el 30 de febrero no se puede poner. Si el
+reloj no se ha puesto nunca en hora, el cuadro empieza en la fecha de la ROM.
+Lo mismo se hace desde un programa con la orden
+<a href="reference.html#clock"><code>CLOCK</code></a>. En el emulador, el reloj sigue el del ordenador
+mientras no lo pongas tú en hora.</p>
 <h2 id="el-editor-en-modo-0">El editor en modo 0<a class="ancla" href="#el-editor-en-modo-0" aria-hidden="true">#</a></h2>
 <p>El editor empieza en el modo 1 de la pantalla: 64 columnas y 46 filas para
 el listado, con letra pequeña. La opción <strong>Modo 0</strong> del menú EDIT lo pasa al
@@ -418,8 +457,12 @@ editor vuelve al modo 1.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>© 2026 Cronomantic  ZX-V 0.9.0</code></td>
+<td><code>© 2026 Cronomantic  ZX-V 0.10.0</code></td>
 <td>Al arrancar ZX-V, y después de <code>NEW</code>: el copyright y la versión de la ROM</td>
+</tr>
+<tr>
+<td><code>El reloj no tiene hora: EDIT &gt; Fecha y hora</code></td>
+<td>En lugar del copyright al arrancar ZX-V, si el reloj no está en hora: ver <a href="#la-fecha-y-la-hora">La fecha y la hora</a></td>
 </tr>
 <tr>
 <td>Un error en rojo, como <code>C Sintaxis incorrecta</code></td>

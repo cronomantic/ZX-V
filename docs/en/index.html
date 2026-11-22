@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="index.html">ZX-V</a>
+<a class="marca" href="index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
 <a class="ir" href="../es/index.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -51,6 +52,13 @@
 </li>
 <li><a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="sdk/index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a>
+</li>
+<li><a href="hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
+</li>
+<li><a href="hardware/firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>
+</li>
 <li><a href="sdk/web.html">Publishing your game on the web</a>
 </li>
 </ul>
@@ -68,6 +76,8 @@
 <li><a href="hardware/firmware.html">The firmware</a>
 </li>
 <li><a href="hardware/protoboard.html">On a protoboard</a>
+</li>
+<li><a href="hardware/protocol.html">The protocol</a>
 </li>
 </ul>
 </aside>
@@ -108,8 +118,16 @@ BASIC or in C, and how to build the real machine.</p>
 <li><strong><a href="sdk/graphics.html#the-graphics-editor-for-the-pc-zxv-gfx">The graphics editor, <code>zxv-gfx</code></a></strong> —
   sprites, tiles, maps and textures for BASIC and C programs.</li>
 <li><strong><a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a></strong> —
-  music for the two AY chips (PT3 modules) and AYFX sound effects for
-  BASIC and C programs.</li>
+  music for the two AY chips and the sample channels (<code>.zxm</code> songs and PT3
+  modules) and AYFX sound effects for BASIC and C programs. It also opens
+  MOD, S3M and XM modules, converted; for one with more than 12 channels, it
+  asks which ones to keep.</li>
+<li><strong><a href="sdk/index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a></strong> —
+  converts PT3, TurboSound, MOD, S3M and XM to the own format, <code>.zxm</code>.</li>
+<li><strong><a href="hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a></strong> —
+  they send programs from the PC to the board through the J5 header and run
+  them, and serve a folder on the PC as the machine's <a href="hardware/firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>.</li>
 <li><strong><a href="sdk/web.html">Publishing your game on the web</a></strong> — <code>mkweb.py</code> (in the
   SDK) makes a page with only your game, in C or in BASIC, for itch.io or
   your website, with touch controls for phones.</li>
@@ -126,8 +144,11 @@ BASIC or in C, and how to build the real machine.</p>
 <li><strong><a href="hardware/board.html">The board</a></strong> — ordering the PCB assembled, and the
   parts you solder yourself.</li>
 <li><strong><a href="hardware/firmware.html">The firmware</a></strong> — putting the software on the two
-  Picos.</li>
+  Picos and updating it, and loading programs from the PC through the J5
+  header, with <code>zxv-link</code> and the <code>EXT:</code> drive.</li>
 <li><strong><a href="hardware/protoboard.html">On a protoboard</a></strong> — building it without the PCB.</li>
+<li><strong><a href="hardware/protocol.html">The protocol</a></strong> — the <code>EXT:</code> drive and remote
+  loading through J5, to write your own server.</li>
 </ul>
 <h2 id="examples">Examples<a class="ancla" href="#examples" aria-hidden="true">#</a></h2>
 <ul>
@@ -155,13 +176,16 @@ BASIC or in C, and how to build the real machine.</p>
   mode 7 floor and a lamp whose light shrinks as its oil runs out.</li>
 <li><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/keep">The Keep, a dungeon adventure in C</a> — four floors
   of rooms seen from above, whose maps you can redraw in <code>zxv-gfx</code>.</li>
-<li><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/chess">ZXV Chess, chess in C</a> — against the machine
-  or for two players, with the keyboard, a joystick or the mouse.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/chess">ZXV Chess, chess in C</a>, by ximoKom — against
+  the machine or for two players, with the keyboard, a joystick or the mouse.</li>
 <li><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/gonesilent">Gone Silent, a 3D adventure in C</a> — solid
   dithered polygons, pixel-art creatures and a colony to explore in your
   suit.</li>
 <li><a href="https://github.com/cronomantic/ZX-V/tree/main/examples/zxbasic/stardust">Stardust, a game in ZX Basic</a> — double
   buffering, sprites and collisions with <code>zxv.bas</code>, at 60 frames per second.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/tree/main/examples/zxbasic/petitsoccer">Petit Soccer, football in ZX Basic</a> — a
+  pitch bigger than the screen with scroll, teams painted from one set of
+  sprites, music and effects, against the machine or for two players.</li>
 </ul>
 <hr />
 <p>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; the code examples in it

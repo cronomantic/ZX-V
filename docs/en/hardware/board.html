@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="../index.html">ZX-V</a>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
 <a class="ir" href="../../es/hardware/board.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -51,6 +52,13 @@
 </li>
 <li><a href="../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="../sdk/index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a>
+</li>
+<li><a href="firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
+</li>
+<li><a href="firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>
+</li>
 <li><a href="../sdk/web.html">Publishing your game on the web</a>
 </li>
 </ul>
@@ -71,6 +79,8 @@
 </li>
 <li><a href="protoboard.html">On a protoboard</a>
 </li>
+<li><a href="protocol.html">The protocol</a>
+</li>
 </ul>
 </aside>
 <main>
@@ -82,10 +92,12 @@ designed so that JLCPCB can make it <strong>with all the small surface-mount (SM
 parts already soldered</strong>. When it arrives you only solder the two Picos and a
 few large through-hole parts.</p>
 <blockquote>
-<p><strong>The board has not been manufactured or tested yet.</strong> The design is
-complete and passes KiCad's checks, but nobody has built one. If you order
-it, check everything this page asks you to check, and be ready for surprises.
-The design files will be published once a board has been built and tested; until then, this page shows what ordering it will involve.</p>
+<p><strong>The first boards have been made and one has been tested:</strong> with the two
+Picos together it passes <code>boardtest</code> and uses the microSD card; the
+clock's coin cell is still to be tried. If you order it, check
+everything this page asks you to check.
+The design files are in <a href="https://github.com/cronomantic/ZX-V/tree/main/pcb"><code>pcb/</code></a> (KiCad), as open hardware:
+CERN-OHL-W v2 licence.</p>
 </blockquote>
 <p><img alt="The top of the board, without the Picos. The front edge, with the controls,
 is at the bottom." src="../../images/hardware-board-top.png" /></p>
@@ -93,8 +105,9 @@ is at the bottom." src="../../images/hardware-board-top.png" /></p>
 bottom; some connectors are only drawn as their pads. The printed labels are
 in Spanish (see <a href="#connectors-and-controls">Connectors and controls</a>).</em></p>
 <h2 id="ordering-it-from-jlcpcb">Ordering it from JLCPCB<a class="ancla" href="#ordering-it-from-jlcpcb" aria-hidden="true">#</a></h2>
-<p>These are the files you will upload, once they are published; you
-will not need KiCad to order the board.</p>
+<p>Everything you upload is in <a href="https://github.com/cronomantic/ZX-V/tree/main/pcb/fabrication"><code>pcb/fabrication/</code></a>.
+The files are generated and checked by <code>pcb/tools/fabricate.py</code>; you do not need
+KiCad to order the board.</p>
 <table>
 <thead>
 <tr>
@@ -251,6 +264,13 @@ from LCSC or any other shop.</p>
 <td>Not needed if you solder the Picos by their edges, or if your Picos come with headers</td>
 </tr>
 <tr>
+<td>(U1, U2)</td>
+<td>Female pin header, 1 × 20, 2.54 mm (optional)</td>
+<td>4</td>
+<td>—</td>
+<td>Sockets, so the Picos can be removed; with the male headers on the Picos</td>
+</tr>
+<tr>
 <td>SW1, SW2</td>
 <td>Push button, 6 × 6 mm, right-angle (Omron B3F-3152)</td>
 <td>2</td>
@@ -325,18 +345,32 @@ on the board.</p>
 </ul>
 <h3 id="the-optional-headers">The optional headers<a class="ancla" href="#the-optional-headers" aria-hidden="true">#</a></h3>
 <p><strong>J5</strong> (3 pins, <code>UART</code>) and <strong>J6</strong> (4 pins, <code>I2C</code>) are at the back right. You
-only need them for debugging (J5) or to connect an I2C module such as a DS3231
-clock (J6). Straight 2.54 mm male headers.</p>
+only need them for remote loading (J5: sending programs from the PC,
+debugging BASIC on the board and serving the <code>EXT:</code> drive; see
+<a href="firmware.html#loading-programs-from-the-pc-j5">Loading programs from the PC</a>)
+or to connect an I2C module such as a DS3231 clock (J6). Straight 2.54 mm
+male headers.</p>
 <h3 id="the-picos">The Picos<a class="ancla" href="#the-picos" aria-hidden="true">#</a></h3>
-<p>The footprint accepts the Picos two ways:</p>
+<p>The footprint accepts the Picos three ways:</p>
 <ul>
-<li><strong>With pin headers</strong> (the easiest to solder): solder two 1 × 20 headers to
-  the Pico, or buy Picos with headers already fitted, and then solder the
-  headers into the holes of the board. The Pico sits a little above the board.</li>
+<li><strong>In sockets</strong> (recommended on a board you are still testing): solder two
+  1 × 20 female headers into the holes of the board, and two male headers to
+  the Pico (or buy it with them fitted). The Pico plugs in and comes out
+  without desoldering anything: you can swap it for another one, swap the two,
+  or measure the board without them. It sits higher, about 8.5 mm above the
+  board: check it if the board is going into a case.</li>
+<li><strong>With pin headers</strong>: the Pico's male headers soldered straight into the
+  holes of the board. The Pico sits a little above the board.</li>
 <li><strong>By their castellated edges</strong>: lay the Pico flat on the board, with each
-  half-hole on its pad, and solder along both edges. Half the joints, and
-  lower; harder to undo.</li>
+  half-hole on its pad, and solder along both edges. Half the joints, and the
+  lowest; the hardest to undo.</li>
 </ul>
+<p><strong>To keep them straight</strong>, use the board as a jig: put the headers in their
+holes (for sockets, the female ones with the male ones plugged in), rest the
+Pico on top and solder the four corners on the Pico first. Check that the Pico
+sits flat, solder the rest, and then, with the Pico still in place so nothing
+tilts, the headers under the board, also corners first. Do it with nothing
+plugged in, and look for bridges between neighbouring pins with a magnifier.</p>
 <p><strong>Orientation:</strong> the Pico's components face up and its <strong>micro-USB connector
 points to the front edge</strong> (towards the USB-A and the buttons). The <strong>ULA Pico
 goes on the left</strong> and the <strong>CPU Pico on the right</strong>, as seen from the front;
@@ -361,7 +395,8 @@ and the keyboard layout when switched off.</p>
 <li>[ ] Each Pico flashed with its firmware: <code>zxv_cpu.uf2</code> on the CPU Pico,
       <code>zxv_ula_link.uf2</code> on the ULA Pico.</li>
 <li>[ ] ULA Pico on the left, CPU Pico on the right, micro-USB to the front.</li>
-<li>[ ] All 80 pins of the Picos soldered (40 each).</li>
+<li>[ ] All 80 pins of the Picos soldered (40 each), or the Picos in sockets
+      with all 80 socket pins soldered.</li>
 <li>[ ] CR2032 in place, <code>+</code> up.</li>
 </ul>
 <h2 id="the-first-power-on">The first power-on<a class="ancla" href="#the-first-power-on" aria-hidden="true">#</a></h2>
@@ -399,8 +434,8 @@ and the keyboard layout when switched off.</p>
    the editor's keys click. Go back to BASIC with Esc, change it in the EDIT
    menu (Tab, "Key click off"), press RESET and load the test again: the
    line must have changed. RESET restarts the firmware, which reads it back
-   from the clock; Ctrl+Alt+Del is not enough, as it does not restart it. If
-   it goes back to "on", the clock does not keep it (or there is no clock).</li>
+   from the clock (Ctrl+Alt+Del works too, as it restarts it as well). If it
+   goes back to "on", the clock does not keep it (or there is no clock).</li>
 </ol>
 <p>The Picos can still be connected to a computer by their micro-USB while the
 board is powered: the protection diodes keep the two supplies apart. <strong>Not
@@ -489,7 +524,7 @@ link pins. If something does not work, see
 <td><code>UART</code> <code>GND</code> <code>TX</code> <code>RX</code></td>
 <td>Back, right</td>
 <td>J5 (not fitted)</td>
-<td>The CPU Pico's debug serial port, 3.3 V, 921600 baud. <code>TX</code> is the Pico's output</td>
+<td>Remote loading: programs from the PC with <code>zxv-link</code> and a 3.3 V USB-serial adapter (<a href="firmware.html#loading-programs-from-the-pc-j5">how</a>). <code>TX</code> is the Pico's output</td>
 </tr>
 <tr>
 <td><code>I2C</code> <code>3V3</code> <code>GND</code> <code>SDA</code> <code>SCL</code></td>

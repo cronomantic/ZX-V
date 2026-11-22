@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="../index.html">ZX-V</a>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
 <a class="ir" href="../../es/basic/reference.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -53,6 +54,13 @@
 </li>
 <li><a href="../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="../sdk/index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a>
+</li>
+<li><a href="../hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
+</li>
+<li><a href="../hardware/firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>
+</li>
 <li><a href="../sdk/web.html">Publishing your game on the web</a>
 </li>
 </ul>
@@ -70,6 +78,8 @@
 <li><a href="../hardware/firmware.html">The firmware</a>
 </li>
 <li><a href="../hardware/protoboard.html">On a protoboard</a>
+</li>
+<li><a href="../hardware/protocol.html">The protocol</a>
 </li>
 </ul>
 </aside>
@@ -131,7 +141,7 @@ typed letter by letter, as on the 128K, not with single keys.</p>
 <li><a href="#sprites-tile-maps-and-fast-graphics">Sprites, tile maps and fast graphics</a>:
   <code>GRAB</code>, <code>SPRITE</code>, <code>TILE</code>, <code>MAP</code>, <code>FLOOR</code>, <code>BOX</code>, <code>DISC</code>, <code>POLY</code>...</li>
 <li><a href="#sound-and-music">Sound and music</a>: <code>BEEP</code>, <code>PLAY</code>, <code>SOUND</code>, <code>MUSIC</code>,
-  <code>SFX</code></li>
+  <code>SFX</code>, <code>SAMPLE</code></li>
 <li><a href="#keyboard-joystick-and-mouse">Keyboard, joystick and mouse</a>: <code>INPUT</code>,
   <code>INKEY$</code>, <code>KEY</code>, <code>JOY</code>, <code>MOUSE</code></li>
 <li><a href="#files-and-the-sd-card">Files and the SD card</a>: <code>SAVE</code>, <code>LOAD</code>, <code>CAT</code>,
@@ -1419,8 +1429,10 @@ from the top left, whatever drew it; -1 outside the page. It ignores
 <pre><code>10 BOX 4,10,10,20,20: PRINT PIXEL(15,15); &quot; &quot;; PIXEL(5,5); &quot; &quot;; PIXEL(-1,0)
 </code></pre>
 <h2 id="sound-and-music">Sound and music<a class="ancla" href="#sound-and-music" aria-hidden="true">#</a></h2>
-<p>ZX-V has a beeper (a simple speaker, used by <code>BEEP</code>) and two AY sound chips
-with three channels each (used by <code>PLAY</code>, <code>SOUND</code>, <code>MUSIC</code> and <code>SFX</code>).</p>
+<p>ZX-V has a beeper (a simple speaker, used by <code>BEEP</code>), two AY sound chips
+with three channels each (used by <code>PLAY</code>, <code>SOUND</code>, <code>MUSIC</code> and <code>SFX</code>) and
+twelve sample channels, which play recorded sounds (<code>SAMPLE</code> and sample
+music).</p>
 <h3 id="beep">BEEP<a class="ancla" href="#beep" aria-hidden="true">#</a></h3>
 <pre><code>BEEP duration, pitch
 </code></pre>
@@ -1531,8 +1543,13 @@ shared by its three voices.</p>
 </code></pre>
 <p>Writes directly to the registers of the AY chips, for sound effects. Registers
 0 to 15 belong to the first chip and 16 to 31 to the second (same meaning, 16
-higher); values are 0 to 255. A register above 31 gives
-<code>B Integer out of range</code>.</p>
+higher); values are 0 to 255. Registers 64 to 159 are those of the twelve
+sample channels, eight per channel (channel c starts at 64 + 8 × c): the
+sample (a table entry: the <code>SAMPLE</code> ones are 224 to 255), the volume
+(0–64), the pan, the control (1 starts it, 2 stops it), the three bytes of
+the step (8.16: 65,536 is 48 kHz) and where it starts; see the sample
+channels in the <a href="../sdk/reference.html">SDK reference</a>. Any other register
+gives <code>B Integer out of range</code>.</p>
 <table>
 <thead>
 <tr>
@@ -1582,12 +1599,27 @@ MUSIC                          (function)
 </code></pre>
 <p>Plays music made with a tracker, in the background: the program carries on
 while it plays, as in games. <code>LOAD name$ MUSIC</code> loads a module (without an
-extension, <code>name.pt3</code>): Pro Tracker 3 or Vortex Tracker II (<code>.pt3</code>, the one
-the ZX-V tracker,
-<a href="../sdk/index.html#the-tracker-for-the-pc-zxv-tracker"><code>zxv-tracker</code></a>, saves),
+extension, the first there is of <code>name.zxm</code>, <code>name.pt3</code>, <code>name.mod</code>,
+<code>name.s3m</code>, <code>name.xm</code>, <code>name.vgm</code> and <code>name.vgz</code>): ZX-V's own format (<code>.zxm</code>, with both AY chips
+and the sample channels: the one
+<a href="../sdk/index.html#the-tracker-for-the-pc-zxv-tracker"><code>zxv-tracker</code></a> or
+<a href="../sdk/index.html#the-own-format-zxm-and-zxv-music"><code>zxv-music</code></a> saves), a MOD,
+an S3M (Scream Tracker 3) or an XM (FastTracker 2), which it converts when
+loading and which play on the sample channels (up to 12: of those with
+more, the 12 that play the most notes), Pro Tracker 3 or Vortex Tracker II (<code>.pt3</code>, which
+<code>zxv-tracker</code> also saves),
 a TurboSound (two modules, one on each AY chip: six voices), Pro Tracker 2,
-Sound Tracker, ASC Sound Master or a PSG dump. A file that is none of those
-gives <code>R Tape loading error</code>.</p>
+Sound Tracker, ASC Sound Master, a PSG dump or a VGM (<code>.vgm</code>, or
+compressed, <code>.vgz</code>: the registers of the AY chips, as emulators record
+them; see <a href="../sdk/index.html#vgm-the-ay-chips">VGM</a>).
+A file that is none of those gives <code>R Loading error</code>.</p>
+<p>The samples of a MOD, an S3M, an XM or a <code>.zxm</code> go from the file to the
+sound memory (96 KB) when it is loaded, and only the song stays in the
+BASIC's memory (repeated patterns, once): the file can be bigger than that
+memory (a 300 KB MOD or a 1.6 MB XM fit, for example). With more than
+96 KB of samples, the biggest ones go in ADPCM, and if they still do not
+fit, also at half the rate (with less treble): modules with up to about
+96 KB of samples sound best, and almost the same up to about 170 KB.</p>
 <ul>
 <li><code>MUSIC PLAY</code> plays it from the start and, at the end, goes back to the
   module's loop position, for ever. Without a module loaded, <code>A Invalid
@@ -1596,14 +1628,22 @@ gives <code>R Tape loading error</code>.</p>
   carries on where it was.</li>
 <li>The <code>MUSIC</code> function is 1 while it plays and 0 if not.</li>
 </ul>
-<p>It plays on the first AY chip (a TurboSound, on both), with the same code
-as the tracker and C programs. It stops with <code>MUSIC STOP</code>, BREAK, <code>RUN</code>,
-<code>NEW</code>, <code>PLAY</code> (which uses the chips its own way) and when a native program
+<p>A <code>.zxm</code> with sample tracks plays them on the sample channels from 0 on (one
+per track; the rest stay free), and when it starts it uploads its samples to
+the beginning of the sound memory and of its table.</p>
+<p>An AY module plays on the first chip (a TurboSound or a VGM for two AY
+chips, on both); a MOD, an S3M or an XM, on the sample channels; and a
+<code>.zxm</code>, on the chips and sample channels its tracks use. It is played by the
+same code as the tracker and C programs. It stops with <code>MUSIC STOP</code>,
+BREAK, <code>RUN</code>, <code>NEW</code>, <code>PLAY</code> (which uses the chips its own way) and when a native program
 is loaded; if the program ends or gives an error, it keeps playing. What
 <code>SOUND</code> writes on the music's chip lasts until the music writes that
 register again.</p>
-<p>The module takes the size of its file (2 to 15 KB for a normal one) and goes
-with the graphics: <code>RUN</code> and <code>CLEAR</code> keep it and <code>NEW</code> deletes it.</p>
+<p>In the BASIC's memory, an AY module or a VGM takes the size of its file (2
+to 15 KB for a normal PT3; a <code>.vgz</code> also takes 32 KB to decompress it while
+it plays), and a MOD, an S3M, an XM or a <code>.zxm</code> only its song: its samples
+go to the sound memory. The module goes with the graphics: <code>RUN</code> and <code>CLEAR</code>
+keep it and <code>NEW</code> deletes it.</p>
 <pre><code>10 LOAD &quot;tune&quot; MUSIC: MUSIC PLAY
 20 PRINT &quot;Playing...&quot;
 30 IF INKEY$=&quot;&quot; THEN GO TO 30
@@ -1618,7 +1658,7 @@ SFX                            (function)
 <p>Sound effects as in games: an AYFX effect bank (<code>.afb</code>, the one the effects
 tab of <code>zxv-tracker</code> or the AY Sound FX Editor saves; without an extension,
 <code>name.afb</code>) or a single effect (<code>.afx</code>). A file that is not a bank gives
-<code>R Tape loading error</code>.</p>
+<code>R Loading error</code>.</p>
 <ul>
 <li><code>SFX n</code> plays effect <code>n</code> of the bank (the first is 0) without waiting, on
   a free channel of the chip the music does not use (if there is none, on
@@ -1634,6 +1674,47 @@ tab of <code>zxv-tracker</code> or the AY Sound FX Editor saves; without an exte
 BREAK, <code>RUN</code> and <code>NEW</code> stop them; the bank is kept like the module.</p>
 <pre><code>10 LOAD &quot;effects&quot; SFX
 20 IF INKEY$=&quot; &quot; THEN SFX 0
+30 GO TO 20
+</code></pre>
+<h3 id="sample">SAMPLE<a class="ancla" href="#sample" aria-hidden="true">#</a></h3>
+<pre><code>LOAD name$ SAMPLE n
+SAMPLE n [, pitch [, volume [, pan]]] [; channel]
+SAMPLE STOP [channel]
+SAMPLE                         (function)
+</code></pre>
+<p>Recorded sounds (hits, voices, instruments) on the twelve sample channels,
+without waiting, together with the music and everything else.</p>
+<ul>
+<li><code>LOAD name$ SAMPLE n</code> loads a WAV (without an extension, <code>name.wav</code>) into
+  sample <code>n</code>, 0 to 31: 8 or 16 bits, mono or stereo (mixed down), at any
+  rate. It goes to the sound memory (96 KB) in 8 bits; it takes nothing from
+  the BASIC's memory. If the WAV has a loop (the one Audacity and sound
+  editors save), the sample repeats it until it is stopped. A file that is
+  not such a WAV gives <code>R Loading error</code>, and one that does not fit,
+  <code>4 Out of memory</code>.</li>
+<li><code>SAMPLE n</code> plays it at its own pitch, at full volume and in the centre.
+  <code>pitch</code> is in semitones above the pitch it was recorded at (0 the same, 12
+  an octave higher, -12 an octave lower; decimals are fine), <code>volume</code> 0 to
+  64 and <code>pan</code> 0 (left) to 255 (right), with 128 the centre.</li>
+<li>Without <code>; channel</code>, it plays on a channel the music does not use (if
+  there is none left, on the one that has had an effect the longest). With
+  <code>; channel</code>, 0 to 11, on that one: if it is a music channel, it covers the
+  music while it plays, and the music carries on there at its next note.</li>
+<li><code>SAMPLE STOP</code> stops them all; with <code>channel</code>, the one on that channel.</li>
+<li>The <code>SAMPLE</code> function is 1 while any of them plays.</li>
+<li>Without the sample loaded, <code>A Invalid argument</code>.</li>
+</ul>
+<p><strong>With the music:</strong> the song's samples go into the sound memory from the
+bottom and the <code>SAMPLE</code> ones from the top. Load the <code>SAMPLE</code> ones first: a
+song loaded afterwards fits into the room left (in ADPCM, or with less
+treble if need be), and a sample loaded after a song only uses what the
+song leaves free. A <code>.zxm</code> is already converted and doesn't adjust: if it
+doesn't fit, <code>4 Out of memory</code>; make it with
+<a href="../sdk/index.html#the-own-format-zxm-and-zxv-music"><code>zxv-music --free</code></a> so
+that it leaves room. BREAK, <code>RUN</code> and <code>NEW</code> stop the samples; the loaded ones
+are kept like the <code>SFX</code> bank, and <code>NEW</code> clears them.</p>
+<pre><code>10 LOAD &quot;hit&quot; SAMPLE 0: LOAD &quot;theme&quot; MUSIC: MUSIC PLAY
+20 IF INKEY$=&quot; &quot; THEN SAMPLE 0, RND*4-2
 30 GO TO 20
 </code></pre>
 <h2 id="keyboard-joystick-and-mouse">Keyboard, joystick and mouse<a class="ancla" href="#keyboard-joystick-and-mouse" aria-hidden="true">#</a></h2>
@@ -1885,7 +1966,10 @@ draw the pointer: your program draws it, for example with a sprite.</p>
 </code></pre>
 <h2 id="files-and-the-sd-card">Files and the SD card<a class="ancla" href="#files-and-the-sd-card" aria-hidden="true">#</a></h2>
 <p>Programs and data are kept on the SD card. There is also a read-only drive,
-<code>ROM:</code>, with the examples that come with the machine.</p>
+<code>ROM:</code>, with the examples that come with the machine, and the external
+drive, <code>EXT:</code>: a folder served by another device (through the board's J5
+header, or in the emulator with <code>--ext</code>), which is read and written like the
+card (see <a href="../hardware/firmware.html#the-ext-drive">The EXT: drive</a>).</p>
 <h3 id="file-names-and-drives">File names and drives<a class="ancla" href="#file-names-and-drives" aria-hidden="true">#</a></h3>
 <ul>
 <li>A name has up to 63 characters, without <code>\ : * ? " &lt; &gt; |</code>, and does not end
@@ -1893,10 +1977,11 @@ draw the pointer: your program draws it, for example with a sprite.</p>
 <li>Folders are separated with <code>/</code>. A path starting with <code>/</code> begins at the root
   of the drive; otherwise it starts in the current folder (see <a href="#cd-dir">CD</a>).
   <code>..</code> is the folder above.</li>
-<li><code>ROM:</code> and <code>SD:</code> at the start choose a drive, from its root:
-  <code>LOAD "ROM:hello"</code>, <code>CAT "SD:/games"</code>. Without a drive, the drive of the
-  current folder is used. Writing to <code>ROM:</code> (<code>SAVE</code>, <code>ERASE</code>, <code>MKDIR</code>...)
-  gives <code>V Disk error (not allowed)</code>.</li>
+<li><code>ROM:</code>, <code>SD:</code> and <code>EXT:</code> at the start choose a drive, from its root:
+  <code>LOAD "ROM:hello"</code>, <code>CAT "SD:/games"</code>, <code>SAVE "EXT:copy"</code>. Without a drive,
+  the drive of the current folder is used. Writing to <code>ROM:</code> (<code>SAVE</code>,
+  <code>ERASE</code>, <code>MKDIR</code>...) gives <code>V Disk error (not allowed)</code>. With no server
+  connected, everything on <code>EXT:</code> gives <code>V Disk error (no server for EXT:)</code>.</li>
 <li><strong>Wildcards</strong> in <code>CAT</code>, <code>ERASE</code>, <code>MOVE</code> and <code>COPY</code>: <code>*</code> stands for any
   characters (also none) and <code>?</code> for one character, in the last part of the
   path only: <code>"*.zvb"</code>, <code>"games/level?.dat"</code>. If nothing matches,
@@ -1905,7 +1990,7 @@ draw the pointer: your program draws it, for example with a sprite.</p>
 <p>Common file errors are <code>F Invalid file name</code>, <code>T File not found</code>, <code>U No SD
 card</code> and <code>V Disk error</code>, which adds the reason when it is known:
 <code>(already exists)</code>, <code>(folder not empty)</code>, <code>(it is a folder)</code>,
-<code>(not a folder)</code>, <code>(card full)</code> or <code>(not allowed)</code>.</p>
+<code>(not a folder)</code>, <code>(card full)</code>, <code>(not allowed)</code> or <code>(no server for EXT:)</code>.</p>
 <h3 id="save">SAVE<a class="ancla" href="#save" aria-hidden="true">#</a></h3>
 <pre><code>SAVE name$ [LINE line [SCREEN$] [PROTECT]]
 SAVE name$ CODE start, length
@@ -1964,6 +2049,7 @@ LOAD name$ DATA letter$()
 LOAD name$ GRAPHICS
 LOAD name$ MUSIC
 LOAD name$ SFX
+LOAD name$ SAMPLE n
 </code></pre>
 <p>Loads from the SD card (or the <code>ROM:</code> drive):</p>
 <ul>
@@ -1992,9 +2078,10 @@ LOAD name$ SFX
   replacing the array of that name, as <code>DIM</code> does. The type must match.</li>
 <li><code>GRAPHICS</code>: the objects of a <code>.gfx</code> file replace those with the same number;
   the others stay, so you can load sprites from one file and a level from
-  another. A file that is not valid gives <code>R Tape loading error</code>.</li>
-<li><code>MUSIC</code> and <code>SFX</code>: a music module or an effect bank (see
-  <a href="#music"><code>MUSIC</code></a> and <a href="#sfx"><code>SFX</code></a>).</li>
+  another. A file that is not valid gives <code>R Loading error</code>.</li>
+<li><code>MUSIC</code>, <code>SFX</code> and <code>SAMPLE</code>: a music module, an effect bank or a
+  recorded sound (see <a href="#music"><code>MUSIC</code></a>, <a href="#sfx"><code>SFX</code></a> and
+  <a href="#sample"><code>SAMPLE</code></a>).</li>
 </ul>
 <p><code>LOAD ""</code> (an empty name) loads the next block from the inserted tape (see
 <a href="#tape-files">Tape files</a>).</p>
@@ -2014,7 +2101,7 @@ LOAD &quot;ROM:graphics&quot;
 <pre><code>VERIFY name$ [CODE ... | SCREEN$ | DATA ... | GRAPHICS]
 </code></pre>
 <p>Checks that a file is the same as what is in memory, with the same forms as
-<code>LOAD</code>, without changing anything. If it differs, <code>R Tape loading error</code>.</p>
+<code>LOAD</code>, without changing anything. If it differs, <code>R Loading error</code>.</p>
 <h3 id="merge">MERGE<a class="ancla" href="#merge" aria-hidden="true">#</a></h3>
 <pre><code>MERGE name$
 </code></pre>
@@ -2022,7 +2109,7 @@ LOAD &quot;ROM:graphics&quot;
 number are replaced. The same goes for the variables, as on the Spectrum:
 those in the file replace the ones with the same name, and the others stay.
 It also works with a <a href="#listings-in-text">listing in text</a> (<code>.bas</code>), which has
-no variables. A protected program cannot be merged (<code>R Tape loading error</code>).</p>
+no variables. A protected program cannot be merged (<code>R Loading error</code>).</p>
 <h3 id="protected-programs">Protected programs<a class="ancla" href="#protected-programs" aria-hidden="true">#</a></h3>
 <pre><code>SAVE name$ LINE line [SCREEN$] PROTECT
 </code></pre>
@@ -2083,9 +2170,10 @@ CAT &quot;*.zvb&quot;
 DIR$
 </code></pre>
 <p><code>CD</code> changes the current folder: <code>CD "games"</code>, <code>CD ".."</code> (the folder above),
-<code>CD "/"</code> (the root of the drive), <code>CD "ROM:"</code> (the built-in examples drive)
-and <code>CD "SD:"</code> (back to the card). The function <code>DIR$</code> gives the current
-folder, such as <code>"/games"</code> or <code>"ROM:/"</code>.</p>
+<code>CD "/"</code> (the root of the drive), <code>CD "ROM:"</code> (the built-in examples drive),
+<code>CD "EXT:"</code> (the external drive) and <code>CD "SD:"</code> (back to the card). The
+function <code>DIR$</code> gives the current folder, such as <code>"/games"</code>, <code>"ROM:/"</code> or
+<code>"EXT:/"</code>.</p>
 <pre><code>CD &quot;ROM:&quot;: PRINT DIR$: CAT
 </code></pre>
 <p>A program that loads more files (like the platform game) looks for them in
@@ -2137,7 +2225,8 @@ gone</strong>, so save your BASIC program first.</p>
   <code>W Data file damaged (5), 0:1</code>.</li>
 <li><code>W Native code error, 0:1</code> if it crashed (for example, by reading from a
   forbidden address).</li>
-<li><code>L BREAK into program, 0:1</code> if you stopped it with Ctrl+Alt+Delete.</li>
+<li>None if you stopped it with Ctrl+Alt+Delete: the machine starts again, as
+  when you switch it on.</li>
 </ul>
 <p>The report is the program's: it says nothing about your BASIC program, which
 is gone in every case.</p>
@@ -2153,7 +2242,7 @@ tape recorder, so programs in several parts work:</p>
 <li><code>LOAD ""</code> (also <code>LOAD "" SCREEN$</code>, <code>LOAD "" CODE</code>, <code>LOAD "" DATA a()</code>,
   <code>VERIFY ""</code>, <code>MERGE ""</code>) reads the next block of that kind from where the
   tape stopped. When it reaches the end it rewinds once. With no tape
-  inserted, or no block of that kind, <code>R Tape loading error</code>.</li>
+  inserted, or no block of that kind, <code>R Loading error</code>.</li>
 <li><code>LOAD "name"</code> uses the file <code>name</code> if it exists on the card (which becomes
   the inserted tape); if not, it looks for a block with that name on the
   inserted tape, and if there is none, <code>T File not found</code>.</li>
@@ -2390,7 +2479,8 @@ CLOCK year, month, day, hour, minutes [, seconds]
 hour, 4 minutes, 5 seconds, 6 day of the week (1 Monday to 7 Sunday). It
 gives 0 if the clock has not been set. The statement sets the clock (years
 2000 to 2099); a date that does not exist gives <code>A Invalid argument</code>. Files
-saved on the card are stamped with this date.</p>
+saved on the card are stamped with this date. Without a program, the editor's
+menu sets it too: <a href="editor.html#the-date-and-time">Date and time</a>.</p>
 <pre><code>PRINT CLOCK 2; &quot;/&quot;; CLOCK 1; &quot;/&quot;; CLOCK 0; &quot; &quot;; CLOCK 3; &quot;:&quot;; CLOCK 4
 </code></pre>
 <h3 id="speed">SPEED<a class="ancla" href="#speed" aria-hidden="true">#</a></h3>
@@ -2742,7 +2832,7 @@ happened.</p>
 <tr>
 <td>R</td>
 <td>27</td>
-<td>Tape loading error</td>
+<td>Loading error</td>
 <td>Error al cargar</td>
 <td>A file that is not valid or not the right kind, <code>LOAD ""</code> with no tape inserted, or <code>VERIFY</code> found differences.</td>
 </tr>
@@ -2807,7 +2897,8 @@ happened.</p>
 <p>The reasons of <code>V Disk error</code>: <code>already exists</code> / <code>ya existe</code>,
 <code>folder not empty</code> / <code>la carpeta no está vacía</code>, <code>it is a folder</code> /
 <code>es una carpeta</code>, <code>not a folder</code> / <code>no es una carpeta</code>, <code>card full</code> /
-<code>la tarjeta está llena</code>, <code>not allowed</code> / <code>no se puede</code>.</p>
+<code>la tarjeta está llena</code>, <code>not allowed</code> / <code>no se puede</code>, <code>no server for EXT:</code> /
+<code>EXT: sin servidor</code>.</p>
 <h2 id="character-set">Character set<a class="ancla" href="#character-set" aria-hidden="true">#</a></h2>
 <p>Each character has a code from 0 to 255 (<code>CODE</code> and <code>CHR$</code> convert between
 them):</p>
@@ -3657,6 +3748,11 @@ Spanish, but your programs cannot.</p>
 <td><code>RUN</code></td>
 <td>statement</td>
 <td><a href="#run">RUN</a></td>
+</tr>
+<tr>
+<td><code>SAMPLE</code></td>
+<td>function, statement; in <code>LOAD</code></td>
+<td><a href="#sample">SAMPLE</a>, <a href="#load">LOAD</a></td>
 </tr>
 <tr>
 <td><code>SAVE</code></td>

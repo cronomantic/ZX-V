@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="index.html">ZX-V</a>
+<a class="marca" href="index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
 <a class="ir" href="../en/emulator.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -53,6 +54,12 @@
 </li>
 <li><a href="sdk/index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
+</li>
+<li><a href="hardware/firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="hardware/firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
+</li>
 <li><a href="sdk/web.html">Publicar tu juego en la web</a>
 </li>
 </ul>
@@ -70,6 +77,8 @@
 <li><a href="hardware/firmware.html">El firmware</a>
 </li>
 <li><a href="hardware/protoboard.html">En una protoboard</a>
+</li>
+<li><a href="hardware/protocol.html">El protocolo</a>
 </li>
 </ul>
 </aside>
@@ -116,11 +125,23 @@ hardware, y al revés. Viene en varias formas:</p>
 </tr>
 <tr>
 <td><strong><code>zxv-tracker</code></strong></td>
-<td>El tracker: música para los dos AY en módulos PT3 y efectos AYFX, los que toca la biblioteca de música del SDK (ver la <a href="sdk/index.html#el-tracker-para-el-pc-zxv-tracker">guía del SDK</a>)</td>
+<td>El tracker: música para los dos AY y los canales de muestras (canciones <code>.zxm</code> y módulos PT3) y efectos AYFX, los que toca la biblioteca de música del SDK (ver la <a href="sdk/index.html#el-tracker-para-el-pc-zxv-tracker">guía del SDK</a>)</td>
+</tr>
+<tr>
+<td><strong><code>zxv-music</code></strong></td>
+<td>Convierte PT3, TurboSound, MOD, S3M y XM al formato de música propio, <code>.zxm</code> (ver la <a href="sdk/index.html#el-formato-propio-zxm-y-zxv-music">guía del SDK</a>)</td>
+</tr>
+<tr>
+<td><strong><code>zxv-link</code></strong></td>
+<td>Manda programas a la máquina de verdad desde el PC y los ejecuta, por la tira J5 de la placa con un adaptador USB-serie, y sirve una carpeta como su unidad <code>EXT:</code> (ver <a href="hardware/firmware.html#cargar-programas-desde-el-pc-j5">El firmware</a>)</td>
+</tr>
+<tr>
+<td><strong><code>zxv-link-gui</code></strong></td>
+<td>Lo mismo que <code>zxv-link</code>, con ventana, en pasos: la placa, el programa, desde dónde lo carga (la unidad <code>EXT:</code> o la tarjeta), ejecutar o solo copiar, y el resultado; con los recientes y el informe de la máquina</td>
 </tr>
 </tbody>
 </table>
-<p>Los paquetes de Windows y Linux traen <code>zxv</code>, <code>zxv-sdl</code>, <code>zxv-cli</code>, <code>sdimg</code>, <code>zxv-check</code>, <code>zxv-gfx</code> y <code>zxv-tracker</code>,
+<p>Los paquetes de Windows y Linux traen <code>zxv</code>, <code>zxv-sdl</code>, <code>zxv-cli</code>, <code>sdimg</code>, <code>zxv-check</code>, <code>zxv-gfx</code>, <code>zxv-tracker</code>, <code>zxv-music</code>, <code>zxv-link</code> y <code>zxv-link-gui</code>,
 además de los ejemplos (la carpeta <code>ejemplos</code>) y la unidad <code>ROM:</code>
 (<code>romdisk.bin</code>). Cómo descargarlos se explica en
 <a href="getting-started.html#descarga">Primeros pasos</a>.</p>
@@ -172,6 +193,10 @@ para la próxima vez.</p>
 <td>Elige la tarjeta: una carpeta, una imagen de tarjeta, la de siempre (Documentos/ZX-V) o ninguna; y abre la carpeta de la tarjeta en el PC</td>
 </tr>
 <tr>
+<td>Unidad EXT:</td>
+<td>La carpeta que sirve la unidad <code>EXT:</code>: una carpeta o ninguna (sin servidor); y abre esa carpeta en el PC (<a href="#la-unidad-ext">ver abajo</a>)</td>
+</tr>
+<tr>
 <td>Guardar la imagen (Alt+S)</td>
 <td>Guarda la pantalla en PNG, en tu carpeta <em>Imágenes/ZX-V</em></td>
 </tr>
@@ -203,8 +228,8 @@ para la próxima vez.</p>
 <td>Un reinicio completo, como apagar y encender: el programa que haya en memoria se pierde</td>
 </tr>
 <tr>
-<td>Ctrl+Alt+Supr (vuelve al BASIC)</td>
-<td>El reset de emergencia: para lo que esté en marcha y vuelve al BASIC, conservando tu programa BASIC</td>
+<td>Ctrl+Alt+Supr (reinicia la máquina)</td>
+<td>El reset de emergencia: para lo que esté en marcha y reinicia la máquina, como el Ctrl+Alt+Supr de la placa; el programa BASIC que haya en memoria se pierde</td>
 </tr>
 <tr>
 <td>Pegar texto (Alt+V)</td>
@@ -222,6 +247,14 @@ tan grande como quepa sin deformarse), <strong>Escala entera</strong> (solo a x1
 x3..., con todos los píxeles iguales) o <strong>Llenar la ventana</strong>, aunque la
 imagen se deforme. Cuando no es una escala entera, la imagen se amplía con
 los bordes de los píxeles suavizados, sin filas más gruesas que otras.</p>
+<p><strong>Dibujar con</strong> dice quién hace ese trabajo: la tarjeta gráfica, con
+<strong>Direct3D 11</strong> (en Windows) u <strong>OpenGL</strong>, o <strong>la CPU</strong>. Con la tarjeta
+gráfica el emulador gasta mucha menos CPU, sobre todo en pantalla completa
+(a 1900 × 1000, unas tres veces y media menos), y la imagen sale igual.
+<strong>Automático</strong>, lo normal, usa Direct3D 11 en Windows y OpenGL en Linux, y
+dice con cuál va. Se cambia en el momento (la ventana parpadea al pasar de
+una a otra) y se recuerda; si la elegida no funciona en tu PC, se dibuja con
+la CPU y lo dice la barra de estado.</p>
 <p><strong>Opciones</strong></p>
 <table>
 <thead>
@@ -296,12 +329,12 @@ teclas del PC:</p>
 </tr>
 <tr>
 <td>Ctrl+Alt+Supr</td>
-<td>Reset de emergencia: vuelve al BASIC conservando el programa</td>
+<td>Reset de emergencia: reinicia la máquina; el programa en memoria se pierde</td>
 </tr>
 </tbody>
 </table>
 <p>Windows se queda Ctrl+Alt+Supr para sí, y algunos escritorios de Linux
-también: si te pasa, usa <strong>Máquina &gt; Ctrl+Alt+Supr (vuelve al BASIC)</strong>.</p>
+también: si te pasa, usa <strong>Máquina &gt; Ctrl+Alt+Supr (reinicia la máquina)</strong>.</p>
 <p>El editor se explica en <a href="basic/editor.html">El editor</a>.</p>
 <p>Como Ctrl es de la máquina, todos los atajos del emulador van con <strong>Alt</strong>. La
 tecla Alt sola no abre la barra de menús.</p>
@@ -439,6 +472,22 @@ sdimg ls tarjeta.img /                    # lista una carpeta, con las fechas
 <p>(Por ahora <code>sdimg</code> solo habla español.)</p>
 <p><strong>La unidad <code>ROM:</code></strong>, con los ejemplos de serie, es el fichero <code>romdisk.bin</code> que
 está junto al emulador. Si falta, <code>ROM:</code> está vacía.</p>
+<h3 id="la-unidad-ext">La unidad EXT:<a class="ancla" href="#la-unidad-ext" aria-hidden="true">#</a></h3>
+<p><strong>La unidad <code>EXT:</code></strong> es la carpeta que en la máquina real sirve otro equipo
+por la tira J5 (ver <a href="hardware/firmware.html#la-unidad-ext">La unidad EXT:</a>).
+En el emulador la sirve el propio emulador; en <code>zxv</code>, desde <strong>Archivo &gt;
+Unidad EXT:</strong>:</p>
+<ul>
+<li><strong>Una carpeta...:</strong> esa carpeta es <code>EXT:</code>. La máquina puede leer y escribir
+  en ella, con las mismas reglas de nombres que la tarjeta. <strong>Abrir la
+  carpeta</strong> la abre en el explorador.</li>
+<li><strong>Sin servidor:</strong> como la placa sin nada conectado: todo lo de <code>EXT:</code> da
+  <code>V Error de disco (EXT: sin servidor)</code>.</li>
+</ul>
+<p>Se puede cambiar con la máquina en marcha, sin reiniciarla, y se recuerda.
+En <code>zxv-sdl</code> y <code>zxv-cli</code>, con <code>--ext CARPETA</code>; sin ella, <code>EXT:</code> no tiene
+servidor. En la versión web, desde su menú Archivo, en Chrome y Edge (ver
+<a href="#la-versión-web">La versión web</a>).</p>
 <h3 id="abrir-ficheros">Abrir ficheros<a class="ancla" href="#abrir-ficheros" aria-hidden="true">#</a></h3>
 <p><strong>Archivo &gt; Abrir...</strong> (Alt+O), arrastrar un fichero a la ventana o darlo en la
 línea de órdenes (<code>zxv juego.zvb</code>) hacen lo mismo:</p>
@@ -577,7 +626,7 @@ ratón como en <code>zxv</code>, y el emulador se maneja con estas teclas:</p>
 </tr>
 <tr>
 <td>Ctrl+Alt+Supr</td>
-<td>Reset de emergencia: vuelve al BASIC</td>
+<td>Reset de emergencia: reinicia la máquina entera, como en <code>zxv</code> y en la versión web</td>
 </tr>
 <tr>
 <td>Alt+Q</td>
@@ -611,6 +660,10 @@ lista todas). Estas son las que más vas a usar:</p>
 <tr>
 <td><code>--sd-image FICHERO</code></td>
 <td>Usa una imagen de tarjeta como tarjeta SD</td>
+</tr>
+<tr>
+<td><code>--ext CARPETA</code></td>
+<td>Sirve CARPETA como la unidad <code>EXT:</code> (si no, <code>EXT:</code> no tiene servidor)</td>
 </tr>
 <tr>
 <td><code>--romdisk FICHERO</code></td>
@@ -673,6 +726,10 @@ lista todas). Estas son las que más vas a usar:</p>
 <td>Guarda la pantalla al terminar</td>
 </tr>
 <tr>
+<td><code>--shots PREFIJO</code></td>
+<td>Guarda la pantalla de cada frame, <code>PREFIJO00001.bmp</code>, <code>PREFIJO00002.bmp</code>... (<code>zxv-cli</code>): los fotogramas de una animación. Con <code>--shots-every N</code>, solo uno de cada N frames; con <code>--shots-from N</code>, a partir del frame N</td>
+</tr>
+<tr>
 <td><code>--wav F.wav</code></td>
 <td>Graba el sonido en un fichero WAV</td>
 </tr>
@@ -682,7 +739,7 @@ lista todas). Estas son las que más vas a usar:</p>
 </tr>
 <tr>
 <td><code>--version</code></td>
-<td>Escribe la versión de ZX-V (<code>ZX-V 0.9.0</code>) y termina. En Windows, <code>zxv</code> no tiene consola: su versión está en <strong>Ayuda &gt; Acerca de ZX-V</strong></td>
+<td>Escribe la versión de ZX-V (<code>ZX-V 0.10.0</code>) y termina. En Windows, <code>zxv</code> no tiene consola: su versión está en <strong>Ayuda &gt; Acerca de ZX-V</strong></td>
 </tr>
 </tbody>
 </table>
@@ -748,11 +805,11 @@ tecla Alt de la izquierda):</p>
 <tbody>
 <tr>
 <td>Archivo</td>
-<td>Abrir... (Alt+O), La tarjeta SD..., Grabar el programa... (Alt+G), Guardar una instantánea (Alt+I), Volver a la instantánea (Alt+U), Descargar la instantánea, Guardar la imagen (Alt+S)</td>
+<td>Abrir... (Alt+O), La tarjeta SD..., Unidad EXT: una carpeta del PC..., Unidad EXT: sin servidor, Grabar el programa... (Alt+G), Guardar una instantánea (Alt+I), Volver a la instantánea (Alt+U), Descargar la instantánea, Guardar la imagen (Alt+S), Grabar el sonido</td>
 </tr>
 <tr>
 <td>Máquina</td>
-<td>Reiniciar (Alt+R), Ctrl+Alt+Supr (vuelve al BASIC), Parar/Seguir (Alt+P), Una instrucción (Alt+N), Panel de depuración (Alt+D)</td>
+<td>Reiniciar (Alt+R), Ctrl+Alt+Supr (reinicia la máquina), Pegar texto (Alt+V), Parar/Seguir (Alt+P), Una instrucción (Alt+N), Panel de depuración (Alt+D)</td>
 </tr>
 <tr>
 <td>Ver</td>
@@ -760,7 +817,7 @@ tecla Alt de la izquierda):</p>
 </tr>
 <tr>
 <td>Ayuda</td>
-<td>El teclado y los atajos, la documentación (en la web)</td>
+<td>El teclado y los atajos (con la versión de ZX-V en el título), la documentación (en la web), el proyecto (GitHub), los términos de uso y los avisos de terceros</td>
 </tr>
 </tbody>
 </table>
@@ -770,25 +827,62 @@ teclas.</p>
 que abras la página. La primera vez trae los ejemplos. <strong>Archivo &gt; La tarjeta
 SD...</strong> la enseña: puedes recorrer las carpetas, <strong>subir ficheros</strong> desde tu
 PC, <strong>descargar</strong> ficheros a tu PC, crear carpetas, borrar ficheros y
-abrirlos. Los ficheros que arrastras a la página se copian a la tarjeta (a la
+abrirlos. Con la casilla <strong>Solo programas</strong> la lista se queda en las carpetas
+y lo que se ejecuta (los programas <code>.zxv</code>, <code>.zvb</code>, <code>.tap</code> y <code>.tzx</code>, y los
+listados <code>.bas</code>), sin sus gráficos ni su música; la casilla se recuerda. Los
+ficheros que arrastras a la página se copian a la tarjeta (a la
 carpeta que se ve en la ventana de la tarjeta) y se abre el primero. Lo que
 graban los programas se guarda en el almacenamiento del navegador cada tres
 segundos y al salir de la página.</p>
 <p>La tarjeta vive solo en ese navegador: otro navegador, u otro ordenador, tiene
 la suya. Si borras los datos del sitio en el navegador, la tarjeta se borra.
 Descarga los ficheros que quieras conservar.</p>
+<p><strong>Abrir</strong> (Alt+O) copia el fichero a la carpeta principal de la tarjeta y lo
+abre como <code>zxv</code>:</p>
+<ul>
+<li>Un programa (<code>.zvb</code>, <code>.zxv</code>, <code>.tap</code>, <code>.tzx</code>) o un listado <code>.bas</code>: la
+  máquina se reinicia y lo carga con <code>CD</code> a su carpeta y <code>LOAD</code>. El BASIC
+  convierte el <code>.bas</code> en programa y comprueba cada línea.</li>
+<li>Un <code>.txt</code> se teclea en el editor; una instantánea <code>.zxvs</code>, se carga.</li>
+<li>Un fichero de música (<code>.zxm</code>, <code>.pt3</code>, <code>.mod</code>, <code>.s3m</code>, <code>.xm</code>, <code>.vgm</code>,
+  <code>.vgz</code>) o un sonido <code>.wav</code> se queda en la tarjeta, y la página dice cómo
+  usarlo: <code>LOAD "/x.pt3" MUSIC: MUSIC PLAY</code> para oír la música, o
+  <code>LOAD "/x.wav" SAMPLE 0</code> para el sonido.</li>
+</ul>
+<p><strong>Pegar texto</strong> (Máquina, Alt+V) teclea en la máquina el texto del
+portapapeles, como en <code>zxv</code>. El navegador puede pedir permiso para leerlo.</p>
+<p><strong>Grabar el sonido</strong> (Archivo) graba todo lo que suena hasta que eliges la
+misma opción, que entonces se llama <strong>Parar la grabación del sonido</strong>: se
+descarga <code>zxv.wav</code> (48 kHz, estéreo).</p>
+<p><strong>La unidad <code>EXT:</code></strong> puede ser una carpeta de tu PC, solo en <strong>Chrome y
+Edge</strong> (Firefox y Safari no dejan). <strong>Archivo &gt; Unidad EXT: una carpeta del
+PC...</strong> la elige, y <strong>Unidad EXT: sin servidor</strong> la suelta:</p>
+<ul>
+<li>La carpeta se copia a la memoria de la página (como mucho, 256 MB) y se
+  mantiene al día cada segundo y medio, en los dos sentidos: lo que la
+  máquina guarda o borra en <code>EXT:</code> va a la carpeta, y lo que cambias en la
+  carpeta (un listado que editas en tu editor) llega a la máquina. Si cambian
+  los dos a la vez, gana la máquina.</li>
+<li>Los ficheros que empiezan por punto no se tocan.</li>
+<li>El navegador recuerda la carpeta. Si Chrome te pregunta y eliges
+  permitirlo en cada visita, al volver a abrir la página la usa otra vez sin
+  preguntar.</li>
+<li>Sin carpeta, <code>EXT:</code> no tiene servidor, como la placa sin nada conectado.</li>
+</ul>
 <p><strong>Instantáneas</strong>: Alt+I guarda una instantánea dentro de la página y Alt+U
 vuelve a ella; <strong>Archivo &gt; Descargar la instantánea</strong> la guarda en un fichero
 <code>.zxvs</code>, que luego puedes abrir en la versión web o en <code>zxv</code>.</p>
 <p><strong>Opciones</strong> (Ver &gt; Opciones...): el idioma (de la página y de la máquina; si
-no se elige, el del navegador), el borde y el escalado (los mismos que en
+no se elige, el del navegador; la dirección también lo puede llevar:
+<code>index.html?lang=es</code> o <code>?lang=en</code>), el borde y el escalado (los mismos que en
 <code>zxv</code>: la imagen ocupa todo el sitio de la página, manteniendo la proporción,
 en múltiplos enteros o llenándolo), el modo estricto, la CPU sin límite de
 velocidad y ocultar el puntero sobre la imagen. El idioma de la máquina cambia
 al reiniciarla. El borde y el escalado se recuerdan, y Guardar la imagen
 (Alt+S) guarda lo que se ve, con ese borde.</p>
 <p><strong>Lo que no tiene:</strong> las imágenes de tarjeta (<code>.img</code>), el servidor GDB y las
-ventanas del depurador. El panel de depuración (Alt+D) sí está.</p>
+ventanas del depurador; en Firefox y Safari, la unidad <code>EXT:</code> con una carpeta
+del PC. El panel de depuración (Alt+D) sí está.</p>
 <h3 id="ponerla-en-tu-web">Ponerla en tu web<a class="ancla" href="#ponerla-en-tu-web" aria-hidden="true">#</a></h3>
 <p>El contenido de <code>zxv-web.zip</code> se puede subir tal cual a cualquier servidor web
 o a sitios como <strong>itch.io</strong>: crea un proyecto de tipo <em>HTML</em>, sube el zip y
@@ -801,8 +895,9 @@ por el BASIC: <a href="sdk/web.html">Publicar tu juego en la web</a>.</p>
 algunos navegadores (Safari, y puede que Firefox) no dejan guardar nada a esos
 marcos. Entonces la tarjeta dura lo que la página abierta, y la página lo
 avisa. <strong>Ver &gt; Abrir en una pestaña aparte</strong> abre el emulador solo, donde la
-tarjeta se guarda normalmente. Las descargas desde dentro de un marco dependen
-de lo que permita el sitio.</p>
+tarjeta se guarda normalmente. Dentro de un marco tampoco se puede elegir la
+carpeta de la unidad <code>EXT:</code>: para eso, ábrelo también en una pestaña aparte.
+Las descargas desde dentro de un marco dependen de lo que permita el sitio.</p>
 <h2 id="depuración">Depuración<a class="ancla" href="#depuración" aria-hidden="true">#</a></h2>
 <p>El emulador es también un entorno de desarrollo completo para programas
 nativos:</p>
@@ -844,7 +939,9 @@ un programa del BASIC de la ROM se para donde le digas:</p>
 </ul>
 <p>Al cerrar la ventana, el programa sigue sin pararse en nada. La extensión de
 VS Code depura lo mismo desde el editor, en su panel o en un emulador con
-<code>--basic-debug</code>; mientras está conectada, la ventana se aparta.</p>
+<code>--basic-debug</code>; mientras está conectada, la ventana se aparta. También
+depura el BASIC en la placa, por la tira J5 (ver <a href="hardware/firmware.html#cargar-programas-desde-el-pc-j5">Cargar programas desde el
+PC</a>).</p>
 <nav class="pasos"><a class="anterior" href="getting-started.html"><small>Anterior</small>← Primeros pasos</a><a class="siguiente" href="machine.html"><small>Siguiente</small>La máquina →</a></nav>
 <footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
 </main>

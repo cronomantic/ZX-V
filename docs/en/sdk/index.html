@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="../index.html">ZX-V</a>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
 <a class="ir" href="../../es/sdk/index.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -53,6 +54,13 @@
 </li>
 <li><a href="index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a>
+</li>
+<li><a href="../hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
+</li>
+<li><a href="../hardware/firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>
+</li>
 <li><a href="web.html">Publishing your game on the web</a>
 </li>
 </ul>
@@ -70,6 +78,8 @@
 <li><a href="../hardware/firmware.html">The firmware</a>
 </li>
 <li><a href="../hardware/protoboard.html">On a protoboard</a>
+</li>
+<li><a href="../hardware/protocol.html">The protocol</a>
 </li>
 </ul>
 </aside>
@@ -247,7 +257,11 @@ others, leaving out <code>files</code>.</p>
 </tr>
 <tr>
 <td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/player/player.c"><code>player</code></a></td>
-<td>Music and effects with the <code>zxv_music.h</code> library: a player for PT3, TurboSound, PT2, STC, ASC and PSG modules and AYFX effect banks, with the registers of both AY chips on screen</td>
+<td>Music and effects with the <code>zxv_music.h</code> library: a player for <code>.zxm</code>, PT3, TurboSound, PT2, STC, ASC, PSG and VGM modules and AYFX effect banks, with the registers of both AY chips on screen</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/samples/samples.c"><code>samples</code></a></td>
+<td>The twelve sample channels: a looped sine that moves from one side to the other, a string in 8 bits and in ADPCM (with an IMA encoder you can copy), a chord with all 12 at once, direct mode (the DAC) and interpolation</td>
 </tr>
 <tr>
 <td><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/gfxedit"><code>gfxedit</code></a></td>
@@ -255,7 +269,8 @@ others, leaving out <code>files</code>.</p>
 </tr>
 </tbody>
 </table>
-<p>To run one, the <code>.zxv</code> file has to be on the machine's SD card:</p>
+<p>To run one, the machine loads it from its SD card or from the <code>EXT:</code>
+drive:</p>
 <ul>
 <li><strong>In the desktop emulator (<code>zxv</code>)</strong>, open the file with File &gt; Open
   (Alt+O) or drag it onto the window. The emulator offers to copy it to the
@@ -266,7 +281,14 @@ others, leaving out <code>files</code>.</p>
 </ul>
 <p><code>LOAD "graphics"</code></p>
 <p>The <code>.zxv</code> extension is optional. In the web version, upload the file with
-  File &gt; The SD card first.</p>
+  File &gt; The SD card first.
+- <strong>On the board, from the PC</strong>, without taking the card out: with a
+  USB-serial adapter on the J5 header, <code>zxv-link-gui</code> (or <code>zxv-link</code> on the
+  command line, or <strong>ZX-V: Run on the board</strong> in VS Code) sends the program
+  and runs it, from the card or from the <code>EXT:</code> drive, a folder on the PC
+  that the machine reads like a disk. See <a href="../hardware/firmware.html#loading-programs-from-the-pc-j5">Loading programs from the PC
+  (J5)</a> and <a href="../hardware/firmware.html#the-ext-drive">The
+  EXT: drive</a>.</p>
 <p>The examples are also built into the machine, on the <code>ROM:</code> drive:
 <code>LOAD "ROM:graphics"</code> works on a new machine without copying anything.</p>
 <h2 id="your-first-program">Your first program<a class="ancla" href="#your-first-program" aria-hidden="true">#</a></h2>
@@ -375,8 +397,9 @@ normal (page 0, mode 0, no scroll) and silences the sound chips, but it is
 good manners to leave things tidy yourself.</p>
 <p>If your program crashes (for example, it reads from a forbidden address),
 the machine also goes back to BASIC, with the report
-<code>W Native code error, 0:1</code>. <strong>Ctrl+Alt+Delete</strong> stops a program that hangs,
-with <code>L BREAK into program, 0:1</code>.</p>
+<code>W Native code error, 0:1</code>. <strong>Ctrl+Alt+Delete</strong> stops a program that hangs:
+it restarts the whole machine, as if switched off and on, and goes back to
+BASIC without a report.</p>
 <p>A native program cannot start another one: every program is loaded at the
 same address, so <code>zxv_exec</code> returns <code>ZXV_E_ACCESS</code> when a <code>.zxv</code> calls it.
 Only BASIC launches programs.</p>
@@ -701,11 +724,13 @@ pixel, two pixels per byte, with the left pixel in the low half. The
 including how to convert your PNG images with
 <a href="graphics.html#images-from-png-files-png2gfxpy"><code>png2gfx.py</code></a>.</p>
 <h2 id="sound">Sound<a class="ancla" href="#sound" aria-hidden="true">#</a></h2>
-<p>ZX-V has a <strong>beeper</strong> (one bit, like the Spectrum's) and <strong>two AY-3-8912
+<p>ZX-V has a <strong>beeper</strong> (one bit, like the Spectrum's), <strong>two AY-3-8912
 sound chips</strong>, the chip of the Spectrum 128, each with three square-wave
-channels (A, B and C), a noise generator and volume envelopes. The sound
-comes out in stereo: by default channel A on the left, C on the right and B
-in the middle.</p>
+channels (A, B and C), a noise generator and volume envelopes, and <strong>twelve
+sample channels</strong>, which play recorded sounds at any pitch, like the Paula
+of an Amiga. The sound comes out in stereo: by default, on the AY chips,
+channel A on the left, C on the right and B in the middle; each sample
+channel has its own panning.</p>
 <h3 id="the-ay-chip">The AY chip<a class="ancla" href="#the-ay-chip" aria-hidden="true">#</a></h3>
 <p>You control an AY by writing its 16 registers with <code>zxv_ay_write(reg,
 value)</code>. For the second chip, add <code>ZXV_AY2</code> (16) to the register number.
@@ -815,7 +840,74 @@ int main(void)
   sound system gets round to it, which is what multi-channel beeper music
   needs.</li>
 </ul>
+<h3 id="the-sample-channels">The sample channels<a class="ancla" href="#the-sample-channels" aria-hidden="true">#</a></h3>
+<p>For recorded sounds (a voice, an explosion, an instrument) there are the
+<strong>twelve sample channels</strong>. They play samples from the <strong>sound memory</strong>,
+96 KB apart from your program's RAM, without keeping the CPU busy: you only
+say which sample, at what pitch, how loud and on which side. They are mixed
+with the AY chips and the beeper. There are three steps:</p>
+<ol>
+<li><strong>Upload it:</strong> <code>zxv_smp_upload(dest, src, bytes)</code> copies the sample
+   from your RAM to the sound memory, from byte <code>dest</code> (the bytes, a
+   multiple of 4).</li>
+<li><strong>Describe it:</strong> <code>zxv_smp_define(slot, address, format, samples, loop)</code>
+   writes it into the <strong>sample table</strong> (256 slots): where it starts in the
+   sound memory, its format (<code>ZXV_SMP_PCM8</code>, signed 8 bits, or
+   <code>ZXV_SMP_ADPCM</code>, which takes a little over half), how many samples it has
+   and from which one it starts again (the number of samples or more: no
+   loop, it stops at the end).</li>
+<li><strong>Play it:</strong> <code>zxv_smp_play(channel, slot, step, volume, pan)</code> plays it
+   on a channel (0–11) from the start. <code>zxv_smp_step(hz)</code> gives the step
+   that makes a sample recorded at <code>hz</code> samples per second sound at its own
+   pitch; twice that, an octave higher. The volume goes from 0 to 64 and the
+   panning from 0 (left) to 255 (right), with 128 in the middle.</li>
+</ol>
+<p>This program loads a sound recorded at 22,050 Hz, in signed 8 bits and
+without a header (a sound editor such as Audacity exports it like that),
+and plays it every time you press space:</p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+
+static int8_t thud[32768];
+
+int main(void)
+{
+    int n = zxv_file_load(&quot;thud.raw&quot;, thud, sizeof thud);
+    if (n &lt; 0)
+        zxv_report_error(n, &quot;Cannot load thud.raw&quot;);
+    zxv_smp_upload(0, thud, (n + 3) &amp; ~3);          /* to the sound memory */
+    zxv_smp_define(0, 0, ZXV_SMP_PCM8, n, n);       /* slot 0, no loop */
+    for (int k = 0; k != 0x1B; k = zxv_key_get()) { /* until Esc */
+        if (k == ' ')
+            zxv_smp_play(0, 0, zxv_smp_step(22050), 64, 128);
+        zxv_wait_vblank();
+    }
+    zxv_smp_stop(0);
+    return 0;
+}
+</code></pre>
+<ul>
+<li><strong>Several at once:</strong> each channel plays its own. To make several start on
+  the same sample (a chord), get them ready with <code>zxv_smp_prepare</code> and start
+  them together with <code>zxv_smp_start</code>.</li>
+<li><strong>While it plays</strong>, <code>zxv_smp_write(channel, register, value)</code> changes its
+  volume, panning or step, and <code>zxv_smp_stop</code> stops it.</li>
+<li><strong>In ADPCM</strong>, a channel goes no higher than step 2 (an octave above how it
+  was recorded); in 8 bits, any step.</li>
+<li><strong>With a <code>.zxm</code> song</strong> playing, the song uploads its samples to the start
+  of the sound memory and uses the first channels: <code>zxv_music_samples</code>
+  chooses where its samples go, and <code>zxv_music_smp_fx</code> plays a sample of
+  yours alongside the song (see <a href="reference.html#music-and-effects">Music and
+  effects</a>).</li>
+</ul>
+<p>All the functions and the registers of a channel are in the
+<a href="reference.html#sample-channels">reference</a>. The
+<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/samples/samples.c"><code>samples</code></a> example uses it all: a
+chord with the twelve channels, ADPCM (with an encoder you can copy), direct
+mode (an 8-bit DAC) and interpolation.</p>
 <h3 id="digitised-sound">Digitised sound<a class="ancla" href="#digitised-sound" aria-hidden="true">#</a></h3>
+<p>This is the old technique, the one Spectrum 128 games used, with the AY.
+For recorded sounds, the <a href="#the-sample-channels">sample channels</a> are
+simpler and do not keep the CPU busy.</p>
 <p>With the tone and noise of a channel turned off, its volume register <em>is</em>
 the output: writing volumes fast enough plays a sampled sound.
 <code>zxv_ay_event(time, reg, value)</code> queues a register write to sound at an
@@ -841,17 +933,21 @@ queue holds 256 writes: 32 ms of sound at 8 kHz.</p>
 <td>0 mono, 1 ABC (A left, C right; the default), 2 ACB</td>
 </tr>
 <tr>
+<td><code>ZXV_S_SMP_VOLUME</code></td>
+<td>Volume of the sample channels, 0–255 (255 at start-up)</td>
+</tr>
+<tr>
 <td><code>ZXV_S_AFLAGS</code></td>
 <td>Bit 0: mute everything</td>
 </tr>
 </tbody>
 </table>
-<p>Six channels at full volume at once can distort: lower <code>ZXV_S_VOLUME</code> or
+<p>Many channels at full volume at once can distort: lower <code>ZXV_S_VOLUME</code> or
 the channel volumes.</p>
 <h3 id="tracker-music-and-sound-effects">Tracker music and sound effects<a class="ancla" href="#tracker-music-and-sound-effects" aria-hidden="true">#</a></h3>
 <p>The SDK music library (<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/include/zxv_music.h"><code>zxv_music.h</code></a>,
-in <code>sdk/music</code>) plays the modules of the Spectrum trackers and the effects
-of the AY Sound FX Editor:</p>
+in <code>sdk/music</code>) plays the own format of ZX-V, the modules of the Spectrum
+trackers and the effects of the AY Sound FX Editor:</p>
 <table>
 <thead>
 <tr>
@@ -860,6 +956,10 @@ of the AY Sound FX Editor:</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><strong>ZXM</strong> (<code>.zxm</code>)</td>
+<td>The own format: a song for the two AY chips and up to 12 tracks on the sample channels (<a href="#the-own-format-zxm-and-zxv-music">below</a>). MOD, S3M and XM modules are converted to it</td>
+</tr>
 <tr>
 <td><strong>PT3</strong></td>
 <td>Pro Tracker 3.x and Vortex Tracker II, the most used format for AY music</td>
@@ -885,15 +985,19 @@ of the AY Sound FX Editor:</p>
 <td>A dump of the AY registers, step by step (the one many emulators record)</td>
 </tr>
 <tr>
+<td><strong>VGM</strong> (<code>.vgm</code>, <code>.vgz</code>)</td>
+<td>What is written to the AY chips, with its timing (see below)</td>
+</tr>
+<tr>
 <td><strong>AYFX</strong> (<code>.afb</code>, <code>.afx</code>)</td>
 <td>The effects of Shiru's <a href="https://shiru.untergrund.net/software.shtml">AY Sound FX Editor</a>: a bank or a single effect</td>
 </tr>
 </tbody>
 </table>
-<p>Modules play at their tempo of 50 steps per second, as on the Spectrum,
-even though the machine runs at 60 frames: each step reaches the AY at its
-own time through the timestamped queue, so the music neither speeds up nor
-stutters. The registers it gives are the same as
+<p>Spectrum modules play at their tempo of 50 steps per second, as they did
+there, even though the machine runs at 60 frames: each step reaches the AY
+at its own time through the timestamped queue, so the music neither speeds
+up nor stutters. The registers it gives are the same as
 <a href="https://zxtune.bitbucket.io/">ZXTune</a>'s, step by step.</p>
 <pre><code class="language-c">#include &quot;zxv_api.h&quot;
 #include &quot;zxv_music.h&quot;
@@ -956,43 +1060,67 @@ of both AY chips.</p>
 <h4 id="the-tracker-for-the-pc-zxv-tracker">The tracker for the PC: <code>zxv-tracker</code><a class="ancla" href="#the-tracker-for-the-pc-zxv-tracker" aria-hidden="true">#</a></h4>
 <p>To make the music, the emulator packages come with <strong><code>zxv-tracker</code></strong>, a
 tracker for Windows and Linux (in the AppImage,
-<code>./ZX-V-x86_64.AppImage zxv-tracker</code>) that saves <strong>PT3</strong> modules and
-<strong>AYFX</strong> effect banks: the ones this library plays, and Vortex Tracker and
-the Spectrum players too. It sounds with the same code as the machine (this
-library and the ULA's AY), so what you hear is what will play. It is free
-software under the MIT licence: its code is in
-<a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/tools/tracker"><code>sdk/tools/tracker</code></a>, and it builds on its own
-with Qt 6 and SDL2 (<code>cmake -S sdk/tools/tracker -B build-tracker</code>). It
+<code>./ZX-V-x86_64.AppImage zxv-tracker</code>). It saves <strong><code>.zxm</code></strong> songs, with the
+two AY chips and up to 12 sample tracks (the <a href="#the-own-format-zxm-and-zxv-music">own format</a>);
+<strong>PT3</strong> modules, the ones Vortex Tracker and the Spectrum players use, when
+they only use the AY chips; and <strong>AYFX</strong> effect banks. That is everything
+this library plays. It sounds with the same code as the machine (the ULA's
+synthesizer, with its AY chips and its sample channels), so what you hear
+is what will play. It is free software under the MIT licence: its code is
+in <a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/tools/tracker"><code>sdk/tools/tracker</code></a>, and that of the
+machine's sound in <a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/sound"><code>sdk/sound</code></a> (the same the Pico ULA
+and the emulator build). It builds on its own with Qt 6 and SDL2 (<code>cmake -S sdk/tools/tracker -B build-tracker</code>). It
 speaks Spanish or English, the system's language (or the one you ask for:
 <code>zxv-tracker --lang es</code>).</p>
-<p><img alt="zxv-tracker with a demo module" src="../../images/sdk-tracker-en.png" /></p>
+<p><img alt="zxv-tracker with a demo song: one AY and four sample tracks" src="../../images/sdk-tracker-en.png" /></p>
 <ul>
-<li><strong>Patterns</strong>, as in Vortex Tracker: per row, the envelope period, the
-  noise and, in each channel, the note, sample, envelope shape, ornament,
-  volume and an effect (1 and 2 the tone slides down and up, 3 portamento,
-  4 and 5 the position in the sample and in the ornament, 6 vibrato, 9 and A
-  the envelope, B the tempo). Notes are typed with the keyboard as a piano
-  (Z S X D C... and Q 2 W 3 E...) and play as you type them; the rest, in
-  hexadecimal. Select with Shift, copy, paste and transpose; undo has no
-  practical limit.</li>
-<li><strong>The header and positions:</strong> the title, author, tempo, note table and Pro
-  Tracker version; the order of the patterns and the position it loops
-  back to. <strong>TurboSound</strong> puts a second module on the second AY: six voices.</li>
-<li><strong>Samples</strong> (tone, noise and envelope at each step, their offsets and the
-  volume, which you paint with the mouse) and <strong>ornaments</strong>, with a piano to
-  hear them.</li>
+<li><strong>Patterns:</strong> on the left, the AY tracks, as in Vortex Tracker; on the
+  right, the sample tracks. Each AY has, per row, the envelope period, the
+  noise and, in each channel, the note, instrument, envelope shape,
+  ornament, volume and an effect (1 and 2 the tone slides down and up,
+  3 portamento, 4 and 5 the position in the instrument and in the ornament,
+  6 vibrato, 9 and A the envelope, B the tempo). Each sample track has the
+  note, the instrument (01-80), the volume (00-40) and two effects, with the
+  MOD, S3M and XM letter and parameter. Notes are typed with the keyboard as
+  a piano (Z S X D C... and Q 2 W 3 E...) and play as you type them; the
+  rest, in hexadecimal. Select with Shift, copy, paste and transpose; undo
+  has no practical limit. Clicking a track's name mutes it.</li>
+<li><strong>The song and positions:</strong> the title, author, speed and tempo; how many
+  AY chips it uses (none, one or two, a TurboSound: six voices) and how many
+  sample tracks. Each position says how many rows it has and which pattern
+  each AY and each sample track plays.</li>
+<li><strong>AY instruments</strong> (tone, noise and envelope at each step, their offsets
+  and the volume, with a graph of how a note sounds and templates to start
+  from: flat note, kick, snare...) and <strong>ornaments</strong>, with a piano to hear
+  them.</li>
+<li><strong>Samples:</strong> imported from a WAV (8 or 16 bits, mono or stereo, with its
+  loop if it has one), tuned so that a C-4 plays at the recording's pitch.
+  You see the waveform and set the loop with the mouse; each one goes in
+  8 bits or in ADPCM (a little over half the size), and a bar shows how much
+  of the 96 KB of sound memory they take. If they don't fit, importing turns
+  them into ADPCM and, if needed, halves their samples.</li>
+<li><strong>Sample instruments</strong>, as in FastTracker 2: which sample each note plays
+  (painted with the mouse), the volume and panning envelopes (up to 12
+  points you drag, with their sustain point and their loop), the fadeout
+  when the note is released and the auto-vibrato.</li>
 <li><strong>AYFX effects</strong>, in their own tab: a bank with names, the frames of each
   effect (tone, noise, their periods and the volume), importing and
   exporting <code>.afx</code>.</li>
-<li><strong>Play</strong> the song (F5), the pattern (F6) or from the cursor (F7), with the
-  cursor following what plays and any channels muted; and <strong>export</strong> the
+<li><strong>Play</strong> the song (F5), the position (F6) or from the cursor (F7), with
+  the cursor following what plays and any tracks muted; and <strong>export</strong> the
   song to WAV.</li>
 </ul>
-<p>It opens Vortex Tracker and Pro Tracker 3 PT3 files: read and saved again
-they sound the same. If a module has commands the editor does not have (two
-effects in the same row, for example), it warns when opening it. The
-modules and effects are played by C programs, with this library, and by
-BASIC, with <a href="../basic/reference.html#music"><code>MUSIC</code> and <code>SFX</code></a>.</p>
+<p><img alt="Sample instruments: the note map and the envelopes" src="../../images/sdk-tracker-ins-en.png" /></p>
+<p>It also opens Vortex Tracker and Pro Tracker 3 PT3 files (read and saved
+again they sound the same) and, converted, MOD, S3M and XM files (like
+<a href="#the-own-format-zxm-and-zxv-music"><code>zxv-music</code></a>); for one with more than
+12 channels with notes, it asks which ones to keep, with the busiest ones
+already ticked. If something could not
+be carried over (two effects in the same row of a PT3, for example), it
+warns when opening it. Saving keeps the song in its format: a PT3 stays a
+PT3 while it only uses the AY chips, and if it no longer fits, it offers to
+save it as <code>.zxm</code>. The songs and effects are played by C programs, with
+this library, and by BASIC, with <a href="../basic/reference.html#music"><code>MUSIC</code> and <code>SFX</code></a>.</p>
 <p>The pattern keys (in the program, Help &gt; Keys):</p>
 <table>
 <thead>
@@ -1008,11 +1136,11 @@ BASIC, with <a href="../basic/reference.html#music"><code>MUSIC</code> and <code
 </tr>
 <tr>
 <td>1 or A</td>
-<td>A note off (<code>R--</code>)</td>
+<td>A note off (<code>R--</code> on the AY chips; <code>===</code>, release the note, on the sample tracks)</td>
 </tr>
 <tr>
 <td>0-9 and A-F</td>
-<td>The rest, in hexadecimal (the sample, 1 to 9 and A to V)</td>
+<td>The rest, in hexadecimal (the AY instrument, 1 to 9 and A to V); a sample track's effect, with its letter</td>
 </tr>
 <tr>
 <td>* and / on the numeric keypad</td>
@@ -1020,7 +1148,7 @@ BASIC, with <a href="../basic/reference.html#music"><code>MUSIC</code> and <code
 </tr>
 <tr>
 <td>Arrows, Page Up, Page Down, Home and End · Tab</td>
-<td>Move · to the next channel</td>
+<td>Move · to the next track</td>
 </tr>
 <tr>
 <td>Shift and the arrows · Ctrl+C, Ctrl+X, Ctrl+V</td>
@@ -1028,7 +1156,7 @@ BASIC, with <a href="../basic/reference.html#music"><code>MUSIC</code> and <code
 </tr>
 <tr>
 <td>Ctrl+↑ and Ctrl+↓ (with Shift, an octave)</td>
-<td>Transpose the selection, or the channel</td>
+<td>Transpose the selection, or the track</td>
 </tr>
 <tr>
 <td>Delete · Insert · Backspace</td>
@@ -1036,7 +1164,7 @@ BASIC, with <a href="../basic/reference.html#music"><code>MUSIC</code> and <code
 </tr>
 <tr>
 <td>F5 · F6 · F7 · F8 or Esc</td>
-<td>Play the song · the pattern · from the cursor · stop</td>
+<td>Play the song · the position · from the cursor · stop</td>
 </tr>
 <tr>
 <td>Scroll Lock</td>
@@ -1048,9 +1176,78 @@ BASIC, with <a href="../basic/reference.html#music"><code>MUSIC</code> and <code
 </tr>
 </tbody>
 </table>
-<p>In samples, ornaments and effects, space or a click flips the switches
-(T, N, E), Insert and Delete add and remove lines, and the volume is
-painted by dragging the mouse along its bar; Enter plays the effect.</p>
+<p>In AY instruments, ornaments and effects, space or a click flips the
+switches (T, N, E), Insert and Delete add and remove lines, and the volume
+is painted by dragging the mouse along its bar; Enter plays the effect. In
+the sample instruments' envelopes, a click adds a point, dragging moves it
+and the right button removes it.</p>
+<h4 id="the-own-format-zxm-and-zxv-music">The own format (<code>.zxm</code>) and <code>zxv-music</code><a class="ancla" href="#the-own-format-zxm-and-zxv-music" aria-hidden="true">#</a></h4>
+<p><strong><code>.zxm</code></strong> is ZX-V's music format: a song with up to six tracks of the two
+AY chips and twelve of the sample channels, with a single tempo, which the
+BASIC (<code>LOAD … MUSIC</code>) and <code>zxv_music_play</code> play. The AY tracks are those of
+PT3 (its instruments and ornaments, byte for byte); the sample tracks have
+their own instruments (with envelopes) and the effects of the sample
+trackers (MOD, S3M, XM). <code>sdk/music/zxm_format.h</code> describes it.</p>
+<p>You make one with <a href="#the-tracker-for-the-pc-zxv-tracker"><code>zxv-tracker</code></a>, or
+by converting a PT3, a TurboSound, a MOD, an S3M or an XM with
+<strong><code>zxv-music</code></strong>, which comes with the emulator:</p>
+<pre><code>zxv-music song.pt3 song.zxm
+zxv-music song.xm song.zxm
+</code></pre>
+<p>A PT3 sounds the same, register by register. A TurboSound is converted if
+its two modules move in step (as Vortex Tracker makes them): a <code>.zxm</code> has a
+single tempo. A MOD (4 to 32 channels) carries over almost entirely: the
+Amiga filter (<code>E0x</code>), inverting the loop (<code>EFx</code>) and stopping the song with
+<code>F00</code> are lost. Samples that no pattern plays are left out; and if the
+rest do not fit in the 96 KB of sound memory, the biggest go in ADPCM until
+they fit, and if they still do not, also at half the rate (with less
+treble); one that plays above 96 kHz (the ADPCM ceiling) does not go in
+ADPCM without going at half the rate. An S3M or an XM carries over with its
+samples (8 or 16 bits, signed or not; the XM's ping-pong loops, unrolled),
+the XM's instruments (note map, envelopes, fade-out and auto-vibrato), the
+volume column and almost every effect. Lost are the S3M's FM (AdLib), <code>S1x</code>, <code>SAx</code> and
+<code>SFx</code>, and the XM's <code>E3x</code>, the vibrato speed in the volume column and the
+ModPlug effects. Repeated track patterns are stored once. It says what it
+could not carry over. The BASIC also plays a MOD, an S3M or an XM as it is
+(<code>LOAD "song.xm" MUSIC</code>): it converts it when loading. And
+<a href="#the-tracker-for-the-pc-zxv-tracker"><code>zxv-tracker</code></a> opens them to keep
+editing them and save them as <code>.zxm</code>.</p>
+<p><strong>More than 12 channels:</strong> ZX-V has 12 sample channels. Of a module with
+more channels that have notes, the converter keeps the 12 that play the most
+notes in the song (each note counts as many times as its pattern plays; on a
+tie, the one further left), in their order, and says so. Channels that only
+play a few long notes (a bass, a pad) can lose to a busy drum channel: with
+<strong><code>--channels</code></strong> you choose them yourself, with the numbers the tracker
+shows (from 1), up to 12:</p>
+<pre><code>zxv-music --channels 1-8,11,13 song.xm song.zxm
+</code></pre>
+<p><code>zxv-tracker</code> asks for them when opening it. The BASIC always chooses them
+this way; to choose them yourself, convert it with <code>zxv-music</code> or
+<code>zxv-tracker</code> and load the <code>.zxm</code>.</p>
+<p><strong>Room for <code>SAMPLE</code>:</strong> the song's samples and the
+<a href="../basic/reference.html#sample"><code>SAMPLE</code></a> sounds share the 96 KB of sound
+memory. With <strong><code>--free KB</code></strong>, <code>zxv-music</code> leaves that many KB free: the
+samples that don't fit go in ADPCM, at half the samples or, if even that
+fails, out; and it says how much they take and how much is left.</p>
+<pre><code>zxv-music --free 32 song.xm song.zxm
+</code></pre>
+<p>BASIC does this by itself when it loads a MOD, an S3M or an XM as it is,
+but a <code>.zxm</code> is already converted: if it doesn't fit with the <code>SAMPLE</code>
+sounds already loaded, it gives <code>4 Out of memory</code>. In <code>zxv-tracker</code>, the
+bar in the samples tab shows how much they take.</p>
+<h3 id="vgm-the-ay-chips">VGM: the AY chips<a class="ancla" href="#vgm-the-ay-chips" aria-hidden="true">#</a></h3>
+<p>A <strong>VGM</strong> (<code>.vgm</code>, or gzip-compressed, <code>.vgz</code>, as <a href="https://vgmrips.net">vgmrips</a>
+hands them out) is what an emulator writes to the sound chips, with its
+timing. ZX-V plays what goes to <strong>the AY chips</strong> (AY-3-8910 and family, and
+the YM2149), one or two: the periods are converted from the file's clock to
+ours, so music from an MSX (1.79 MHz), an Amstrad CPC (1 MHz), an Atari ST
+(2 MHz) or a Spectrum plays at its pitch.</p>
+<p>Writes to other chips are skipped, Konami's SCC in MSX cartridges included
+(a game with the AY and the SCC plays its AY part). A VGM with no AY is not
+recognised.</p>
+<p>A <code>.vgz</code> is decompressed while it plays, with 32 KB of work memory: the
+BASIC fits a <code>.vgz</code> of about 50 KB; in C, you give them with
+<code>zxv_music_work</code>.</p>
 <h2 id="keyboard-joystick-and-mouse">Keyboard, joystick and mouse<a class="ancla" href="#keyboard-joystick-and-mouse" aria-hidden="true">#</a></h2>
 <h3 id="typed-keys">Typed keys<a class="ancla" href="#typed-keys" aria-hidden="true">#</a></h3>
 <p><code>zxv_key_get()</code> takes the next key from the <strong>key queue</strong>, or returns −1
@@ -1273,12 +1470,14 @@ int main(void)
 has the left, right and middle buttons in bits 0, 1 and 2.</p>
 <h3 id="esc-and-ctrlaltdelete">Esc and Ctrl+Alt+Delete<a class="ancla" href="#esc-and-ctrlaltdelete" aria-hidden="true">#</a></h3>
 <p>Your program is not interrupted by Esc (BREAK): it is just another key,
-so give the player a way out. <strong>Ctrl+Alt+Delete</strong> always returns to BASIC,
-even if the program has hung, and never reaches your program.</p>
+so give the player a way out. <strong>Ctrl+Alt+Delete</strong> always restarts the
+machine and returns to BASIC, even if the program has hung, and never
+reaches your program.</p>
 <h2 id="files-on-the-sd-card">Files on the SD card<a class="ancla" href="#files-on-the-sd-card" aria-hidden="true">#</a></h2>
-<p>The machine has two drives: <code>SD:</code>, the <strong>SD card</strong>, where you read and
-write, and <code>ROM:</code>, the read-only drive with the built-in examples. A path
-without a drive refers to the current folder, which is where your program
+<p>The machine has three drives: <code>SD:</code>, the <strong>SD card</strong>, where you read and
+write; <code>ROM:</code>, the read-only drive with the built-in examples; and <code>EXT:</code>,
+the <strong>external drive</strong>, a folder served by another device. A path without a
+drive refers to the current folder, which is where your program
 was loaded from (BASIC's <code>CD</code> changes it).</p>
 <ul>
 <li>The separator is <code>/</code>; <code>.</code> and <code>..</code> work. Upper and lower case are the
@@ -1289,6 +1488,15 @@ was loaded from (BASIC's <code>CD</code> changes it).</p>
 <li>Functions return 0 or more when they succeed and a negative error code
   when they fail: <code>ZXV_E_NOENT</code> (−1, it does not exist), <code>ZXV_E_NOCARD</code>
   (−12, no card), and so on (see <a href="reference.html#error-codes">the reference</a>).</li>
+<li><strong><code>EXT:</code></strong> is read and written like the card, but only while another
+  device serves it: on the board, a PC through the J5 header with
+  <code>zxv-link</code> or <code>zxv-link-gui</code> (see <a href="../hardware/firmware.html#the-ext-drive">The EXT:
+  drive</a>); in the emulator, a folder
+  you choose in File &gt; EXT: drive or with <code>--ext FOLDER</code> (see <a href="../emulator.html#the-ext-drive">The
+  emulator</a>). With no server, everything on
+  <code>EXT:</code> gives <code>ZXV_E_OFFLINE</code> (−18, "no server for EXT:"); if the server
+  goes away, the first call waits 1.5 seconds and fails. The details are in
+  <a href="reference.html#files-and-folders">the reference</a>.</li>
 </ul>
 <pre><code class="language-c">#include &quot;zxv_api.h&quot;
 

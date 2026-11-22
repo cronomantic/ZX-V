@@ -10,11 +10,12 @@
 <body>
 <header>
 <button type="button" id="menu" aria-label="Contents" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="../index.html">ZX-V</a>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
 <a class="ir" href="../../es/hardware/protoboard.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/">Try it in your browser</a>
+<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -51,6 +52,13 @@
 </li>
 <li><a href="../sdk/index.html#the-tracker-for-the-pc-zxv-tracker">The tracker, <code>zxv-tracker</code></a>
 </li>
+<li><a href="../sdk/index.html#the-own-format-zxm-and-zxv-music">The music converter, <code>zxv-music</code></a>
+</li>
+<li><a href="firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
+</li>
+<li><a href="firmware.html#the-ext-drive"><code>EXT:</code>
+  drive</a>
+</li>
 <li><a href="../sdk/web.html">Publishing your game on the web</a>
 </li>
 </ul>
@@ -71,15 +79,18 @@
 <ul>
 </ul>
 </li>
+<li><a href="protocol.html">The protocol</a>
+</li>
 </ul>
 </aside>
 <main>
 <h1 id="on-a-protoboard">On a protoboard</h1>
 <p>Before the PCB existed, ZX-V was built on a protoboard with Pico 2 boards and
 a few breakout modules, and that is how its firmware has been tested, one Pico
-at a time. <strong>The two Picos have not yet been tested working together</strong>, so the
-complete machine described here is still untested. This page explains how to
-build it that way.</p>
+at a time. The two Picos work together: that is how the PCB runs
+(<a href="board.html">The board</a>). What <strong>has not been tested</strong> is the wiring of the two
+together on a protoboard described here. This page explains how to build it
+that way.</p>
 <blockquote>
 <p><strong>The PCB is the recommended way</strong> (<a href="board.html">The board</a>): it has
 everything on it, the fast signals (HDMI and the link between the Picos) are
@@ -224,13 +235,13 @@ end. Here are all the pins ZX-V uses:</p>
 <tr>
 <td>16</td>
 <td>GP12</td>
-<td>Debug serial TX</td>
+<td>Remote loading (UART0): TX</td>
 <td>HDMI D0+</td>
 </tr>
 <tr>
 <td>17</td>
 <td>GP13</td>
-<td>Debug serial RX</td>
+<td>Remote loading (UART0): RX</td>
 <td>HDMI D0−</td>
 </tr>
 <tr>
@@ -332,8 +343,8 @@ end. Here are all the pins ZX-V uses:</p>
 </tbody>
 </table>
 <p>Note that GP12 to GP19 mean different things on each Pico: on the ULA they
-are the HDMI output, on the CPU the debug port, USB and clock. Do not join
-them.</p>
+are the HDMI output, on the CPU remote loading (UART0), USB and clock. Do not
+join them.</p>
 <h2 id="power">Power<a class="ancla" href="#power" aria-hidden="true">#</a></h2>
 <p>All the grounds must be joined. There are two ways to power it:</p>
 <p><strong>The simplest, for testing: each Pico from its own micro-USB</strong>, from the
@@ -671,13 +682,14 @@ the chip, 4.7 kΩ pull-up resistors from SDA and SCL to 3.3 V, and a BAT54C
 diode pair that feeds the chip from the 3.3 V and from the CR2032 cell, with a
 100 nF capacitor. The firmware looks for a DS3231 first and then for a
 PCF8563, and uses the one it finds.</p>
-<h2 id="reset-button-and-debug-port-optional">Reset button and debug port (optional)<a class="ancla" href="#reset-button-and-debug-port-optional" aria-hidden="true">#</a></h2>
+<h2 id="reset-button-and-remote-loading-optional">Reset button and remote loading (optional)<a class="ancla" href="#reset-button-and-remote-loading-optional" aria-hidden="true">#</a></h2>
 <ul>
 <li><strong>Reset:</strong> a push button from the <strong>RUN</strong> pin (pin 30) of each Pico to
   ground restarts it. The PCB joins both RUN pins to a single button.</li>
-<li><strong>Debug serial port:</strong> the CPU Pico's GP12 (pin 16) is TX and GP13 (pin 17)
-  is RX, at 921600 baud and 3.3 V. Cross them to a 3.3 V USB-serial adapter
-  (TX to RX). The same messages come out of the micro-USB anyway.</li>
+<li><strong>Remote loading:</strong> the CPU Pico's GP12 (pin 16) is TX and GP13 (pin 17) is
+  RX, at 3.3 V. Cross them to a 3.3 V USB-serial adapter (TX to RX) to send
+  programs from the PC with <code>zxv-link</code>
+  (<a href="firmware.html#loading-programs-from-the-pc-j5">The firmware</a>).</li>
 </ul>
 <h2 id="building-it-step-by-step">Building it step by step<a class="ancla" href="#building-it-step-by-step" aria-hidden="true">#</a></h2>
 <ol>
@@ -687,10 +699,10 @@ PCF8563, and uses the one it finds.</p>
    button and the LED, and try the modes.</li>
 <li><strong>The two Picos.</strong> Wire the link, flash <code>zxv_cpu.uf2</code> on the CPU Pico and
    <code>zxv_ula_link.uf2</code> on the ULA Pico. The BASIC should appear on the screen.
-   Open the CPU Pico's serial port with a terminal: what you type there
-   reaches the machine, and every 5 seconds it writes a report. (This is the
-   step that has not been tested yet: if it fails, the report on the serial
-   port is the place to start.)</li>
+   Open the CPU Pico's serial port (its micro-USB) with a terminal: every 5
+   seconds it writes a report. (The two Picos work together on the PCB, but
+   this wiring on a protoboard has not been tested: if it fails, the report on
+   the serial port is the place to start.)</li>
 <li><strong>The SD card, the USB-A and the clock</strong>, one at a time, checking each in
    the report (<code>card</code>, <code>USB</code>, <code>clock</code>) and from the BASIC: <code>CAT</code> for the
    card, typing for the keyboard, and <code>CLOCK 2026,10,20,18,30</code> then
@@ -698,7 +710,7 @@ PCF8563, and uses the one it finds.</p>
 </ol>
 <p>If something does not work, see
 <a href="firmware.html#if-there-is-no-picture-or-no-sound">If there is no picture or no sound</a>.</p>
-<nav class="pasos"><a class="anterior" href="firmware.html"><small>Previous</small>← The firmware</a></nav>
+<nav class="pasos"><a class="anterior" href="firmware.html"><small>Previous</small>← The firmware</a><a class="siguiente" href="protocol.html"><small>Next</small>The protocol →</a></nav>
 <footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
 </main>
 </div>
