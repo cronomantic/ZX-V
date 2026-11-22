@@ -54,7 +54,13 @@ endif()
 # La traducción al inglés (el español es el de los textos), dentro del
 # programa en :/i18n. Se pone al día con --target update_translations.
 if(TARGET Qt6::lrelease)
-    qt_add_translations(zxv-gfx TS_FILES ${ZXV_GFX_DIR}/i18n/zxv-gfx_en.ts RESOURCE_PREFIX /i18n
+    # Solo los textos de zxv-gfx: desde Qt 6.7, sin SOURCE_TARGETS, lupdate
+    # junta los de todos los programas del proyecto en cada .ts.
+    set(_ts_sources)
+    if(Qt6_VERSION VERSION_GREATER_EQUAL 6.7)
+        set(_ts_sources SOURCE_TARGETS zxv-gfx)
+    endif()
+    qt_add_translations(zxv-gfx ${_ts_sources} TS_FILES ${ZXV_GFX_DIR}/i18n/zxv-gfx_en.ts RESOURCE_PREFIX /i18n
                         LUPDATE_OPTIONS -no-obsolete -locations none -source-language es)
 else()
     message(WARNING "Sin Qt Linguist (LinguistTools): zxv-gfx solo en español")

@@ -26,15 +26,15 @@ original — switch it on and you are in BASIC, ready to type a program.
 - **Real hardware** built with two Raspberry Pi Pico 2 boards: one is the CPU,
   the other the "ULA" (video and sound).
 
-> **Status:** the emulator and the ROM with BASIC work. The firmware of each
-> Pico has been tested on its own, on a protoboard, but the two Picos have not
-> yet been tested working together. The printed circuit board is designed but
-> has not been manufactured yet.
+> **Status:** the emulator and the ROM with BASIC work, and so does the first
+> printed circuit board, with the two Picos together (the microSD card and the
+> clock's coin cell are still to be tried on it).
 
 ## Try it
 
-**In your browser:** [cronomantic.github.io/ZX-V](https://cronomantic.github.io/ZX-V/),
-nothing to install.
+**In your browser:** [cronomantic.github.io/ZX-V/emulator](https://cronomantic.github.io/ZX-V/emulator/),
+nothing to install. The project's website, with its games to play right
+there, is [cronomantic.github.io/ZX-V](https://cronomantic.github.io/ZX-V/).
 
 **On your computer:** download the latest version from
 [**Releases**](https://github.com/cronomantic/ZX-V/releases):
@@ -93,7 +93,7 @@ program.
 | | |
 |---|---|
 | [`sdk/`](sdk) | The SDK for native programs in C, with its examples and eight complete games in C. MIT licence ([`sdk/LICENSE`](sdk/LICENSE)): your programs can have any licence |
-| [`examples/`](examples) | Games in BASIC (`basic/`) and one in compiled BASIC with ZX Basic (`zxbasic/stardust`). MIT licence ([`examples/LICENSE`](examples/LICENSE)) |
+| [`examples/`](examples) | Games in BASIC (`basic/`) and two in compiled BASIC with ZX Basic (`zxbasic/stardust` and `zxbasic/petitsoccer`). MIT licence ([`examples/LICENSE`](examples/LICENSE)) |
 | [`docs/`](docs) | The documentation, in English and Spanish. CC BY 4.0 licence ([`docs/LICENSE`](docs/LICENSE)), the same as `dev/`; its code examples are public domain |
 | [`pcb/`](pcb) | The printed circuit board, revision 1: the KiCad project, the files to order it from JLCPCB and the scripts that made it. Open hardware, CERN-OHL-W v2 licence ([`pcb/LICENSE`](pcb/LICENSE), with the exceptions in [`pcb/NOTICE`](pcb/NOTICE)); the scripts, MIT |
 | [`dev/`](dev) | The technical specification of the machine ([`spec.md`](dev/spec.md)) and of its BASIC ([`basic.md`](dev/basic.md)), in Spanish: memory map, registers, the ROM API, file formats |

@@ -44,8 +44,9 @@ BOX 4, 100, 20, 20, 20
 | `GRAB`, `GRABSTR`, `SPRITE`, `HIT` | Los sprites, con espejo, otros colores o escalados, y los choques al píxel |
 | `BOX`, `DISC`, `POLY`, `CLIP`, `PIXEL` | Figuras rellenas, el recorte y el color de un píxel |
 | `KEY`, `JOY`, `SOUND`, `TIME` | Las teclas pulsadas, los mandos, los registros de los AY y el contador de frames |
-| `MUSICLOAD`, `MUSICPLAY`, `MUSICSTOP`, `MUSICPAUSE`, `MUSICCONTINUE`, `MUSIC` | La música de un tracker (un `.pt3` de [`zxv-tracker`](sdk/README.md#el-tracker-para-el-pc-zxv-tracker)...), de fondo mientras el programa sigue |
+| `MUSICLOAD`, `MUSICPLAY`, `MUSICSTOP`, `MUSICPAUSE`, `MUSICCONTINUE`, `MUSIC` | La música de un tracker (un `.zxm` o un `.pt3` de [`zxv-tracker`](sdk/README.md#el-tracker-para-el-pc-zxv-tracker)...), de fondo mientras el programa sigue |
 | `SFXLOAD`, `SFX`, `SFXSTOP`, `SFXPLAYING` | Los efectos de sonido de un banco AYFX |
+| `SAMPLELOAD`, `SAMPLE`, `SAMPLESTOP`, `SAMPLEPLAYING` | Los sonidos grabados (WAV) en los canales de muestras |
 
 Las diferencias con el BASIC de ZX-V: el sprite de una cadena es `GRABSTR`
 (`GRAB n, ancho, a$` en el de ZX-V); `KEY`, `JOY`, `HIT` y `PIXEL` llevan
@@ -53,7 +54,13 @@ paréntesis (`KEY(9)`); `REMAP` y `SOUND` van de par en par y `PALETTE` de
 color en color, solo en la tabla 0 (sin `#t`); `REMAP` y `PALETTE` solos son
 `REMAPRESET` y `PALETTERESET`; `POLY` admite hasta 8 puntos; y la música y los efectos se cargan con `MUSICLOAD f$` y
 `SFXLOAD f$` (`LOAD f$ MUSIC` y `SFX` en el de ZX-V), se tocan con `MUSICPLAY`,
-`MUSICSTOP`... y la función que dice si suena un efecto es `SFXPLAYING`.
+`MUSICSTOP`... y la función que dice si suena un efecto es `SFXPLAYING`; los
+sonidos grabados, con `SAMPLELOAD f$, n` (`LOAD f$ SAMPLE n`), `SAMPLE n, tono,
+vol, pan, c` (`; c` en el de ZX-V) y `SAMPLEPLAYING` (la función `SAMPLE`).
+`MUSICLOAD` toca `.zxm`, PT3, TurboSound, PT2, STC, ASC, PSG y VGM de AY
+(también `.vgz`), pero no MOD, S3M ni XM, que el BASIC de ZX-V convierte al
+cargarlos: para no llevar el conversor en cada programa, se pasan antes a
+`.zxm` con `zxv-music`.
 
 `SAVE`, `LOAD` y `VERIFY` usan la tarjeta SD como el BASIC de ZX-V: sin
 extensión, la pantalla va en un `.gfx` (la de ZX-V, con sus colores si no son
@@ -64,8 +71,8 @@ y las librerías que hay, está en su
 
 ## Instalarlo
 
-**En Windows:** descarga `zxbasic-1.19.0-zxv.5-win64.zip` de la
-[página de la versión](https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.5)
+**En Windows:** descarga `zxbasic-1.19.0-zxv.6-win64.zip` de la
+[página de la versión](https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.6)
 y descomprímelo donde quieras. Trae `zxbc.exe`, que no necesita Python.
 
 **En Linux y macOS:** descarga el código de esa misma página (o clona la rama
@@ -102,6 +109,12 @@ Con `--loading-screen titulo.png` (o un `.gfx` con una pantalla), el `.zxv`
 lleva una pantalla de carga, como con `elf2zxv.py --screen`. La máquina la
 enseña mientras carga el programa.
 
+Con `--embed cancion.pt3` (tantos como hagan falta: música, efectos, `.gfx`,
+datos), el `.zxv` lleva esos ficheros dentro, como los juegos en C. `LOAD`,
+`MUSICLOAD` y `SFXLOAD` usan el de la carpeta actual si lo hay y, si no, el de
+dentro: el programa funciona solo, también desde `ROM:`, y un fichero de la
+tarjeta con el mismo nombre ocupa el lugar del de dentro.
+
 **Ojo con los tipos.** Sin `DIM`, una variable toma el tipo más pequeño que
 le vale: aquí, sin la primera línea, `x` sería un `UByte` (de 0 a 255). Y
 entre enteros, `/` divide como enteros: `x / 20` daría 0, 0, 0... 1, 1, 1, y
@@ -109,11 +122,18 @@ la curva saldría a escalones. Y el `FOR` no acabaría nunca, porque un `UByte`
 no llega a pasar de 255. Declara como `FLOAT` lo que necesite decimales, y
 con un tipo más grande los contadores que lleguen al límite.
 
-## Un ejemplo
+## Dos ejemplos
 
 [Stardust](../../examples/zxbasic/stardust/README.es.md) es un juego pequeño
 hecho con `zxv.bas`: doble buffer, sprites de cadenas, choques, teclado o
 mando y sonido, a 60 imágenes por segundo.
+
+[Petit Soccer](../../examples/zxbasic/petitsoccer/README.es.md) es uno
+grande: fútbol 7 contra la máquina o entre dos jugadores, con un campo más
+grande que la pantalla y scroll, los sprites de una hoja PNG, y la música y
+los efectos de un tracker. Lleva dentro la música y los efectos
+(`zxbc --embed`), así que también funciona desde la unidad `ROM:`, donde viene
+incluido: `LOAD "ROM:petitsoccer"`.
 
 ## La licencia de tus programas
 

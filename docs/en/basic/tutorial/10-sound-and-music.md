@@ -3,12 +3,14 @@
 # 10. Sound and music
 
 **In this chapter you will learn** to make simple beeps with `BEEP`, to
-play tunes of up to six voices with `PLAY`, and to create sound effects for
-games with `SOUND`.
+play tunes of up to six voices with `PLAY`, to create sound effects for
+games with `SOUND`, and to play recorded sounds with `SAMPLE` and background
+music with `MUSIC`.
 
-ZX-V has two kinds of sound: the **beeper**, a simple loudspeaker like the
-one in the first Spectrum, and two **sound chips** (called AY), like the
-one in the Spectrum 128, each able to play three notes at once.
+ZX-V has three kinds of sound: the **beeper**, a simple loudspeaker like the
+one in the first Spectrum; two **sound chips** (called AY), like the one in
+the Spectrum 128, each able to play three notes at once; and twelve
+**sample channels**, which play recorded sounds.
 
 ## `BEEP`
 
@@ -134,12 +136,38 @@ the chip plays. That is what games need. The sound keeps playing until you
 change it, so remember to silence it with `SOUND 8,0`. Registers 16 to 31
 are the same ones for the second chip.
 
+## Recorded sounds: `SAMPLE`
+
+A drum hit, a voice or a dog's bark are not made with notes: they are
+recorded. To try it you need a sound in a WAV file on the card, for example
+`hit.wav` (you can record or trim it on your PC with a sound editor such as
+Audacity). `LOAD "hit" SAMPLE 0` loads it into sample 0 (there are 0 to
+31), and `SAMPLE 0` plays it:
+
+```
+10 LOAD "hit" SAMPLE 0
+20 FOR p=0 TO 12 STEP 2
+30 SAMPLE 0,p
+40 PAUSE 15
+50 NEXT p
+```
+
+The number after the sample is the pitch, in semitones, as in `BEEP`: 0
+sounds as it was recorded and 12 an octave higher. After it can come the
+volume (0 to 64) and the pan (from 0, on the left, to 255, on the right):
+`SAMPLE 0,0,32,255` plays it at half volume, on the right.
+
+Like `SOUND`, `SAMPLE` does not wait: the program goes on while it plays.
+There are twelve channels, so twelve sounds can play at once, with the music
+too. `SAMPLE STOP` stops them all.
+
 ## Real music: `MUSIC` and `SFX`
 
 The music for a game is made with a *tracker*, a program for composing like
 the ones Spectrum musicians used. ZX-V comes with one for the PC,
 [`zxv-tracker`](../../sdk/README.md#the-tracker-for-the-pc-zxv-tracker),
-which saves the song in a `.pt3` file and the sound effects in an `.afb`.
+which saves the song in a `.zxm` file (or a `.pt3`, if it only uses the AY
+chips) and the sound effects in an `.afb`.
 BASIC plays them **in the background**, while the program goes on:
 
 ```
@@ -150,8 +178,13 @@ BASIC plays them **in the background**, while the program goes on:
 ```
 
 `MUSIC STOP` stops the music and `SFX n` plays effect number `n` without
-silencing it. Everything else is in the reference: [`MUSIC`](../reference.md#music)
-and [`SFX`](../reference.md#sfx).
+silencing it.
+
+`MUSIC` also loads the music of other trackers: MOD, S3M and XM modules from
+the sample trackers, which it converts when loading, and VGM files, AY music
+as emulators record it. Everything else is in the reference:
+[`MUSIC`](../reference.md#music), [`SFX`](../reference.md#sfx) and
+[`SAMPLE`](../reference.md#sample).
 
 ## Try it
 
@@ -184,7 +217,8 @@ wait a few frames with `WAIT 4`, set a smaller period (a higher note) such as
 
 **Reference:** [`BEEP`](../reference.md#beep), [`PLAY`](../reference.md#play),
 [`SOUND`](../reference.md#sound), [`WAIT`](../reference.md#wait),
-[`MUSIC`](../reference.md#music), [`SFX`](../reference.md#sfx).
+[`SAMPLE`](../reference.md#sample), [`MUSIC`](../reference.md#music),
+[`SFX`](../reference.md#sfx).
 
 **Next:** [11. Keyboard and joystick](11-keyboard-and-joystick.md) ·
 **Previous:** [9. Drawing](09-drawing.md)

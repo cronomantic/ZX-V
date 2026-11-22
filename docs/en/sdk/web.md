@@ -79,11 +79,12 @@ score, a saved game) goes to the card, `SD:`, which is kept in the browser.
 | `--kit FOLDER` | The `play/` folder of the web package (required) |
 | `--title TEXT` | The name on the cover and in the tab (by default, the file's) |
 | `--id NAME` | The name of its card in the browser: letters, digits, `-` and `_` (by default, the file's). Changing it starts with an empty card, without the old high scores |
-| `--lang auto\|es\|en` | The machine's and the page's language; `auto` (the default), the browser's |
+| `--lang auto\|es\|en` | The machine's and the page's language; `auto` (the default), the browser's. A link can choose it with `?lang=es` or `?lang=en` at the end of the address |
 | `--border 0\|1\|2` | The border: full (the default), small or none. With no border, the game's picture is bigger |
 | `--fit aspect\|integer\|fill` | How the picture is scaled: keeping the aspect ratio (the default), in whole multiples or filling the window. `proporcion`, `entera` and `llenar` work too |
 | `--touch PRESET\|JSON` | The [touch controls](#the-touch-controls) |
 | `--zip FILE.zip` | Also, the page in a `.zip`, with `index.html` at its root |
+| `--kit-url URL` | Does not copy the kit: the page uses the one at `URL`, seen from the page (`../kit/`, say). For a site with several games: the kit (about 600 KB) is downloaded once, and each game's folder only has `index.html` and `game.js`. It does not go with `--zip` |
 | `--config game.json` | All of the above in a file ([game.json](#gamejson)) |
 
 ## The touch controls

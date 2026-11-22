@@ -22,7 +22,7 @@ LIBC_CFLAGS  := -march=$(MARCH) -mabi=ilp32 -Os -g -Wall -Wextra -std=gnu11 --sp
 LIBC_LDFLAGS := -nostartfiles -static -T zxv.ld -Wl,--gc-sections \
                 -Wl,--no-warn-rwx-segments
 
-EXAMPLES := hello graphics scroll digital estela boardtest route128 mine street umbra keep player gfxedit chess gonesilent
+EXAMPLES := hello graphics scroll digital estela boardtest route128 mine street umbra keep player samples gfxedit chess gonesilent
 # Sin picolibc (MSYS2 no la tiene), sin estos: lo dice y compila los demás.
 LIBC_EXAMPLES := $(if $(filter /% %:/%,$(subst \,/,$(shell $(CC) -print-file-name=picolibc.specs))),files)
 ifeq ($(LIBC_EXAMPLES),)

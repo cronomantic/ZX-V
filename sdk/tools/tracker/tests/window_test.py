@@ -39,7 +39,7 @@ open(bank, "wb").write(afb)
 env = dict(os.environ, QT_QPA_PLATFORM="offscreen", SDL_AUDIODRIVER="dummy", ZXV_HOME=tmp)
 bad = 0
 for lang in ("es", "en"):
-    for tab, f in ((0, pt3), (0, ts), (1, pt3), (2, pt3), (3, bank)):
+    for tab, f in ((0, pt3), (0, ts), (1, pt3), (2, pt3), (3, pt3), (4, pt3), (5, bank)):
         shot = os.path.join(tmp, "ventana-%s-%d-%s.png" % (lang, tab, os.path.basename(f)[:-4]))
         if os.path.exists(shot):
             os.remove(shot)
@@ -63,5 +63,31 @@ else:
     if rate != 48000 or frames < 48000 or not loud:
         bad += 1
         print("--wav: no es lo que tiene que ser")
+# Un MOD de 16 canales (más de los 12 de ZX-V), una nota en cada uno: sin
+# nadie delante (--wav, --screenshot) no pregunta los canales; --channels
+# los elige, y de más de 12 no vale.
+mod = bytearray(1084 + 64 * 16 * 4)
+mod[0:6] = b"canales"[:6]
+struct.pack_into(">HBB", mod, 20 + 22, 50, 0, 64)      # muestra 1: 100 bytes, volumen 64
+struct.pack_into(">HH", mod, 20 + 26, 0, 1)
+mod[950], mod[951] = 1, 127
+mod[1080:1084] = b"16CH"
+for c in range(16):
+    struct.pack_into(">BBBB", mod, 1084 + c * 4, 0x01, 0xAC, 0x10, 0)   # C-2 con la muestra 1
+mod += bytes((i * 37) & 0xFF for i in range(100))
+mod16 = os.path.join(tmp, "canales.mod")
+open(mod16, "wb").write(mod)
+for args, want in ((["--wav", os.path.join(tmp, "canales.wav")], 0),
+                   (["--wav", os.path.join(tmp, "canales4.wav"), "--channels", "1-4"], 0),
+                   (["--screenshot", os.path.join(tmp, "canales.png")], 0),
+                   (["--wav", os.path.join(tmp, "canales13.wav"), "--channels", "1-13"], 2)):
+    try:
+        r = subprocess.run([prog] + args + [mod16], env=env, timeout=60)
+        rc = r.returncode
+    except subprocess.TimeoutExpired:
+        rc = "se queda esperando"
+    if rc != want:
+        bad += 1
+        print("MOD de 16 canales, %s: %s (y tenía que ser %d)" % (" ".join(args[2:] or args[:1]), rc, want))
 print("todo bien" if not bad else "%d fallos" % bad)
 sys.exit(1 if bad else 0)

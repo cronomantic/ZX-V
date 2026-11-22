@@ -1,11 +1,15 @@
 /*
- * engine.cpp - El sonido de zxv-tracker: sdk/music paso a paso y los dos AY.
+ * engine.cpp - El sonido de zxv-tracker: sdk/music paso a paso, los dos AY
+ * y los canales de muestras.
  */
 #include "engine.h"
 
+#include <algorithm>
+#include <climits>
 #include <cstring>
 
 extern "C" {
+#include "zxm_format.h"
 #include "zxv_music.h"
 }
 
@@ -38,27 +42,62 @@ static bool isPt3(const mus_song_t &s)
     return s.format == ZXV_MUSIC_PT3 || s.format == ZXV_MUSIC_TS;
 }
 
-Engine::Engine()
+static void put32(uint8_t *p, uint32_t v)
 {
-    ays_reset(&ay_[0]);
-    ays_reset(&ay_[1]);
-    aymix_reset(&mix_);
+    for (int i = 0; i < 4; i++)
+        p[i] = uint8_t(v >> 8 * i);
+}
+
+Engine::Engine() : mem_(SMP_SOUND_MEM)
+{
+    sndsynth_memory(&snd_, mem_.data());
+    sndsynth_reset(&snd_);
+    silent(music_ay_[0]);
+    silent(music_ay_[1]);
+    silent(note_ay_);
     silent(out_[0]);
     silent(out_[1]);
+}
+
+/* Las muestras de un .zxm a la memoria de sonido, desde el principio, y sus
+ * entradas en la tabla desde la 0 (como music.c, con zxv_music_samples(0, 0)). */
+void Engine::loadSamples(Voice &v)
+{
+    silenceSamples();
+    const zxm_t &z = v.zxm;
+    uint32_t size = std::min<uint32_t>(z.o[ZXM_O_DATA_SIZE], SMP_MEM);
+    if (size && z.o[ZXM_O_DATA] + size <= z.n)
+        std::memcpy(mem_.data(), z.m + z.o[ZXM_O_DATA], size);
+    for (int i = 0; i < z.n_samples && i < SMP_SLOTS; i++) {
+        const uint8_t *s = z.m + z.o[ZXM_O_SAMPLES] + uint32_t(i) * ZXM_SMP_SIZE;
+        uint8_t *e = mem_.data() + SMP_MEM + i * SMP_SLOT_SIZE;
+        put32(e, mus_w(z.m, z.n, uint32_t(s - z.m)) | uint32_t(mus_w(z.m, z.n, uint32_t(s - z.m) + 2)) << 16 |
+                     uint32_t(s[ZXM_S_FORMAT]) << 24);
+        put32(e + 4, mus_w(z.m, z.n, uint32_t(s - z.m) + 4) | uint32_t(mus_w(z.m, z.n, uint32_t(s - z.m) + 6)) << 16);
+        put32(e + 8, mus_w(z.m, z.n, uint32_t(s - z.m) + 8) | uint32_t(mus_w(z.m, z.n, uint32_t(s - z.m) + 10)) << 16);
+    }
+    v.samples = true;
 }
 
 bool Engine::play(Play p)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     music_.on = false;
+    note_.on = false;
     music_.data = std::move(p.data);
     if (mus_song_init(&music_.song, music_.data.data(), uint32_t(music_.data.size())) == ZXV_MUSIC_NONE)
         return false;
+    if (isZxm(music_))
+        loadSamples(music_);
+    else
+        silenceSamples();
     rows_ = std::move(p.rows);
     loop_ = p.loop;
     steps_ = 0;
     music_.on = true;
     startAt(p.pos, p.row);
+    musicLeft_ = 0;
+    musicFrac_ = 0;
     return true;
 }
 
@@ -66,6 +105,10 @@ void Engine::stop()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     music_.on = false;
+    silent(music_ay_[0]);
+    silent(music_ay_[1]);
+    silenceSamples();
+    flush();
 }
 
 bool Engine::preview(const std::vector<uint8_t> &data, int chip)
@@ -75,6 +118,8 @@ bool Engine::preview(const std::vector<uint8_t> &data, int chip)
     note_.data = data;
     if (mus_song_init(&note_.song, note_.data.data(), uint32_t(note_.data.size())) == ZXV_MUSIC_NONE)
         return false;
+    if (isZxm(note_))
+        loadSamples(note_);
     noteChip_ = chip & 1;
     note_.on = true;
     return true;
@@ -83,7 +128,12 @@ bool Engine::preview(const std::vector<uint8_t> &data, int chip)
 void Engine::stopPreview()
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    bool samples = note_.on && isZxm(note_);
     note_.on = false;
+    silent(note_ay_);
+    if (samples && !music_.on)
+        silenceSamples();
+    flush();
 }
 
 void Engine::playSfx(const std::vector<uint8_t> &afx, int channel)
@@ -92,12 +142,14 @@ void Engine::playSfx(const std::vector<uint8_t> &afx, int channel)
     sfxData_ = afx;
     sfxChannel_ = channel < 0 || channel > 5 ? 0 : channel;
     afx_start(&sfx_, sfxData_.data(), sfxData_.data() + sfxData_.size());
+    sfxHow_ = 0;
 }
 
 void Engine::stopSfx()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     sfx_.p = nullptr;
+    sfxHow_ = 0;
 }
 
 void Engine::setMute(int mask)
@@ -110,12 +162,14 @@ void Engine::setStereo(int mode)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     stereo_ = mode;
+    fresh_ = true;
 }
 
 void Engine::setVolume(int v)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     volume_ = v < 0 ? 0 : v > 255 ? 255 : v;
+    fresh_ = true;
 }
 
 Engine::Status Engine::status()
@@ -131,17 +185,27 @@ Engine::Status Engine::status()
         s.row[k] = row_[k];
         std::memcpy(s.regs[k], out_[k].r, 14);
     }
+    std::memcpy(s.smpVol, smpVol_, sizeof smpVol_);
     s.steps = steps_;
     return s;
 }
 
-/* Empieza en la posición "pos", con las filas de antes ya tocadas (sin
- * sonar: así el tempo y lo demás son los que serían). */
+/* Empieza en la posición "pos" y la fila "row". Un .zxm salta allí; un PT3
+ * toca sin sonar las filas de antes de la posición (así el tempo y lo demás
+ * son los que serían). */
 void Engine::startAt(int pos, int row)
 {
     for (int k = 0; k < 2; k++) {
         pos_[k] = 0;
         row_[k] = -1;
+    }
+    if (isZxm(music_)) {
+        if (pos > 0 || row > 0) {
+            music_.zxm.jump_pos = int16_t(pos < music_.zxm.npos ? pos : 0);
+            music_.zxm.jump_row = int16_t(row);
+        }
+        pos_[0] = pos;
+        return;
     }
     if (!isPt3(music_.song))
         return;
@@ -164,7 +228,7 @@ void Engine::startAt(int pos, int row)
     steps_ = 0;
 }
 
-/* Un paso de la música (en out_, si suena), siguiendo por dónde va. */
+/* Un paso de la música (en music_ay_, si suena), siguiendo por dónde va. */
 void Engine::advance(bool audible)
 {
     bool pt3 = isPt3(music_.song);
@@ -177,12 +241,17 @@ void Engine::advance(bool audible)
             before[k] = music_.song.u.pt3[k].pos;
         }
     mus_ay_t m[2];
+    silent(m[0]);
+    silent(m[1]);
     mus_song_step(&music_.song, m);
     if (!loop_ && mus_song_looped(&music_.song)) {
         music_.on = false;
+        silent(music_ay_[0]);
+        silent(music_ay_[1]);
+        silenceSamples();
         return;
     }
-    if (pt3)
+    if (pt3) {
         for (int k = 0; k < n; k++) {
             if (!tick[k])
                 continue;
@@ -193,61 +262,178 @@ void Engine::advance(bool audible)
                 row_[k] = 0;
             pos_[k] = pos;
         }
+    } else if (isZxm(music_) && music_.zxm.tick == 0) {
+        pos_[0] = music_.zxm.pos;
+        row_[0] = music_.zxm.row - 1;
+    }
     steps_++;
     if (audible) {
-        if (music_.song.chips == 3) {
-            out_[0] = m[0];
-            out_[1] = m[1];
-        } else {
-            out_[0] = m[0];
-        }
+        music_ay_[0] = m[0];
+        music_ay_[1] = music_.song.chips == 3 ? m[1] : music_ay_[1];
+        if (music_.song.chips != 3)
+            silent(music_ay_[1]);
     }
 }
 
-void Engine::step()
+void Engine::write(int reg, uint8_t val)
+{
+    events_.push_back(SND_EVENT(0, reg, val));
+}
+
+/* Lo que pide la canción a sus canales de muestras en este paso (como
+ * music.c): todo lo de cada canal que usa, y a la vez las notas nuevas. */
+void Engine::emitSamples(const Voice &v, bool audible)
+{
+    const mus_smp_t *o = audible ? mus_song_samples(&v.song) : nullptr;
+    uint32_t key = 0;
+    for (int ch = 0; ch < 12; ch++) {
+        int base = SND_REG_SMP + ch * SND_SMP_CH_REGS;
+        if (!o || !o[ch].on) {
+            if (live_ >> ch & 1)
+                write(base + SMP_R_CTRL, SMP_STOP);
+            live_ &= uint16_t(~(1u << ch));
+            smpVol_[ch] = 0;
+            continue;
+        }
+        const mus_smp_t &c = o[ch];
+        if (c.key) {
+            write(base + SMP_R_SLOT, c.slot);
+            write(base + SMP_R_OFFSET, c.offset);
+            key |= 1u << ch;
+        }
+        uint8_t vol = mute_ >> (6 + ch) & 1 ? 0 : c.vol;
+        write(base + SMP_R_VOL, vol);
+        write(base + SMP_R_PAN, c.pan);
+        for (int i = 0; i < 3; i++)
+            write(base + SMP_R_STEP + i, uint8_t(c.step >> 8 * i));
+        write(base + SMP_R_CTRL, uint8_t(c.ctrl | (c.stop ? SMP_STOP : 0)));
+        live_ |= uint16_t(1u << ch);
+        smpVol_[ch] = c.stop ? 0 : vol;
+    }
+    if (key) {
+        write(SND_REG_SMPKEY_HI, uint8_t(key >> 8));
+        write(SND_REG_SMPKEY, uint8_t(key));
+    }
+}
+
+void Engine::silenceSamples()
+{
+    for (int ch = 0; ch < 12; ch++)
+        if (live_ >> ch & 1)
+            write(SND_REG_SMP + ch * SND_SMP_CH_REGS + SMP_R_CTRL, SMP_STOP);
+    live_ = 0;
+    std::memset(smpVol_, 0, sizeof smpVol_);
+}
+
+/* Los AY de este paso (la canción, la nota, el efecto encima y los canales
+ * callados) y todo lo que haya que mandar, a la ULA. */
+void Engine::flush()
 {
     silent(out_[0]);
     silent(out_[1]);
-    if (music_.on)
-        advance(true);
+    if (music_.on) {
+        out_[0] = music_ay_[0];
+        out_[1] = music_ay_[1];
+    }
     if (note_.on) {
-        mus_ay_t m[2];
-        mus_song_step(&note_.song, m);
-        out_[noteChip_] = m[0];
+        if (isZxm(note_)) {
+            out_[0] = note_ay_;
+        } else {
+            out_[noteChip_] = note_ay_;
+            out_[noteChip_ ^ 1].r13 = 0;
+        }
     }
-    if (sfx_.p) {
-        int how = afx_step(&sfx_);
-        if (how)
-            overlay(out_[sfxChannel_ / 3], sfxChannel_ % 3, sfx_, how);
-    }
+    if (sfxHow_)
+        overlay(out_[sfxChannel_ / 3], sfxChannel_ % 3, sfx_, sfxHow_);
     for (int ch = 0; ch < 6; ch++)
         if (mute_ >> ch & 1)
             out_[ch / 3].r[8 + ch % 3] = 0;
+    if (fresh_) {
+        write(SND_REG_STEREO, uint8_t(stereo_));
+        write(SND_REG_VOLUME, uint8_t(volume_));
+        write(SND_REG_AFLAGS, 0);
+        write(SND_REG_SMPVOL, 255);             /* como la máquina al empezar */
+    }
     for (int k = 0; k < 2; k++) {
         for (int r = 0; r < 13; r++)
             if (fresh_ || sent_[k][r] != out_[k].r[r]) {
-                ays_write(&ay_[k], unsigned(r), out_[k].r[r]);
+                write(k * 16 + r, out_[k].r[r]);
                 sent_[k][r] = out_[k].r[r];
             }
         if (out_[k].r13)
-            ays_write(&ay_[k], 13, out_[k].r[13]);
+            write(k * 16 + 13, out_[k].r[13]);
     }
+    /* R13, solo en el paso que lo escribe. */
+    music_ay_[0].r13 = music_ay_[1].r13 = note_ay_.r13 = 0;
     fresh_ = false;
+    /* sndsynth_begin se queda con el tramo: sus escrituras se aplican al
+     * sonar la primera muestra. Las que aún no (otro flush antes de sonar),
+     * delante de las nuevas. */
+    std::vector<uint32_t> next;
+    if (snd_.ev < snd_.f.events)
+        next.assign(inflight_.begin() + snd_.ev, inflight_.begin() + snd_.f.events);
+    next.insert(next.end(), events_.begin(), events_.end());
+    inflight_.swap(next);
+    events_.clear();
+    snd_span_t f {};
+    f.ay = inflight_.data();
+    f.events = unsigned(inflight_.size());
+    sndsynth_begin(&snd_, &f, 0);
+}
+
+void Engine::musicStep()
+{
+    advance(true);
+    if (isZxm(music_))
+        emitSamples(music_, music_.on);
+    flush();
+    uint64_t us = uint64_t(music_.on ? mus_song_step_us(&music_.song) : 20000u) * RATE + musicFrac_;
+    musicLeft_ = int(us / 1000000u);
+    musicFrac_ = uint32_t(us % 1000000u);
+    if (musicLeft_ < 1)
+        musicLeft_ = 1;
+}
+
+void Engine::fxStep()
+{
+    if (note_.on) {
+        mus_ay_t m[2];
+        silent(m[0]);
+        silent(m[1]);
+        mus_song_step(&note_.song, m);
+        note_ay_ = m[0];
+        if (isZxm(note_) && !music_.on)
+            emitSamples(note_, true);
+    }
+    sfxHow_ = sfx_.p ? afx_step(&sfx_) : 0;
+    flush();
+    fxLeft_ = STEP;
 }
 
 void Engine::render(int16_t *out, int frames)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    for (int i = 0; i < frames; i++) {
-        if (left_ == 0) {
-            step();
-            left_ = STEP;
+    for (int i = 0; i < frames;) {
+        /* Los dos relojes: el de la canción y el de los efectos (como
+         * music.c). Si coinciden, primero la canción. */
+        if (music_.on && musicLeft_ <= 0)
+            musicStep();
+        if (fxLeft_ <= 0)
+            fxStep();
+        int run = std::min(frames - i, fxLeft_);
+        if (music_.on)
+            run = std::min(run, musicLeft_);
+        uint32_t buf[256];
+        run = std::min(run, 256);
+        sndsynth_render(&snd_, unsigned(run), buf);
+        for (int k = 0; k < run; k++) {
+            out[(i + k) * 2] = int16_t(buf[k] & 0xFFFF);
+            out[(i + k) * 2 + 1] = int16_t(buf[k] >> 16);
         }
-        left_--;
-        int32_t a[3], b[3];
-        ays_step(&ay_[0], a);
-        ays_step(&ay_[1], b);
-        aymix_sample(&mix_, a, b, 0, unsigned(stereo_), unsigned(volume_), false, out + i * 2);
+        if (music_.on)
+            musicLeft_ -= run;
+        fxLeft_ -= run;
+        i += run;
     }
 }
 

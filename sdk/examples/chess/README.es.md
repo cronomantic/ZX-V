@@ -2,6 +2,8 @@
 
 # ZXV Chess
 
+De [ximoKom](https://ximokom.itch.io/).
+
 Ajedrez para ZX-V, completo, contra la máquina o entre dos jugadores. Modo 0 (256 x 192):
 el tablero a la izquierda (casillas de 24 x 24) y un panel de texto a la derecha.
 

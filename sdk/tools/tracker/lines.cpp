@@ -319,18 +319,18 @@ SampleView::SampleView(Editor *ed, QWidget *parent) : LineGrid(parent), ed_(ed)
 
 int SampleView::count() const
 {
-    return int(ed_->mod().samples[size_t(ed_->sample())].lines.size());
+    return int(ed_->bank().samples[size_t(ed_->sample())].lines.size());
 }
 
 int SampleView::loopLine() const
 {
-    const Sample &s = ed_->mod().samples[size_t(ed_->sample())];
+    const Sample &s = ed_->bank().samples[size_t(ed_->sample())];
     return s.lines.empty() ? -1 : s.loop;
 }
 
 void SampleView::drawLine(QPainter &p, int l, int y)
 {
-    const SampleLine &s = ed_->mod().samples[size_t(ed_->sample())].lines[size_t(l)];
+    const SampleLine &s = ed_->bank().samples[size_t(ed_->sample())].lines[size_t(l)];
     put(p, 4, y, s.toneOn() ? "T" : "t", s.toneOn() ? On : Dim);
     put(p, 6, y, s.noiseOn() ? "N" : "n", s.noiseOn() ? On : Dim);
     put(p, 8, y, s.envOn() ? "E" : "e", s.envOn() ? On : Dim);
@@ -346,7 +346,7 @@ void SampleView::drawLine(QPainter &p, int l, int y)
 
 bool SampleView::type(int l, int id, QChar c)
 {
-    SampleLine &s = ed_->mod().samples[size_t(ed_->sample())].lines[size_t(l)];
+    SampleLine &s = ed_->bank().samples[size_t(ed_->sample())].lines[size_t(l)];
     int v = hexValue(c);
     switch (id) {
     case S_TSIGN:
@@ -407,7 +407,7 @@ bool SampleView::type(int l, int id, QChar c)
 
 void SampleView::toggle(int l, int id)
 {
-    SampleLine &s = ed_->mod().samples[size_t(ed_->sample())].lines[size_t(l)];
+    SampleLine &s = ed_->bank().samples[size_t(ed_->sample())].lines[size_t(l)];
     switch (id) {
     case S_T: s.setToneOn(!s.toneOn()); break;
     case S_N: s.setNoiseOn(!s.noiseOn()); break;
@@ -419,17 +419,17 @@ void SampleView::toggle(int l, int id)
 
 int SampleView::bar(int l) const
 {
-    return ed_->mod().samples[size_t(ed_->sample())].lines[size_t(l)].volume();
+    return ed_->bank().samples[size_t(ed_->sample())].lines[size_t(l)].volume();
 }
 
 void SampleView::setBar(int l, int v)
 {
-    ed_->mod().samples[size_t(ed_->sample())].lines[size_t(l)].setVolume(v);
+    ed_->bank().samples[size_t(ed_->sample())].lines[size_t(l)].setVolume(v);
 }
 
 void SampleView::begin()
 {
-    ed_->begin(Editor::SamplePart, ed_->sample());
+    ed_->begin(Editor::SamplePart, ed_->chip(), ed_->sample());
 }
 
 void SampleView::end()
@@ -439,7 +439,7 @@ void SampleView::end()
 
 void SampleView::insertAt(int l)
 {
-    Sample &s = ed_->mod().samples[size_t(ed_->sample())];
+    Sample &s = ed_->bank().samples[size_t(ed_->sample())];
     if (int(s.lines.size()) >= MAX_LINES)
         return;
     SampleLine copy = s.lines.empty() ? defaultSample().lines[0] : s.lines[size_t(std::max(0, l - 1))];
@@ -450,7 +450,7 @@ void SampleView::insertAt(int l)
 
 void SampleView::removeAt(int l)
 {
-    Sample &s = ed_->mod().samples[size_t(ed_->sample())];
+    Sample &s = ed_->bank().samples[size_t(ed_->sample())];
     s.lines.erase(s.lines.begin() + l);
     if (s.loop > l || s.loop >= int(s.lines.size()))
         s.loop = std::max(0, s.loop - 1);
@@ -475,18 +475,18 @@ OrnamentView::OrnamentView(Editor *ed, QWidget *parent) : LineGrid(parent), ed_(
 
 int OrnamentView::count() const
 {
-    return int(ed_->mod().ornaments[size_t(ed_->ornament())].offsets.size());
+    return int(ed_->bank().ornaments[size_t(ed_->ornament())].offsets.size());
 }
 
 int OrnamentView::loopLine() const
 {
-    const Ornament &o = ed_->mod().ornaments[size_t(ed_->ornament())];
+    const Ornament &o = ed_->bank().ornaments[size_t(ed_->ornament())];
     return o.offsets.empty() ? -1 : o.loop;
 }
 
 void OrnamentView::drawLine(QPainter &p, int l, int y)
 {
-    int v = ed_->mod().ornaments[size_t(ed_->ornament())].offsets[size_t(l)];
+    int v = ed_->bank().ornaments[size_t(ed_->ornament())].offsets[size_t(l)];
     put(p, 4, y, (v < 0 ? "-" : "+") + QString::number(std::abs(v)).rightJustified(2, '0'), v ? Text : Dim);
     int mid = 6 + (GRAPH_X + GRAPH_W / 2) * cw_ + cw_ / 2;
     p.fillRect(mid, y, 1, lh_, Dim);
@@ -499,7 +499,7 @@ void OrnamentView::drawLine(QPainter &p, int l, int y)
 
 bool OrnamentView::type(int l, int id, QChar c)
 {
-    int &v = ed_->mod().ornaments[size_t(ed_->ornament())].offsets[size_t(l)];
+    int &v = ed_->bank().ornaments[size_t(ed_->ornament())].offsets[size_t(l)];
     if (c == '+' || c == '-' || (id == O_SIGN && c == ' ')) {
         if (c == ' ' || (c == '-') != (v < 0))
             v = -v;
@@ -525,7 +525,7 @@ void OrnamentView::setBar(int, int) {}
 
 void OrnamentView::begin()
 {
-    ed_->begin(Editor::OrnamentPart, ed_->ornament());
+    ed_->begin(Editor::OrnamentPart, ed_->chip(), ed_->ornament());
 }
 
 void OrnamentView::end()
@@ -535,7 +535,7 @@ void OrnamentView::end()
 
 void OrnamentView::insertAt(int l)
 {
-    Ornament &o = ed_->mod().ornaments[size_t(ed_->ornament())];
+    Ornament &o = ed_->bank().ornaments[size_t(ed_->ornament())];
     if (int(o.offsets.size()) >= MAX_LINES)
         return;
     o.offsets.insert(o.offsets.begin() + l, o.offsets.empty() ? 0 : o.offsets[size_t(std::max(0, l - 1))]);
@@ -543,7 +543,7 @@ void OrnamentView::insertAt(int l)
 
 void OrnamentView::removeAt(int l)
 {
-    Ornament &o = ed_->mod().ornaments[size_t(ed_->ornament())];
+    Ornament &o = ed_->bank().ornaments[size_t(ed_->ornament())];
     o.offsets.erase(o.offsets.begin() + l);
     if (o.loop > l || o.loop >= int(o.offsets.size()))
         o.loop = std::max(0, o.loop - 1);
@@ -571,13 +571,13 @@ SfxView::SfxView(Editor *ed, QWidget *parent) : LineGrid(parent), ed_(ed)
 
 int SfxView::count() const
 {
-    const fx::Bank &b = ed_->bank();
+    const fx::Bank &b = ed_->fxBank();
     return b.effects.empty() ? 0 : int(b.effects[size_t(ed_->effect())].frames.size());
 }
 
 void SfxView::drawLine(QPainter &p, int l, int y)
 {
-    const fx::Frame &f = ed_->bank().effects[size_t(ed_->effect())].frames[size_t(l)];
+    const fx::Frame &f = ed_->fxBank().effects[size_t(ed_->effect())].frames[size_t(l)];
     put(p, 5, y, f.toneOn ? "T" : "t", f.toneOn ? On : Dim);
     put(p, 7, y, f.noiseOn ? "N" : "n", f.noiseOn ? On : Dim);
     put(p, 10, y, hex(f.tone, 3), f.toneOn ? Text : Dim);
@@ -587,7 +587,7 @@ void SfxView::drawLine(QPainter &p, int l, int y)
 
 bool SfxView::type(int l, int id, QChar c)
 {
-    fx::Frame &f = ed_->bank().effects[size_t(ed_->effect())].frames[size_t(l)];
+    fx::Frame &f = ed_->fxBank().effects[size_t(ed_->effect())].frames[size_t(l)];
     int v = hexValue(c);
     if (v < 0)
         return false;
@@ -616,7 +616,7 @@ bool SfxView::type(int l, int id, QChar c)
 
 void SfxView::toggle(int l, int id)
 {
-    fx::Frame &f = ed_->bank().effects[size_t(ed_->effect())].frames[size_t(l)];
+    fx::Frame &f = ed_->fxBank().effects[size_t(ed_->effect())].frames[size_t(l)];
     if (id == F_T)
         f.toneOn = !f.toneOn;
     else if (id == F_N)
@@ -625,12 +625,12 @@ void SfxView::toggle(int l, int id)
 
 int SfxView::bar(int l) const
 {
-    return ed_->bank().effects[size_t(ed_->effect())].frames[size_t(l)].volume;
+    return ed_->fxBank().effects[size_t(ed_->effect())].frames[size_t(l)].volume;
 }
 
 void SfxView::setBar(int l, int v)
 {
-    ed_->bank().effects[size_t(ed_->effect())].frames[size_t(l)].volume = v;
+    ed_->fxBank().effects[size_t(ed_->effect())].frames[size_t(l)].volume = v;
 }
 
 void SfxView::begin()
@@ -645,12 +645,12 @@ void SfxView::end()
 
 void SfxView::insertAt(int l)
 {
-    std::vector<fx::Frame> &v = ed_->bank().effects[size_t(ed_->effect())].frames;
+    std::vector<fx::Frame> &v = ed_->fxBank().effects[size_t(ed_->effect())].frames;
     v.insert(v.begin() + l, v.empty() ? fx::Frame() : v[size_t(std::max(0, l - 1))]);
 }
 
 void SfxView::removeAt(int l)
 {
-    std::vector<fx::Frame> &v = ed_->bank().effects[size_t(ed_->effect())].frames;
+    std::vector<fx::Frame> &v = ed_->fxBank().effects[size_t(ed_->effect())].frames;
     v.erase(v.begin() + l);
 }

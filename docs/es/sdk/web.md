@@ -80,11 +80,12 @@ una partida) va a la tarjeta, `SD:`, que se guarda en el navegador.
 | `--kit CARPETA` | La carpeta `play/` del paquete web (obligatoria) |
 | `--title TEXTO` | El nombre de la portada y de la pestaña (por defecto, el del fichero) |
 | `--id NOMBRE` | El nombre de su tarjeta en el navegador: letras, números, `-` y `_` (por defecto, el del fichero). Cambiarlo es empezar con la tarjeta vacía, sin los récords de antes |
-| `--lang auto\|es\|en` | El idioma de la máquina y de la página; `auto` (por defecto), el del navegador |
+| `--lang auto\|es\|en` | El idioma de la máquina y de la página; `auto` (por defecto), el del navegador. Un enlace puede elegirlo con `?lang=es` o `?lang=en` al final de la dirección |
 | `--border 0\|1\|2` | El borde: completo (por defecto), pequeño o ninguno. Sin borde, la imagen del juego sale más grande |
 | `--fit proporcion\|entera\|llenar` | Cómo se escala la imagen: manteniendo la proporción (por defecto), en múltiplos enteros o llenando la ventana. Valen también `aspect`, `integer` y `fill` |
 | `--touch PREAJUSTE\|JSON` | Los [controles táctiles](#los-controles-táctiles) |
 | `--zip FICHERO.zip` | Además, la página en un `.zip`, con `index.html` en la raíz |
+| `--kit-url URL` | No copia el kit: la página usa el de `URL`, vista desde la página (`../kit/`, por ejemplo). Para un sitio con varios juegos: el kit (unos 600 KB) se descarga una vez, y en la carpeta de cada juego solo van `index.html` y `game.js`. No va con `--zip` |
 | `--config game.json` | Todo lo anterior en un fichero ([game.json](#gamejson)) |
 
 ## Los controles táctiles

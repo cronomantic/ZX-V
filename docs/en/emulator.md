@@ -15,9 +15,12 @@ other way round. It comes in several forms:
 | **`sdimg`** | A small tool to create and fill SD card images |
 | **`zxv-gfx`** | The graphics editor: sprites, tiles, maps, textures and screens in `.gfx` files (see the [SDK graphics guide](sdk/graphics.md#the-graphics-editor-for-the-pc-zxv-gfx)) |
 | **`zxv-check`** | Checks BASIC listings without the machine (see [below](#zxv-check-checking-listings)) |
-| **`zxv-tracker`** | The tracker: music for the two AY chips in PT3 modules and AYFX effects, the ones the SDK music library plays (see the [SDK guide](sdk/README.md#the-tracker-for-the-pc-zxv-tracker)) |
+| **`zxv-tracker`** | The tracker: music for the two AY chips and the sample channels (`.zxm` songs and PT3 modules) and AYFX effects, the ones the SDK music library plays (see the [SDK guide](sdk/README.md#the-tracker-for-the-pc-zxv-tracker)) |
+| **`zxv-music`** | Converts PT3, TurboSound, MOD, S3M and XM to the own music format, `.zxm` (see the [SDK guide](sdk/README.md#the-own-format-zxm-and-zxv-music)) |
+| **`zxv-link`** | Sends programs from the PC to the real machine and runs them, through the board's J5 header with a USB-serial adapter, and serves a folder as its `EXT:` drive (see [The firmware](hardware/firmware.md#loading-programs-from-the-pc-j5)) |
+| **`zxv-link-gui`** | The same as `zxv-link`, with a window, in steps: the board, the program, where the board loads it from (the `EXT:` drive or the card), run or only copy, and the result; with the recent programs and the machine's report |
 
-The Windows and Linux packages contain `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-check`, `zxv-gfx` and `zxv-tracker`,
+The Windows and Linux packages contain `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-check`, `zxv-gfx`, `zxv-tracker`, `zxv-music`, `zxv-link` and `zxv-link-gui`,
 plus the examples (the `ejemplos` folder) and the `ROM:` drive
 (`romdisk.bin`). How to download them is explained in
 [Getting started](getting-started.md#download).
@@ -43,6 +46,7 @@ time.
 | Load a snapshot... | Continue from a snapshot |
 | Back to the snapshot (Alt+U) | Go back to the last snapshot saved or loaded |
 | SD card | Choose the card: a folder, a card image, the usual one (Documents/ZX-V) or no card; and open the card folder on your PC |
+| EXT: drive | The folder that serves the `EXT:` drive: a folder or none (no server); and open that folder on your PC ([see below](#the-ext-drive)) |
 | Save screenshot (Alt+S) | Save the screen as a PNG in your *Pictures/ZX-V* folder |
 | Record sound... | Record everything the machine plays to a `.wav` file, until you choose the item again to stop |
 | Quit (Alt+Q) | Close the emulator |
@@ -53,7 +57,7 @@ time.
 |---|---|
 | Paused (Alt+P) | Pause or continue the machine |
 | Reset (Alt+R) | A full reset, like switching it off and on: the program in memory is lost |
-| Ctrl+Alt+Del (back to BASIC) | The emergency reset: stops whatever is running and goes back to BASIC, keeping your BASIC program |
+| Ctrl+Alt+Del (restarts the machine) | The emergency reset: stops whatever is running and restarts the machine, like Ctrl+Alt+Del on the board; the BASIC program in memory is lost |
 | Paste text (Alt+V) | Type the text on the clipboard into the machine, as if you typed it |
 
 **View**: the window size (x1 is 640 × 480, up to x4), the border, the scaling, full screen
@@ -67,6 +71,15 @@ scale** (only x1, x2, x3..., with every pixel the same size) or **Fill the
 window**, even if the picture gets stretched. When the scale is not a whole
 number, the picture is enlarged with the pixel edges smoothed, without some
 rows thicker than others.
+
+**Draw with** says what does that work: the graphics card, with
+**Direct3D 11** (on Windows) or **OpenGL**, or **the CPU**. With the
+graphics card the emulator uses much less CPU, above all in full screen (at
+1900 × 1000, about three and a half times less), and the picture is the
+same. **Automatic**, the usual, uses Direct3D 11 on Windows and OpenGL on
+Linux, and says which one it is using. It changes at once (the window
+flickers when it switches) and is remembered; if the one chosen does not
+work on your PC, the CPU draws and the status bar says so.
 
 **Options**
 
@@ -98,10 +111,10 @@ key is what you get. BASIC and its editor use the PC keys directly:
 | Tab | **EDIT**: the editor's options menu |
 | Arrow keys, Home, End, Page Up, Page Down, Ctrl+Left/Right | Move around the listing |
 | Backspace, Delete | Delete to the left or under the cursor |
-| Ctrl+Alt+Del | Emergency reset: back to BASIC, keeping the program |
+| Ctrl+Alt+Del | Emergency reset: restarts the machine; the program in memory is lost |
 
 Windows keeps Ctrl+Alt+Del for itself, and some Linux desktops do too: if
-that happens, use **Machine > Ctrl+Alt+Del (back to BASIC)**.
+that happens, use **Machine > Ctrl+Alt+Del (restarts the machine)**.
 
 The editor is explained in [The editor](basic/editor.md).
 
@@ -190,6 +203,24 @@ sdimg ls card.img /                  # list a folder, with dates
 
 **The `ROM:` drive**, with the built-in examples, is the `romdisk.bin` file that
 sits next to the emulator. If it is missing, `ROM:` is empty.
+
+### The EXT: drive
+
+**The `EXT:` drive** is the folder that, on the real machine, another device
+serves through the J5 header (see [The EXT:
+drive](hardware/firmware.md#the-ext-drive)). In the emulator the emulator
+itself serves it; in `zxv`, from **File > EXT: drive**:
+
+- **A folder...:** that folder is `EXT:`. The machine can read and write in
+  it, with the same name rules as the card. **Open the folder** shows it in
+  your file manager.
+- **No server:** like the board with nothing connected: everything on `EXT:`
+  gives `V Disk error (no server for EXT:)`.
+
+It can be changed while the machine is running, without restarting it, and
+it is remembered. In `zxv-sdl` and `zxv-cli`, with `--ext FOLDER`; without
+it, `EXT:` has no server. In the web version, from its File menu, in Chrome
+and Edge (see [The web version](#the-web-version)).
 
 ### Opening files
 
@@ -290,7 +321,7 @@ mouse as in `zxv`, and you control the emulator with these keys:
 | Alt+P, Alt+N, Alt+F | Pause or continue; one instruction; to the end of the frame |
 | Alt+D | Debug panel over the picture: CPU, VRAM, sound, line table, none |
 | Alt+B | The border: full (640 × 480), small, none (with the debug panel it is always shown whole) |
-| Ctrl+Alt+Del | Emergency reset: back to BASIC |
+| Ctrl+Alt+Del | Emergency reset: restarts the whole machine, as in `zxv` and the web version |
 | Alt+Q | Quit |
 
 `zxv-sdl` has **no SD card** unless you give it one with `--sd FOLDER` or
@@ -308,6 +339,7 @@ lists them all). These are the ones you are most likely to use:
 | `FILE` | Open a file at start-up, as with File > Open (`zxv`, `zxv-sdl`) |
 | `--sd FOLDER` | Use FOLDER as the SD card |
 | `--sd-image FILE` | Use a card image as the SD card |
+| `--ext FOLDER` | Serve FOLDER as the `EXT:` drive (otherwise `EXT:` has no server) |
 | `--romdisk FILE` | The `ROM:` drive (by default, `romdisk.bin` next to the program) |
 | `--lang XX` | The machine's language, `en` or `es`, for this session only. In `zxv-sdl` and `zxv-cli` it is also the language of the emulator's messages |
 | `--no-click` | No click on the editor's keys (it can also be turned off in its EDIT menu) |
@@ -323,9 +355,10 @@ lists them all). These are the ones you are most likely to use:
 | `--save-snapshot F.zxvs` | Save a snapshot at the end (`zxv-cli`) |
 | `--frames N` | Stop after N frames (60 per second) |
 | `--screenshot F.bmp` | Save the screen at the end |
+| `--shots PREFIX` | Save the screen of every frame, `PREFIX00001.bmp`, `PREFIX00002.bmp`... (`zxv-cli`): the frames of an animation. With `--shots-every N`, only one of every N frames; with `--shots-from N`, from frame N on |
 | `--wav F.wav` | Record the sound to a WAV file |
 | `--strict` | Strict mode: warn about anything the real machine would not allow |
-| `--version` | Print the ZX-V version (`ZX-V 0.9.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
+| `--version` | Print the ZX-V version (`ZX-V 0.10.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
 
 The rest (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
 `--profile`, `--panel`, `--test`, `--fail-on-warning`) are for programmers:
@@ -403,10 +436,10 @@ left Alt key):
 
 | Menu | Items |
 |---|---|
-| File | Open... (Alt+O), The SD card..., Save the program... (Alt+G), Save a snapshot (Alt+I), Back to the snapshot (Alt+U), Download the snapshot, Save the image (Alt+S) |
-| Machine | Reset (Alt+R), Ctrl+Alt+Del (back to BASIC), Stop/Continue (Alt+P), One instruction (Alt+N), Debug panel (Alt+D) |
+| File | Open... (Alt+O), The SD card..., EXT: drive: a folder on the PC..., EXT: drive: no server, Save the program... (Alt+G), Save a snapshot (Alt+I), Back to the snapshot (Alt+U), Download the snapshot, Save the image (Alt+S), Record the sound |
+| Machine | Reset (Alt+R), Ctrl+Alt+Del (restarts the machine), Paste text (Alt+V), Stop/Continue (Alt+P), One instruction (Alt+N), Debug panel (Alt+D) |
 | View | Sound on or off, Change the border (Alt+B), Full screen (Alt+Enter), Options..., Open in a separate tab (only when the page is inside another one) |
-| Help | The keyboard and shortcuts, the documentation (on the web) |
+| Help | The keyboard and shortcuts (with the ZX-V version in its title), the documentation (on the web), the project (GitHub), the terms of use and the third-party notices |
 
 Ctrl+Alt+Del is in the Machine menu because your operating system keeps those
 keys for itself.
@@ -415,6 +448,9 @@ keys for itself.
 you open the page. The first time, it contains the examples. **File > The SD
 card...** shows it: you can browse folders, **upload files** from your PC,
 **download** files to your PC, create folders, delete files and open them.
+With the **Programs only** box ticked, the list keeps just the folders and what
+can be run (the `.zxv`, `.zvb`, `.tap` and `.tzx` programs and the `.bas`
+listings), without their graphics or music; the box is remembered.
 Files you drag onto the page are copied to the card (to the folder shown in the
 card window) and the first one is opened. What programs save is written to the
 browser's storage every three seconds and when you leave the page.
@@ -423,12 +459,48 @@ The card lives in that browser only: another browser, or another computer, has
 its own card. If you clear the site's data in your browser, the card is
 erased. Download the files you want to keep.
 
+**Open** (Alt+O) copies the file to the main folder of the card and opens it
+as `zxv` does:
+
+- A program (`.zvb`, `.zxv`, `.tap`, `.tzx`) or a `.bas` listing: the
+  machine restarts and loads it with `CD` to its folder and `LOAD`. The
+  BASIC turns the `.bas` into a program and checks each line.
+- A `.txt` is typed into the editor; a `.zxvs` snapshot is loaded.
+- A music file (`.zxm`, `.pt3`, `.mod`, `.s3m`, `.xm`, `.vgm`, `.vgz`) or a
+  `.wav` sound stays on the card, and the page tells you how to use it:
+  `LOAD "/x.pt3" MUSIC: MUSIC PLAY` to hear the music, or
+  `LOAD "/x.wav" SAMPLE 0` for the sound.
+
+**Paste text** (Machine, Alt+V) types the text on the clipboard into the
+machine, as in `zxv`. The browser may ask for permission to read it.
+
+**Record the sound** (File) records everything that plays until you choose
+the same item again, which is then called **Stop recording the sound**:
+`zxv.wav` is downloaded (48 kHz, stereo).
+
+**The `EXT:` drive** can be a folder on your PC, in **Chrome and Edge**
+only (Firefox and Safari cannot). **File > EXT: drive: a folder on the
+PC...** chooses it, and **EXT: drive: no server** lets it go:
+
+- The folder is copied to the page's memory (256 MB at most) and kept in
+  sync every second and a half, both ways: what the machine saves or deletes
+  on `EXT:` goes to the folder, and what you change in the folder (a listing
+  you edit in your editor) reaches the machine. If both change at the same
+  time, the machine wins.
+- Files whose names start with a dot are left alone.
+- The browser remembers the folder. If Chrome asks and you choose to allow
+  it on every visit, when you open the page again it uses the folder again
+  without asking.
+- Without a folder, `EXT:` has no server, like the board with nothing
+  connected.
+
 **Snapshots**: Alt+I keeps a snapshot inside the page and Alt+U goes back to
 it; **File > Download the snapshot** saves it as a `.zxvs` file, which you can
 open later in the web version or in `zxv`.
 
 **Options** (View > Options...): the language (of the page and of the machine;
-by default, your browser's), the border and the scaling (the same as in `zxv`:
+by default, your browser's; the address can also carry it:
+`index.html?lang=en` or `?lang=es`), the border and the scaling (the same as in `zxv`:
 the picture takes all the room of the page, keeping the aspect ratio, in whole
 multiples or filling it), strict mode, unlimited CPU speed and hiding the
 pointer over the picture. The machine's language changes when you reset it.
@@ -436,7 +508,8 @@ The border and the scaling are remembered, and Save the image (Alt+S) saves
 what you see, with that border.
 
 **What it does not have:** card images (`.img`), the GDB server and the
-debugger windows. The debug panel (Alt+D) is there.
+debugger windows; in Firefox and Safari, the `EXT:` drive with a folder on
+the PC. The debug panel (Alt+D) is there.
 
 ### Putting it on your website
 
@@ -452,8 +525,9 @@ On sites like itch.io the page runs inside a frame from another domain, and
 some browsers (Safari, and possibly Firefox) do not let such frames store
 anything. Then the card only lasts while the page is open, and the page tells
 you so. **View > Open in a separate tab** opens the emulator on its own, where
-the card is stored normally. Downloads from inside a frame depend on what the
-site allows.
+the card is stored normally. Inside a frame you cannot choose the folder for
+the `EXT:` drive either: for that, open it in a separate tab too. Downloads
+from inside a frame depend on what the site allows.
 
 ## Debugging
 
@@ -499,5 +573,6 @@ program stops wherever you tell it to:
 When you close the window, the program carries on without stopping. The VS
 Code extension debugs the same thing from the editor, in its panel or in an
 emulator with `--basic-debug`; while it is connected, the window steps
-aside.
+aside. It also debugs BASIC on the board, through the J5 header (see
+[Loading programs from the PC](hardware/firmware.md#loading-programs-from-the-pc-j5)).
 

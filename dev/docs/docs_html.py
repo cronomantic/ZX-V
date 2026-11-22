@@ -17,6 +17,9 @@ https://cronomantic.github.io/ZX-V/docs/ (GitHub Pages). El estilo está en
 docs.css, junto a este script, y va como style.css; el icono es el de zxv
 (favicon.png junto al script en el repositorio público, que lo regenera en
 GitHub Pages con cada cambio de docs/: dev/public/.github/workflows/docs.yml).
+Las fuentes son las de la web del proyecto (dev/site/fonts; fonts/ junto al
+script en el repositorio público): la de la ROM, Space Grotesk y JetBrains
+Mono, y van en fonts/, para que se vea igual también sin conexión.
 
 Necesita Python-Markdown (python3-markdown en Debian y Ubuntu).
 """
@@ -32,15 +35,17 @@ import markdown.extensions.toc as toc
 
 REPO = 'https://github.com/cronomantic/ZX-V'
 WEB = 'https://cronomantic.github.io/ZX-V/'
+SITE = {'en': WEB, 'es': WEB + 'es/'}     # la web del proyecto, en cada idioma
+EMULATOR = WEB + 'emulator/'             # la versión web (Pruébalo en el navegador)
 HERE = os.path.dirname(os.path.abspath(__file__))
 LANGS = ('en', 'es')
 NAME = {'en': 'English', 'es': 'Español'}
 WORDS = {
-    'en': {'docs': 'Documentation', 'contents': 'Contents', 'web': 'Try it in your browser',
+    'en': {'docs': 'Documentation', 'contents': 'Contents', 'web': 'Try it in your browser', 'site': 'Website',
            'prev': 'Previous', 'next': 'Next',
            'licence': 'This documentation is licensed under <a href="%s/blob/main/docs/LICENSE">CC BY 4.0</a>; '
                       'its code examples are public domain (CC0).' % REPO},
-    'es': {'docs': 'Documentación', 'contents': 'Índice', 'web': 'Pruébalo en el navegador',
+    'es': {'docs': 'Documentación', 'contents': 'Índice', 'web': 'Pruébalo en el navegador', 'site': 'Web',
            'prev': 'Anterior', 'next': 'Siguiente',
            'licence': 'Esta documentación tiene licencia <a href="%s/blob/main/docs/LICENSE">CC BY 4.0</a>; '
                       'sus ejemplos de código son de dominio público (CC0).' % REPO},
@@ -77,9 +82,10 @@ PAGE = '''<!DOCTYPE html>
 <body>
 <header>
 <button type="button" id="menu" aria-label="{w[contents]}" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
-<a class="marca" href="{home}">ZX-V</a>
+<a class="marca" href="{home}"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">{w[docs]}</span>
 <span class="hueco"></span>
+<a class="ir sitio" href="{site}">{w[site]}</a>
 <a class="ir" href="{other}" hreflang="{olang}" lang="{olang}">{oname}</a>
 <a class="ir web" href="{web}">{w[web]}</a>
 </header>
@@ -115,7 +121,7 @@ CHOOSE = '''<!DOCTYPE html>
 </head>
 <body>
 <div class="portada">
-<span class="marca">ZX-V</span>
+<span class="marca"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></span>
 <p>Documentación · Documentation</p>
 <nav>
 <a href="es/index.html" lang="es">Español</a>
@@ -145,6 +151,11 @@ def main():
     if not os.path.exists(icon):
         icon = os.path.join(HERE, '..', 'src', 'qt', 'zxv.png')
     shutil.copy(icon, os.path.join(out, 'favicon.png'))
+    fonts = os.path.join(HERE, 'fonts')
+    if not os.path.isdir(fonts):
+        fonts = os.path.join(HERE, '..', '..', 'dev', 'site', 'fonts')
+    shutil.copytree(fonts, os.path.join(out, 'fonts'),
+                    ignore=lambda d, names: [n for n in names if not n.endswith(('.woff', '.woff2', '.txt'))])
 
     pages = {}       # en/basic/index.html -> idioma, título y cuerpo
     anchors = {}     # en/basic/index.html -> ids de la página
@@ -153,7 +164,7 @@ def main():
         for root, _, files in os.walk(os.path.join(docs, lang)):
             for f in sorted(files):
                 if f.endswith('.md'):
-                    src = posixpath.relpath(os.path.join(root, f), docs).replace(os.sep, '/')
+                    src = os.path.relpath(os.path.join(root, f), docs).replace(os.sep, '/')
                     convert(docs, src, pages, anchors, links)
 
     bad = 0
@@ -186,7 +197,7 @@ def main():
                            root=posixpath.relpath('.', here) + '/',
                            home=posixpath.relpath(lang + '/index.html', here),
                            other=posixpath.relpath(other, here), olang=olang, oname=NAME[olang],
-                           web=WEB, side=sidebar(page, tocs[lang][0]), body=p['body'],
+                           web=EMULATOR, site=SITE[lang], side=sidebar(page, tocs[lang][0]), body=p['body'],
                            steps=steps(page, tocs[lang][0], WORDS[lang]))
         path = os.path.join(out, page)
         os.makedirs(os.path.dirname(path), exist_ok=True)

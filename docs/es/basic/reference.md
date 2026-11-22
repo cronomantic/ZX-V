@@ -67,7 +67,7 @@ directa** (sin número, que se ejecuta en cuanto pulsas Enter).
 - [Sprites, mapas de tiles y gráficos rápidos](#sprites-mapas-de-tiles-y-gráficos-rápidos):
   `GRAB`, `SPRITE`, `TILE`, `MAP`, `FLOOR`, `BOX`, `DISC`, `POLY`...
 - [Sonido y música](#sonido-y-música): `BEEP`, `PLAY`, `SOUND`, `MUSIC`,
-  `SFX`
+  `SFX`, `SAMPLE`
 - [Teclado, mando y ratón](#teclado-mando-y-ratón): `INPUT`, `INKEY$`,
   `KEY`, `JOY`, `MOUSE`
 - [Ficheros y la tarjeta SD](#ficheros-y-la-tarjeta-sd): `SAVE`, `LOAD`,
@@ -1641,9 +1641,10 @@ cualquier cosa dibujada en la pantalla.
 
 ## Sonido y música
 
-ZX-V tiene un *beeper* (un altavoz sencillo, el que usa `BEEP`) y dos chips
+ZX-V tiene un *beeper* (un altavoz sencillo, el que usa `BEEP`), dos chips
 de sonido AY de tres canales cada uno (los que usan `PLAY`, `SOUND`, `MUSIC`
-y `SFX`).
+y `SFX`) y doce canales de muestras, que tocan sonidos grabados (los de
+`SAMPLE` y los de la música de muestras).
 
 ### BEEP
 
@@ -1713,7 +1714,13 @@ SOUND registro, valor [; registro, valor]...
 Escribe directamente en los registros de los chips AY, para hacer efectos de
 sonido. Los registros del 0 al 15 son los del primer chip y del 16 al 31, los
 del segundo (con el mismo significado, 16 más arriba); los valores van de 0 a
-255. Un registro mayor que 31 da `B Entero fuera de rango`.
+255. Del 64 al 159 son los de los doce canales de muestras, ocho por canal
+(el canal c empieza en el 64 + 8 × c): la muestra (una entrada de la tabla:
+las de `SAMPLE` son de la 224 a la 255), el volumen (0–64), el panorama, el
+control (1 la arranca, 2 la para), los tres bytes del paso (8.16: 65 536 es
+48 kHz) y desde dónde empieza; ver los canales de muestras en la
+[referencia del SDK](../sdk/reference.md). Otro registro da `B Entero fuera
+de rango`.
 
 | Registro | Uso |
 |---|---|
@@ -1746,11 +1753,28 @@ MUSIC                          (función)
 
 Toca música hecha con un tracker, de fondo: el programa sigue mientras
 suena, como en los juegos. `LOAD nombre$ MUSIC` carga un módulo (sin
-extensión, `nombre.pt3`): de Pro Tracker 3 o Vortex Tracker II (`.pt3`, el
-que guarda el tracker de ZX-V, [`zxv-tracker`](../sdk/README.md#el-tracker-para-el-pc-zxv-tracker)),
+extensión, el primero que haya de `nombre.zxm`, `nombre.pt3`,
+`nombre.mod`, `nombre.s3m`, `nombre.xm`, `nombre.vgm` y `nombre.vgz`): del formato propio de ZX-V
+(`.zxm`, con los dos chips AY y los canales de muestras: el que guarda
+[`zxv-tracker`](../sdk/README.md#el-tracker-para-el-pc-zxv-tracker) o
+[`zxv-music`](../sdk/README.md#el-formato-propio-zxm-y-zxv-music)), un MOD,
+un S3M (Scream Tracker 3) o un XM (FastTracker 2), que convierte al
+cargarlos y suenan en los canales de muestras (hasta 12: de los que tengan
+más, los 12 que más notas tocan), de Pro Tracker 3 o Vortex Tracker II (`.pt3`, que
+también guarda `zxv-tracker`),
 un TurboSound (dos módulos, uno en cada chip AY: seis voces), de Pro
-Tracker 2, Sound Tracker, ASC Sound Master o un volcado PSG. Un fichero que
-no es ninguno de esos da `R Error al cargar`.
+Tracker 2, Sound Tracker, ASC Sound Master, un volcado PSG o un VGM (`.vgm`
+o comprimido, `.vgz`: los registros de los AY, como los graban los
+emuladores; ver [VGM](../sdk/README.md#vgm-los-ay)).
+Un fichero que no es ninguno de esos da `R Error al cargar`.
+
+Las muestras de un MOD, un S3M, un XM o un `.zxm` van del fichero a la
+memoria de sonido (96 KB) al cargarlo, y en la memoria del BASIC solo se
+queda la canción (los patrones que se repiten, una vez): el fichero puede
+ser más grande que ella (caben, por ejemplo, un MOD de 300 KB o un XM de
+1,6 MB). Con más de 96 KB de muestras, las más grandes van en ADPCM, y si
+ni así caben, además, a la mitad (con menos agudos): suenan mejor los que
+tienen hasta unos 96 KB de muestras, y casi igual hasta unos 170 KB.
 
 - `MUSIC PLAY` lo toca desde el principio, y al acabar vuelve a la
   posición de vuelta del módulo, sin fin. Sin un módulo cargado, `A
@@ -1759,15 +1783,24 @@ no es ninguno de esos da `R Error al cargar`.
   CONTINUE` sigue donde estaba.
 - La función `MUSIC` vale 1 mientras suena y 0 si no.
 
-Suena en el primer chip AY (un TurboSound, en los dos), con el mismo código
-que el tracker y que los programas en C. Se para con `MUSIC STOP`, BREAK,
-`RUN`, `NEW`, `PLAY` (que usa los chips a su manera) y al cargar un
+Un `.zxm` con pistas de muestras las toca en los canales de muestras desde
+el 0 (uno por pista; los demás quedan libres), y al empezar sube sus
+muestras al principio de la memoria de sonido y de su tabla.
+
+Un módulo de los AY suena en el primer chip (un TurboSound o un VGM de dos
+AY, en los dos); un MOD, un S3M o un XM, en los canales de muestras; y un
+`.zxm`, en los chips y los canales de muestras que usan sus pistas. Lo toca
+el mismo código que el tracker y que los programas en C. Se para con
+`MUSIC STOP`, BREAK, `RUN`, `NEW`, `PLAY` (que usa los chips a su manera) y al cargar un
 programa nativo; si el programa acaba o da un error, sigue sonando. Lo que
 escriba `SOUND` en el chip de la música dura hasta que la música vuelve a
 escribir ese registro.
 
-El módulo ocupa lo que pesa su fichero (de 2 a 15 KB uno normal) y va con
-los gráficos: se conserva con `RUN` y `CLEAR` y `NEW` lo borra.
+En la memoria del BASIC, un módulo de los AY o un VGM ocupa lo que pesa su
+fichero (de 2 a 15 KB un PT3 normal; un `.vgz`, además, 32 KB para
+descomprimirlo mientras suena), y un MOD, un S3M, un XM o un `.zxm`, solo
+su canción: sus muestras van a la memoria de sonido. El módulo va con los
+gráficos: se conserva con `RUN` y `CLEAR` y `NEW` lo borra.
 
 ```
 10 LOAD "tema" MUSIC: MUSIC PLAY
@@ -1805,6 +1838,54 @@ paran; el banco se conserva como el módulo.
 ```
 10 LOAD "efectos" SFX
 20 IF INKEY$=" " THEN SFX 0
+30 GO TO 20
+```
+
+### SAMPLE
+
+```
+LOAD nombre$ SAMPLE n
+SAMPLE n [, tono [, volumen [, panorama]]] [; canal]
+SAMPLE STOP [canal]
+SAMPLE                         (función)
+```
+
+Sonidos grabados (golpes, voces, instrumentos) en los doce canales de
+muestras, sin esperar, a la vez que la música y lo demás.
+
+- `LOAD nombre$ SAMPLE n` carga un WAV (sin extensión, `nombre.wav`) en la
+  muestra `n`, de la 0 a la 31: de 8 o 16 bits, mono o estéreo (se mezcla),
+  a cualquier frecuencia. Va a la memoria de sonido (96 KB), en 8 bits; en
+  la del BASIC no ocupa nada. Si el WAV trae un bucle (el que guardan
+  Audacity y los editores de sonido), la muestra se repite en él hasta que
+  se para. Un fichero que no es un WAV así da `R Error al cargar`, y uno que
+  no cabe, `4 Sin memoria`.
+- `SAMPLE n` la toca a su altura, a todo volumen y en el centro. `tono` va
+  en semitonos sobre la altura a la que se grabó (0 igual, 12 una octava más
+  aguda, -12 una más grave; puede llevar decimales), `volumen` de 0 a 64 y
+  `panorama` de 0 (izquierda) a 255 (derecha), con 128 en el centro.
+- Sin `; canal`, suena en un canal que no usa la música (si no queda
+  ninguno, en el que lleva más tiempo con un efecto). Con `; canal`, de 0 a
+  11, en ese: si es de la música, la tapa mientras suena, y la música sigue
+  en él en su nota siguiente.
+- `SAMPLE STOP` para todas; con `canal`, la de ese canal.
+- La función `SAMPLE` vale 1 mientras suena alguna.
+- Sin la muestra cargada, `A Argumento no válido`.
+
+**Con la música:** las muestras de la canción van a la memoria de sonido
+desde abajo y las de `SAMPLE`, desde arriba. Carga primero las de `SAMPLE`:
+una canción que se carga después se ajusta al sitio que queda (con ADPCM, o
+con menos agudos si hace falta), y una muestra que se carga después de una
+canción solo usa lo que esta deja libre. Un `.zxm` ya está convertido y no
+se ajusta: si no cabe, `4 Sin memoria`; hazlo con
+[`zxv-music --free`](../sdk/README.md#el-formato-propio-zxm-y-zxv-music)
+para que deje sitio. BREAK, `RUN` y `NEW` paran las
+muestras; las cargadas se conservan como el banco de `SFX`, y `NEW` las
+borra.
+
+```
+10 LOAD "golpe" SAMPLE 0: LOAD "tema" MUSIC: MUSIC PLAY
+20 IF INKEY$=" " THEN SAMPLE 0, RND*4-2
 30 GO TO 20
 ```
 
@@ -1973,7 +2054,10 @@ el puntero: lo dibuja tu programa, por ejemplo con un sprite.
 ## Ficheros y la tarjeta SD
 
 Los programas y los datos se guardan en la tarjeta SD. Hay además una unidad
-de solo lectura, `ROM:`, con los ejemplos que trae la máquina.
+de solo lectura, `ROM:`, con los ejemplos que trae la máquina, y la unidad
+externa, `EXT:`: una carpeta que sirve otro equipo (por la tira J5 de la
+placa, o en el emulador con `--ext`), en la que se lee y se escribe como en
+la tarjeta (ver [La unidad EXT:](../hardware/firmware.md#la-unidad-ext)).
 
 ### Nombres de fichero y unidades
 
@@ -1983,10 +2067,11 @@ de solo lectura, `ROM:`, con los ejemplos que trae la máquina.
 - Las carpetas se separan con `/`. Una ruta que empieza por `/` parte de la
   raíz de la unidad; si no, de la carpeta actual (ver [CD](#cd-dir)). `..`
   es la carpeta de arriba.
-- `ROM:` y `SD:` al principio eligen la unidad, desde su raíz:
-  `LOAD "ROM:hello"`, `CAT "SD:/juegos"`. Sin unidad, se usa la de la carpeta
-  actual. Escribir en `ROM:` (`SAVE`, `ERASE`, `MKDIR`...) da `V Error de
-  disco (no se puede)`.
+- `ROM:`, `SD:` y `EXT:` al principio eligen la unidad, desde su raíz:
+  `LOAD "ROM:hello"`, `CAT "SD:/juegos"`, `SAVE "EXT:copia"`. Sin unidad, se
+  usa la de la carpeta actual. Escribir en `ROM:` (`SAVE`, `ERASE`,
+  `MKDIR`...) da `V Error de disco (no se puede)`. Sin un servidor
+  conectado, todo lo de `EXT:` da `V Error de disco (EXT: sin servidor)`.
 - **Comodines** en `CAT`, `ERASE`, `MOVE` y `COPY`: `*` vale por cualquier
   grupo de caracteres (también ninguno) y `?` por uno, solo en la última parte
   de la ruta: `"*.zvb"`, `"juegos/nivel?.dat"`. Si no encaja nada,
@@ -1995,8 +2080,8 @@ de solo lectura, `ROM:`, con los ejemplos que trae la máquina.
 Los errores de ficheros más corrientes son `F Nombre de fichero no válido`,
 `T Fichero no encontrado`, `U No hay tarjeta SD` y `V Error de disco`, que
 añade el motivo cuando se sabe: `(ya existe)`, `(la carpeta no está vacía)`,
-`(es una carpeta)`, `(no es una carpeta)`, `(la tarjeta está llena)` o
-`(no se puede)`.
+`(es una carpeta)`, `(no es una carpeta)`, `(la tarjeta está llena)`,
+`(no se puede)` o `(EXT: sin servidor)`.
 
 ### SAVE
 
@@ -2067,6 +2152,7 @@ LOAD nombre$ DATA letra$()
 LOAD nombre$ GRAPHICS
 LOAD nombre$ MUSIC
 LOAD nombre$ SFX
+LOAD nombre$ SAMPLE n
 ```
 
 Carga de la tarjeta SD (o de la unidad `ROM:`):
@@ -2099,8 +2185,9 @@ Carga de la tarjeta SD (o de la unidad `ROM:`):
   mismo número; los demás se quedan, así que puedes cargar los sprites de un
   fichero y un nivel de otro. Un fichero que no es válido da `R Error al
   cargar`.
-- `MUSIC` y `SFX`: un módulo de música o un banco de efectos (ver
-  [`MUSIC`](#music) y [`SFX`](#sfx)).
+- `MUSIC`, `SFX` y `SAMPLE`: un módulo de música, un banco de efectos o
+  un sonido grabado (ver [`MUSIC`](#music), [`SFX`](#sfx) y
+  [`SAMPLE`](#sample)).
 
 `LOAD ""` (con el nombre vacío) carga el bloque siguiente de la cinta puesta
 (ver [Ficheros de cinta](#ficheros-de-cinta)).
@@ -2219,9 +2306,10 @@ DIR$
 ```
 
 `CD` cambia la carpeta actual: `CD "juegos"`, `CD ".."` (la de arriba),
-`CD "/"` (la raíz de la unidad), `CD "ROM:"` (la unidad de los ejemplos) y
-`CD "SD:"` (vuelta a la tarjeta). La función `DIR$` da la carpeta actual,
-como `"/juegos"` o `"ROM:/"`.
+`CD "/"` (la raíz de la unidad), `CD "ROM:"` (la unidad de los ejemplos),
+`CD "EXT:"` (la unidad externa) y `CD "SD:"` (vuelta a la tarjeta). La
+función `DIR$` da la carpeta actual, como `"/juegos"`, `"ROM:/"` o
+`"EXT:/"`.
 
 ```
 CD "ROM:": PRINT DIR$: CAT
@@ -2299,7 +2387,8 @@ Cuando el programa acaba, el BASIC enseña un informe, como tras una orden:
   da uno: `W Fichero dañado (5), 0:1`.
 - `W Error en el código nativo, 0:1` si ha fallado (por ejemplo, al leer de
   una dirección prohibida).
-- `L BREAK en el programa, 0:1` si lo has parado con Ctrl+Alt+Supr.
+- Ninguno si lo has parado con Ctrl+Alt+Supr: la máquina vuelve a arrancar,
+  como al encenderla.
 
 El informe es del programa nativo: tu programa BASIC ha desaparecido en todos
 los casos.
@@ -2540,7 +2629,8 @@ La función `CLOCK n` lee la fecha y la hora: 0 el año, 1 el mes, 2 el día, 3
 la hora, 4 los minutos, 5 los segundos y 6 el día de la semana (1 lunes ...
 7 domingo). Da 0 si el reloj no está en hora. La orden pone el reloj en hora
 (años de 2000 a 2099); una fecha que no existe da `A Argumento no válido`. Los
-ficheros que se graban en la tarjeta llevan esa fecha.
+ficheros que se graban en la tarjeta llevan esa fecha. Sin programa, también
+lo pone en hora el menú del editor: [Fecha y hora](editor.md#la-fecha-y-la-hora).
 
 ```
 PRINT CLOCK 2; "/"; CLOCK 1; "/"; CLOCK 0; " "; CLOCK 3; ":"; CLOCK 4
@@ -2801,7 +2891,7 @@ Los informes en español y en inglés, con el número que da `ERR`:
 | O | 24 | Canal no válido | Invalid stream | Un stream sin abrir, un fichero en los streams 0–3, más de 8 ficheros abiertos, o `FORMAT`. |
 | P | 25 | FN sin DEF FN | FN without DEF | `FN` de una función sin `DEF FN` en el programa. |
 | Q | 26 | Error en los parámetros | Parameter error | El número o el tipo de los valores de `FN` o de `PROC` no encajan, o son demasiados. |
-| R | 27 | Error al cargar | Tape loading error | Un fichero que no es válido o no es del tipo pedido, `LOAD ""` sin cinta puesta, o `VERIFY` ha encontrado diferencias. |
+| R | 27 | Error al cargar | Loading error | Un fichero que no es válido o no es del tipo pedido, `LOAD ""` sin cinta puesta, o `VERIFY` ha encontrado diferencias. |
 | S | 28 | Código Z80 no admitido | Z80 code not supported | `USR` con una dirección por debajo de 65536: código máquina del Spectrum. |
 | T | 29 | Fichero no encontrado | File not found | No hay un fichero o una carpeta con ese nombre, o nada encaja con los comodines. |
 | U | 30 | No hay tarjeta SD | No SD card | No hay tarjeta en la ranura. |
@@ -2814,7 +2904,7 @@ Los informes en español y en inglés, con el número que da `ERR`:
 Los motivos de `V Error de disco`: `ya existe` / `already exists`, `la carpeta
 no está vacía` / `folder not empty`, `es una carpeta` / `it is a folder`,
 `no es una carpeta` / `not a folder`, `la tarjeta está llena` / `card full`,
-`no se puede` / `not allowed`.
+`no se puede` / `not allowed`, `EXT: sin servidor` / `no server for EXT:`.
 
 ## Juego de caracteres
 
@@ -3021,6 +3111,7 @@ usuario se escriben con `CHR$`.
 | `RMDIR` | orden | [MKDIR, RMDIR](#mkdir-rmdir) |
 | `RND` | función | [RND, RANDOMIZE](#rnd-randomize) |
 | `RUN` | orden | [RUN](#run) |
+| `SAMPLE` | función, orden; en `LOAD` | [SAMPLE](#sample), [LOAD](#load) |
 | `SAVE` | orden | [SAVE](#save) |
 | `SCREEN` | orden | [PAGE, SCREEN](#page-screen) |
 | `SCREEN$` | función; en `SAVE`, `LOAD` | [SCREEN$, ATTR](#screen-attr), [SAVE](#save) |

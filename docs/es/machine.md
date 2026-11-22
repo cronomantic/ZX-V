@@ -15,8 +15,8 @@ emulador y en el hardware real.
 | Pantalla | 256 × 192 o 512 × 384 píxeles, con borde |
 | Colores | 15 de serie; con paletas, 16 por línea de entre 65.536 (hasta 64 en la pantalla), cualquiera en cualquier píxel |
 | Páginas de vídeo | Dos, para dibujar en una mientras se ve la otra |
-| Sonido | Dos chips de música AY-3-8912 (6 voces) y un beeper, en estéreo |
-| Almacenamiento | Tarjeta SD, y la unidad `ROM:` de serie con los ejemplos |
+| Sonido | Dos chips de música AY-3-8912 (6 voces), doce canales de muestras para sonidos grabados y un beeper, en estéreo |
+| Almacenamiento | Tarjeta SD, y la unidad `ROM:` de serie con los ejemplos; y `EXT:`, una carpeta que sirve otro equipo |
 | Entrada | Teclado USB, ratón y hasta dos mandos |
 | Reloj | Fecha y hora, que se mantienen con la máquina apagada |
 | Idiomas | Español e inglés |
@@ -171,7 +171,7 @@ ignoran.
 
 ## El sonido
 
-ZX-V tiene tres fuentes de sonido, mezcladas en **estéreo**:
+ZX-V tiene estas fuentes de sonido, mezcladas en **estéreo**:
 
 - **El beeper**: un altavoz sencillo que solo está encendido o apagado, como el
   de los primeros ordenadores domésticos. Con buena programación puede tocar
@@ -183,12 +183,25 @@ ZX-V tiene tres fuentes de sonido, mezcladas en **estéreo**:
   nota. Con dos chips hay seis voces a la vez: la música en un chip y los
   efectos en el otro, por ejemplo. El segundo chip empieza en silencio, así que
   la música escrita para un solo chip suena exactamente como en el original.
+- **Doce canales de muestras**, como los del Amiga, que tocan **sonidos
+  grabados** (golpes, voces, instrumentos) a cualquier altura, cada uno con
+  su volumen y su panorama. Las muestras se guardan en una **memoria de
+  sonido** de 96 KB, aparte de la RAM del procesador.
 
-Las voces se reparten por el estéreo (la A a la izquierda, la B en el centro y
-la C a la derecha). En el BASIC, `PLAY` toca música escrita como notas, con
-hasta seis voces, y `SOUND` maneja los chips directamente. Los programas
-nativos también pueden reproducir sonido digitalizado (ver el ejemplo
-`digital`).
+Las voces de los AY se reparten por el estéreo (la A a la izquierda, la B en
+el centro y la C a la derecha). En el BASIC, `PLAY` toca música escrita como
+notas, con hasta seis voces, y `SOUND` maneja los chips directamente.
+`SAMPLE` toca sonidos grabados, que se cargan de ficheros WAV. `MUSIC` toca
+de fondo la música de los trackers: el formato propio de ZX-V, `.zxm` (con
+los dos AY y los canales de muestras), el `.pt3` y otros formatos del AY,
+los MOD, S3M y XM (que convierte al cargarlos) y los VGM. Los detalles, en
+[Sonido y música](basic/reference.md#sonido-y-música), en la referencia del
+BASIC.
+
+Los programas nativos tocan los canales de muestras con las funciones de
+[Canales de muestras](sdk/reference.md#canales-de-muestras) (ver el ejemplo
+`samples`), y también pueden reproducir sonido digitalizado por un chip AY
+(ver el ejemplo `digital`).
 
 El sonido sale por HDMI con la imagen y, en la máquina real, también por una
 salida analógica de línea.
@@ -212,8 +225,9 @@ salida analógica de línea.
 En la máquina real, el teclado, el ratón y los mandos se conectan a un hub USB.
 
 **Ctrl+Alt+Supr** es el reset de emergencia: esté en marcha lo que esté,
-incluso un programa colgado, la máquina vuelve al BASIC. Un programa BASIC se
-conserva; uno nativo, no.
+incluso un programa colgado, la máquina se reinicia entera, como al
+encenderla, y vuelve al BASIC. La memoria se borra, así que el programa BASIC
+que no hayas guardado se pierde; el idioma y el clic de las teclas se quedan.
 
 ## La memoria
 
@@ -235,14 +249,14 @@ del propio BASIC.
 pantalla, así que un programa que no use un campo virtual grande puede usar
 también los otros 72 KB de cada página.
 
-La ROM, con el BASIC, ocupa 512 KB, y la unidad `ROM:` hasta 3,25 MB; las dos
+La ROM, con el BASIC, ocupa 512 KB, y la unidad `ROM:` hasta 2,5 MB; las dos
 son de solo lectura y no forman parte de la RAM.
 
 ## El almacenamiento y los ficheros
 
-### La tarjeta SD y la unidad `ROM:`
+### La tarjeta SD y las unidades `ROM:` y `EXT:`
 
-La máquina tiene dos **unidades**:
+La máquina tiene tres **unidades**:
 
 - **`SD:`**, la **tarjeta SD**, donde se carga y se graba. Puede estar
   formateada en FAT, FAT32 o exFAT, así que también la puedes usar en tu PC.
@@ -250,6 +264,13 @@ La máquina tiene dos **unidades**:
 - **`ROM:`**, un disco de solo lectura que va dentro de la máquina, con los
   ejemplos. No se puede escribir en él: si se intenta, sale
   `V Error de disco (no se puede)`.
+- **`EXT:`**, la **unidad externa**: los ficheros de una carpeta que sirve
+  otro equipo (un PC, una Raspberry Pi, otra ZX-V...), hoy por la tira J5 de
+  la placa. Se lee y se escribe como la tarjeta, pero solo mientras hay un
+  servidor: si no, sale `V Error de disco (EXT: sin servidor)`. Ver [La
+  unidad EXT:](hardware/firmware.md#la-unidad-ext); en el emulador, una
+  carpeta de tu PC, con la opción `--ext` o **Archivo > Unidad EXT:** (ver
+  [La unidad EXT:](emulator.md#la-unidad-ext) en el emulador).
 
 Se usan con las órdenes de siempre del BASIC: `CAT` lista una carpeta, `CD`
 cambia de carpeta, `MKDIR` y `RMDIR` crean y borran carpetas, y `COPY`, `MOVE`
@@ -275,7 +296,11 @@ nombre. Las carpetas se separan con `/`.
 | `.zxv` | Un programa nativo, compilado desde C o ensamblador. Puede llevar una pantalla de carga, que se ve mientras se carga | `LOAD "nombre"` |
 | `.zxvs` | Una instantánea: el estado completo de la máquina, para seguir más tarde (solo en el emulador) | Archivo > Abrir en el emulador |
 | `.gfx` | Gráficos: sprites, tiles, mapas, texturas y pantallas (las de `SCREEN$`) | `SAVE "nombre" GRAPHICS`, `LOAD "nombre" GRAPHICS`; las pantallas, `SAVE "nombre" SCREEN$`, `LOAD "nombre" SCREEN$`. También se pueden hacer a partir de imágenes PNG en el PC (ver el [SDK](sdk/README.md)) |
+| `.zxm` | Música en el formato propio de ZX-V, con los dos AY y los canales de muestras (la guarda `zxv-tracker`) | `LOAD "nombre" MUSIC` |
 | `.pt3` | Música hecha con un tracker (también Pro Tracker 2, Sound Tracker, ASC, PSG y TurboSound) | `LOAD "nombre" MUSIC` |
+| `.mod`, `.s3m`, `.xm` | Música de los trackers de muestras (ProTracker, Scream Tracker 3, FastTracker 2), que se convierte al cargarla | `LOAD "nombre" MUSIC` |
+| `.vgm`, `.vgz` | Lo que un emulador escribió en los AY, con su hora; `.vgz`, comprimido | `LOAD "nombre" MUSIC` |
+| `.wav` | Un sonido grabado | `LOAD "nombre" SAMPLE n` |
 | `.afb`, `.afx` | Efectos de sonido AYFX: un banco o un efecto suelto | `LOAD "nombre" SFX` |
 | `.scr` | Una pantalla del Spectrum (6.912 bytes), que se ve como era, limitaciones de color incluidas | `LOAD "nombre.scr" SCREEN$`, `SAVE "nombre.scr" SCREEN$` |
 | cualquiera | Datos en bruto y ficheros de texto | `LOAD "nombre.dat" CODE dirección`; los de texto, con `OPEN #`, `PRINT #` e `INPUT #` |
@@ -293,8 +318,9 @@ pantalla de presentación, el juego) igual que en el Spectrum.
 ZX-V sabe la **fecha y la hora**. En la máquina real, un chip de reloj con pila
 las mantiene con la máquina apagada; el emulador usa el reloj de tu PC. Los
 ficheros se fechan al grabarlos, y los programas pueden leer la hora (en el
-BASIC, `PRINT CLOCK 3;":";CLOCK 4` enseña la hora y los minutos). `CLOCK` con
-una fecha lo pone en hora.
+BASIC, `PRINT CLOCK 3;":";CLOCK 4` enseña la hora y los minutos). Se pone en
+hora desde el menú del editor, con [Fecha y hora](basic/editor.md#la-fecha-y-la-hora),
+o con `CLOCK` y una fecha.
 
 Si el reloj no se ha puesto nunca en hora, la máquina funciona igual y los
 ficheros se fechan el 1 de enero de 2026.
@@ -330,7 +356,7 @@ curiosidad.
 | Pantalla | 256 × 192 | 256 × 192 o 512 × 384 |
 | Color | 2 colores por celda de 8 × 8 (*color clash*) | Cualquiera de 16 colores en cualquier píxel, de una paleta de 65.536 |
 | Páginas de vídeo | 1 (2 en el 128K) | 2, más scroll por hardware y campo virtual |
-| Sonido | Beeper / beeper y un AY | Beeper y dos AY, en estéreo |
+| Sonido | Beeper / beeper y un AY | Beeper, dos AY y doce canales de muestras, en estéreo |
 | Almacenamiento | Cinta de casete | Tarjeta SD y unidad `ROM:`; lee los `.tap` y `.tzx` del Spectrum |
 | BASIC | Sinclair BASIC, palabras clave con una tecla | Sinclair BASIC compatible, tecleado letra a letra, con un editor a pantalla completa como el del 128 y muchas extensiones |
 | Código máquina | Z80 | RISC-V (programas nativos en C o ensamblador) |

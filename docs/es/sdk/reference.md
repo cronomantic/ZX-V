@@ -45,12 +45,15 @@ mapa de memoria y los formatos de fichero. Para aprender a usarlo, lee la
 | `zxv.ld` | Script de enlazado: todo seguido al principio de la RAM de usuario; el montón para picolibc |
 | `zxvlib.c` | `memcpy`, `memmove`, `memset`, `memcmp`, para los programas sin la biblioteca de C |
 | `include/zxv_gfxfile.h`, `gfxfile.c` | Lee los ficheros de gráficos `.gfx` (de `zxv-gfx`, `gfxedit` y `png2gfx.py`): sprites, tiles, mapas y texturas, en los formatos de `zxv_gfx.h`, y pantallas |
-| `include/zxv_music.h`, `music/` | Música y efectos para los dos AY: módulos PT3, TurboSound, PT2, STC, ASC y PSG y efectos AYFX |
-| `include/zxv_version.h` | La versión de ZX-V (`ZXV_VERSION`, por ejemplo `"0.9.0"`) |
+| `include/zxv_music.h`, `music/` | Música y efectos: el formato propio `.zxm`, módulos PT3, TurboSound, PT2, STC, ASC, PSG y VGM, y efectos AYFX |
+| `sound/` | El sonido de la máquina, el mismo código que suena en la Pico ULA, en el emulador y en `zxv-tracker`: los dos AY (`aysynth`), los doce canales de muestras (`smpsynth`, con el codificador de ADPCM) y la mezcla (`sndsynth`, con los registros de `sndregs.h`) |
+| `include/zxv_version.h` | La versión de ZX-V (`ZXV_VERSION`, por ejemplo `"0.10.0"`) |
 | `zxvc.c` | La unión entre picolibc y la API (ficheros, carpetas, consola, montón, hora, salida) |
 | `tools/elf2zxv.py` | Convierte el `.elf` enlazado en un `.zxv` |
 | `tools/gfx/` | `zxv-gfx`, el editor de gráficos para el PC |
-| `tools/tracker/` | `zxv-tracker`, el tracker para el PC: música PT3 y efectos AYFX |
+| `tools/tracker/` | `zxv-tracker`, el tracker para el PC: música `.zxm` y PT3, y efectos AYFX |
+| `tools/music/` | `zxv-music`, el conversor de PT3, TurboSound, MOD, S3M y XM al formato `.zxm` |
+| `tools/link/` | `zxv-link` y `zxv-link-gui` (con ventana), la carga remota: mandan programas a la placa por la tira J5 y los ejecutan, y sirven una carpeta del PC como la unidad `EXT:` |
 | `tools/png2gfx.py` | Convierte imágenes PNG en un fichero de gráficos `.gfx` |
 | `tools/mkweb.py` | La página web de un juego solo (ver [Publicar tu juego en la web](web.md)) |
 | `Makefile` | Compila los ejemplos (`make`, `make run SD=carpeta`, `make debug SD=carpeta`) |
@@ -253,7 +256,7 @@ veces por segundo).
 | 0x0D, 0x08, 0x09, 0x1B | Intro, Retroceso, Tab, Esc |
 | `ZXV_KEY_SPECIAL` (0xF000) \| código HID | Cualquier otra tecla: F1–F12, cursores, Inicio, Fin... |
 
-Ctrl+Alt+Supr no llega nunca: vuelve al BASIC.
+Ctrl+Alt+Supr no llega nunca: reinicia la máquina.
 
 ### `zxv_joy_read`
 
@@ -374,6 +377,91 @@ igual: `zxv_beeper_event_at(zxv_time_us() + ZXV_MUSIC_AHEAD_US, nivel)`.
 | `ZXV_AY_STEREO_MONO`, `_ABC`, `_ACB` | 0, 1, 2 | Valores de `ZXV_S_AY_STEREO` |
 | `ZXV_EV_AY`, `ZXV_EV_AY_WRITE(reg, val)` | | El dato de una escritura en el AY en la cola con hora (con el bit 31); solo hace falta si llenas la cola tú mismo |
 
+### Canales de muestras
+
+Doce canales que reproducen muestras de la **memoria de sonido**, 96 KB en
+la Pico ULA de la máquina, como el Paula de un Amiga: música de ficheros
+MOD, efectos y voces grabados, o un byte que se escribe y suena al momento
+(el DAC). Cada canal tiene su nota (su paso), su volumen y su panorama, y se
+mezcla con los dos AY.
+
+```c
+int  zxv_smp_upload(uint32_t dst, const void *src, uint32_t len);
+int  zxv_smp_define(int slot, uint32_t addr, int fmt, uint32_t len, uint32_t loop);
+void zxv_smp_play(int ch, int slot, uint32_t step, int vol, int pan);
+void zxv_smp_prepare(int ch, int slot, uint32_t step, int vol, int pan);
+void zxv_smp_start(uint32_t mask);
+void zxv_smp_stop(int ch);
+void zxv_smp_write(int ch, int reg, int val);
+uint32_t zxv_smp_step(uint32_t sample_hz);
+```
+
+- `zxv_smp_upload` copia `len` bytes (múltiplo de 4) de tu RAM a la memoria
+  de sonido, desde `dst`, y espera a que estén (unas pocas imágenes).
+  Devuelve `ZXV_OK`, o `ZXV_E_RANGE` si no cabe.
+- `zxv_smp_define` rellena la entrada `slot` (0–255) de la **tabla de
+  muestras**: dónde empieza la muestra en la memoria de sonido, su formato
+  (`ZXV_SMP_PCM8`, 8 bits con signo, o `ZXV_SMP_ADPCM`), cuántas muestras
+  tiene y desde cuál vuelve a empezar su bucle (`len` o más: sin bucle, se
+  para al final).
+- `zxv_smp_play` toca la muestra `slot` en el canal `ch` (0–11) desde el
+  principio, con su paso, su volumen (0–64) y su panorama (0 izquierda, 128
+  centro, 255 derecha). `zxv_smp_step(hz)` es el paso para que una muestra
+  grabada a `hz` suene a su altura; el doble, una octava más aguda.
+- `zxv_smp_prepare` deja todo listo en un canal igual que `zxv_smp_play`,
+  pero sin arrancarlo, y `zxv_smp_start` arranca **a la vez**, en la misma
+  muestra, los canales de `mask` (el bit n, el canal n). Úsalos para un
+  acorde o una fila de música: con `zxv_smp_play` en cada canal, si son
+  muchos, unos pueden arrancar un poco antes que otros, y con la misma
+  muestra en dos canales se nota.
+- `zxv_smp_write` escribe un registro de un canal (abajo), por la cola del
+  AY, en orden con las escrituras de los AY. `zxv_ay_event(t,
+  ZXV_SMP_REG(ch, reg), val)` lo hace a su hora.
+
+```c
+static const int8_t onda[32] = { 0, 24, 48, /* ... un seno */ };
+zxv_smp_upload(0, onda, sizeof onda);
+zxv_smp_define(0, 0, ZXV_SMP_PCM8, 32, 0);              /* un bucle de 32 */
+zxv_smp_play(0, 0, zxv_smp_step(440 * 32), 64, 128);    /* 440 Hz */
+
+/* Un acorde: La, Do# y Mi, que empiezan juntos. */
+zxv_smp_prepare(1, 0, zxv_smp_step(440 * 32), 40, 64);
+zxv_smp_prepare(2, 0, zxv_smp_step(554 * 32), 40, 128);
+zxv_smp_prepare(3, 0, zxv_smp_step(659 * 32), 40, 192);
+zxv_smp_start(1 << 1 | 1 << 2 | 1 << 3);
+```
+
+El ejemplo [`samples`](../../../sdk/examples/samples/samples.c) lo usa
+todo, con un codificador de ADPCM.
+
+**Los registros de un canal** (`ZXV_SMP_REG(ch, reg)`):
+
+| Registro | Qué es |
+|---|---|
+| `ZXV_SMP_SLOT` | La muestra: una entrada de la tabla. Cuenta al dispararla |
+| `ZXV_SMP_VOL` | Volumen, 0–64 |
+| `ZXV_SMP_PAN` | Panorama: 0 izquierda, 128 centro, 255 derecha |
+| `ZXV_SMP_CTRL` | Al escribirlo: `ZXV_SMP_KEY` dispara la muestra y `ZXV_SMP_STOP` la para; y se quedan: `ZXV_SMP_NOINTERP` (sin interpolar, el sonido crudo de un Amiga) y `ZXV_SMP_DIRECT` (el modo directo) |
+| `ZXV_SMP_STEP` | Tres bytes (8.16): cuánto avanza por cada muestra de 48 kHz de la salida |
+| `ZXV_SMP_OFFSET` | Desde dónde empieza, de 256 en 256 muestras (el `9xx` de un MOD). En modo directo, lo que suena (con signo) |
+
+- **El ADPCM** es el IMA, en bloques independientes de 64 muestras (36
+  bytes): suena como 16 bits y ocupa algo más de la mitad que 8. Cada
+  muestra sale de la anterior, así que una nota aguda descodifica también las
+  que se salta: un canal en ADPCM **no pasa del paso 2**
+  (`ZXV_SMP_ADPCM_MAX_STEP`, una octava más aguda que como se grabó); un paso
+  mayor cuenta como 2. En 8 bits, cualquier paso.
+- **La interpolación**, que viene puesta, suaviza las notas graves; la última
+  muestra de un bucle va hacia la primera, así que una onda corta en bucle
+  suena redonda.
+- **El modo directo** (`ZXV_SMP_DIRECT`) toca el valor de `ZXV_SMP_OFFSET`
+  según se escribe, sin muestra: un DAC de 8 bits, como el SpecDrum. Con
+  `zxv_ay_event`, cada valor suena a su hora.
+- `ZXV_S_SMP_VOLUME` (0–255, 255 al arrancar) es el volumen de todos los
+  canales: un canal a tope suena como un canal del AY, y doce a tope
+  saturan.
+- En el emulador suenan igual, con el mismo código.
+
 ## Música y efectos
 
 Declarado en `zxv_music.h`. Se compila con los ficheros de `sdk/music`. Las
@@ -386,6 +474,11 @@ explicaciones y un ejemplo están en la
 int zxv_music_info(const void *data, uint32_t size, zxv_music_info_t *info);
 int zxv_music_play(const void *data, uint32_t size, int flags);
 void zxv_music_stop(void);
+void zxv_music_samples(uint32_t base, int slot);
+void zxv_music_work(void *buf);
+void zxv_music_smp_fx(int ch, int slot, uint32_t step, int vol, int pan, uint32_t dur_us);
+void zxv_music_smp_fx_stop(int ch);
+int zxv_music_smp_tracks(void);
 void zxv_music_pause(int on);
 int zxv_music_playing(void);
 uint32_t zxv_music_steps(void);
@@ -400,9 +493,25 @@ void zxv_music_update_until(uint32_t t_us);
   de un AY suena en el segundo).
 - `zxv_music_info` da el formato, el título y el autor de un módulo, sin
   tocarlo.
+- Un `.zxm` (`ZXV_MUSIC_ZXM`, el formato propio) toca sus pistas de muestras
+  en los canales desde el 0 y, al empezar, sube sus muestras a la memoria de
+  sonido. `zxv_music_samples(base, slot)`, antes de `zxv_music_play`, dice
+  dónde: desde el byte `base` de la memoria de sonido y la entrada `slot` de
+  su tabla (por defecto, 0 y 0); las tuyas, detrás.
+- **Un VGM** (`ZXV_MUSIC_VGM`) toca los AY (lo de otros chips se salta).
+  Un `.vgz` se descomprime mientras suena: `zxv_music_work(buf)` le da 32
+  KB de trabajo (sin ellos, no suena).
+- **Una muestra como efecto, a la vez que la canción:**
+  `zxv_music_smp_fx(ch, slot, paso, vol, pan, dur_us)` la toca en el canal
+  `ch` durante `dur_us` (0: hasta `zxv_music_smp_fx_stop(ch)`, para una
+  muestra con bucle). Con la música en marcha va a su paso, con su mismo
+  adelanto; si el canal es de la canción, la tapa mientras suena, y la
+  canción sigue en él en su siguiente nota. `zxv_music_smp_tracks()` dice
+  cuántos canales usa la canción que suena (los primeros): los efectos, en
+  los de arriba. Es lo que usa `SAMPLE` en el BASIC.
 - `zxv_music_pause(1)` para la música y `zxv_music_pause(0)` la sigue.
   `zxv_music_playing` da 1 mientras suena; `zxv_music_steps`, los pasos de
-  1/50 s que lleva.
+  1/50 s que lleva (en un `.zxm`, los ticks de su tempo).
 - `zxv_music_update` prepara los pasos de los próximos `ZXV_MUSIC_AHEAD_US`
   (35 ms): llámala en cada frame, o desde el gancho de frame.
   `zxv_music_update_until(t)` prepara solo los de antes de `t`, para mezclar
@@ -452,25 +561,36 @@ segundo).
 | `ZXV_MUSIC_NONE` | 0 | No es un módulo conocido |
 | `ZXV_MUSIC_PT3`, `_TS`, `_PSG` | 1, 2, 3 | Pro Tracker 3 (y Vortex Tracker II), TurboSound, volcado de los registros del AY |
 | `ZXV_MUSIC_PT2`, `_STC`, `_ASC` | 4, 5, 6 | Pro Tracker 2, Sound Tracker 1.x, ASC Sound Master |
+| `ZXV_MUSIC_ZXM`, `_VGM` | 7, 8 | El formato propio (`.zxm`); un VGM (`.vgm` o `.vgz`) con AY |
 | `ZXV_MUSIC_LOOP`, `ZXV_MUSIC_AY2` | 1, 2 | Opciones de `zxv_music_play` |
 | `ZXV_MUSIC_AHEAD_US` | 35000 | Lo que la música va por delante, en µs |
 | `ZXV_SFX_AUTO` | −1 | Un canal libre (o todos) |
 
 ## Ficheros y carpetas
 
-Las rutas pueden empezar por una unidad: `SD:` (la tarjeta SD) o `ROM:` (la
-unidad de solo lectura de serie), en mayúsculas o minúsculas; `ROM:graphics`
-es lo mismo que `ROM:/graficos`. Sin unidad, una ruta es relativa a la
-carpeta actual, o absoluta si empieza por `/`. `.` y `..` funcionan, y `..`
-en la raíz se queda en la raíz. Las mayúsculas dan igual. Los nombres
-tienen hasta 63 caracteres ASCII imprimibles (sin `\ : * ? " < > |`, y sin
-acabar en espacio ni en punto); las rutas, hasta 255.
+Las rutas pueden empezar por una unidad: `SD:` (la tarjeta SD), `ROM:` (la
+unidad de solo lectura de serie) o `EXT:` (la unidad externa: una carpeta
+que sirve otro equipo, ver [La unidad
+EXT:](../hardware/firmware.md#la-unidad-ext)), en mayúsculas o minúsculas;
+`ROM:graphics` es lo mismo que `ROM:/graphics`. Sin unidad, una ruta es
+relativa a la carpeta actual, o absoluta si empieza por `/`. `.` y `..`
+funcionan, y `..` en la raíz se queda en la raíz. Las mayúsculas dan
+igual. Los nombres tienen hasta 63 caracteres ASCII imprimibles (sin
+`\ : * ? " < > |`, y sin acabar en espacio ni en punto); las rutas, hasta
+255.
 
 Puede haber hasta 8 ficheros y 4 carpetas abiertos a la vez en cada
 unidad. Los buffers tienen que estar en la RAM (o, para leer, en la ROM);
 si no, la función devuelve `ZXV_E_FAULT`. En una tarjeta SD de verdad, un
 fichero abierto no se puede borrar, renombrar ni volver a abrir para
 escribir, y los ficheros ocultos o de sistema no salen en los listados.
+
+En `EXT:` se lee y se escribe como en la tarjeta (los ficheros son los
+números 16-23 y las carpetas, 8-11), pero solo mientras hay un servidor: si
+no, todas las llamadas dan `ZXV_E_OFFLINE`. Si el servidor se va, la primera
+espera 1,5 segundos y las siguientes fallan enseguida hasta que vuelve. El
+servidor puede negarse a sustituir o borrar un fichero que no escribió la
+máquina (`ZXV_E_ACCESS`).
 
 ### `zxv_file_open`
 
@@ -583,10 +703,11 @@ int zxv_dir_read(int d, zxv_dirent_t *e);       /* la siguiente entrada: 1, o 0 
 int zxv_dir_close(int d);
 ```
 
-- `zxv_dir_change("ROM:")` entra en la unidad ROM y `zxv_dir_change("SD:")`
-  vuelve a la raíz de la tarjeta.
-- `zxv_dir_current` da `/...` en la tarjeta y `ROM:/...` en la unidad ROM;
-  si `buf` es pequeño devuelve `ZXV_E_RANGE`.
+- `zxv_dir_change("ROM:")` entra en la unidad ROM, `zxv_dir_change("EXT:")`
+  en la unidad externa y `zxv_dir_change("SD:")` vuelve a la raíz de la
+  tarjeta.
+- `zxv_dir_current` da `/...` en la tarjeta, `ROM:/...` en la unidad ROM y
+  `EXT:/...` en la externa; si `buf` es pequeño devuelve `ZXV_E_RANGE`.
 - `zxv_dir_read` da las entradas en orden alfabético, sin distinguir
   mayúsculas.
 
@@ -1043,6 +1164,10 @@ signos de puntuación pulsan SYMBOL SHIFT con la tecla que toca.
 | `ZXV_S_BEEP_HEAD`, `ZXV_S_BEEP_TAIL` | 16 bits cada uno | el programa, el sistema | Posiciones de la cola con hora (`ZXV_BEEP_QUEUE`) |
 | `ZXV_S_AY_REGS` | 16 × 8 bits | el sistema | Copia de solo lectura de los registros del primer AY, ya aplicados |
 | `ZXV_S_AY2_REGS` | 16 × 8 bits | el sistema | Lo mismo, del segundo AY |
+| `ZXV_S_SMP_VOLUME` | 8 bits | el programa | Volumen de los canales de muestras, 0–255 (255 al arrancar) |
+| `ZXV_S_SMP_REGS` | 96 × 8 bits | el sistema | Copia de solo lectura de los registros de los 12 canales de muestras (8 cada uno; `ZXV_SMP_CTRL` sin `KEY` ni `STOP`) |
+| `ZXV_S_SMP_SRC`, `ZXV_S_SMP_DST`, `ZXV_S_SMP_LEN` | 32 bits cada uno | el programa | Una subida a la memoria de sonido: desde dónde, adónde y cuántos bytes |
+| `ZXV_S_SMP_UPLOAD` | 8 bits | el programa, el sistema | 1 la empieza; el sistema deja 0 al acabar, o 0x80 si no ha podido |
 
 Las colas son más fáciles de usar con `zxv_ay_write`, `zxv_beeper_event` y
 `zxv_ay_event`.
@@ -1090,6 +1215,7 @@ En `ZXV_SYSVARS` (`0x2000_0700`), de 32 bits cada una:
 | −15 | `ZXV_E_RANGE` | No cabe (en la RAM de usuario, o en el buffer: `zxv_file_load`, `zxv_dir_current`) |
 | −16 | `ZXV_E_NOCLOCK` | El reloj no está en hora |
 | −17 | `ZXV_E_INVAL` | Valor no válido |
+| −18 | `ZXV_E_OFFLINE` | La unidad `EXT:` no tiene servidor |
 
 Si se saca la tarjeta, o deja de responder, con ficheros o carpetas
 abiertos, estos conservan su número (un fichero que se abra después no se
@@ -1169,7 +1295,7 @@ RAM, un programa puede cambiar una entrada para interceptar una rutina.
 |---|---|---|---|---|
 | `0x1000_0000` | `0x1003_FFFF` | 256 KB | Firmware de la plataforma | Ninguno |
 | `0x1004_0000` | `0x100B_FFFF` | 512 KB | La ROM (`ZXV_ROM_BASE`): el BASIC y la API | Lectura, ejecución |
-| `0x100C_0000` | `0x103F_FFFF` | 3,25 MB | La unidad `ROM:` (`ZXV_ROMDISK_BASE`) | Con las funciones de ficheros |
+| `0x1040_0000` | `0x1067_AFFF` | 2.540 KB | La unidad `ROM:` (`ZXV_ROMDISK_BASE`, `ZXV_ROMDISK_SIZE`) | Con las funciones de ficheros |
 | `0x2000_0000` | `0x2000_3FFF` | 16 KB | Área de sistema (`ZXV_SYS_BASE`) | Ver abajo |
 | `0x2000_4000` | `0x2001_BFFF` | 96 KB | Página de vídeo 0 (`ZXV_VRAM0_BASE`) | Lectura, escritura |
 | `0x2001_C000` | `0x2003_3FFF` | 96 KB | Página de vídeo 1 (`ZXV_VRAM1_BASE`) | Lectura, escritura |
@@ -1299,6 +1425,45 @@ junto con el formato `.gfx`. Los números de sprite van del 0 al 255, los de
 tile del 0 al 4095, los de mapa del 0 al 15 y los de textura del 0 al 3,
 como en el BASIC, y los de pantalla del 0 al 255. Lee cualquier PNG menos los entrelazados, sin otros
 paquetes de Python.
+
+### `zxv-music`
+
+```sh
+zxv-music [--free KB] [--channels LISTA] ENTRADA SALIDA.zxm
+```
+
+Convierte un PT3, un TurboSound, un MOD, un S3M o un XM al formato propio,
+`.zxm`, y dice lo que no ha podido pasar y lo que ocupan las muestras. Va en
+los paquetes del emulador. Lo que pasa de cada formato está en la
+[guía](README.md#el-formato-propio-zxm-y-zxv-music).
+
+| Opción | Efecto |
+|---|---|
+| `--free KB` | Deja esos KB de la memoria de sonido (96) libres para otras muestras, como los sonidos de `SAMPLE` en el BASIC: las de la canción que no caben van en ADPCM, a la mitad de muestras o, si ni así, fuera |
+| `--channels LISTA` | De un MOD, un S3M o un XM, los canales que van, hasta 12, con los números del tracker, desde 1 (`1-8,11,13`). Sin ella, de un módulo de más de 12 canales, van los 12 que más notas tocan |
+
+### `zxv-link` y `zxv-link-gui`
+
+```sh
+zxv-link ports
+zxv-link --port PUERTO info | send FICHERO [DESTINO] | run FICHERO [MÁS...] | log
+zxv-link --port PUERTO serve [--folder CARPETA [--run PROGRAMA]] [--basic-debug PUERTO_TCP] [FICHERO...]
+```
+
+La carga remota: mandan programas a la placa por la tira J5, con un
+adaptador USB-serie de 3,3 V, los ejecutan y sirven una carpeta del PC como
+la unidad `EXT:`. `zxv-link-gui` hace lo mismo con ventana. Van en los
+paquetes del emulador. Cómo se usan, en [Cargar programas desde el PC
+(J5)](../hardware/firmware.md#cargar-programas-desde-el-pc-j5).
+
+| Opción | Efecto |
+|---|---|
+| `--port PUERTO` | El puerto del adaptador: `COM5` en Windows, `/dev/ttyUSB0` en Linux (`zxv-link ports` dice cuáles hay) |
+| `--overwrite` | Sustituye también lo que no puso `zxv-link` en la tarjeta y deja que la máquina sustituya o borre en la carpeta de `EXT:` lo que no escribió ella |
+| `--lang es\|en` | El idioma de los mensajes (por defecto, el del sistema) |
+
+Sale con el código 3 si no puede abrir el puerto, y con el 4 si tendría que
+sustituir en la tarjeta algo que no puso él (sin `--overwrite`).
 
 ## La biblioteca estándar de C (picolibc)
 

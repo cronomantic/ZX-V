@@ -7,14 +7,14 @@ a TV. It is made from two **Raspberry Pi Pico 2** boards, a handful of
 connectors and a few dozen small parts. You do not need to write any code: the
 software for both Picos comes ready to copy onto them.
 
-> **Status.** The firmware for both Picos is written, and **each Pico has been
-> tested on its own**: the HDMI picture and sound on a single Pico 2, and the
-> CPU, which runs programs exactly like the emulator. **The two Picos have not
-> yet been tested working together**, so the complete machine has not been
-> tested, neither on the PCB nor on a protoboard. The **printed circuit board
-> (PCB) is fully designed, but it has not been manufactured or tested yet**.
-> If you build one now, you will be among the first to try it: read
-> [The board](board.md) carefully and expect that something may need fixing.
+> **Status.** **The first board works**, with the two Picos together: it
+> starts into BASIC on an HDMI screen, and the `boardtest` program passes the
+> picture and palettes, the sound, the USB keyboard, the gamepads, the mouse,
+> the MODO button and the clock, and the microSD card reads, saves and
+> updates the firmware. **Still to be tried on it:** the clock's coin cell.
+> Nobody has built the machine on a protoboard yet.
+> If you build one now, you will be among the first: read
+> [The board](board.md) carefully.
 
 ## What you need
 
@@ -32,6 +32,10 @@ software for both Picos comes ready to copy onto them.
 - **A USB-C phone charger** of 5 V that can give 2 A, with its cable.
 - Optionally, **powered speakers** for the audio output, and a **CR2032 coin
   cell** so the clock keeps the date and time.
+- Optionally, **a 3.3 V USB-serial adapter** for the board's J5 header: with
+  it you send programs from the PC and run them without taking the card out,
+  debug BASIC on the board and serve a folder on the PC as the `EXT:` drive
+  ([Loading programs from the PC](firmware.md#loading-programs-from-the-pc-j5)).
 - A soldering iron, solder, and a computer with a micro-USB cable to put the
   firmware on the Picos.
 
@@ -40,9 +44,9 @@ software for both Picos comes ready to copy onto them.
 | | The PCB (recommended) | A protoboard or breadboard |
 |---|---|---|
 | What it is | A 100 × 100 mm board with everything on it | The two Picos and modules wired by hand |
-| Soldering | Only the two Picos, two buttons, a switch, two LEDs and the coin cell: all through-hole | Many wires; HDMI and the link between the Picos need short, tidy wiring |
+| Soldering | Only the two Picos, two buttons, a switch, two LEDs, the coin cell and, optionally, the J5 header for remote loading: all through-hole | Many wires; HDMI and the link between the Picos need short, tidy wiring |
 | Connectors | HDMI, USB-A, microSD, audio jack, USB-C for power, real-time clock | Breakout boards and modules |
-| Status | Designed, **not yet made or tested** | Each Pico tested on its own; **not yet together** |
+| Status | **Works**: the first board passes `boardtest` and uses the microSD card (the coin cell is still to be tried) | Each Pico tested on its own; the wiring of the two together on a protoboard, **not yet** (together they work on the board) |
 | Guide | [The board](board.md) | [On a protoboard](protoboard.md) |
 
 Both run the same firmware and behave the same.
@@ -95,8 +99,9 @@ mice and most gamepads.
 
 - **Ctrl+Alt+F1**, **F2** and **F3** choose the keyboard layout: Spanish,
   British or US. The machine remembers it.
-- **Ctrl+Alt+Del** is the emergency reset: it takes you back to the BASIC even
-  if a program has hung, and keeps your BASIC program.
+- **Ctrl+Alt+Del** is the emergency reset: it restarts the machine, as if you
+  switched it off and on, even if a program has hung. A BASIC program you have
+  not saved is lost.
 - **Ctrl+Alt+F12** shows or hides the diagnostic page (see
   [The firmware](firmware.md#the-diagnostic-page)).
 
@@ -128,9 +133,10 @@ not carry data.
 
 The board has a real-time clock with a CR2032 coin cell. It keeps the date and
 time (used to date the files you save), the machine's language and the
-keyboard layout while the power is off. Set the time from the BASIC with
-`CLOCK`, for example `CLOCK 2026,10,20,18,30` (year, month, day, hour and
-minutes).
+keyboard layout while the power is off. To set the time, open the editor's
+menu (EDIT, the Tab key) and choose **Date and time** ([how it
+works](../basic/editor.md#the-date-and-time)), or use `CLOCK` in the BASIC,
+for example `CLOCK 2026,10,20,18,30` (year, month, day, hour and minutes).
 
 The machine starts in **English**. Type `LANGUAGE "es"` to switch to Spanish;
 with the coin cell in place it is remembered.
@@ -145,3 +151,5 @@ with the coin cell in place it is remembered.
   no picture or no sound.
 - **[On a protoboard](protoboard.md)**: building ZX-V without the PCB, with the
   wiring between the two Picos and to each connector.
+- **[The protocol](protocol.md)**: what travels through J5, for anyone who
+  wants to write their own server for the `EXT:` drive or talk to the board.

@@ -89,7 +89,7 @@ Hazard3 ni en las de PMP. Esas pertenecen a la ROM.
 |---|---|---|---|---|
 | `0x1000_0000` | `0x1003_FFFF` | 256 KB | Firmware de plataforma (arranque y servicios del núcleo 1) | Ninguno |
 | `0x1004_0000` | `0x100B_FFFF` | 512 KB | **ROM ZX-V** (BASIC, editor y API) | Lectura y ejecución |
-| `0x100C_0000` | `0x103F_FFFF` | 3,25 MB | **Disco ROM**: ficheros de solo lectura, la unidad `ROM:` (7.7) | Lectura (mediante la API) |
+| `0x1040_0000` | `0x1067_AFFF` | 2.540 KB | **Disco ROM**: ficheros de solo lectura, la unidad `ROM:` (7.7) | Lectura (mediante la API) |
 | `0x2000_0000` | `0x2000_3FFF` | 16 KB | **Área de sistema**: tabla API, registros y colas | Según cada registro |
 | `0x2000_4000` | `0x2001_BFFF` | 96 KB | **VRAM, página 0** | Lectura y escritura |
 | `0x2001_C000` | `0x2003_3FFF` | 96 KB | **VRAM, página 1** | Lectura y escritura |
@@ -345,6 +345,8 @@ salida analógica de línea, en la placa.
   incluido que **escribir R13 reinicia la envolvente**. El primero es el del
   128K; el segundo usa los registros 16–31 (5.3) y empieza en silencio, así que
   los programas de un solo AY no notan que existe.
+- **Doce canales de muestras** (5.6), que reproducen muestras de una memoria de
+  sonido de 96 KB, con su nota, su volumen y su panorama.
 - **Salida:** estéreo a 48 kHz, 16 bits. El AY admite mezcla mono, ABC o ACB.
 
 ### 5.2 Registros de sonido (`0x2000_0600`, *provisional*)
@@ -361,12 +363,20 @@ salida analógica de línea, en la placa.
 | `+0x0A` | `BEEP_TAIL` | u16 | sistema | Índice de lectura de la cola del beeper |
 | `+0x10` | `AY_REGS` | 16 × u8 | sistema | Copia de solo lectura de los registros del AY ya aplicados |
 | `+0x20` | `AY2_REGS` | 16 × u8 | sistema | Lo mismo, del segundo AY |
+| `+0x0C` | `SMP_VOLUME` | u8 | programa | Volumen de los canales de muestras (0–255); la ROM lo pone a 255 al arrancar (5.6) |
+| `+0x40` | `SMP_REGS` | 96 × u8 | sistema | Copia de solo lectura de los registros de los 12 canales de muestras (5.6) |
+| `+0xA0` | `SMP_SRC` | u32 | programa | Subida a la memoria de sonido: desde aquí (la RAM del programa)... |
+| `+0xA4` | `SMP_DST` | u32 | programa | ... a aquí (la memoria de sonido)... |
+| `+0xA8` | `SMP_LEN` | u32 | programa | ... tantos bytes (múltiplo de 4) |
+| `+0xAC` | `SMP_UPLOAD` | u8 | los dos | 1 empieza la subida; el sistema lo deja a 0 al acabar, o a 0x80 si no ha podido |
 
 ### 5.3 Cola del AY (`0x2000_0800`)
 
 Es un buffer circular de 256 entradas `{u8 registro, u8 valor}`. Cada entrada
 equivale exactamente a **una escritura** en un AY: los registros 0–15 son los del
-primero y los 16–31 los del segundo (`ZXV_AY2 + n`); los demás se ignoran.
+primero y los 16–31 los del segundo (`ZXV_AY2 + n`); los 64–159, los de los
+canales de muestras, y el 36 y el 37, arrancar varios a la vez (5.6); los demás
+se ignoran.
 
 ```
 entrada[AY_HEAD mod 256] = {reg, valor}
@@ -397,8 +407,8 @@ Hay dos formas de usar el beeper:
 Si se usan las dos formas a la vez, se suman.
 
 **Escrituras del AY con su hora.** Con el bit 31 del dato a 1, la entrada es una
-escritura en un AY: el registro en los bits 8–15 (0–31, como en la cola del AY;
-los demás se ignoran) y el valor en los bits 0–7 (`ZXV_EV_AY_WRITE(reg, valor)`
+escritura en un AY: el registro en los bits 8–15 (0–31, o 64–159 los canales de
+muestras, como en la cola del AY; los demás se ignoran) y el valor en los bits 0–7 (`ZXV_EV_AY_WRITE(reg, valor)`
 en el SDK). Suena a su hora, con la misma latencia de 2 ms, antes de la muestra
 de 48 kHz en la que cae (unos 21 µs de resolución), y en orden con los cambios
 del beeper. Sirve para la **música digitalizada**: muestras por el volumen de
@@ -430,9 +440,58 @@ saturar: basta con bajar `VOLUME` o el volumen de los canales.
 - Los niveles del AY siguen su DAC logarítmico.
 - `VOLUME` escala la mezcla final; con `VOLUME = 0` no suena nada. La ROM lo pone
   a 200, con estéreo ABC, al arrancar.
+- Los canales de muestras (5.6) se suman con su panorama, por `SMP_VOLUME`:
+  uno a tope, en un lado, va de punta a punta lo mismo que un canal del AY.
 - La salida pasa por un filtro paso alto de unos 3,7 Hz (coeficiente 1 − 2⁻¹¹ a
   48 kHz), como el condensador de acoplo de una salida real, que quita la
   continua del beeper.
+
+### 5.6 Canales de muestras
+
+Doce canales que reproducen muestras de la **memoria de sonido**: 96 KB de
+muestras (`ZXV_SMP_MEM`) y detrás la **tabla de muestras**, 256 entradas de 12
+bytes (`ZXV_SMP_TABLE`). Lo describe en detalle `sdk/sound/smpsynth.h`, que lo
+hace en la Pico ULA y en el emulador (D97).
+
+- **La tabla:** cada entrada dice dónde empieza la muestra (u24, en bytes), su
+  formato (u8: 0, 8 bits con signo; 1, ADPCM), cuántas muestras tiene (u32) y
+  desde cuál vuelve a empezar al llegar al final (u32; si no es menor que la
+  longitud, sin bucle: se para).
+- **El ADPCM** es el IMA, en bloques independientes de 64 muestras (36 bytes:
+  la primera en la cabecera, i16 y el índice del paso, y las demás de 4 bits).
+  Cada muestra sale de la anterior, así que en ADPCM el paso no pasa de
+  `ZXV_SMP_ADPCM_MAX_STEP` (2,0): lo que pase cuenta como eso.
+- **Los registros de cada canal**, 8, en `SMP_REGS` (copia de solo lectura)
+  y escritos por las colas del AY (5.3 y 5.4) con el número `64 + 8 × canal +
+  registro` (`ZXV_SMP_REG`):
+
+| Desp. | Nombre | Qué es |
+|---|---|---|
+| `+0` | `SLOT` | La muestra (0–255): cuenta al dispararla |
+| `+1` | `VOL` | Volumen, 0–64 |
+| `+2` | `PAN` | 0 izquierda, 128 centro, 255 derecha |
+| `+3` | `CTRL` | Al escribirlo: bit 0 (`KEY`) la dispara; bit 1 (`STOP`) la para. Se quedan: bit 2 (`NOINTERP`), sin interpolar; bit 3 (`DIRECT`), modo directo |
+| `+4` | `STEP` | 3 bytes (u24, 8.16): el paso por cada muestra de 48 kHz de la salida |
+| `+7` | `OFFSET` | Desde dónde se dispara, de 256 en 256 muestras; en modo directo, lo que suena (i8) |
+
+- **Arrancar varios a la vez:** `KEY` en cada canal es una escritura por
+  canal, y si hay muchas seguidas (una fila de un MOD) pueden repartirse entre
+  dos tramos de la línea del sonido y arrancar unos canales 1,3 ms antes que
+  otros. Para que arranquen en la misma muestra, se escriben sus registros
+  sin `KEY` y luego el registro 37 (`ZXV_SMP_KEYON`) con los canales 0–7
+  (bit n, el canal n); el 36 (`ZXV_SMP_KEYON_HI`), escrito antes, añade los
+  8–11 (bits 0–3). Los dos van por la misma cola y no son estado: el 36 se
+  guarda hasta el 37, que dispara todos sus canales en la misma muestra.
+- **Con interpolación** (lo normal), cada muestra de la salida se interpola
+  entre dos de la muestra, y la última va hacia la primera del bucle.
+- **El modo directo** no lee la memoria: suena `OFFSET`, con la hora de su
+  escritura. Es un DAC de 8 bits.
+- **La subida** (`SMP_SRC`, `SMP_DST`, `SMP_LEN` y `SMP_UPLOAD`) copia de la RAM
+  del programa a la memoria de sonido en unas pocas imágenes (en la Pico, por
+  el enlace, en el sitio que deja la imagen). El programa no toca el origen
+  hasta que `SMP_UPLOAD` vuelve a 0.
+- **Al encender**, la memoria de sonido está a cero y los canales, parados;
+  la ROM los para también al arrancar en frío.
 
 ---
 
@@ -564,17 +623,18 @@ reconocer interrupciones) lo hace la capa de plataforma a través de la interfaz
 interna (`0x2000_1240`): en la Pico la implementa el firmware y en el emulador el
 propio emulador.
 
-La plataforma rellena la interfaz antes de saltar a la ROM. Versión 5:
+La plataforma rellena la interfaz antes de saltar a la ROM. Versión 6:
 
 | Desp. | Contenido |
 |---|---|
-| `+0x00` | Versión de la interfaz (5) |
+| `+0x00` | Versión de la interfaz (6) |
 | `+0x04` | `void irq_ack(void)`: reconoce la interrupción de VBLANK; la ROM la llama al principio del manejador |
 | `+0x08` | `u32 time_us(void)`: contador de microsegundos |
 | `+0x0C`…`+0x40` | Sistema de ficheros de la tarjeta (desde la versión 2), en este orden: `fs_open`, `fs_read`, `fs_write`, `fs_close`, `fs_seek`, `fs_stat`, `fs_remove`, `fs_rename`, `fs_mkdir`, `fs_chdir`, `fs_getcwd`, `fs_opendir`, `fs_readdir`, `fs_closedir`. Mismas firmas que las funciones 14–17 y 21–30 de la API (§7.3) |
 | `+0x44`, `+0x48` | El reloj (desde la versión 3): `clock_get` y `clock_set`, con las firmas de las funciones 48 y 49 (§7.9) |
 | `+0x4C`, `+0x50` | El idioma (desde la versión 4): `u32 lang_get(void)` y `int lang_set(u32 idioma)` (§7.10) |
 | `+0x54`, `+0x58` | Las preferencias (desde la versión 5): `u32 prefs_get(void)` y `void prefs_set(u32 prefs)` (§7.11) |
+| `+0x5C`, `+0x60` | Actualizar el firmware (desde la versión 6, solo la Pico): `int update_info(void *info)` y `int update_start(void)` (§7.12) |
 
 En la Pico, el sistema de ficheros es FatFs en el núcleo de servicios: la
 función de la plataforma deja la petición en un buzón y espera la respuesta. La
@@ -678,47 +738,79 @@ Spectrum:
 
 ### 7.6 Reset de emergencia
 
-**Ctrl + Alt + Supr** lo vigila el núcleo de servicios, no la CPU. Reinicia el
-núcleo 0 y vuelve al BASIC aunque el programa se haya colgado con las
+**Ctrl + Alt + Supr** lo vigila el núcleo de servicios, no la CPU. Reinicia la
+máquina entera, como al encenderla, aunque el programa se haya colgado con las
 interrupciones desactivadas.
 
-- **Cómo entra la ROM:** la CPU vuelve a entrar por la segunda entrada de la ROM,
-  `ZXV_ROM_BASE + 4`. Con la memoria como estaba, la ROM vuelve al BASIC igual que
-  tras una excepción.
-- **Lo que queda:**
-  - Si estaba un programa en BASIC, se conserva, con el informe `L BREAK into
-    program`.
-  - Si era un `.ZXV`, el informe es el mismo, `L BREAK into program, 0:1`,
-    y la memoria del BASIC empieza de nuevo, porque el programa la ocupaba.
-  - En el monitor, se ve «Ctrl+Alt+Supr».
-- **Lo que se para:** se callan los dos AY y el beeper, y se cierran los ficheros
-  abiertos.
+- **Lo que se pierde:** la memoria de la máquina se borra, como al encender: el
+  programa que hubiera (BASIC o `.ZXV`) y lo que no se haya guardado. Para
+  parar un programa BASIC sin perderlo está BREAK.
+- **Lo que queda:** lo que guarda la plataforma, el idioma (§7.10) y las
+  preferencias (§7.11). Los ficheros abiertos se cierran: lo escrito antes de
+  cerrarlos puede no estar en la tarjeta.
 - **Lo que no recibe el programa:** la tecla Supr de esa combinación no llega a la
   cola de teclas.
+- **La entrada `ZXV_ROM_BASE + 4`** de la ROM queda reservada: hasta D101 era la
+  de Ctrl+Alt+Supr, que reiniciaba solo la CPU para conservar el programa. En el
+  RP2350, reiniciar la CPU se lleva también el núcleo de servicios.
 - **En el emulador** se hace lo mismo, con las teclas de verdad o con `{RESET}` en
   `--type`.
 
-### 7.7 Ficheros (tarjeta SD y disco ROM)
+### 7.7 Ficheros (tarjeta SD, disco ROM y unidad EXT:)
 
 La tarjeta usa FAT, FAT32 o exFAT. El emulador la imita sobre una carpeta del
 anfitrión (`--sd`), o usa una imagen de tarjeta con el mismo código que la Pico
 (`--sd-image`).
 
-**Las unidades.** Las mismas funciones sirven para dos unidades:
+**Las unidades.** Las mismas funciones sirven para tres unidades:
 
 - `SD:`, la tarjeta, donde se lee y se escribe.
 - `ROM:`, el **disco ROM**: ficheros de solo lectura en la flash
-  (`0x100C_0000`, 3,25 MB) que vienen con la máquina, con los ejemplos. En el
+  (`0x1040_0000`, 2.540 KB) que vienen con la máquina, con los ejemplos. En el
   emulador es un fichero (`romdisk.bin`, o `--romdisk`). Lo que escribe en él
   (abrir para escribir, borrar, renombrar, crear carpetas) da `ZXV_E_ACCESS`.
+- `EXT:`, la **unidad remota**: los ficheros de una carpeta que sirve otro
+  equipo por un enlace de comunicaciones, donde se lee y se escribe (abajo).
 
-Una ruta que empieza por `ROM:` o `SD:` (sin distinguir mayúsculas) va a esa
-unidad **desde su raíz**: `ROM:graphics` es `ROM:/graphics`, y `ROM:` sola, la raíz.
-Sin prefijo, la ruta es de la unidad en la que está la carpeta actual. La
-carpeta actual puede estar en cualquiera de las dos: `dir_change("ROM:")`
-entra en el disco ROM y `dir_change("SD:")` vuelve a la raíz de la tarjeta.
-`dir_current` da `/...` en la tarjeta (como siempre) y `ROM:/...` en el disco
-ROM. Si no hay disco ROM, lo que va a `ROM:` da `ZXV_E_NOENT`.
+Una ruta que empieza por `ROM:`, `SD:` o `EXT:` (sin distinguir mayúsculas) va
+a esa unidad **desde su raíz**: `ROM:graphics` es `ROM:/graphics`, y `ROM:`
+sola, la raíz. Sin prefijo, la ruta es de la unidad en la que está la carpeta
+actual. La carpeta actual puede estar en cualquiera de las tres:
+`dir_change("ROM:")` entra en el disco ROM, `dir_change("EXT:")` en la unidad
+remota y `dir_change("SD:")` vuelve a la raíz de la tarjeta. `dir_current` da
+`/...` en la tarjeta (como siempre), `ROM:/...` en el disco ROM y `EXT:/...`
+en la unidad remota. Si no hay disco ROM, lo que va a `ROM:` da
+`ZXV_E_NOENT`.
+
+**La unidad EXT:** (D101, fase 4).
+- **Quién la sirve.** Cualquier equipo que hable el protocolo de la unidad
+  remota (`docs/es/hardware/protocol.md`): un PC, una Raspberry Pi, un móvil,
+  otra ZX-V... A ese equipo se le llama **el servidor**. Sirve una carpeta y
+  nada fuera de ella: `..` en su raíz se queda en la raíz, como en la tarjeta.
+- **Por dónde.** Hoy, la tira J5 de la placa (la UART de la Pico CPU, la de
+  la carga remota). Más adelante puede haber otros enlaces (el Wi-Fi de una
+  Pico 2 W). Es **una sola unidad** sea cual sea el enlace: un programa que
+  usa `EXT:datos.dat` funciona igual por cable que por Wi-Fi. Si hubiera un
+  servidor en cada enlace a la vez, se usa el del cable.
+- **Sin servidor**, todo lo que va a `EXT:` da `ZXV_E_OFFLINE`. Si el servidor
+  se va con ficheros o carpetas abiertos en `EXT:`, siguen ocupando su número
+  hasta cerrarlos, y lo que se haga con ellos da `ZXV_E_OFFLINE`. Cuando la
+  máquina se reinicia (Ctrl+Alt+Supr, §7.6), el servidor cierra lo que tuviera
+  abierto de ella.
+- **Las mismas reglas** que en la tarjeta: rutas, nombres (sin distinguir
+  mayúsculas, conservando la grafía al crear), modos de `file_open` y
+  entradas de carpeta. El servidor no enseña lo que no cumple las reglas de
+  los nombres (por ejemplo, con acentos).
+- **Lo que no sustituye.** Un servidor puede negarse a sustituir un fichero
+  que no escribió la máquina (lo que había en su carpeta con otro
+  contenido): `ZXV_E_ACCESS`. El de referencia (`zxv-link`) lo hace, salvo que
+  quien lo maneja lo permita.
+- **Velocidad.** Por J5, unos 80 KB por segundo: un programa de 100 KB carga
+  en algo más de un segundo. La tarjeta es más rápida; leer de `EXT:` mientras
+  se juega (música, por ejemplo) va más justo.
+- **Qué carpeta.** Siempre una que se elige a propósito, nunca la de un
+  programa: la máquina puede crear ficheros en ella. En el emulador, la de
+  `--ext` (o la de sus ajustes); sin ella, `EXT:` no tiene servidor.
 
 **La carpeta del programa (el BASIC).** El BASIC apunta la carpeta del
 fichero del que cargó el programa (`.zvb`, `.tap`, `.tzx` o `.bas`; `NEW` y los
@@ -749,7 +841,8 @@ miran la carpeta actual (D82).
 
 **Límites:** 8 ficheros y 4 carpetas abiertos a la vez en cada unidad. Los
 números de los ficheros del disco ROM son el 8 y siguientes, y los de sus
-carpetas, el 4 y siguientes.
+carpetas, el 4 y siguientes; los de la unidad `EXT:`, el 16 y siguientes, y
+los de sus carpetas, el 8 y siguientes.
 
 **En una tarjeta de verdad** (y con `--sd-image`):
 - No se puede borrar ni renombrar un fichero abierto, ni abrir para escribir uno que
@@ -789,6 +882,7 @@ sobre memoria que contiene código es válido: después hay que ejecutar `fence.
 | −15 | `ZXV_E_RANGE` | No cabe (en la memoria de usuario, o en el buffer de `dir_current` o `file_load`) |
 | −16 | `ZXV_E_NOCLOCK` | El reloj no está en hora (§7.9) |
 | −17 | `ZXV_E_INVAL` | Valor no válido (una fecha que no existe, §7.9) |
+| −18 | `ZXV_E_OFFLINE` | La unidad `EXT:` no tiene servidor (o ha dejado de contestar) |
 
 ### 7.8 Gráficos para juegos
 
@@ -1015,7 +1109,7 @@ minúsculas guardado en un u32, la primera letra en el byte bajo:
   que lo guarda también en la plataforma: devuelve 0, o `ZXV_E_INVAL` si no son
   dos letras minúsculas. En el BASIC, `LANGUAGE "es"`.
 - **Al arrancar en frío**, la ROM lo pide a la plataforma (`lang_get`, desde la
-  versión 4 de la interfaz); en caliente (Ctrl+Alt+Supr) se queda el que había.
+  versión 4 de la interfaz); tras una excepción se queda el que había.
   Con una plataforma anterior, o si lo que da no vale, el inglés.
 - **Persistencia.** En la Pico se guarda con la hora en el reloj (en registros
   de la alarma que ZX-V no usa, dev/hardware-pico.md §7): sobrevive al
@@ -1049,8 +1143,8 @@ siguen al apagarla, como el idioma. Están en la variable `PREFS` (§8.1).
   que leen el teclado (`INKEY$`, la API) no lo hacen. Se quita y se pone en
   el menú EDIT del editor.
 - **Dónde están.** La ROM las lee de la plataforma al arrancar en frío
-  (`prefs_get`, desde la versión 5 de la interfaz) y las deja en `PREFS`; en
-  caliente se quedan las que había. Al cambiarlas, se las pasa
+  (`prefs_get`, desde la versión 5 de la interfaz) y las deja en `PREFS`; tras
+  una excepción se quedan las que había. Al cambiarlas, se las pasa
   (`prefs_set`). Con una plataforma anterior, ninguna, hasta que se apague.
 - **Persistencia.** En la Pico se guardan en el reloj, con el idioma
   (dev/hardware-pico.md §7). En el emulador, `zxv` las guarda en sus ajustes
@@ -1058,6 +1152,25 @@ siguen al apagarla, como el idioma. Están en la variable `PREFS` (§8.1).
   sin ninguna, o con `--no-click`. Al cargar una instantánea, el emulador
   pone en `PREFS` las de ahora, no las que traía la memoria: son del
   usuario, no del programa.
+
+### 7.12 Actualizar el firmware
+
+En la máquina, el firmware de las dos Pico (con la ROM y el disco ROM) se
+actualiza desde la tarjeta (D96): el fichero `zxv-update.bin`
+(`ZXV_UPDATE_FILE`) en la carpeta raíz y, en el menú EDIT del editor,
+**Actualizar firmware**. El emulador no lo tiene (la versión 5 de la
+interfaz), y el cuadro lo dice.
+
+- **`int update_info(void *info)`** mira el fichero y deja en `info`
+  (`ZXV_UPDATE_INFO_SIZE`, 48 bytes) tres versiones, cadenas de hasta 15
+  caracteres con su 0: la del fichero (`+0`), la de la Pico CPU (`+16`) y la
+  de la Pico ULA (`+32`, vacía si la ULA no la cuenta). Da 0 si se puede
+  actualizar, o `ZXV_E_NOCARD`, `ZXV_E_NOENT` (no está el fichero),
+  `ZXV_E_FORMAT` (no es una actualización de ZX-V) o `ZXV_E_ACCESS` (la
+  flash de la CPU no tiene particiones: hay que grabarla por USB una vez).
+- **`int update_start(void)`** reinicia las dos Pico en el modo de
+  actualización; si vuelve, con el error. Lo que pasa después, con su propia
+  pantalla, lo cuenta dev/hardware-pico.md §8.
 
 ---
 
@@ -1217,8 +1330,7 @@ pantalla de carga, si la hay, y de la imagen que se copia en `load_addr`:
     ` (código)` si no es 0; por ejemplo, `W Fichero dañado (5), 0:1`. El
     texto (UTF-8, hasta 47 bytes) se copia antes de reiniciar la memoria.
     Con `msg` vacío, el texto de siempre;
-  - una excepción (§7.5): `W Error en el código nativo, 0:1`;
-  - Ctrl+Alt+Supr (§7.6): `L BREAK into program, 0:1`.
+  - una excepción (§7.5): `W Error en el código nativo, 0:1`.
 
   El código nativo llamado con `USR` es distinto: el valor de `a0` es el
   resultado de `USR`, y el programa BASIC sigue ahí.

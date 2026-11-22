@@ -31,9 +31,13 @@ Opciones:
                       A es espacio y B, Intro), qaop (Q, A, O y P; A es
                       espacio y B, M) o none; o un fichero o texto JSON
   --zip FICHERO.zip   además, la página en un .zip (index.html en la raíz)
+  --kit-url URL       no copia el kit: la página usa el de URL (relativa a
+                      ella, como ../kit/), que comparten varias páginas de un
+                      mismo sitio; en la carpeta solo van index.html y game.js
 
 game.json lleva lo mismo: "start", "files", "title", "id", "lang", "border",
-"fit", "touch" y "kit" (las rutas, relativas a él). Las opciones de la línea
+"fit", "touch", "kit" y "kit_url" (las rutas, relativas a él; kit_url no, que es
+una dirección vista desde la página). Las opciones de la línea
 de órdenes mandan sobre las suyas.
 """
 import base64
@@ -105,9 +109,13 @@ Options:
                       space and B, Enter), qaop (Q, A, O and P; A is space and
                       B, M) or none; or a JSON file or text
   --zip FILE.zip      also, the page in a .zip (index.html at its root)
+  --kit-url URL       does not copy the kit: the page uses the one at URL
+                      (relative to it, like ../kit/), shared by several pages
+                      of a site; only index.html and game.js go in the folder
 
 game.json takes the same: "start", "files", "title", "id", "lang", "border",
-"fit", "touch" and "kit" (paths relative to it). Command-line options win
+"fit", "touch", "kit" and "kit_url" (paths relative to it; not kit_url, which
+is an address seen from the page). Command-line options win
 over its own.
 """
 
@@ -200,7 +208,7 @@ def parse(argv):
     """Las opciones: un diccionario con los campos de game.json."""
     cfg, files, config_path = {}, [], None
     names = {"--title": "title", "--id": "id", "--lang": "lang", "--border": "border", "--fit": "fit",
-             "--touch": "touch", "--kit": "kit", "--zip": "zip", "--config": None}
+             "--touch": "touch", "--kit": "kit", "--zip": "zip", "--kit-url": "kit_url", "--config": None}
     i = 0
     while i < len(argv):
         a = argv[i]
@@ -322,16 +330,38 @@ def build(cfg):
     if screen:
         game["screen"] = base64.b64encode(screen).decode("ascii")
 
+    kit_url = cfg.get("kit_url")
+    page = None
+    if kit_url is not None:
+        if cfg.get("zip"):
+            raise Error(tr("--zip and --kit-url do not go together: the .zip would be missing the kit",
+                           "--zip y --kit-url no van juntas: al .zip le faltaría el kit"))
+        if not kit_url.endswith("/"):
+            kit_url += "/"
+        # Solo la página, con el kit (estilo, motor y play.js) en kit_url
+        with open(os.path.join(kit, "index.html"), encoding="utf-8") as f:
+            page = f.read()
+        for name in ("play.css", "engine.js", "play.js"):
+            attr = "href" if name.endswith(".css") else "src"
+            old = f'{attr}="{name}"'
+            if old not in page:
+                raise Error(tr(f"{kit}/index.html: {old} is missing", f"{kit}/index.html: falta {old}"))
+            page = page.replace(old, f'{attr}="{kit_url}{name}"')
+
     out = cfg["out"]
     if os.path.isdir(out):
         shutil.rmtree(out)
     os.makedirs(out)
-    for f in KIT + KIT_EXTRA:
-        src = os.path.join(kit, f)
-        if os.path.isdir(src):
-            shutil.copytree(src, os.path.join(out, f))
-        elif os.path.isfile(src):
-            shutil.copyfile(src, os.path.join(out, f))
+    if page is not None:
+        with open(os.path.join(out, "index.html"), "w", encoding="utf-8", newline="\n") as f:
+            f.write(page)
+    else:
+        for f in KIT + KIT_EXTRA:
+            src = os.path.join(kit, f)
+            if os.path.isdir(src):
+                shutil.copytree(src, os.path.join(out, f))
+            elif os.path.isfile(src):
+                shutil.copyfile(src, os.path.join(out, f))
     with open(os.path.join(out, "game.js"), "w", encoding="utf-8", newline="\n") as f:
         f.write("/* El juego de esta página (sdk/tools/mkweb.py). */\n")
         f.write("window.ZXV_GAME = " + json.dumps(game, ensure_ascii=False, indent=1) + ";\n")

@@ -167,16 +167,19 @@ CAT "ROM:"
 | `keep.zxv` | *The Keep*, a four-floor dungeon adventure |
 | `chess.zxv` | *ZXV Chess*, chess against the machine or for two players |
 | `gonesilent.zxv` | *Gone Silent*, a 3D adventure in an abandoned mining colony |
+| `petitsoccer.zxv` | *Petit Soccer*, seven-a-side football against the machine or for two players, written in ZX Basic |
 | `graphics.zxv` | A graphics demo: scrolling scenery, bouncing balls, a spinning star and a 3D floor |
 | `scroll.zxv` | Smooth scrolling over a landscape four screens wide, with parallax |
 | `digital.zxv` | Digitised sound played through the music chip |
+| `samples.zxv` | The twelve sample channels: a note, a plucked string, a chord with all twelve at once and more, each on a key |
 | `hello.zxv` | The smallest example of a native program |
 | `boardtest.zxv` | The board test: screen, clock, SD card, keyboard, gamepads, mouse and sound, one by one |
 | `files.zxv` | A native program that creates, reads and lists files on the SD card |
 | `gfxedit.zxv` | An editor for sprites, tiles and maps on the machine itself |
-| `player.zxv` | A player for the music (PT3...) and sound effects (AYFX) on the card |
+| `player.zxv` | A player for the music (`.zxm`, PT3, VGM...) and sound effects (AYFX) on the card |
 
-The files ending in `.zxv` are **native programs**, written in C. Load one with
+The files ending in `.zxv` are **native programs**, written in C (or compiled
+from [ZX Basic](zxbasic.md), like Petit Soccer). Load one with
 `LOAD`:
 
 ```

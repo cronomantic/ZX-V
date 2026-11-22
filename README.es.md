@@ -28,15 +28,15 @@ un programa.
 - **Hardware real** con dos Raspberry Pi Pico 2: una es la CPU y la otra la
   "ULA" (el vídeo y el sonido).
 
-> **Estado:** el emulador y la ROM con el BASIC funcionan. El firmware de cada
-> Pico se ha probado por separado, en una protoboard, pero las dos Pico todavía
-> no se han probado juntas. La placa está diseñada, pero aún no se ha
-> fabricado.
+> **Estado:** el emulador y la ROM con el BASIC funcionan, y también la
+> primera placa, con las dos Pico juntas (faltan por probar en ella la tarjeta
+> microSD y la pila del reloj).
 
 ## Pruébalo
 
-**En el navegador:** [cronomantic.github.io/ZX-V](https://cronomantic.github.io/ZX-V/),
-sin instalar nada.
+**En el navegador:** [cronomantic.github.io/ZX-V/emulator](https://cronomantic.github.io/ZX-V/emulator/),
+sin instalar nada. La web del proyecto, con sus juegos para jugar ahí mismo,
+es [cronomantic.github.io/ZX-V](https://cronomantic.github.io/ZX-V/es/).
 
 **En tu ordenador:** descarga la última versión de
 [**Releases**](https://github.com/cronomantic/ZX-V/releases):
@@ -95,7 +95,7 @@ programa.
 | | |
 |---|---|
 | [`sdk/`](sdk) | El SDK para programas nativos en C, con sus ejemplos y ocho juegos completos en C. Licencia MIT ([`sdk/LICENSE`](sdk/LICENSE)): tus programas pueden tener la licencia que quieras |
-| [`examples/`](examples) | Juegos en BASIC (`basic/`) y uno en BASIC compilado con ZX Basic (`zxbasic/stardust`). Licencia MIT ([`examples/LICENSE`](examples/LICENSE)) |
+| [`examples/`](examples) | Juegos en BASIC (`basic/`) y dos en BASIC compilado con ZX Basic (`zxbasic/stardust` y `zxbasic/petitsoccer`). Licencia MIT ([`examples/LICENSE`](examples/LICENSE)) |
 | [`docs/`](docs) | La documentación, en español y en inglés. Licencia CC BY 4.0 ([`docs/LICENSE`](docs/LICENSE)), igual que `dev/`; sus ejemplos de código son de dominio público |
 | [`pcb/`](pcb) | La placa, revisión 1: el proyecto de KiCad, los ficheros para pedirla a JLCPCB y los guiones que la hicieron. Hardware abierto, licencia CERN-OHL-W v2 ([`pcb/LICENSE`](pcb/LICENSE), con las excepciones en [`pcb/NOTICE`](pcb/NOTICE)); los guiones, MIT |
 | [`dev/`](dev) | La especificación técnica de la máquina ([`spec.md`](dev/spec.md)) y de su BASIC ([`basic.md`](dev/basic.md)): mapa de memoria, registros, la API de la ROM y los formatos de fichero |

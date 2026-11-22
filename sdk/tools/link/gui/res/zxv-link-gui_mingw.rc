@@ -1,0 +1,2 @@
+// Con MinGW, el manifiesto va como recurso (con MSVC lo añade el enlazador).
+1 24 "zxv-link-gui.manifest"

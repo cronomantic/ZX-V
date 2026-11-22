@@ -1,13 +1,14 @@
 /*
- * main.cpp - zxv-tracker, el tracker de ZX-V para el PC: música para los dos
- * AY en módulos PT3 (Pro Tracker 3 y Vortex Tracker II) y efectos AYFX, los
- * que toca la biblioteca de música del SDK (zxv_music.h).
+ * main.cpp - zxv-tracker, el tracker de ZX-V para el PC: canciones .zxm con
+ * los dos AY y hasta 12 pistas de muestras, módulos PT3 (Pro Tracker 3 y
+ * Vortex Tracker II) y efectos AYFX, los que toca la biblioteca de música
+ * del SDK (zxv_music.h). Abre también MOD, S3M y XM.
  *
- *   zxv-tracker [FICHERO.pt3 | FICHERO.afb]
+ *   zxv-tracker [FICHERO.zxm | .pt3 | .mod | .s3m | .xm | .afb]
  *   zxv-tracker --screenshot CAPTURA.png [--tab N] [FICHERO]
  *         (para las pruebas: abre, guarda la ventana en la captura y acaba)
- *   zxv-tracker --wav SALIDA.wav FICHERO.pt3
- *         (toca el módulo una vez, a un WAV, y acaba)
+ *   zxv-tracker --wav SALIDA.wav FICHERO
+ *         (toca la canción una vez, a un WAV, y acaba)
  *
  * Habla el idioma del sistema si es el español y si no, el inglés; con
  * --lang es o --lang en, ese.
@@ -21,6 +22,8 @@
 #include <QTranslator>
 
 #include <algorithm>
+#include <cstdint>
+#include <cstdio>
 
 #include "mainwindow.h"
 #include "zxv_version.h"
@@ -42,6 +45,26 @@ static void installQtTranslation(QApplication &app, const QString &code)
     delete t;
 }
 
+/* "1,2,5-9" (desde 1, hasta 64): el bit de cada canal (desde 0), o 0 si no
+ * vale o son más de 12. */
+static uint64_t channelList(const QString &s)
+{
+    uint64_t set = 0;
+    for (const QString &part : s.split(',')) {
+        QStringList ab = part.split('-');
+        bool ok1 = false, ok2 = true;
+        int a = ab.value(0).toInt(&ok1), b = ab.size() == 2 ? ab[1].toInt(&ok2) : a;
+        if (ab.size() > 2 || !ok1 || !ok2 || a < 1 || b < a || b > 64)
+            return 0;
+        for (int c = a; c <= b; c++)
+            set |= uint64_t(1) << (c - 1);
+    }
+    int n = 0;
+    for (int c = 0; c < 64; c++)
+        n += int(set >> c & 1);
+    return n <= 12 ? set : 0;
+}
+
 int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
@@ -53,11 +76,14 @@ int main(int argc, char **argv)
     args.addHelpOption();
     args.addVersionOption();
     QCommandLineOption shot("screenshot", "Guarda la ventana en una imagen y acaba.", "fichero");
-    QCommandLineOption tab("tab", "La pestaña (0-3) que se enseña.", "n");
+    QCommandLineOption tab("tab", "La pestaña (0-5) que se enseña.", "n");
     QCommandLineOption wav("wav", "Toca el módulo una vez, a un WAV, y acaba.", "fichero");
     QCommandLineOption lang("lang", "El idioma: es o en.", "idioma");
-    args.addOptions({ shot, tab, wav, lang });
-    args.addPositionalArgument("fichero", "Un módulo .pt3 o un banco de efectos .afb.");
+    QCommandLineOption chans("channels",
+                             "De un MOD, S3M o XM de más de 12 canales, los que van (1,2,5-9; desde 1, hasta 12).",
+                             "lista");
+    args.addOptions({ shot, tab, wav, lang, chans });
+    args.addPositionalArgument("fichero", "Una canción (.zxm, .pt3, .mod, .s3m o .xm) o un banco de efectos .afb.");
     args.process(app);
 
     QString code = args.isSet(lang) ? args.value(lang) : QLocale::system().name().left(2);
@@ -70,12 +96,20 @@ int main(int argc, char **argv)
     MainWindow w;
     if (!args.isSet(wav))
         w.show();
-    if (!args.positionalArguments().isEmpty() && !w.open(args.positionalArguments().first()))
+    /* Sin preguntar los canales al tocarlo a un WAV o al guardar la ventana
+     * (sin nadie delante): los de --channels o los que más notas tocan. */
+    uint64_t channels = 0;
+    if (args.isSet(chans) && !(channels = channelList(args.value(chans)))) {
+        fprintf(stderr, "--channels: hasta 12 canales, como 1,2,5-9\n");
+        return 2;
+    }
+    bool ask = !args.isSet(wav) && !args.isSet(shot);
+    if (!args.positionalArguments().isEmpty() && !w.open(args.positionalArguments().first(), channels, ask))
         return 1;
     if (args.isSet(wav))
         return w.exportWav(args.value(wav)) ? 0 : 1;
     if (args.isSet(tab))
-        w.showTab(std::clamp(args.value(tab).toInt(), 0, 3));
+        w.showTab(std::clamp(args.value(tab).toInt(), 0, 5));
     if (args.isSet(shot)) {
         QString path = args.value(shot);
         QTimer::singleShot(300, &w, [&w, path] {

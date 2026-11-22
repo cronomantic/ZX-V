@@ -3,10 +3,10 @@
 # En una protoboard
 
 Antes de que hubiera placa, ZX-V se montó en una protoboard con Pico 2 y unos
-cuantos módulos, y así se ha probado su firmware, una Pico cada vez. **Las dos
-Pico todavía no se han probado juntas**, así que la máquina completa que se
-describe aquí está sin probar. Esta página explica cómo montarla de esa
-manera.
+cuantos módulos, y así se ha probado su firmware, una Pico cada vez. Las dos
+Pico juntas funcionan: así va la placa ([La placa](board.md)). Lo que **no se
+ha probado** es el cableado de las dos juntas en una protoboard que se
+describe aquí. Esta página explica cómo montarla de esa manera.
 
 > **Lo recomendado es la placa** ([La placa](board.md)): lo lleva todo, las
 > señales rápidas (el HDMI y el enlace entre las Pico) van cortas y bien
@@ -51,8 +51,8 @@ extremo del micro-USB. Estos son todos los que usa ZX-V:
 | 4 | GP2 | Tarjeta: SCK | Audio izquierda |
 | 5 | GP3 | Tarjeta: MOSI | Audio derecha |
 | 6, 7, 9, 10, 11, 12, 14, 15 | GP4–GP11 | Enlace D0–D7 (salida) | Enlace D0–D7 (entrada) |
-| 16 | GP12 | Puerto serie de depuración: TX | HDMI D0+ |
-| 17 | GP13 | Puerto serie de depuración: RX | HDMI D0− |
+| 16 | GP12 | Carga remota (UART0): TX | HDMI D0+ |
+| 17 | GP13 | Carga remota (UART0): RX | HDMI D0− |
 | 19 | GP14 | USB D+ | HDMI CLK+ |
 | 20 | GP15 | USB D− | HDMI CLK− |
 | 21 | GP16 | Reloj: SDA | HDMI D2+ |
@@ -71,7 +71,7 @@ extremo del micro-USB. Estos son todos los que usa ZX-V:
 | 3, 8, 13, 18, 23, 28, 33, 38 | GND | Masa | Masa |
 
 Fíjate en que de GP12 a GP19 son cosas distintas en cada Pico: en la ULA, la
-salida HDMI; en la CPU, el puerto de depuración, el USB y el reloj. No los
+salida HDMI; en la CPU, la carga remota (UART0), el USB y el reloj. No los
 unas.
 
 ## La alimentación
@@ -239,14 +239,14 @@ BAT54C (dos diodos) que alimenta el chip desde los 3,3 V y desde la pila
 CR2032, con un condensador de 100 nF. El firmware busca primero un DS3231 y
 luego un PCF8563, y usa el que encuentre.
 
-## El reinicio y el puerto de depuración (opcionales)
+## El reinicio y la carga remota (opcionales)
 
 - **El reinicio:** un pulsador del pin **RUN** (pin 30) de cada Pico a masa la
   reinicia. La placa une los RUN de las dos a un solo pulsador.
-- **El puerto serie de depuración:** en la Pico CPU, GP12 (pin 16) es TX y
-  GP13 (pin 17) es RX, a 921600 baudios y 3,3 V. Crúzalos con un adaptador
-  USB-serie de 3,3 V (TX con RX). De todas formas, los mismos mensajes salen
-  por el micro-USB.
+- **La carga remota:** en la Pico CPU, GP12 (pin 16) es TX y GP13 (pin 17)
+  es RX, a 3,3 V. Crúzalos con un adaptador USB-serie de 3,3 V (TX con RX)
+  para mandar programas desde el PC con `zxv-link`
+  ([El firmware](firmware.md#cargar-programas-desde-el-pc-j5)).
 
 ## Paso a paso
 
@@ -256,10 +256,10 @@ luego un PCF8563, y usa el que encuentre.
    pulsador del modo y el LED, y prueba los modos.
 2. **Las dos Pico.** Cablea el enlace, carga `zxv_cpu.uf2` en la Pico CPU y
    `zxv_ula_link.uf2` en la Pico ULA. En la pantalla debería salir el BASIC.
-   Abre el puerto serie de la Pico CPU con un terminal: lo que escribas ahí le
-   llega a la máquina, y cada 5 segundos escribe un informe. (Este es el paso
-   que todavía no se ha probado: si falla, empieza por el informe del puerto
-   serie.)
+   Abre el puerto serie de la Pico CPU (su micro-USB) con un terminal: cada
+   5 segundos escribe un informe. (Las dos Pico juntas funcionan en la placa,
+   pero este cableado en una protoboard no se ha probado: si falla, empieza
+   por el informe del puerto serie.)
 3. **La tarjeta SD, el USB-A y el reloj**, de uno en uno, mirando cada uno en
    el informe (`tarjeta`, `USB`, `reloj`) y desde el BASIC: `CAT` para la
    tarjeta, escribir algo para el teclado, y `CLOCK 2026,10,20,18,30` y luego

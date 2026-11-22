@@ -120,6 +120,7 @@ Los mismos números LCSC de `zxv-bom.csv` valen en LCSC o en cualquier tienda.
 |---|---|---|---|---|
 | U1, U2 | Raspberry Pi Pico 2 | 2 | — | U1 es la Pico CPU; U2, la Pico ULA |
 | (U1, U2) | Tira de pines macho de 1 × 20, 2,54 mm | 4 | C50981 | No hacen falta si sueldas las Pico por sus bordes, o si tus Pico ya las traen |
+| (U1, U2) | Tira de pines hembra de 1 × 20, 2,54 mm (opcional) | 4 | — | Zócalos, para poder quitar las Pico; con las tiras macho en las Pico |
 | SW1, SW2 | Pulsador de 6 × 6 mm en ángulo recto (Omron B3F-3152) | 2 | C231320 | RESET y MODO |
 | SW3 | Interruptor deslizante en ángulo recto (Shou Han SK12D07VG4) | 1 | C393937 | El encendido (`OFF` / `ON`) |
 | LED1 | LED de 3 mm, verde difuso (Lite-On LTL-4231N) | 1 | C125082 | SD |
@@ -155,19 +156,34 @@ sobre la placa.
 ### Las tiras opcionales
 
 **J5** (3 pines, `UART`) y **J6** (4 pines, `I2C`) están detrás a la derecha.
-Solo hacen falta para depurar (J5) o para conectar un módulo I2C, como un
-reloj DS3231 (J6). Tiras macho rectas de 2,54 mm.
+Solo hacen falta para la carga remota (J5: mandar programas desde el PC,
+depurar el BASIC en la placa y servir la unidad `EXT:`; ver
+[Cargar programas desde el PC](firmware.md#cargar-programas-desde-el-pc-j5))
+o para conectar un módulo I2C, como un reloj DS3231 (J6). Tiras macho rectas
+de 2,54 mm.
 
 ### Las Pico
 
-La huella admite las Pico de dos maneras:
+La huella admite las Pico de tres maneras:
 
-- **Con tiras de pines** (lo más fácil de soldar): suelda dos tiras de 1 × 20
-  a la Pico, o cómpralas con las tiras ya puestas, y luego suelda las tiras en
+- **En zócalos** (lo recomendado en una placa que estás probando): suelda dos
+  tiras hembra de 1 × 20 en los agujeros de la placa, y dos tiras macho en la
+  Pico (o cómprala con ellas puestas). La Pico se enchufa y se quita sin
+  desoldar nada: puedes cambiarla por otra, intercambiar las dos o medir la
+  placa sin ellas. Queda más alta, a unos 8,5 mm de la placa: mírala si la vas
+  a meter en una caja.
+- **Con tiras de pines**: las tiras macho de la Pico, soldadas directamente en
   los agujeros de la placa. La Pico queda un poco separada de la placa.
 - **Por sus bordes almenados**: apoya la Pico sobre la placa, cada medio
-  agujero sobre su pad, y suelda los dos lados. La mitad de soldaduras y más
-  baja; más difícil de quitar.
+  agujero sobre su pad, y suelda los dos lados. La mitad de soldaduras y la
+  más baja; la más difícil de quitar.
+
+**Para que queden rectas**, usa la placa de plantilla: mete las tiras en sus
+agujeros (en los zócalos, las hembra con las macho encajadas), apoya la Pico
+encima y suelda primero las cuatro esquinas por arriba. Mira que la Pico queda
+plana, suelda el resto y luego, con la Pico puesta para que no se tuerzan, las
+tiras por debajo de la placa, también empezando por las esquinas. Hazlo sin
+nada enchufado y repasa con lupa que no haya puentes entre pines vecinos.
 
 **La orientación:** los componentes de la Pico hacia arriba y su **conector
 micro-USB hacia el frontal** (hacia el USB-A y los pulsadores). La **Pico ULA
@@ -199,7 +215,8 @@ idioma y la distribución del teclado.
       `zxv_ula_link.uf2` en la Pico ULA.
 - [ ] La Pico ULA a la izquierda, la Pico CPU a la derecha, con el micro-USB
       hacia delante.
-- [ ] Los 80 pines de las Pico soldados (40 cada una).
+- [ ] Los 80 pines de las Pico soldados (40 cada una), o en sus zócalos con
+      los 80 de los zócalos soldados.
 - [ ] La CR2032 puesta, con el `+` hacia arriba.
 
 ## El primer encendido
@@ -238,8 +255,8 @@ Las primeras comprobaciones, **antes de soldar las Pico**, con un polímetro.
    teclas del editor hacen clic. Vuelve al BASIC con Esc, cámbialo en el menú
    EDIT (Tab, «Quitar el clic»), pulsa RESET y carga otra vez la prueba: la
    línea tiene que haber cambiado. RESET reinicia el firmware, que lo vuelve
-   a leer del reloj; Ctrl+Alt+Supr no vale, porque no lo reinicia. Si vuelve
-   a «sí», el reloj no lo guarda (o no hay reloj).
+   a leer del reloj (Ctrl+Alt+Supr también vale, porque también lo reinicia).
+   Si vuelve a «sí», el reloj no lo guarda (o no hay reloj).
 
 Las Pico se pueden conectar al ordenador por su micro-USB con la placa
 encendida: los diodos de protección separan las dos alimentaciones. **Con la
@@ -261,7 +278,7 @@ enlace. Si algo no funciona, mira [Qué mirar](firmware.md#si-no-hay-imagen-o-no
 | `ENLACE` | Delante, en la esquina derecha | LED2, rojo | Al arrancar parpadea el número del modo más uno; luego, encendido mientras llegan imágenes de la Pico CPU, parpadeando si algunas llegan con errores y apagado si no llega ninguna |
 | `microSD` | Lateral derecho | J3 | La tarjeta SD (se empuja para meterla y otra vez para sacarla) |
 | `CR2032` `+` | Lateral derecho | BT1 | La pila del reloj, con el `+` hacia arriba |
-| `UART` `GND` `TX` `RX` | Detrás, a la derecha | J5 (sin montar) | El puerto serie de depuración de la Pico CPU, a 3,3 V y 921600 baudios. `TX` es la salida de la Pico |
+| `UART` `GND` `TX` `RX` | Detrás, a la derecha | J5 (sin montar) | La carga remota: programas desde el PC con `zxv-link` y un adaptador USB-serie de 3,3 V ([cómo](firmware.md#cargar-programas-desde-el-pc-j5)). `TX` es la salida de la Pico |
 | `I2C` `3V3` `GND` `SDA` `SCL` | Detrás, a la derecha | J6 (sin montar) | El bus I2C del reloj, a 3,3 V, para otro módulo (si hay un módulo de reloj DS3231, se usa en lugar del de la placa) |
 | `ULA` *vídeo y sonido* | En el centro, a la izquierda | U2 | La Pico ULA |
 | `CPU` *BASIC y programas* | En el centro, a la derecha | U1 | La Pico CPU |

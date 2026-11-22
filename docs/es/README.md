@@ -39,8 +39,16 @@ Vienen con el emulador, para Windows y Linux:
 - **[El editor de gráficos, `zxv-gfx`](sdk/graphics.md#el-editor-de-gráficos-para-el-pc-zxv-gfx)**:
   sprites, tiles, mapas y texturas para el BASIC y los programas en C.
 - **[El tracker, `zxv-tracker`](sdk/README.md#el-tracker-para-el-pc-zxv-tracker)**:
-  música para los dos AY (módulos PT3) y efectos de sonido AYFX para el
-  BASIC y los programas en C.
+  música para los dos AY y los canales de muestras (canciones `.zxm` y
+  módulos PT3) y efectos de sonido AYFX para el BASIC y los programas en C.
+  Abre también, convertidos, los MOD, S3M y XM; de uno con más de 12
+  canales, pregunta cuáles van.
+- **[El conversor de música, `zxv-music`](sdk/README.md#el-formato-propio-zxm-y-zxv-music)**:
+  convierte PT3, TurboSound, MOD, S3M y XM al formato propio, `.zxm`.
+- **[La carga remota, `zxv-link` y `zxv-link-gui`](hardware/firmware.md#cargar-programas-desde-el-pc-j5)**:
+  mandan programas del PC a la placa por la tira J5 y los ejecutan, y sirven
+  una carpeta del PC como la [unidad `EXT:`](hardware/firmware.md#la-unidad-ext)
+  de la máquina.
 - **[Publicar tu juego en la web](sdk/web.md)**: `mkweb.py` (en el SDK) hace
   una página con tu juego solo, en C o en BASIC, para itch.io o tu web, con
   controles táctiles para los móviles.
@@ -56,8 +64,12 @@ Vienen con el emulador, para Windows y Linux:
   conecta todo.
 - **[La placa](hardware/board.md)**: pedir la placa montada y las piezas que
   sueldas tú.
-- **[El firmware](hardware/firmware.md)**: poner el software en las dos Pico.
+- **[El firmware](hardware/firmware.md)**: poner el software en las dos
+  Pico y actualizarlo, y cargar programas desde el PC por la tira J5, con
+  `zxv-link` y la unidad `EXT:`.
 - **[En una protoboard](hardware/protoboard.md)**: montarla sin la placa.
+- **[El protocolo](hardware/protocol.md)**: la unidad `EXT:` y la carga
+  remota por J5, para hacer tu propio servidor.
 
 ## Ejemplos
 
@@ -91,13 +103,16 @@ Vienen con el emulador, para Windows y Linux:
 - [The Keep, una aventura de mazmorras en C](../../sdk/examples/keep/README.es.md):
   cuatro plantas de salas vistas desde arriba, cuyos mapas puedes redibujar
   en `zxv-gfx`.
-- [ZXV Chess, ajedrez en C](../../sdk/examples/chess/README.es.md):
+- [ZXV Chess, ajedrez en C](../../sdk/examples/chess/README.es.md), de ximoKom:
   contra la máquina o entre dos, con el teclado, el mando o el ratón.
 - [Gone Silent, una aventura en 3D en C](../../sdk/examples/gonesilent/README.es.md):
   polígonos sólidos con tramas, criaturas en pixel art y una colonia que
   explorar con tu traje.
 - [Stardust, un juego en ZX Basic](../../examples/zxbasic/stardust/README.es.md):
   doble buffer, sprites y choques con `zxv.bas`, a 60 imágenes por segundo.
+- [Petit Soccer, fútbol en ZX Basic](../../examples/zxbasic/petitsoccer/README.es.md):
+  un campo más grande que la pantalla con scroll, equipos pintados con los
+  mismos sprites, música y efectos, contra la máquina o entre dos jugadores.
 
 ---
 

@@ -63,7 +63,7 @@ program line (with a line number, to be run later) or as a **direct command**
 - [Sprites, tile maps and fast graphics](#sprites-tile-maps-and-fast-graphics):
   `GRAB`, `SPRITE`, `TILE`, `MAP`, `FLOOR`, `BOX`, `DISC`, `POLY`...
 - [Sound and music](#sound-and-music): `BEEP`, `PLAY`, `SOUND`, `MUSIC`,
-  `SFX`
+  `SFX`, `SAMPLE`
 - [Keyboard, joystick and mouse](#keyboard-joystick-and-mouse): `INPUT`,
   `INKEY$`, `KEY`, `JOY`, `MOUSE`
 - [Files and the SD card](#files-and-the-sd-card): `SAVE`, `LOAD`, `CAT`,
@@ -1605,8 +1605,10 @@ from the top left, whatever drew it; -1 outside the page. It ignores
 
 ## Sound and music
 
-ZX-V has a beeper (a simple speaker, used by `BEEP`) and two AY sound chips
-with three channels each (used by `PLAY`, `SOUND`, `MUSIC` and `SFX`).
+ZX-V has a beeper (a simple speaker, used by `BEEP`), two AY sound chips
+with three channels each (used by `PLAY`, `SOUND`, `MUSIC` and `SFX`) and
+twelve sample channels, which play recorded sounds (`SAMPLE` and sample
+music).
 
 ### BEEP
 
@@ -1674,8 +1676,13 @@ SOUND register, value [; register, value]...
 
 Writes directly to the registers of the AY chips, for sound effects. Registers
 0 to 15 belong to the first chip and 16 to 31 to the second (same meaning, 16
-higher); values are 0 to 255. A register above 31 gives
-`B Integer out of range`.
+higher); values are 0 to 255. Registers 64 to 159 are those of the twelve
+sample channels, eight per channel (channel c starts at 64 + 8 × c): the
+sample (a table entry: the `SAMPLE` ones are 224 to 255), the volume
+(0–64), the pan, the control (1 starts it, 2 stops it), the three bytes of
+the step (8.16: 65,536 is 48 kHz) and where it starts; see the sample
+channels in the [SDK reference](../sdk/reference.md). Any other register
+gives `B Integer out of range`.
 
 | Register | Use |
 |---|---|
@@ -1708,12 +1715,28 @@ MUSIC                          (function)
 
 Plays music made with a tracker, in the background: the program carries on
 while it plays, as in games. `LOAD name$ MUSIC` loads a module (without an
-extension, `name.pt3`): Pro Tracker 3 or Vortex Tracker II (`.pt3`, the one
-the ZX-V tracker,
-[`zxv-tracker`](../sdk/README.md#the-tracker-for-the-pc-zxv-tracker), saves),
+extension, the first there is of `name.zxm`, `name.pt3`, `name.mod`,
+`name.s3m`, `name.xm`, `name.vgm` and `name.vgz`): ZX-V's own format (`.zxm`, with both AY chips
+and the sample channels: the one
+[`zxv-tracker`](../sdk/README.md#the-tracker-for-the-pc-zxv-tracker) or
+[`zxv-music`](../sdk/README.md#the-own-format-zxm-and-zxv-music) saves), a MOD,
+an S3M (Scream Tracker 3) or an XM (FastTracker 2), which it converts when
+loading and which play on the sample channels (up to 12: of those with
+more, the 12 that play the most notes), Pro Tracker 3 or Vortex Tracker II (`.pt3`, which
+`zxv-tracker` also saves),
 a TurboSound (two modules, one on each AY chip: six voices), Pro Tracker 2,
-Sound Tracker, ASC Sound Master or a PSG dump. A file that is none of those
-gives `R Tape loading error`.
+Sound Tracker, ASC Sound Master, a PSG dump or a VGM (`.vgm`, or
+compressed, `.vgz`: the registers of the AY chips, as emulators record
+them; see [VGM](../sdk/README.md#vgm-the-ay-chips)).
+A file that is none of those gives `R Loading error`.
+
+The samples of a MOD, an S3M, an XM or a `.zxm` go from the file to the
+sound memory (96 KB) when it is loaded, and only the song stays in the
+BASIC's memory (repeated patterns, once): the file can be bigger than that
+memory (a 300 KB MOD or a 1.6 MB XM fit, for example). With more than
+96 KB of samples, the biggest ones go in ADPCM, and if they still do not
+fit, also at half the rate (with less treble): modules with up to about
+96 KB of samples sound best, and almost the same up to about 170 KB.
 
 - `MUSIC PLAY` plays it from the start and, at the end, goes back to the
   module's loop position, for ever. Without a module loaded, `A Invalid
@@ -1722,15 +1745,24 @@ gives `R Tape loading error`.
   carries on where it was.
 - The `MUSIC` function is 1 while it plays and 0 if not.
 
-It plays on the first AY chip (a TurboSound, on both), with the same code
-as the tracker and C programs. It stops with `MUSIC STOP`, BREAK, `RUN`,
-`NEW`, `PLAY` (which uses the chips its own way) and when a native program
+A `.zxm` with sample tracks plays them on the sample channels from 0 on (one
+per track; the rest stay free), and when it starts it uploads its samples to
+the beginning of the sound memory and of its table.
+
+An AY module plays on the first chip (a TurboSound or a VGM for two AY
+chips, on both); a MOD, an S3M or an XM, on the sample channels; and a
+`.zxm`, on the chips and sample channels its tracks use. It is played by the
+same code as the tracker and C programs. It stops with `MUSIC STOP`,
+BREAK, `RUN`, `NEW`, `PLAY` (which uses the chips its own way) and when a native program
 is loaded; if the program ends or gives an error, it keeps playing. What
 `SOUND` writes on the music's chip lasts until the music writes that
 register again.
 
-The module takes the size of its file (2 to 15 KB for a normal one) and goes
-with the graphics: `RUN` and `CLEAR` keep it and `NEW` deletes it.
+In the BASIC's memory, an AY module or a VGM takes the size of its file (2
+to 15 KB for a normal PT3; a `.vgz` also takes 32 KB to decompress it while
+it plays), and a MOD, an S3M, an XM or a `.zxm` only its song: its samples
+go to the sound memory. The module goes with the graphics: `RUN` and `CLEAR`
+keep it and `NEW` deletes it.
 
 ```
 10 LOAD "tune" MUSIC: MUSIC PLAY
@@ -1751,7 +1783,7 @@ SFX                            (function)
 Sound effects as in games: an AYFX effect bank (`.afb`, the one the effects
 tab of `zxv-tracker` or the AY Sound FX Editor saves; without an extension,
 `name.afb`) or a single effect (`.afx`). A file that is not a bank gives
-`R Tape loading error`.
+`R Loading error`.
 
 - `SFX n` plays effect `n` of the bank (the first is 0) without waiting, on
   a free channel of the chip the music does not use (if there is none, on
@@ -1769,6 +1801,53 @@ BREAK, `RUN` and `NEW` stop them; the bank is kept like the module.
 ```
 10 LOAD "effects" SFX
 20 IF INKEY$=" " THEN SFX 0
+30 GO TO 20
+```
+
+### SAMPLE
+
+```
+LOAD name$ SAMPLE n
+SAMPLE n [, pitch [, volume [, pan]]] [; channel]
+SAMPLE STOP [channel]
+SAMPLE                         (function)
+```
+
+Recorded sounds (hits, voices, instruments) on the twelve sample channels,
+without waiting, together with the music and everything else.
+
+- `LOAD name$ SAMPLE n` loads a WAV (without an extension, `name.wav`) into
+  sample `n`, 0 to 31: 8 or 16 bits, mono or stereo (mixed down), at any
+  rate. It goes to the sound memory (96 KB) in 8 bits; it takes nothing from
+  the BASIC's memory. If the WAV has a loop (the one Audacity and sound
+  editors save), the sample repeats it until it is stopped. A file that is
+  not such a WAV gives `R Loading error`, and one that does not fit,
+  `4 Out of memory`.
+- `SAMPLE n` plays it at its own pitch, at full volume and in the centre.
+  `pitch` is in semitones above the pitch it was recorded at (0 the same, 12
+  an octave higher, -12 an octave lower; decimals are fine), `volume` 0 to
+  64 and `pan` 0 (left) to 255 (right), with 128 the centre.
+- Without `; channel`, it plays on a channel the music does not use (if
+  there is none left, on the one that has had an effect the longest). With
+  `; channel`, 0 to 11, on that one: if it is a music channel, it covers the
+  music while it plays, and the music carries on there at its next note.
+- `SAMPLE STOP` stops them all; with `channel`, the one on that channel.
+- The `SAMPLE` function is 1 while any of them plays.
+- Without the sample loaded, `A Invalid argument`.
+
+**With the music:** the song's samples go into the sound memory from the
+bottom and the `SAMPLE` ones from the top. Load the `SAMPLE` ones first: a
+song loaded afterwards fits into the room left (in ADPCM, or with less
+treble if need be), and a sample loaded after a song only uses what the
+song leaves free. A `.zxm` is already converted and doesn't adjust: if it
+doesn't fit, `4 Out of memory`; make it with
+[`zxv-music --free`](../sdk/README.md#the-own-format-zxm-and-zxv-music) so
+that it leaves room. BREAK, `RUN` and `NEW` stop the samples; the loaded ones
+are kept like the `SFX` bank, and `NEW` clears them.
+
+```
+10 LOAD "hit" SAMPLE 0: LOAD "theme" MUSIC: MUSIC PLAY
+20 IF INKEY$=" " THEN SAMPLE 0, RND*4-2
 30 GO TO 20
 ```
 
@@ -1932,7 +2011,10 @@ draw the pointer: your program draws it, for example with a sprite.
 ## Files and the SD card
 
 Programs and data are kept on the SD card. There is also a read-only drive,
-`ROM:`, with the examples that come with the machine.
+`ROM:`, with the examples that come with the machine, and the external
+drive, `EXT:`: a folder served by another device (through the board's J5
+header, or in the emulator with `--ext`), which is read and written like the
+card (see [The EXT: drive](../hardware/firmware.md#the-ext-drive)).
 
 ### File names and drives
 
@@ -1941,10 +2023,11 @@ Programs and data are kept on the SD card. There is also a read-only drive,
 - Folders are separated with `/`. A path starting with `/` begins at the root
   of the drive; otherwise it starts in the current folder (see [CD](#cd-dir)).
   `..` is the folder above.
-- `ROM:` and `SD:` at the start choose a drive, from its root:
-  `LOAD "ROM:hello"`, `CAT "SD:/games"`. Without a drive, the drive of the
-  current folder is used. Writing to `ROM:` (`SAVE`, `ERASE`, `MKDIR`...)
-  gives `V Disk error (not allowed)`.
+- `ROM:`, `SD:` and `EXT:` at the start choose a drive, from its root:
+  `LOAD "ROM:hello"`, `CAT "SD:/games"`, `SAVE "EXT:copy"`. Without a drive,
+  the drive of the current folder is used. Writing to `ROM:` (`SAVE`,
+  `ERASE`, `MKDIR`...) gives `V Disk error (not allowed)`. With no server
+  connected, everything on `EXT:` gives `V Disk error (no server for EXT:)`.
 - **Wildcards** in `CAT`, `ERASE`, `MOVE` and `COPY`: `*` stands for any
   characters (also none) and `?` for one character, in the last part of the
   path only: `"*.zvb"`, `"games/level?.dat"`. If nothing matches,
@@ -1953,7 +2036,7 @@ Programs and data are kept on the SD card. There is also a read-only drive,
 Common file errors are `F Invalid file name`, `T File not found`, `U No SD
 card` and `V Disk error`, which adds the reason when it is known:
 `(already exists)`, `(folder not empty)`, `(it is a folder)`,
-`(not a folder)`, `(card full)` or `(not allowed)`.
+`(not a folder)`, `(card full)`, `(not allowed)` or `(no server for EXT:)`.
 
 ### SAVE
 
@@ -2023,6 +2106,7 @@ LOAD name$ DATA letter$()
 LOAD name$ GRAPHICS
 LOAD name$ MUSIC
 LOAD name$ SFX
+LOAD name$ SAMPLE n
 ```
 
 Loads from the SD card (or the `ROM:` drive):
@@ -2052,9 +2136,10 @@ Loads from the SD card (or the `ROM:` drive):
   replacing the array of that name, as `DIM` does. The type must match.
 - `GRAPHICS`: the objects of a `.gfx` file replace those with the same number;
   the others stay, so you can load sprites from one file and a level from
-  another. A file that is not valid gives `R Tape loading error`.
-- `MUSIC` and `SFX`: a music module or an effect bank (see
-  [`MUSIC`](#music) and [`SFX`](#sfx)).
+  another. A file that is not valid gives `R Loading error`.
+- `MUSIC`, `SFX` and `SAMPLE`: a music module, an effect bank or a
+  recorded sound (see [`MUSIC`](#music), [`SFX`](#sfx) and
+  [`SAMPLE`](#sample)).
 
 `LOAD ""` (an empty name) loads the next block from the inserted tape (see
 [Tape files](#tape-files)).
@@ -2081,7 +2166,7 @@ VERIFY name$ [CODE ... | SCREEN$ | DATA ... | GRAPHICS]
 ```
 
 Checks that a file is the same as what is in memory, with the same forms as
-`LOAD`, without changing anything. If it differs, `R Tape loading error`.
+`LOAD`, without changing anything. If it differs, `R Loading error`.
 
 ### MERGE
 
@@ -2093,7 +2178,7 @@ Adds the lines of a saved program to the one in memory; lines with the same
 number are replaced. The same goes for the variables, as on the Spectrum:
 those in the file replace the ones with the same name, and the others stay.
 It also works with a [listing in text](#listings-in-text) (`.bas`), which has
-no variables. A protected program cannot be merged (`R Tape loading error`).
+no variables. A protected program cannot be merged (`R Loading error`).
 
 ### Protected programs
 
@@ -2171,9 +2256,10 @@ DIR$
 ```
 
 `CD` changes the current folder: `CD "games"`, `CD ".."` (the folder above),
-`CD "/"` (the root of the drive), `CD "ROM:"` (the built-in examples drive)
-and `CD "SD:"` (back to the card). The function `DIR$` gives the current
-folder, such as `"/games"` or `"ROM:/"`.
+`CD "/"` (the root of the drive), `CD "ROM:"` (the built-in examples drive),
+`CD "EXT:"` (the external drive) and `CD "SD:"` (back to the card). The
+function `DIR$` gives the current folder, such as `"/games"`, `"ROM:/"` or
+`"EXT:/"`.
 
 ```
 CD "ROM:": PRINT DIR$: CAT
@@ -2252,7 +2338,8 @@ When the program ends, BASIC shows a report, as after a command:
   `W Data file damaged (5), 0:1`.
 - `W Native code error, 0:1` if it crashed (for example, by reading from a
   forbidden address).
-- `L BREAK into program, 0:1` if you stopped it with Ctrl+Alt+Delete.
+- None if you stopped it with Ctrl+Alt+Delete: the machine starts again, as
+  when you switch it on.
 
 The report is the program's: it says nothing about your BASIC program, which
 is gone in every case.
@@ -2271,7 +2358,7 @@ tape recorder, so programs in several parts work:
 - `LOAD ""` (also `LOAD "" SCREEN$`, `LOAD "" CODE`, `LOAD "" DATA a()`,
   `VERIFY ""`, `MERGE ""`) reads the next block of that kind from where the
   tape stopped. When it reaches the end it rewinds once. With no tape
-  inserted, or no block of that kind, `R Tape loading error`.
+  inserted, or no block of that kind, `R Loading error`.
 - `LOAD "name"` uses the file `name` if it exists on the card (which becomes
   the inserted tape); if not, it looks for a block with that name on the
   inserted tape, and if there is none, `T File not found`.
@@ -2489,7 +2576,8 @@ The function `CLOCK n` reads the date and time: 0 year, 1 month, 2 day, 3
 hour, 4 minutes, 5 seconds, 6 day of the week (1 Monday to 7 Sunday). It
 gives 0 if the clock has not been set. The statement sets the clock (years
 2000 to 2099); a date that does not exist gives `A Invalid argument`. Files
-saved on the card are stamped with this date.
+saved on the card are stamped with this date. Without a program, the editor's
+menu sets it too: [Date and time](editor.md#the-date-and-time).
 
 ```
 PRINT CLOCK 2; "/"; CLOCK 1; "/"; CLOCK 0; " "; CLOCK 3; ":"; CLOCK 4
@@ -2749,7 +2837,7 @@ The reports in English and Spanish, with the number that `ERR` gives:
 | O | 24 | Invalid stream | Canal no válido | A stream not open, a file on streams 0–3, more than 8 open files, or `FORMAT`. |
 | P | 25 | FN without DEF | FN sin DEF FN | `FN` of a function with no `DEF FN` in the program. |
 | Q | 26 | Parameter error | Error en los parámetros | The wrong number or type of values for `FN` or `PROC`, or too many. |
-| R | 27 | Tape loading error | Error al cargar | A file that is not valid or not the right kind, `LOAD ""` with no tape inserted, or `VERIFY` found differences. |
+| R | 27 | Loading error | Error al cargar | A file that is not valid or not the right kind, `LOAD ""` with no tape inserted, or `VERIFY` found differences. |
 | S | 28 | Z80 code not supported | Código Z80 no admitido | `USR` with an address below 65536: Spectrum machine code. |
 | T | 29 | File not found | Fichero no encontrado | No file or folder with that name, or nothing matches the wildcards. |
 | U | 30 | No SD card | No hay tarjeta SD | There is no card in the slot. |
@@ -2762,7 +2850,8 @@ The reports in English and Spanish, with the number that `ERR` gives:
 The reasons of `V Disk error`: `already exists` / `ya existe`,
 `folder not empty` / `la carpeta no está vacía`, `it is a folder` /
 `es una carpeta`, `not a folder` / `no es una carpeta`, `card full` /
-`la tarjeta está llena`, `not allowed` / `no se puede`.
+`la tarjeta está llena`, `not allowed` / `no se puede`, `no server for EXT:` /
+`EXT: sin servidor`.
 
 ## Character set
 
@@ -2967,6 +3056,7 @@ Spanish, but your programs cannot.
 | `RMDIR` | statement | [MKDIR, RMDIR](#mkdir-rmdir) |
 | `RND` | function | [RND, RANDOMIZE](#rnd-randomize) |
 | `RUN` | statement | [RUN](#run) |
+| `SAMPLE` | function, statement; in `LOAD` | [SAMPLE](#sample), [LOAD](#load) |
 | `SAVE` | statement | [SAVE](#save) |
 | `SCREEN` | statement | [PAGE, SCREEN](#page-screen) |
 | `SCREEN$` | function; in `SAVE`, `LOAD` | [SCREEN$, ATTR](#screen-attr), [SAVE](#save) |

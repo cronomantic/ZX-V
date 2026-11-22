@@ -44,8 +44,9 @@ BOX 4, 100, 20, 20, 20
 | `GRAB`, `GRABSTR`, `SPRITE`, `HIT` | Sprites, mirrored, recoloured or scaled, and pixel-exact collisions |
 | `BOX`, `DISC`, `POLY`, `CLIP`, `PIXEL` | Filled shapes, clipping and the colour of a pixel |
 | `KEY`, `JOY`, `SOUND`, `TIME` | Keys held down, joysticks, the AY registers and the frame counter |
-| `MUSICLOAD`, `MUSICPLAY`, `MUSICSTOP`, `MUSICPAUSE`, `MUSICCONTINUE`, `MUSIC` | Music from a tracker (a `.pt3` from [`zxv-tracker`](sdk/README.md#the-tracker-for-the-pc-zxv-tracker)...), in the background while the program goes on |
+| `MUSICLOAD`, `MUSICPLAY`, `MUSICSTOP`, `MUSICPAUSE`, `MUSICCONTINUE`, `MUSIC` | Music from a tracker (a `.zxm` or a `.pt3` from [`zxv-tracker`](sdk/README.md#the-tracker-for-the-pc-zxv-tracker)...), in the background while the program goes on |
 | `SFXLOAD`, `SFX`, `SFXSTOP`, `SFXPLAYING` | Sound effects from an AYFX bank |
+| `SAMPLELOAD`, `SAMPLE`, `SAMPLESTOP`, `SAMPLEPLAYING` | Recorded sounds (WAV) on the sample channels |
 
 Where it differs from ZX-V's BASIC: the sprite of a string is `GRABSTR`
 (`GRAB n, width, a$` in ZX-V's); `KEY`, `JOY`, `HIT` and `PIXEL` take
@@ -54,7 +55,12 @@ parentheses (`KEY(9)`); `REMAP` and `SOUND` take one pair at a time and
 are `REMAPRESET` and `PALETTERESET`; `POLY` takes up to 8 points; and music and effects are loaded with `MUSICLOAD f$` and
 `SFXLOAD f$` (`LOAD f$ MUSIC` and `SFX` in ZX-V's), played with `MUSICPLAY`,
 `MUSICSTOP`... and the function that says whether an effect plays is
-`SFXPLAYING`.
+`SFXPLAYING`; recorded sounds, with `SAMPLELOAD f$, n` (`LOAD f$ SAMPLE n`),
+`SAMPLE n, tone, vol, pan, c` (`; c` in ZX-V's) and `SAMPLEPLAYING` (the
+function `SAMPLE`). `MUSICLOAD` plays `.zxm`, PT3, TurboSound, PT2, STC, ASC,
+PSG and AY VGM (also `.vgz`), but not MOD, S3M or XM, which ZX-V's BASIC
+converts while loading: so as not to carry the converter in every program,
+they are turned into a `.zxm` first with `zxv-music`.
 
 `SAVE`, `LOAD` and `VERIFY` use the SD card as ZX-V's BASIC does: without an
 extension, the screen goes in a `.gfx` (the ZX-V one, with its colours if they
@@ -65,8 +71,8 @@ the libraries there are, is in its
 
 ## Installing it
 
-**On Windows:** download `zxbasic-1.19.0-zxv.5-win64.zip` from the
-[release page](https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.5)
+**On Windows:** download `zxbasic-1.19.0-zxv.6-win64.zip` from the
+[release page](https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.6)
 and unzip it anywhere. It has `zxbc.exe`, which does not need Python.
 
 **On Linux and macOS:** download the source code from that same page (or
@@ -104,6 +110,12 @@ With `--loading-screen title.png` (or a `.gfx` with a screen), the `.zxv`
 carries a loading screen, as `elf2zxv.py --screen` does. The machine shows it
 while it loads the program.
 
+With `--embed song.pt3` (as many as needed: music, effects, `.gfx`, data), the
+`.zxv` carries those files inside, as the C games do. `LOAD`, `MUSICLOAD` and
+`SFXLOAD` use the file in the current folder if there is one and, if not, the
+one inside: the program works alone, also from `ROM:`, and a file on the card
+with the same name takes the place of the one inside.
+
 **Mind the types.** Without `DIM`, a variable takes the smallest type that fits
 it: here, without the first line, `x` would be a `UByte` (0 to 255). And
 between integers, `/` divides as integers: `x / 20` would give 0, 0, 0... 1, 1,
@@ -111,11 +123,18 @@ between integers, `/` divides as integers: `x / 20` would give 0, 0, 0... 1, 1,
 because a `UByte` never gets past 255. Declare as `FLOAT` whatever needs
 decimals, and with a bigger type the counters that reach the limit.
 
-## An example
+## Two examples
 
 [Stardust](../../examples/zxbasic/stardust/README.md) is a small game made
 with `zxv.bas`: double buffering, sprites from strings, collisions, keyboard
 or joystick and sound, at 60 frames per second.
+
+[Petit Soccer](../../examples/zxbasic/petitsoccer/README.md) is a big one:
+seven-a-side football against the machine or between two players, with a
+pitch bigger than the screen and scroll, sprites from a PNG sheet, and music
+and effects from a tracker. It carries its music and effects inside
+(`zxbc --embed`), so it also runs from the `ROM:` drive, where it comes built in:
+`LOAD "ROM:petitsoccer"`.
 
 ## The licence of your programs
 

@@ -242,11 +242,37 @@ anything.
 | Undo | Undoes the last change to the program: see [Undo](#undo) |
 | Mode 0 / Mode 1 | Switches the editor to the other mode: see [The editor in mode 0](#the-editor-in-mode-0) |
 | Key click off / Key click on | Every key in the editor clicks, as on the 128K. This option turns the click off or back on; the machine remembers it when switched off |
+| Date and time | Sets the machine's clock: see [The date and time](#the-date-and-time) |
+| Update firmware | On the real machine, updates its firmware from the `zxv-update.bin` file on the SD card: see [The firmware](../hardware/firmware.md#updating). In the emulator it only says that there is nothing to update |
 | Copy here, Move here, Delete lines | Only with a block marked: see [Blocks of lines](#blocks-of-lines) |
 
 Renumber and Print work with the stored program: if the line you are on has
 been changed, it is stored first (and if it has a mistake, the menu closes so
 that you can fix it).
+
+## The date and time
+
+The machine has a clock, with a battery on the board, that stamps the files
+saved on the card and that programs read with `CLOCK`. If it is not set when
+the machine is switched on (a new board, or without its battery), the status
+line says so instead of the copyright. The **Date and time** option in the
+EDIT menu sets it without typing any command:
+
+![The date and time](../../images/editor-clock-en.png)
+
+- **↑ and ↓** choose the day, the month, the year, the hour or the minutes.
+- **← and →** change it, one at a time; past the last value it goes back to
+  the first (after 59 minutes, 0).
+- Or **type the number**: `18` for the day, `11` for November, `2026` for
+  the year.
+- Below the minutes is the day of the week, to check the date.
+- **Enter** sets the clock (the seconds start at 0) and the status line says
+  `Clock set`; **Esc** or **Tab** close it without changing anything.
+
+The day never goes past the days of its month: February 30 cannot be set. If
+the clock has never been set, the box starts on the date of the ROM. The same
+can be done from a program with the [`CLOCK`](reference.md#clock) statement.
+In the emulator, the clock follows the computer's own unless you set it.
 
 ## The editor in mode 0
 
@@ -270,7 +296,8 @@ The line just above the bar shows:
 
 | Message | When |
 |---|---|
-| `© 2026 Cronomantic  ZX-V 0.9.0` | When ZX-V starts, and after `NEW`: the copyright and the ROM version |
+| `© 2026 Cronomantic  ZX-V 0.10.0` | When ZX-V starts, and after `NEW`: the copyright and the ROM version |
+| `The clock is not set: EDIT > Date and time` | Instead of the copyright when ZX-V starts, if the clock has no time: see [The date and time](#the-date-and-time) |
 | An error in red, such as `C Nonsense in BASIC` | When a line you tried to store or run has a mistake |
 | `Program renumbered`, `Cannot renumber` | After the Renumber option |
 | `Listing sent to the printer` | After the Print option |

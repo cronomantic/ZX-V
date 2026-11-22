@@ -17,8 +17,8 @@ the `PLAY` music of the Spectrum 128, and it adds what was missing:
 - **Graphics for games**: sprites, tile maps with scrolling, filled shapes,
   two screen pages for smooth animation, and a high-resolution mode of
   512 × 384 pixels. Every pixel has its own colour.
-- **Sound**: the beeper, plus two sound chips with six voices for music and
-  effects.
+- **Sound**: the beeper, two sound chips with six voices for music and
+  effects, and twelve sample channels for recorded sounds.
 - **Files**: programs and data on an SD card, in folders, and a `ROM:` drive
   with examples.
 - **A full-screen editor**, where you type keywords letter by letter and
@@ -41,7 +41,7 @@ ones, with small programs to type and try, and exercises at the end.
 | [7. Procedures](tutorial/07-procedures.md) | `DEF PROC`, parameters, `LOCAL`, recursion, `DEF FN`, `GO SUB` |
 | [8. Colours and the screen](tutorial/08-colours-and-the-screen.md) | `INK`, `PAPER`, `BORDER`, `PRINT AT`, `MODE 1` |
 | [9. Drawing](tutorial/09-drawing.md) | `PLOT`, `DRAW`, `CIRCLE`, and filled shapes with `BOX`, `DISC`, `POLY` |
-| [10. Sound and music](tutorial/10-sound-and-music.md) | `BEEP`, music with `PLAY`, sound effects with `SOUND` |
+| [10. Sound and music](tutorial/10-sound-and-music.md) | `BEEP`, music with `PLAY`, sound effects with `SOUND`, recorded sounds with `SAMPLE`, background music with `MUSIC` |
 | [11. Keyboard and joystick](tutorial/11-keyboard-and-joystick.md) | `INKEY$`, `KEY`, `JOY`, steady speed with `WAIT` and `TIME` |
 | [12. Sprites and tile maps](tutorial/12-sprites-and-tile-maps.md) | `GRAB`, `SPRITE`, smooth animation, `HIT`, tiles, maps and scrolling |
 | [13. Files and the SD card](tutorial/13-files-and-the-sd-card.md) | `SAVE`, `LOAD`, folders, the `ROM:` drive, text files, `ON ERROR` |

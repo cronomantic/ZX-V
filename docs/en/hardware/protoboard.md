@@ -4,9 +4,10 @@
 
 Before the PCB existed, ZX-V was built on a protoboard with Pico 2 boards and
 a few breakout modules, and that is how its firmware has been tested, one Pico
-at a time. **The two Picos have not yet been tested working together**, so the
-complete machine described here is still untested. This page explains how to
-build it that way.
+at a time. The two Picos work together: that is how the PCB runs
+([The board](board.md)). What **has not been tested** is the wiring of the two
+together on a protoboard described here. This page explains how to build it
+that way.
 
 > **The PCB is the recommended way** ([The board](board.md)): it has
 > everything on it, the fast signals (HDMI and the link between the Picos) are
@@ -51,8 +52,8 @@ end. Here are all the pins ZX-V uses:
 | 4 | GP2 | SD card SCK | Audio left |
 | 5 | GP3 | SD card MOSI | Audio right |
 | 6, 7, 9, 10, 11, 12, 14, 15 | GP4–GP11 | Link D0–D7 (out) | Link D0–D7 (in) |
-| 16 | GP12 | Debug serial TX | HDMI D0+ |
-| 17 | GP13 | Debug serial RX | HDMI D0− |
+| 16 | GP12 | Remote loading (UART0): TX | HDMI D0+ |
+| 17 | GP13 | Remote loading (UART0): RX | HDMI D0− |
 | 19 | GP14 | USB D+ | HDMI CLK+ |
 | 20 | GP15 | USB D− | HDMI CLK− |
 | 21 | GP16 | Clock SDA | HDMI D2+ |
@@ -71,8 +72,8 @@ end. Here are all the pins ZX-V uses:
 | 3, 8, 13, 18, 23, 28, 33, 38 | GND | Ground | Ground |
 
 Note that GP12 to GP19 mean different things on each Pico: on the ULA they
-are the HDMI output, on the CPU the debug port, USB and clock. Do not join
-them.
+are the HDMI output, on the CPU remote loading (UART0), USB and clock. Do not
+join them.
 
 ## Power
 
@@ -238,13 +239,14 @@ diode pair that feeds the chip from the 3.3 V and from the CR2032 cell, with a
 100 nF capacitor. The firmware looks for a DS3231 first and then for a
 PCF8563, and uses the one it finds.
 
-## Reset button and debug port (optional)
+## Reset button and remote loading (optional)
 
 - **Reset:** a push button from the **RUN** pin (pin 30) of each Pico to
   ground restarts it. The PCB joins both RUN pins to a single button.
-- **Debug serial port:** the CPU Pico's GP12 (pin 16) is TX and GP13 (pin 17)
-  is RX, at 921600 baud and 3.3 V. Cross them to a 3.3 V USB-serial adapter
-  (TX to RX). The same messages come out of the micro-USB anyway.
+- **Remote loading:** the CPU Pico's GP12 (pin 16) is TX and GP13 (pin 17) is
+  RX, at 3.3 V. Cross them to a 3.3 V USB-serial adapter (TX to RX) to send
+  programs from the PC with `zxv-link`
+  ([The firmware](firmware.md#loading-programs-from-the-pc-j5)).
 
 ## Building it step by step
 
@@ -254,10 +256,10 @@ PCF8563, and uses the one it finds.
    button and the LED, and try the modes.
 2. **The two Picos.** Wire the link, flash `zxv_cpu.uf2` on the CPU Pico and
    `zxv_ula_link.uf2` on the ULA Pico. The BASIC should appear on the screen.
-   Open the CPU Pico's serial port with a terminal: what you type there
-   reaches the machine, and every 5 seconds it writes a report. (This is the
-   step that has not been tested yet: if it fails, the report on the serial
-   port is the place to start.)
+   Open the CPU Pico's serial port (its micro-USB) with a terminal: every 5
+   seconds it writes a report. (The two Picos work together on the PCB, but
+   this wiring on a protoboard has not been tested: if it fails, the report on
+   the serial port is the place to start.)
 3. **The SD card, the USB-A and the clock**, one at a time, checking each in
    the report (`card`, `USB`, `clock`) and from the BASIC: `CAT` for the
    card, typing for the keyboard, and `CLOCK 2026,10,20,18,30` then

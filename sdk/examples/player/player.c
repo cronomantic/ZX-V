@@ -1,7 +1,8 @@
 /*
- * player.c - Reproductor de música y efectos del AY con sdk/music: recorre
- * las carpetas de la tarjeta y toca los módulos (PT3, TurboSound, PT2, STC,
- * ASC y PSG) y los efectos AYFX (.afb, .afx), con los registros de los dos AY a la vista.
+ * player.c - Reproductor de música y efectos con sdk/music: recorre las
+ * carpetas de la tarjeta y toca los módulos (el propio .zxm, PT3,
+ * TurboSound, PT2, STC, ASC, PSG y VGM, también comprimido: .vgz) y los
+ * efectos AYFX (.afb, .afx), con los registros de los dos AY a la vista.
  *
  *   flechas, RePág, AvPág   elegir
  *   Enter                   abrir la carpeta, tocar el módulo, cargar el
@@ -37,7 +38,9 @@ static int es;
 static zxv_dirent_t files[MAX_FILES];
 static int nfiles, sel, top;
 
-static uint8_t song[0x20000];           /* hasta dos módulos de 64 KB */
+/* Un módulo (o dos de un TurboSound) de hasta 120 KB. Un .vgz usa lo que
+ * queda detrás como ventana (zxv_music_work, 32 KB): hasta 88 KB. */
+static uint8_t song[0x1E000];
 static uint8_t bank[0x8000];
 static uint8_t afx[0x2000];
 static int song_size, bank_n, bank_page;
@@ -107,7 +110,7 @@ static int ext(const char *name, const char *e)
 
 static int wanted(const zxv_dirent_t *e)
 {
-    static const char *const exts[] = { "pt3", "pt2", "stc", "asc", "psg", "afb", "afx" };
+    static const char *const exts[] = { "zxm", "pt3", "pt2", "stc", "asc", "psg", "vgm", "vgz", "afb", "afx" };
     if (e->attr & ZXV_ATTR_DIR)
         return 1;
     for (unsigned i = 0; i < sizeof exts / sizeof *exts; i++)
@@ -154,11 +157,11 @@ static void draw_list(void)
 static void draw_info(void)
 {
     char buf[COLS], *p;
-    static const char *const fmt[] = { "", "PT3", "TurboSound (PT3 x 2)", "PSG", "PT2", "STC", "ASC" };
+    static const char *const fmt[] = { "", "PT3", "TurboSound (PT3 x 2)", "PSG", "PT2", "STC", "ASC", "ZXM", "VGM" };
     field(1, 30, 62, 1, 7, song_size ? song_name : TR("(no module)", "(ningún módulo)"));
     field(1, 31, 62, 0, 7, song_size ? info.title : "");
     field(1, 32, 62, 0, 7, song_size ? info.author : "");
-    p = cat(buf, song_size ? fmt[info.format] : "");
+    p = cat(buf, song_size && info.format < (int)(sizeof fmt / sizeof *fmt) ? fmt[info.format] : "");
     if (song_size && info.chips == 1)
         p = cat(p, TR(on_ay2 ? ", second AY" : ", first AY", on_ay2 ? ", segundo AY" : ", primer AY"));
     field(1, 33, 40, 0, 7, buf);
@@ -226,8 +229,8 @@ static void draw_all(void)
 {
     zxv_text_colors(0, 7);
     zxv_set_mode(1);
-    at(1, 0, 7, 1, TR(" ZX-V player: PT3, TurboSound, PT2, STC, ASC, PSG and AYFX ",
-                      " Reproductor de ZX-V: PT3, TurboSound, PT2, STC, ASC, PSG y AYFX "));
+    at(1, 0, 7, 1, TR(" ZX-V player: ZXM, PT3, TS, PT2, STC, ASC, PSG, VGM and AYFX ",
+                      " Reproductor de ZX-V: ZXM, PT3, TS, PT2, STC, ASC, PSG, VGM y AYFX "));
     at(1, 28, 1, 7, TR("Enter play  Space pause  S stop  L repeat  2 AY  Esc exit",
                        "Enter tocar  Espacio pausa  S parar  L repetir  2 AY  Esc salir"));
     draw_list();
@@ -265,6 +268,8 @@ static void open_file(void)
         zxv_music_stop();
         int n = zxv_file_load(e->name, song, sizeof song);
         song_size = 0;
+        uint32_t used = ((uint32_t)n + 3) & ~3u;
+        zxv_music_work(n > 0 && used + 32768 <= sizeof song ? song + used : 0);
         if (n > 0 && zxv_music_info(song, n, &info) != ZXV_MUSIC_NONE) {
             song_size = n;
             cat(song_name, e->name);

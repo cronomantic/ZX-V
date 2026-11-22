@@ -122,6 +122,7 @@ from LCSC or any other shop.
 |---|---|---|---|---|
 | U1, U2 | Raspberry Pi Pico 2 | 2 | — | U1 is the CPU Pico, U2 the ULA Pico |
 | (U1, U2) | Male pin header, 1 × 20, 2.54 mm | 4 | C50981 | Not needed if you solder the Picos by their edges, or if your Picos come with headers |
+| (U1, U2) | Female pin header, 1 × 20, 2.54 mm (optional) | 4 | — | Sockets, so the Picos can be removed; with the male headers on the Picos |
 | SW1, SW2 | Push button, 6 × 6 mm, right-angle (Omron B3F-3152) | 2 | C231320 | RESET and MODO (mode) |
 | SW3 | Slide switch, right-angle (Shou Han SK12D07VG4) | 1 | C393937 | Power (`OFF` / `ON`) |
 | LED1 | LED, 3 mm, diffused green (Lite-On LTL-4231N) | 1 | C125082 | SD |
@@ -158,19 +159,34 @@ on the board.
 ### The optional headers
 
 **J5** (3 pins, `UART`) and **J6** (4 pins, `I2C`) are at the back right. You
-only need them for debugging (J5) or to connect an I2C module such as a DS3231
-clock (J6). Straight 2.54 mm male headers.
+only need them for remote loading (J5: sending programs from the PC,
+debugging BASIC on the board and serving the `EXT:` drive; see
+[Loading programs from the PC](firmware.md#loading-programs-from-the-pc-j5))
+or to connect an I2C module such as a DS3231 clock (J6). Straight 2.54 mm
+male headers.
 
 ### The Picos
 
-The footprint accepts the Picos two ways:
+The footprint accepts the Picos three ways:
 
-- **With pin headers** (the easiest to solder): solder two 1 × 20 headers to
-  the Pico, or buy Picos with headers already fitted, and then solder the
-  headers into the holes of the board. The Pico sits a little above the board.
+- **In sockets** (recommended on a board you are still testing): solder two
+  1 × 20 female headers into the holes of the board, and two male headers to
+  the Pico (or buy it with them fitted). The Pico plugs in and comes out
+  without desoldering anything: you can swap it for another one, swap the two,
+  or measure the board without them. It sits higher, about 8.5 mm above the
+  board: check it if the board is going into a case.
+- **With pin headers**: the Pico's male headers soldered straight into the
+  holes of the board. The Pico sits a little above the board.
 - **By their castellated edges**: lay the Pico flat on the board, with each
-  half-hole on its pad, and solder along both edges. Half the joints, and
-  lower; harder to undo.
+  half-hole on its pad, and solder along both edges. Half the joints, and the
+  lowest; the hardest to undo.
+
+**To keep them straight**, use the board as a jig: put the headers in their
+holes (for sockets, the female ones with the male ones plugged in), rest the
+Pico on top and solder the four corners on the Pico first. Check that the Pico
+sits flat, solder the rest, and then, with the Pico still in place so nothing
+tilts, the headers under the board, also corners first. Do it with nothing
+plugged in, and look for bridges between neighbouring pins with a magnifier.
 
 **Orientation:** the Pico's components face up and its **micro-USB connector
 points to the front edge** (towards the USB-A and the buttons). The **ULA Pico
@@ -200,7 +216,8 @@ and the keyboard layout when switched off.
 - [ ] Each Pico flashed with its firmware: `zxv_cpu.uf2` on the CPU Pico,
       `zxv_ula_link.uf2` on the ULA Pico.
 - [ ] ULA Pico on the left, CPU Pico on the right, micro-USB to the front.
-- [ ] All 80 pins of the Picos soldered (40 each).
+- [ ] All 80 pins of the Picos soldered (40 each), or the Picos in sockets
+      with all 80 socket pins soldered.
 - [ ] CR2032 in place, `+` up.
 
 ## The first power-on
@@ -239,8 +256,8 @@ Do the first checks **before soldering the Picos**, with a multimeter.
    the editor's keys click. Go back to BASIC with Esc, change it in the EDIT
    menu (Tab, "Key click off"), press RESET and load the test again: the
    line must have changed. RESET restarts the firmware, which reads it back
-   from the clock; Ctrl+Alt+Del is not enough, as it does not restart it. If
-   it goes back to "on", the clock does not keep it (or there is no clock).
+   from the clock (Ctrl+Alt+Del works too, as it restarts it as well). If it
+   goes back to "on", the clock does not keep it (or there is no clock).
 
 The Picos can still be connected to a computer by their micro-USB while the
 board is powered: the protection diodes keep the two supplies apart. **Not
@@ -265,7 +282,7 @@ The labels printed on the board are in Spanish.
 | `ENLACE` | Front, far right | LED2, red | **Link**: at start-up it blinks the mode number plus one; then it is lit while images arrive from the CPU Pico, blinks if some arrive with errors, and is off if none arrive |
 | `microSD` | Right side | J3 | The SD card (push to insert, push again to release) |
 | `CR2032` `+` | Right side | BT1 | The clock's coin cell, `+` up |
-| `UART` `GND` `TX` `RX` | Back, right | J5 (not fitted) | The CPU Pico's debug serial port, 3.3 V, 921600 baud. `TX` is the Pico's output |
+| `UART` `GND` `TX` `RX` | Back, right | J5 (not fitted) | Remote loading: programs from the PC with `zxv-link` and a 3.3 V USB-serial adapter ([how](firmware.md#loading-programs-from-the-pc-j5)). `TX` is the Pico's output |
 | `I2C` `3V3` `GND` `SDA` `SCL` | Back, right | J6 (not fitted) | The clock's I2C bus, 3.3 V, for an extra module (a DS3231 clock module is used instead of the on-board one if present) |
 | `ULA` *vídeo y sonido* | Centre left | U2 | The ULA Pico ("video and sound") |
 | `CPU` *BASIC y programas* | Centre right | U1 | The CPU Pico ("BASIC and programs") |

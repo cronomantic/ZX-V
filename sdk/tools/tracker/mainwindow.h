@@ -12,8 +12,10 @@
 #include <memory>
 
 #include "engine.h"
+#include "tune.h"
 
 class Audio;
+class AyResult;
 class Editor;
 class LineGrid;
 class OrnamentView;
@@ -24,28 +26,31 @@ class QComboBox;
 class QLabel;
 class QLineEdit;
 class QListWidget;
+class QProgressBar;
 class QMenu;
 class QSettings;
 class QSpinBox;
 class QTabWidget;
 class SampleView;
+class EnvelopeView;
+class NoteMapView;
 class SfxView;
-
-namespace trk {
-struct Cell;
-}
+class WaveView;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    enum Tab { Patterns, Samples, Ornaments, Effects };
+    enum Tab { Patterns, Samples, Ornaments, Waves, SmpInstruments, Effects };
 
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
-    /* Un módulo (.pt3) o un banco de efectos (.afb, .afx). */
-    bool open(const QString &path);
+    /* Una canción (.zxm, .pt3, .mod, .s3m, .xm) o un banco de efectos (.afb, .afx).
+     * De un módulo con más de 12 canales con notas, channels dice cuáles van
+     * (el bit c, el canal c); con 0, si ask, los pregunta (ChannelsDialog) y,
+     * si no, van los que más notas tocan. */
+    bool open(const QString &path, uint64_t channels = 0, bool ask = true);
     void showTab(int tab);
     bool exportWav(const QString &path);
 
@@ -58,6 +63,8 @@ private:
     QWidget *buildPatternTab();
     QWidget *buildSampleTab();
     QWidget *buildOrnamentTab();
+    QWidget *buildWaveTab();
+    QWidget *buildSmpInsTab();
     QWidget *buildEffectsTab();
     void buildActions();
     QAction *action(const QString &text, const QKeySequence &key, const std::function<void()> &fn);
@@ -77,15 +84,16 @@ private:
     void exportAfx();
     void addRecent(const QString &path);
     void rebuildRecent();
+    void showWarnings(const QString &title, const QString &what, const trk::Warnings &w);
 
     void play(int pos, int row, bool patternOnly);
     void stop();
     void tick();
-    void previewCell(const trk::Cell &c, int envPeriod, int channel);
+    void previewCell(const trk::Cell &c, int envPeriod, int chip, int channel);
+    void previewSample(const trk::SmpCell &c, int track);
     void previewNote(int note, bool withOrnament);
     void previewOff();
     void playEffect();
-    void updateMute();
 
     void refreshHeader();
     void refreshPositions();
@@ -94,14 +102,25 @@ private:
     void refreshEffects();
     void updateState();
     void editHeader(const std::function<void()> &fn);
-    void setTurboSound(bool on);
+    void setChips(int chips);
+    void setSmpTracks(int tracks);
     void addPosition();
     void removePosition();
     void clonePattern();
     void setLoop();
-    void setPatternRows(int rows);
+    void setGroupPattern(int pattern);
+    void setPositionRows(int rows);
+    void refreshWaves();
+    void refreshSmpIns();
+    void editSmpIns(const std::function<void(trk::SmpInstrument &)> &fn);
+    void removeSmpIns();
+    void editWave(const std::function<void(trk::Wave &)> &fn);
+    void importWavs();
+    void removeWave();
+    void previewWave(int note);
     void resizeSample(int lines);
     void resizeOrnament(int lines);
+    QString groupName(int group) const;
     void about();
     void keysHelp();
     void message(const QString &text);
@@ -113,21 +132,39 @@ private:
     QTabWidget *tabs_;
     PatternView *pattern_;
     SampleView *sampleView_;
+    AyResult *result_;
     OrnamentView *ornamentView_;
     SfxView *sfxView_;
+    WaveView *waveView_;
+    QListWidget *waves_;
+    QComboBox *waveFormat_;
+    QSpinBox *waveRel_, *waveFine_, *waveVol_, *wavePanV_, *waveLoopFrom_;
+    QCheckBox *wavePan_, *waveLoop_;
+    QLabel *waveInfo_;
+    QProgressBar *soundMem_;
+    Piano *wavePiano_;
+    int waveSel_ = 0;
+    QListWidget *smpIns_;
+    QSpinBox *smpPaint_;
+    NoteMapView *noteMap_;
+    EnvelopeView *volEnv_, *panEnv_;
+    QCheckBox *volOn_, *volSus_, *volLoop_, *panOn_, *panSus_, *panLoop_;
+    QSpinBox *volSusP_, *volFrom_, *volTo_, *panSusP_, *panFrom_, *panTo_;
+    QSpinBox *fade_, *vibSweep_, *vibDepth_, *vibRate_;
+    QComboBox *vibType_;
+    Piano *insPiano_;
     Piano *samplePiano_, *ornamentPiano_;
 
     QLineEdit *title_, *author_;
-    QSpinBox *tempo_, *patNum_, *patRows_;
-    QComboBox *table_, *version_, *module_;
-    QCheckBox *turbo_;
+    QSpinBox *speed_, *tempo_, *smpTracks_, *patNum_, *patRows_;
+    QComboBox *table_, *version_, *chips_, *chip_, *templates_;
+    QLabel *patLabel_;
     QListWidget *positions_;
-    QSpinBox *octave_, *step_, *sample_, *ornament_;
+    QSpinBox *octave_, *step_, *sample_, *ornament_, *instrument_;
     QSpinBox *sampleNum_, *sampleLen_, *sampleLoop_, *ornNum_, *ornLen_, *ornLoop_;
     QLabel *sampleInfo_, *ornInfo_, *sfxInfo_;
     QListWidget *effects_;
     QAction *undo_, *redo_, *cut_, *copy_, *paste_, *selectAll_, *follow_;
-    QAction *mute_[3];
     QList<QAction *> patternOnly_;
     QMenu *recentMenu_;
     QLabel *where_, *size_;

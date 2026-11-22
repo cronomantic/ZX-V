@@ -15,8 +15,8 @@ machine in the emulator and in the real hardware.
 | Screen | 256 × 192 or 512 × 384 pixels, with a border |
 | Colours | 15 as standard; with palettes, 16 per line out of 65,536 (up to 64 on screen), any colour on any pixel |
 | Video pages | Two, to draw one while you show the other |
-| Sound | Two AY-3-8912 music chips (6 voices) and a beeper, in stereo |
-| Storage | SD card, plus the built-in `ROM:` drive with the examples |
+| Sound | Two AY-3-8912 music chips (6 voices), twelve sample channels for recorded sounds and a beeper, in stereo |
+| Storage | SD card, plus the built-in `ROM:` drive with the examples; and `EXT:`, a folder served by another device |
 | Input | USB keyboard, mouse and up to two gamepads |
 | Clock | Date and time, kept while the machine is off |
 | Languages | English and Spanish |
@@ -166,7 +166,7 @@ characters are ignored.
 
 ## Sound
 
-ZX-V has three sound sources, mixed in **stereo**:
+ZX-V has these sound sources, mixed in **stereo**:
 
 - **The beeper**: a simple speaker that is either on or off, like the one in
   the first home computers. With clever programming it can play surprisingly
@@ -178,11 +178,25 @@ ZX-V has three sound sources, mixed in **stereo**:
   chips there are six voices at once: music on one chip and sound effects on
   the other, for example. The second chip starts silent, so music written for
   one chip plays exactly as on the original.
+- **Twelve sample channels**, like the Amiga's, which play **recorded
+  sounds** (hits, voices, instruments) at any pitch, each with its own volume
+  and pan. The samples are kept in a 96 KB **sound memory**, separate from
+  the processor's RAM.
 
-The voices are spread across the stereo picture (A on the left, B in the
-centre, C on the right). In BASIC, `PLAY` plays music written as notes, with
-up to six voices, and `SOUND` controls the chips directly. Native programs can
-also play digitised samples (see the `digital` example).
+The voices of the AY chips are spread across the stereo picture (A on the
+left, B in the centre, C on the right). In BASIC, `PLAY` plays music written
+as notes, with up to six voices, and `SOUND` controls the chips directly.
+`SAMPLE` plays recorded sounds, loaded from WAV files. `MUSIC` plays tracker
+music in the background: ZX-V's own format, `.zxm` (with both AY chips and
+the sample channels), `.pt3` and other AY formats, MOD, S3M and XM (which it
+converts when loading) and VGM. The details are in
+[Sound and music](basic/reference.md#sound-and-music), in the BASIC
+reference.
+
+Native programs play the sample channels with the functions in
+[Sample channels](sdk/reference.md#sample-channels) (see the `samples`
+example), and they can also play digitised sound through an AY chip (see the
+`digital` example).
 
 The sound comes out through HDMI with the picture and, on the real machine,
 also through an analogue line output.
@@ -205,8 +219,9 @@ also through an analogue line output.
 On the real machine, the keyboard, mouse and gamepads plug into a USB hub.
 
 **Ctrl+Alt+Del** is the emergency reset: whatever is running, even a program
-that has hung, the machine goes back to BASIC. A BASIC program is kept; a
-native program is not.
+that has hung, the whole machine restarts, as if switched off and on, and
+goes back to BASIC. Memory is cleared, so a BASIC program you have not saved
+is lost; the language and the key click are kept.
 
 ## Memory
 
@@ -228,20 +243,27 @@ own working space.
 program that does not use a large virtual playfield can also use the other
 72 KB of each page.
 
-The ROM, with the BASIC, takes 512 KB, and the `ROM:` drive up to 3.25 MB;
+The ROM, with the BASIC, takes 512 KB, and the `ROM:` drive up to 2.5 MB;
 both are read-only and are not part of the RAM.
 
 ## Storage and files
 
-### The SD card and the `ROM:` drive
+### The SD card and the `ROM:` and `EXT:` drives
 
-The machine has two **drives**:
+The machine has three **drives**:
 
 - **`SD:`**, the **SD card**, where you load and save. It can be formatted as
   FAT, FAT32 or exFAT, so you can also use it in your PC. In the emulator, a
   folder of your PC plays the card.
 - **`ROM:`**, a read-only disk built into the machine, with the examples. It
   cannot be written to: trying it gives `V Disk error (not allowed)`.
+- **`EXT:`**, the **external drive**: the files of a folder served by
+  another device (a PC, a Raspberry Pi, another ZX-V...), today through the
+  board's J5 header. It is read and written like the card, but only while
+  there is a server: otherwise you get `V Disk error (no server for EXT:)`.
+  See [The EXT: drive](hardware/firmware.md#the-ext-drive); in the emulator,
+  a folder of your PC, with the `--ext` option or **File > EXT: drive** (see
+  [The EXT: drive](emulator.md#the-ext-drive) in the emulator).
 
 You use them with the usual BASIC commands: `CAT` lists a folder, `CD` changes
 folder, `MKDIR` and `RMDIR` create and remove folders, and `COPY`, `MOVE` and
@@ -266,7 +288,11 @@ separated with `/`.
 | `.zxv` | A native program, compiled from C or assembler. It can carry a loading screen, shown while it loads | `LOAD "name"` |
 | `.zxvs` | A snapshot: the whole state of the machine, to continue later (emulator only) | File > Open in the emulator |
 | `.gfx` | Graphics: sprites, tiles, maps, textures and screens (those of `SCREEN$`) | `SAVE "name" GRAPHICS`, `LOAD "name" GRAPHICS`; screens, `SAVE "name" SCREEN$`, `LOAD "name" SCREEN$`. They can also be made from PNG images on your PC (see the [SDK](sdk/README.md)) |
+| `.zxm` | Music in ZX-V's own format, with both AY chips and the sample channels (`zxv-tracker` saves it) | `LOAD "name" MUSIC` |
 | `.pt3` | Music made with a tracker (also Pro Tracker 2, Sound Tracker, ASC, PSG and TurboSound) | `LOAD "name" MUSIC` |
+| `.mod`, `.s3m`, `.xm` | Music from the sample trackers (ProTracker, Scream Tracker 3, FastTracker 2), converted when it is loaded | `LOAD "name" MUSIC` |
+| `.vgm`, `.vgz` | What an emulator wrote to the AY chips, with its timing; `.vgz`, compressed | `LOAD "name" MUSIC` |
+| `.wav` | A recorded sound | `LOAD "name" SAMPLE n` |
 | `.afb`, `.afx` | AYFX sound effects: a bank or a single effect | `LOAD "name" SFX` |
 | `.scr` | A Spectrum screen (6,912 bytes), shown as it was, colour limitations included | `LOAD "name.scr" SCREEN$`, `SAVE "name.scr" SCREEN$` |
 | any | Raw data and text files | `LOAD "name.dat" CODE address`; text files with `OPEN #`, `PRINT #` and `INPUT #` |
@@ -284,8 +310,9 @@ did on the Spectrum.
 ZX-V knows the **date and time**. On the real machine a clock chip with a
 battery keeps it while the machine is off; the emulator uses your PC's clock.
 Files are dated when they are saved, and programs can read the time (in BASIC,
-`PRINT CLOCK 3;":";CLOCK 4` shows the hour and minutes). `CLOCK` with a date
-sets it.
+`PRINT CLOCK 3;":";CLOCK 4` shows the hour and minutes). It is set from the
+editor's menu, with [Date and time](basic/editor.md#the-date-and-time), or with
+`CLOCK` and a date.
 
 If the clock has never been set, the machine works normally and files are
 dated 1 January 2026.
@@ -320,7 +347,7 @@ curious about it.
 | Screen | 256 × 192 | 256 × 192 or 512 × 384 |
 | Colour | 2 colours per 8 × 8 cell (*colour clash*) | Any of 16 colours on any pixel, from a palette of 65,536 |
 | Video pages | 1 (2 on the 128K) | 2, plus hardware scrolling and a virtual playfield |
-| Sound | Beeper / beeper and one AY | Beeper and two AY chips, stereo |
+| Sound | Beeper / beeper and one AY | Beeper, two AY chips and twelve sample channels, stereo |
 | Storage | Cassette tape | SD card and the `ROM:` drive; reads the Spectrum's `.tap` and `.tzx` |
 | BASIC | Sinclair BASIC, keywords with one key | Compatible Sinclair BASIC, typed letter by letter, with a full-screen editor like the 128's and many extensions |
 | Machine code | Z80 | RISC-V (native programs in C or assembler) |

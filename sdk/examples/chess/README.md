@@ -2,6 +2,8 @@
 
 # ZXV Chess
 
+By [ximoKom](https://ximokom.itch.io/).
+
 Complete chess for ZX-V, against the machine or for two players. Mode 0
 (256 x 192): the board on the left (24 x 24 squares) and a text panel on the
 right.

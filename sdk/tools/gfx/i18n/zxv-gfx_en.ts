@@ -96,7 +96,10 @@
     </message>
     <message numerus="yes">
         <source>%n píxel(es) no son colores de ZX-V: se usa el más cercano.</source>
-        <translation><numerusform>%n pixel is not ZX-V colours: the nearest one is used.</numerusform><numerusform>%n pixels are not ZX-V colours: the nearest one is used.</numerusform></translation>
+        <translation>
+            <numerusform>%n pixel is not ZX-V colours: the nearest one is used.</numerusform>
+            <numerusform>%n pixels are not ZX-V colours: the nearest one is used.</numerusform>
+        </translation>
     </message>
     <message>
         <source>Una pantalla, la</source>
@@ -543,7 +546,10 @@
     </message>
     <message numerus="yes">
         <source>%n píxel(es) no eran colores de ZX-V: se usa el más cercano.</source>
-        <translation><numerusform>%n pixel was not ZX-V colours: the nearest one is used.</numerusform><numerusform>%n pixels were not ZX-V colours: the nearest one is used.</numerusform></translation>
+        <translation>
+            <numerusform>%n pixel was not ZX-V colours: the nearest one is used.</numerusform>
+            <numerusform>%n pixels were not ZX-V colours: the nearest one is used.</numerusform>
+        </translation>
     </message>
     <message>
         <source>No hay una imagen para pegar.</source>
@@ -563,7 +569,10 @@
     </message>
     <message numerus="yes">
         <source>%n píxel(es) no eran colores de la paleta de la pantalla: se usa el más cercano.</source>
-        <translation><numerusform>%n pixel was not a colour of the screen's palette: the nearest one is used.</numerusform><numerusform>%n pixels were not colours of the screen's palette: the nearest one is used.</numerusform></translation>
+        <translation>
+            <numerusform>%n pixel was not a colour of the screen&apos;s palette: the nearest one is used.</numerusform>
+            <numerusform>%n pixels were not colours of the screen&apos;s palette: the nearest one is used.</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -788,7 +797,7 @@
     </message>
     <message>
         <source>Quita la paleta de la pantalla: cada índice, con su color de siempre</source>
-        <translation>Removes the screen's palette: each index, with its standard colour</translation>
+        <translation>Removes the screen&apos;s palette: each index, with its standard colour</translation>
     </message>
     <message>
         <source>Color %1: #%2 (RGB565 %3). Clic: cambiarlo</source>

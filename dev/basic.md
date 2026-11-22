@@ -291,7 +291,9 @@ El editor imita al del **Spectrum +2/128K**:
 - **EDIT (Tab)** abre el menú de opciones del 128K: *ZX-V BASIC* (vuelve),
   *Renumerar* (de 10 en 10, corrigiendo `GO TO`, `GO SUB`, `RESTORE`, `RUN`,
   `LIST`, `LLIST` y `LINE` seguidos de un número), *Pantalla* (enseña la del
-  programa hasta pulsar una tecla), *Imprimir* (`LLIST`) y *Deshacer* (D67).
+  programa hasta pulsar una tecla), *Imprimir* (`LLIST`), *Deshacer* (D67),
+  *Modo 0/1*, *Quitar/Poner el clic* (D94) y *Fecha y hora* (D95: un cuadro
+  con un campo por fila, que pone el reloj en hora con `hal_clock_set`).
 - **Bloques de líneas** (D64): Mayúsculas+↑/↓ marcan líneas enteras (la del
   cursor y la siguiente o la anterior; cada pulsación, una más), que se pintan
   en amarillo. Con un bloque marcado, el menú añade *Copiar aquí*, *Mover
@@ -593,7 +595,7 @@ carga los objetos del fichero, que sustituyen a los del mismo número (los
 demás se quedan: se pueden cargar los sprites de un fichero y el nivel de
 otro), y `VERIFY "x" GRAPHICS` comprueba que los del fichero son iguales a
 los que hay. Un fichero que no es de gráficos o está dañado da
-`R Tape loading error`. `GRAPHICS` solo es palabra clave dentro de estas
+`R Loading error`. `GRAPHICS` solo es palabra clave dentro de estas
 sentencias.
 
 | Orden | Efecto |

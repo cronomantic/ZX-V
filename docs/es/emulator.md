@@ -15,9 +15,12 @@ hardware, y al revés. Viene en varias formas:
 | **`sdimg`** | Una pequeña herramienta para crear y llenar imágenes de tarjeta SD |
 | **`zxv-gfx`** | El editor de gráficos: sprites, tiles, mapas, texturas y pantallas en ficheros `.gfx` (ver la [guía de gráficos del SDK](sdk/graphics.md#el-editor-de-gráficos-para-el-pc-zxv-gfx)) |
 | **`zxv-check`** | Comprueba listados BASIC sin la máquina (ver [abajo](#zxv-check-comprobar-listados)) |
-| **`zxv-tracker`** | El tracker: música para los dos AY en módulos PT3 y efectos AYFX, los que toca la biblioteca de música del SDK (ver la [guía del SDK](sdk/README.md#el-tracker-para-el-pc-zxv-tracker)) |
+| **`zxv-tracker`** | El tracker: música para los dos AY y los canales de muestras (canciones `.zxm` y módulos PT3) y efectos AYFX, los que toca la biblioteca de música del SDK (ver la [guía del SDK](sdk/README.md#el-tracker-para-el-pc-zxv-tracker)) |
+| **`zxv-music`** | Convierte PT3, TurboSound, MOD, S3M y XM al formato de música propio, `.zxm` (ver la [guía del SDK](sdk/README.md#el-formato-propio-zxm-y-zxv-music)) |
+| **`zxv-link`** | Manda programas a la máquina de verdad desde el PC y los ejecuta, por la tira J5 de la placa con un adaptador USB-serie, y sirve una carpeta como su unidad `EXT:` (ver [El firmware](hardware/firmware.md#cargar-programas-desde-el-pc-j5)) |
+| **`zxv-link-gui`** | Lo mismo que `zxv-link`, con ventana, en pasos: la placa, el programa, desde dónde lo carga (la unidad `EXT:` o la tarjeta), ejecutar o solo copiar, y el resultado; con los recientes y el informe de la máquina |
 
-Los paquetes de Windows y Linux traen `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-check`, `zxv-gfx` y `zxv-tracker`,
+Los paquetes de Windows y Linux traen `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-check`, `zxv-gfx`, `zxv-tracker`, `zxv-music`, `zxv-link` y `zxv-link-gui`,
 además de los ejemplos (la carpeta `ejemplos`) y la unidad `ROM:`
 (`romdisk.bin`). Cómo descargarlos se explica en
 [Primeros pasos](getting-started.md#descarga).
@@ -43,6 +46,7 @@ para la próxima vez.
 | Cargar una instantánea... | Sigue desde una instantánea |
 | Volver a la instantánea (Alt+U) | Vuelve a la última instantánea guardada o cargada |
 | Tarjeta SD | Elige la tarjeta: una carpeta, una imagen de tarjeta, la de siempre (Documentos/ZX-V) o ninguna; y abre la carpeta de la tarjeta en el PC |
+| Unidad EXT: | La carpeta que sirve la unidad `EXT:`: una carpeta o ninguna (sin servidor); y abre esa carpeta en el PC ([ver abajo](#la-unidad-ext)) |
 | Guardar la imagen (Alt+S) | Guarda la pantalla en PNG, en tu carpeta *Imágenes/ZX-V* |
 | Grabar el sonido... | Graba todo lo que suena en un fichero `.wav`, hasta que vuelves a elegir la opción para parar |
 | Salir (Alt+Q) | Cierra el emulador |
@@ -53,7 +57,7 @@ para la próxima vez.
 |---|---|
 | Parada (Alt+P) | Para la máquina o la deja seguir |
 | Reiniciar (Alt+R) | Un reinicio completo, como apagar y encender: el programa que haya en memoria se pierde |
-| Ctrl+Alt+Supr (vuelve al BASIC) | El reset de emergencia: para lo que esté en marcha y vuelve al BASIC, conservando tu programa BASIC |
+| Ctrl+Alt+Supr (reinicia la máquina) | El reset de emergencia: para lo que esté en marcha y reinicia la máquina, como el Ctrl+Alt+Supr de la placa; el programa BASIC que haya en memoria se pierde |
 | Pegar texto (Alt+V) | Teclea en la máquina el texto del portapapeles, como si lo escribieras tú |
 
 **Ver**: el tamaño de la ventana (x1 es 640 × 480, hasta x4), el borde, el
@@ -66,6 +70,15 @@ tan grande como quepa sin deformarse), **Escala entera** (solo a x1, x2,
 x3..., con todos los píxeles iguales) o **Llenar la ventana**, aunque la
 imagen se deforme. Cuando no es una escala entera, la imagen se amplía con
 los bordes de los píxeles suavizados, sin filas más gruesas que otras.
+
+**Dibujar con** dice quién hace ese trabajo: la tarjeta gráfica, con
+**Direct3D 11** (en Windows) u **OpenGL**, o **la CPU**. Con la tarjeta
+gráfica el emulador gasta mucha menos CPU, sobre todo en pantalla completa
+(a 1900 × 1000, unas tres veces y media menos), y la imagen sale igual.
+**Automático**, lo normal, usa Direct3D 11 en Windows y OpenGL en Linux, y
+dice con cuál va. Se cambia en el momento (la ventana parpadea al pasar de
+una a otra) y se recuerda; si la elegida no funciona en tu PC, se dibuja con
+la CPU y lo dice la barra de estado.
 
 **Opciones**
 
@@ -98,10 +111,10 @@ teclas del PC:
 | Tab | **EDIT**: el menú de opciones del editor |
 | Flechas, Inicio, Fin, RePág, AvPág, Ctrl+←/→ | Se mueven por el listado |
 | Retroceso, Supr | Borran a la izquierda o bajo el cursor |
-| Ctrl+Alt+Supr | Reset de emergencia: vuelve al BASIC conservando el programa |
+| Ctrl+Alt+Supr | Reset de emergencia: reinicia la máquina; el programa en memoria se pierde |
 
 Windows se queda Ctrl+Alt+Supr para sí, y algunos escritorios de Linux
-también: si te pasa, usa **Máquina > Ctrl+Alt+Supr (vuelve al BASIC)**.
+también: si te pasa, usa **Máquina > Ctrl+Alt+Supr (reinicia la máquina)**.
 
 El editor se explica en [El editor](basic/editor.md).
 
@@ -191,6 +204,24 @@ sdimg ls tarjeta.img /                    # lista una carpeta, con las fechas
 
 **La unidad `ROM:`**, con los ejemplos de serie, es el fichero `romdisk.bin` que
 está junto al emulador. Si falta, `ROM:` está vacía.
+
+### La unidad EXT:
+
+**La unidad `EXT:`** es la carpeta que en la máquina real sirve otro equipo
+por la tira J5 (ver [La unidad EXT:](hardware/firmware.md#la-unidad-ext)).
+En el emulador la sirve el propio emulador; en `zxv`, desde **Archivo >
+Unidad EXT:**:
+
+- **Una carpeta...:** esa carpeta es `EXT:`. La máquina puede leer y escribir
+  en ella, con las mismas reglas de nombres que la tarjeta. **Abrir la
+  carpeta** la abre en el explorador.
+- **Sin servidor:** como la placa sin nada conectado: todo lo de `EXT:` da
+  `V Error de disco (EXT: sin servidor)`.
+
+Se puede cambiar con la máquina en marcha, sin reiniciarla, y se recuerda.
+En `zxv-sdl` y `zxv-cli`, con `--ext CARPETA`; sin ella, `EXT:` no tiene
+servidor. En la versión web, desde su menú Archivo, en Chrome y Edge (ver
+[La versión web](#la-versión-web)).
 
 ### Abrir ficheros
 
@@ -294,7 +325,7 @@ ratón como en `zxv`, y el emulador se maneja con estas teclas:
 | Alt+P, Alt+N, Alt+F | Parar o seguir; una instrucción; hasta el final del frame |
 | Alt+D | Panel de depuración sobre la imagen: CPU, VRAM, sonido, tabla por línea, ninguno |
 | Alt+B | El borde: completo (640 × 480), pequeño, ninguno (con el panel de depuración se ve siempre entero) |
-| Ctrl+Alt+Supr | Reset de emergencia: vuelve al BASIC |
+| Ctrl+Alt+Supr | Reset de emergencia: reinicia la máquina entera, como en `zxv` y en la versión web |
 | Alt+Q | Salir |
 
 `zxv-sdl` **no tiene tarjeta SD** salvo que le des una con `--sd CARPETA` o
@@ -312,6 +343,7 @@ lista todas). Estas son las que más vas a usar:
 | `FICHERO` | Abre un fichero al arrancar, como Archivo > Abrir (`zxv`, `zxv-sdl`) |
 | `--sd CARPETA` | Usa CARPETA como tarjeta SD |
 | `--sd-image FICHERO` | Usa una imagen de tarjeta como tarjeta SD |
+| `--ext CARPETA` | Sirve CARPETA como la unidad `EXT:` (si no, `EXT:` no tiene servidor) |
 | `--romdisk FICHERO` | La unidad `ROM:` (si no, `romdisk.bin` junto al programa) |
 | `--lang XX` | El idioma de la máquina, `es` o `en`, solo para esa vez. En `zxv-sdl` y `zxv-cli` es también el de los mensajes del emulador |
 | `--no-click` | Las teclas del editor, sin clic (también se quita en su menú EDIT) |
@@ -327,9 +359,10 @@ lista todas). Estas son las que más vas a usar:
 | `--save-snapshot F.zxvs` | Guarda una instantánea al terminar (`zxv-cli`) |
 | `--frames N` | Termina tras N imágenes (60 por segundo) |
 | `--screenshot F.bmp` | Guarda la pantalla al terminar |
+| `--shots PREFIJO` | Guarda la pantalla de cada frame, `PREFIJO00001.bmp`, `PREFIJO00002.bmp`... (`zxv-cli`): los fotogramas de una animación. Con `--shots-every N`, solo uno de cada N frames; con `--shots-from N`, a partir del frame N |
 | `--wav F.wav` | Graba el sonido en un fichero WAV |
 | `--strict` | Modo estricto: avisa de lo que la máquina real no permitiría |
-| `--version` | Escribe la versión de ZX-V (`ZX-V 0.9.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
+| `--version` | Escribe la versión de ZX-V (`ZX-V 0.10.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
 
 Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
 `--profile`, `--panel`, `--test`, `--fail-on-warning`) son para programadores:
@@ -407,10 +440,10 @@ tecla Alt de la izquierda):
 
 | Menú | Opciones |
 |---|---|
-| Archivo | Abrir... (Alt+O), La tarjeta SD..., Grabar el programa... (Alt+G), Guardar una instantánea (Alt+I), Volver a la instantánea (Alt+U), Descargar la instantánea, Guardar la imagen (Alt+S) |
-| Máquina | Reiniciar (Alt+R), Ctrl+Alt+Supr (vuelve al BASIC), Parar/Seguir (Alt+P), Una instrucción (Alt+N), Panel de depuración (Alt+D) |
+| Archivo | Abrir... (Alt+O), La tarjeta SD..., Unidad EXT: una carpeta del PC..., Unidad EXT: sin servidor, Grabar el programa... (Alt+G), Guardar una instantánea (Alt+I), Volver a la instantánea (Alt+U), Descargar la instantánea, Guardar la imagen (Alt+S), Grabar el sonido |
+| Máquina | Reiniciar (Alt+R), Ctrl+Alt+Supr (reinicia la máquina), Pegar texto (Alt+V), Parar/Seguir (Alt+P), Una instrucción (Alt+N), Panel de depuración (Alt+D) |
 | Ver | Sonido sí o no, Cambiar el borde (Alt+B), Pantalla completa (Alt+Intro), Opciones..., Abrir en una pestaña aparte (solo cuando la página está dentro de otra) |
-| Ayuda | El teclado y los atajos, la documentación (en la web) |
+| Ayuda | El teclado y los atajos (con la versión de ZX-V en el título), la documentación (en la web), el proyecto (GitHub), los términos de uso y los avisos de terceros |
 
 Ctrl+Alt+Supr está en el menú Máquina porque el sistema operativo se queda esas
 teclas.
@@ -419,7 +452,10 @@ teclas.
 que abras la página. La primera vez trae los ejemplos. **Archivo > La tarjeta
 SD...** la enseña: puedes recorrer las carpetas, **subir ficheros** desde tu
 PC, **descargar** ficheros a tu PC, crear carpetas, borrar ficheros y
-abrirlos. Los ficheros que arrastras a la página se copian a la tarjeta (a la
+abrirlos. Con la casilla **Solo programas** la lista se queda en las carpetas
+y lo que se ejecuta (los programas `.zxv`, `.zvb`, `.tap` y `.tzx`, y los
+listados `.bas`), sin sus gráficos ni su música; la casilla se recuerda. Los
+ficheros que arrastras a la página se copian a la tarjeta (a la
 carpeta que se ve en la ventana de la tarjeta) y se abre el primero. Lo que
 graban los programas se guarda en el almacenamiento del navegador cada tres
 segundos y al salir de la página.
@@ -428,12 +464,47 @@ La tarjeta vive solo en ese navegador: otro navegador, u otro ordenador, tiene
 la suya. Si borras los datos del sitio en el navegador, la tarjeta se borra.
 Descarga los ficheros que quieras conservar.
 
+**Abrir** (Alt+O) copia el fichero a la carpeta principal de la tarjeta y lo
+abre como `zxv`:
+
+- Un programa (`.zvb`, `.zxv`, `.tap`, `.tzx`) o un listado `.bas`: la
+  máquina se reinicia y lo carga con `CD` a su carpeta y `LOAD`. El BASIC
+  convierte el `.bas` en programa y comprueba cada línea.
+- Un `.txt` se teclea en el editor; una instantánea `.zxvs`, se carga.
+- Un fichero de música (`.zxm`, `.pt3`, `.mod`, `.s3m`, `.xm`, `.vgm`,
+  `.vgz`) o un sonido `.wav` se queda en la tarjeta, y la página dice cómo
+  usarlo: `LOAD "/x.pt3" MUSIC: MUSIC PLAY` para oír la música, o
+  `LOAD "/x.wav" SAMPLE 0` para el sonido.
+
+**Pegar texto** (Máquina, Alt+V) teclea en la máquina el texto del
+portapapeles, como en `zxv`. El navegador puede pedir permiso para leerlo.
+
+**Grabar el sonido** (Archivo) graba todo lo que suena hasta que eliges la
+misma opción, que entonces se llama **Parar la grabación del sonido**: se
+descarga `zxv.wav` (48 kHz, estéreo).
+
+**La unidad `EXT:`** puede ser una carpeta de tu PC, solo en **Chrome y
+Edge** (Firefox y Safari no dejan). **Archivo > Unidad EXT: una carpeta del
+PC...** la elige, y **Unidad EXT: sin servidor** la suelta:
+
+- La carpeta se copia a la memoria de la página (como mucho, 256 MB) y se
+  mantiene al día cada segundo y medio, en los dos sentidos: lo que la
+  máquina guarda o borra en `EXT:` va a la carpeta, y lo que cambias en la
+  carpeta (un listado que editas en tu editor) llega a la máquina. Si cambian
+  los dos a la vez, gana la máquina.
+- Los ficheros que empiezan por punto no se tocan.
+- El navegador recuerda la carpeta. Si Chrome te pregunta y eliges
+  permitirlo en cada visita, al volver a abrir la página la usa otra vez sin
+  preguntar.
+- Sin carpeta, `EXT:` no tiene servidor, como la placa sin nada conectado.
+
 **Instantáneas**: Alt+I guarda una instantánea dentro de la página y Alt+U
 vuelve a ella; **Archivo > Descargar la instantánea** la guarda en un fichero
 `.zxvs`, que luego puedes abrir en la versión web o en `zxv`.
 
 **Opciones** (Ver > Opciones...): el idioma (de la página y de la máquina; si
-no se elige, el del navegador), el borde y el escalado (los mismos que en
+no se elige, el del navegador; la dirección también lo puede llevar:
+`index.html?lang=es` o `?lang=en`), el borde y el escalado (los mismos que en
 `zxv`: la imagen ocupa todo el sitio de la página, manteniendo la proporción,
 en múltiplos enteros o llenándolo), el modo estricto, la CPU sin límite de
 velocidad y ocultar el puntero sobre la imagen. El idioma de la máquina cambia
@@ -441,7 +512,8 @@ al reiniciarla. El borde y el escalado se recuerdan, y Guardar la imagen
 (Alt+S) guarda lo que se ve, con ese borde.
 
 **Lo que no tiene:** las imágenes de tarjeta (`.img`), el servidor GDB y las
-ventanas del depurador. El panel de depuración (Alt+D) sí está.
+ventanas del depurador; en Firefox y Safari, la unidad `EXT:` con una carpeta
+del PC. El panel de depuración (Alt+D) sí está.
 
 ### Ponerla en tu web
 
@@ -457,8 +529,9 @@ En sitios como itch.io la página va dentro de un marco de otro dominio, y
 algunos navegadores (Safari, y puede que Firefox) no dejan guardar nada a esos
 marcos. Entonces la tarjeta dura lo que la página abierta, y la página lo
 avisa. **Ver > Abrir en una pestaña aparte** abre el emulador solo, donde la
-tarjeta se guarda normalmente. Las descargas desde dentro de un marco dependen
-de lo que permita el sitio.
+tarjeta se guarda normalmente. Dentro de un marco tampoco se puede elegir la
+carpeta de la unidad `EXT:`: para eso, ábrelo también en una pestaña aparte.
+Las descargas desde dentro de un marco dependen de lo que permita el sitio.
 
 ## Depuración
 
@@ -504,5 +577,7 @@ un programa del BASIC de la ROM se para donde le digas:
 
 Al cerrar la ventana, el programa sigue sin pararse en nada. La extensión de
 VS Code depura lo mismo desde el editor, en su panel o en un emulador con
-`--basic-debug`; mientras está conectada, la ventana se aparta.
+`--basic-debug`; mientras está conectada, la ventana se aparta. También
+depura el BASIC en la placa, por la tira J5 (ver [Cargar programas desde el
+PC](hardware/firmware.md#cargar-programas-desde-el-pc-j5)).
 

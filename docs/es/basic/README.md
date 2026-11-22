@@ -18,8 +18,8 @@ faltaba:
 - **Gráficos para juegos**: sprites, mapas de tiles con scroll, figuras
   rellenas, dos páginas de pantalla para animar sin parpadeo y un modo de
   alta resolución de 512 × 384 píxeles. Cada píxel tiene su propio color.
-- **Sonido**: el beeper y dos chips de sonido con seis voces para música y
-  efectos.
+- **Sonido**: el beeper, dos chips de sonido con seis voces para música y
+  efectos, y doce canales de muestras para sonidos grabados.
 - **Ficheros**: programas y datos en una tarjeta SD, en carpetas, y una
   unidad `ROM:` con ejemplos.
 - **Un editor a pantalla completa**, donde las palabras clave se escriben
@@ -42,7 +42,7 @@ programas pequeños para escribir y probar, y ejercicios al final.
 | [7. Procedimientos](tutorial/07-procedures.md) | `DEF PROC`, parámetros, `LOCAL`, recursión, `DEF FN`, `GO SUB` |
 | [8. Los colores y la pantalla](tutorial/08-colours-and-the-screen.md) | `INK`, `PAPER`, `BORDER`, `PRINT AT`, `MODE 1` |
 | [9. Dibujar](tutorial/09-drawing.md) | `PLOT`, `DRAW`, `CIRCLE` y figuras rellenas con `BOX`, `DISC`, `POLY` |
-| [10. Sonido y música](tutorial/10-sound-and-music.md) | `BEEP`, música con `PLAY`, efectos con `SOUND` |
+| [10. Sonido y música](tutorial/10-sound-and-music.md) | `BEEP`, música con `PLAY`, efectos con `SOUND`, sonidos grabados con `SAMPLE`, música de fondo con `MUSIC` |
 | [11. Teclado y mando](tutorial/11-keyboard-and-joystick.md) | `INKEY$`, `KEY`, `JOY`, velocidad constante con `WAIT` y `TIME` |
 | [12. Sprites y mapas de tiles](tutorial/12-sprites-and-tile-maps.md) | `GRAB`, `SPRITE`, animar sin parpadeo, `HIT`, tiles, mapas y scroll |
 | [13. Ficheros y la tarjeta SD](tutorial/13-files-and-the-sd-card.md) | `SAVE`, `LOAD`, carpetas, la unidad `ROM:`, ficheros de texto, `ON ERROR` |

@@ -14,16 +14,19 @@ machine's specification as "spec §N": that is [dev/spec.md](../dev/spec.md)
 | `include/zxv_api.h` | The system routines (the ROM API) as `static inline` C functions |
 | `include/zxv_gfx.h` | The graphics engine for games: bitmaps, sprites, tile maps, mode 7 and vectors |
 | `include/zxv_gfxfile.h`, `gfxfile.c` | Reads `.gfx` graphics files: sprites, tiles, maps and textures |
-| `include/zxv_music.h`, `music/` | Music and sound effects for the two AY chips: PT3, TurboSound, PT2, STC, ASC and PSG modules and AYFX effects, at their tempo of 50 steps per second |
+| `include/zxv_music.h`, `music/` | Music and sound effects: ZX-V's own `.zxm` format, PT3, TurboSound, PT2, STC, ASC, PSG and VGM modules and AYFX effects |
+| `sound/` | The sound of ZX-V as the machine makes it: the two AY chips (`aysynth`), the twelve sample channels (`smpsynth`, with the ADPCM encoder) and the mix (`sndsynth`). The emulator and `zxv-tracker` sound with the same code |
 | `zxvlib.c` | `memcpy`, `memset`, `memmove` and `memcmp`, for programs without a C library |
 | `zxvc.c`, `include/sys/dirent.h` | The standard C library (picolibc) on top of the system routines: files, folders, console, heap and time |
 | `zxv.ld`, `crt0.S` | The linker script and the entry point |
 | `tools/elf2zxv.py` | Turns the ELF into a `.zxv` |
 | `tools/gfx/` | `zxv-gfx`, the graphics editor for the PC (Qt 6): `cmake -S sdk/tools/gfx -B build-gfx` |
 | `tools/tracker/` | `zxv-tracker`, the tracker for the PC (Qt 6 and SDL2): `cmake -S sdk/tools/tracker -B build-tracker` |
+| `tools/music/` | `zxv-music`, which converts PT3, TurboSound, MOD, S3M and XM to `.zxm` (no Qt): `cmake -S sdk/tools/music -B build-music` |
+| `tools/link/` | `zxv-link` and `zxv-link-gui` (with a window, Qt 6), which send programs from the PC to the board through its J5 header and run them; `zxv-link serve --folder` serves a folder as the machine's `EXT:` drive (`extserve.c`, the reference server): `cmake -S sdk/tools/link -B build-link` |
 | `tools/png2gfx.py` | Turns PNG images into `.gfx` graphics files for BASIC (`LOAD "x" GRAPHICS`) |
 | `tools/mkweb.py` | Makes a web page with only your game, for itch.io or your website ([docs](../docs/en/sdk/web.md)) |
-| `examples/` | `hello`, `graphics`, `scroll`, `digital`, `files`, `boardtest`, `player` (a music and effects player) and `gfxedit` (a graphics editor), and eight complete games: `estela` (Estela), `route128` (Route 128), `mine` (The Mine), `street` (Street Justice), `umbra` (Umbra), `keep` (The Keep), `chess` (ZXV Chess) and `gonesilent` (Gone Silent), each with its README |
+| `examples/` | `hello`, `graphics`, `scroll`, `digital`, `files`, `boardtest`, `player` (a music and effects player), `samples` (the sample channels) and `gfxedit` (a graphics editor), and eight complete games: `estela` (Estela), `route128` (Route 128), `mine` (The Mine), `street` (Street Justice), `umbra` (Umbra), `keep` (The Keep), `chess` (ZXV Chess, by ximoKom) and `gonesilent` (Gone Silent), each with its README |
 
 It needs `riscv64-unknown-elf-gcc`, picolibc for it (only for `files`) and
 Python 3:

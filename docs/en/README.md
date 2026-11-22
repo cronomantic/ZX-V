@@ -39,8 +39,16 @@ They come with the emulator, for Windows and Linux:
 - **[The graphics editor, `zxv-gfx`](sdk/graphics.md#the-graphics-editor-for-the-pc-zxv-gfx)** —
   sprites, tiles, maps and textures for BASIC and C programs.
 - **[The tracker, `zxv-tracker`](sdk/README.md#the-tracker-for-the-pc-zxv-tracker)** —
-  music for the two AY chips (PT3 modules) and AYFX sound effects for
-  BASIC and C programs.
+  music for the two AY chips and the sample channels (`.zxm` songs and PT3
+  modules) and AYFX sound effects for BASIC and C programs. It also opens
+  MOD, S3M and XM modules, converted; for one with more than 12 channels, it
+  asks which ones to keep.
+- **[The music converter, `zxv-music`](sdk/README.md#the-own-format-zxm-and-zxv-music)** —
+  converts PT3, TurboSound, MOD, S3M and XM to the own format, `.zxm`.
+- **[Remote loading, `zxv-link` and `zxv-link-gui`](hardware/firmware.md#loading-programs-from-the-pc-j5)** —
+  they send programs from the PC to the board through the J5 header and run
+  them, and serve a folder on the PC as the machine's [`EXT:`
+  drive](hardware/firmware.md#the-ext-drive).
 - **[Publishing your game on the web](sdk/web.md)** — `mkweb.py` (in the
   SDK) makes a page with only your game, in C or in BASIC, for itch.io or
   your website, with touch controls for phones.
@@ -57,8 +65,11 @@ They come with the emulator, for Windows and Linux:
 - **[The board](hardware/board.md)** — ordering the PCB assembled, and the
   parts you solder yourself.
 - **[The firmware](hardware/firmware.md)** — putting the software on the two
-  Picos.
+  Picos and updating it, and loading programs from the PC through the J5
+  header, with `zxv-link` and the `EXT:` drive.
 - **[On a protoboard](hardware/protoboard.md)** — building it without the PCB.
+- **[The protocol](hardware/protocol.md)** — the `EXT:` drive and remote
+  loading through J5, to write your own server.
 
 ## Examples
 
@@ -86,13 +97,16 @@ They come with the emulator, for Windows and Linux:
   mode 7 floor and a lamp whose light shrinks as its oil runs out.
 - [The Keep, a dungeon adventure in C](../../sdk/examples/keep) — four floors
   of rooms seen from above, whose maps you can redraw in `zxv-gfx`.
-- [ZXV Chess, chess in C](../../sdk/examples/chess) — against the machine
-  or for two players, with the keyboard, a joystick or the mouse.
+- [ZXV Chess, chess in C](../../sdk/examples/chess), by ximoKom — against
+  the machine or for two players, with the keyboard, a joystick or the mouse.
 - [Gone Silent, a 3D adventure in C](../../sdk/examples/gonesilent) — solid
   dithered polygons, pixel-art creatures and a colony to explore in your
   suit.
 - [Stardust, a game in ZX Basic](../../examples/zxbasic/stardust) — double
   buffering, sprites and collisions with `zxv.bas`, at 60 frames per second.
+- [Petit Soccer, football in ZX Basic](../../examples/zxbasic/petitsoccer) — a
+  pitch bigger than the screen with scroll, teams painted from one set of
+  sprites, music and effects, against the machine or for two players.
 
 ---
 

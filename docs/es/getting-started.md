@@ -168,16 +168,19 @@ CAT "ROM:"
 | `keep.zxv` | *The Keep*, una aventura de mazmorras de cuatro plantas |
 | `chess.zxv` | *ZXV Chess*, ajedrez contra la máquina o entre dos |
 | `gonesilent.zxv` | *Gone Silent*, una aventura en 3D en una colonia minera abandonada |
+| `petitsoccer.zxv` | *Petit Soccer*, fútbol 7 contra la máquina o para dos jugadores, escrito en ZX Basic |
 | `graphics.zxv` | Una demostración gráfica: escenario que se desplaza, pelotas que rebotan, una estrella que gira y un suelo en 3D |
 | `scroll.zxv` | Desplazamiento suave por un paisaje de cuatro pantallas de ancho, con parallax |
 | `digital.zxv` | Sonido digitalizado por el chip de música |
+| `samples.zxv` | Los doce canales de muestras: una nota, una cuerda, un acorde con los doce a la vez y más, cada uno con una tecla |
 | `hello.zxv` | El ejemplo más pequeño de programa nativo |
 | `boardtest.zxv` | La prueba de la placa: monitor, reloj, tarjeta, teclado, mandos, ratón y sonido, uno a uno |
 | `files.zxv` | Un programa nativo que crea, lee y lista ficheros en la tarjeta SD |
 | `gfxedit.zxv` | Un editor de sprites, tiles y mapas en la propia máquina |
-| `player.zxv` | Un reproductor de la música (PT3...) y los efectos de sonido (AYFX) de la tarjeta |
+| `player.zxv` | Un reproductor de la música (`.zxm`, PT3, VGM...) y los efectos de sonido (AYFX) de la tarjeta |
 
-Los ficheros que acaban en `.zxv` son **programas nativos**, escritos en C. Se
+Los ficheros que acaban en `.zxv` son **programas nativos**, escritos en C (o
+compilados desde [ZX Basic](zxbasic.md), como Petit Soccer). Se
 cargan con `LOAD`:
 
 ```

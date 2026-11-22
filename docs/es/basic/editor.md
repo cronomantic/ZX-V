@@ -251,11 +251,38 @@ Elige con ↑ y ↓ y pulsa Enter. Esc o Tab cierran el menú sin hacer nada.
 | Deshacer | Deshace el último cambio del programa: ver [Deshacer](#deshacer) |
 | Modo 0 / Modo 1 | Pasa el editor al otro modo: ver [El editor en modo 0](#el-editor-en-modo-0) |
 | Quitar el clic / Poner el clic | Cada tecla del editor hace un clic, como en el 128K. Esta opción lo quita o lo vuelve a poner; la máquina lo recuerda al apagarla |
+| Fecha y hora | Pone en hora el reloj de la máquina: ver [La fecha y la hora](#la-fecha-y-la-hora) |
+| Actualizar firmware | En la máquina real, actualiza su firmware desde el fichero `zxv-update.bin` de la tarjeta SD: ver [El firmware](../hardware/firmware.md#cómo-se-actualiza). En el emulador solo dice que no hay nada que actualizar |
 | Copiar aquí, Mover aquí, Borrar líneas | Solo con un bloque marcado: ver [Bloques de líneas](#bloques-de-líneas) |
 
 Renumerar e Imprimir trabajan con el programa guardado: si la línea en la que
 estás ha cambiado, primero se guarda (y si tiene un error, el menú se cierra
 para que lo arregles).
+
+## La fecha y la hora
+
+La máquina tiene un reloj, con una pila en la placa, que pone la fecha a los
+ficheros que se graban en la tarjeta y que los programas leen con `CLOCK`. Si
+no está en hora al encender la máquina (una placa nueva, o sin su pila), la
+línea de estado lo dice en lugar del copyright. La opción **Fecha y hora** del
+menú EDIT lo pone en hora sin escribir ninguna orden:
+
+![La fecha y la hora](../../images/editor-clock-es.png)
+
+- **↑ y ↓** eligen el día, el mes, el año, la hora o los minutos.
+- **← y →** lo cambian, de uno en uno; al pasar del último valor vuelve al
+  primero (después de 59 minutos, 0).
+- O **teclea el número**: `18` para el día, `11` para noviembre, `2026`
+  para el año.
+- Debajo de los minutos está el día de la semana, para comprobar la fecha.
+- **Enter** pone el reloj en hora (los segundos empiezan en 0) y la línea de
+  estado dice `Reloj en hora`; **Esc** o **Tab** lo cierran sin cambiar nada.
+
+El día nunca pasa de los de su mes: el 30 de febrero no se puede poner. Si el
+reloj no se ha puesto nunca en hora, el cuadro empieza en la fecha de la ROM.
+Lo mismo se hace desde un programa con la orden
+[`CLOCK`](reference.md#clock). En el emulador, el reloj sigue el del ordenador
+mientras no lo pongas tú en hora.
 
 ## El editor en modo 0
 
@@ -279,7 +306,8 @@ La línea que hay justo encima de la barra enseña:
 
 | Mensaje | Cuándo |
 |---|---|
-| `© 2026 Cronomantic  ZX-V 0.9.0` | Al arrancar ZX-V, y después de `NEW`: el copyright y la versión de la ROM |
+| `© 2026 Cronomantic  ZX-V 0.10.0` | Al arrancar ZX-V, y después de `NEW`: el copyright y la versión de la ROM |
+| `El reloj no tiene hora: EDIT > Fecha y hora` | En lugar del copyright al arrancar ZX-V, si el reloj no está en hora: ver [La fecha y la hora](#la-fecha-y-la-hora) |
 | Un error en rojo, como `C Sintaxis incorrecta` | Cuando una línea que querías guardar o ejecutar tiene un error |
 | `Programa renumerado`, `No se puede renumerar` | Tras la opción Renumerar |
 | `Listado enviado a la impresora` | Tras la opción Imprimir |

@@ -3,12 +3,14 @@
 # 10. Sonido y música
 
 **En este capítulo aprenderás** a hacer pitidos sencillos con `BEEP`, a
-tocar melodías de hasta seis voces con `PLAY` y a crear efectos de sonido
-para juegos con `SOUND`.
+tocar melodías de hasta seis voces con `PLAY`, a crear efectos de sonido
+para juegos con `SOUND`, a tocar sonidos grabados con `SAMPLE` y música de
+fondo con `MUSIC`.
 
-ZX-V tiene dos clases de sonido: el **beeper**, un altavoz sencillo como el
-del primer Spectrum, y dos **chips de sonido** (llamados AY), como el del
-Spectrum 128, que pueden tocar tres notas a la vez cada uno.
+ZX-V tiene tres clases de sonido: el **beeper**, un altavoz sencillo como el
+del primer Spectrum; dos **chips de sonido** (llamados AY), como el del
+Spectrum 128, que pueden tocar tres notas a la vez cada uno; y doce
+**canales de muestras**, que tocan sonidos grabados.
 
 ## `BEEP`
 
@@ -136,13 +138,38 @@ mientras toca el chip. Eso es justo lo que necesita un juego. El sonido sigue
 hasta que lo cambies, así que acuérdate de callarlo con `SOUND 8,0`. Los
 registros del 16 al 31 son los mismos del segundo chip.
 
+## Sonidos grabados: `SAMPLE`
+
+Un golpe de tambor, una voz o un ladrido no se hacen con notas: se graban.
+Para probarlo necesitas un sonido en un fichero WAV en la tarjeta, por
+ejemplo `golpe.wav` (lo puedes grabar o recortar en tu PC con un editor de
+sonido como Audacity). `LOAD "golpe" SAMPLE 0` lo carga en la muestra 0
+(hay de la 0 a la 31), y `SAMPLE 0` lo toca:
+
+```
+10 LOAD "golpe" SAMPLE 0
+20 FOR t=0 TO 12 STEP 2
+30 SAMPLE 0,t
+40 PAUSE 15
+50 NEXT t
+```
+
+El número que sigue a la muestra es el tono, en semitonos, como en `BEEP`:
+0 suena como se grabó y 12, una octava más agudo. Detrás pueden ir el
+volumen (de 0 a 64) y el panorama (de 0, a la izquierda, a 255, a la
+derecha): `SAMPLE 0,0,32,255` lo toca a medio volumen, a la derecha.
+
+Como `SOUND`, `SAMPLE` no espera: el programa sigue mientras suena. Hay doce
+canales, así que pueden sonar doce sonidos a la vez, también con la música.
+`SAMPLE STOP` los para todos.
+
 ## Música de verdad: `MUSIC` y `SFX`
 
 Para la música de un juego se usa un *tracker*, un programa para componer
 como los que usaban los músicos del Spectrum. ZX-V trae uno para el PC,
 [`zxv-tracker`](../../sdk/README.md#el-tracker-para-el-pc-zxv-tracker),
-que guarda la canción en un fichero `.pt3` y los efectos de sonido en un
-`.afb`. El BASIC los toca **de fondo**, mientras el programa sigue:
+que guarda la canción en un fichero `.zxm` (o `.pt3`, si solo usa los AY)
+y los efectos de sonido en un `.afb`. El BASIC los toca **de fondo**, mientras el programa sigue:
 
 ```
 10 LOAD "tema" MUSIC: MUSIC PLAY
@@ -152,8 +179,13 @@ que guarda la canción en un fichero `.pt3` y los efectos de sonido en un
 ```
 
 `MUSIC STOP` para la música y `SFX n` toca el efecto número `n` sin
-callarla. Todo lo demás está en la referencia: [`MUSIC`](../reference.md#music)
-y [`SFX`](../reference.md#sfx).
+callarla.
+
+`MUSIC` también carga la música de otros trackers: los módulos MOD, S3M y
+XM de los trackers de muestras, que convierte al cargarlos, y los VGM, la
+música de los AY como la graban los emuladores. Todo lo demás está en la
+referencia: [`MUSIC`](../reference.md#music), [`SFX`](../reference.md#sfx)
+y [`SAMPLE`](../reference.md#sample).
 
 ## Pruébalo
 
@@ -186,7 +218,8 @@ más aguda) como 40, espera otra vez y baja el volumen con `SOUND 8,0`.
 
 **Referencia:** [`BEEP`](../reference.md#beep), [`PLAY`](../reference.md#play),
 [`SOUND`](../reference.md#sound), [`WAIT`](../reference.md#wait),
-[`MUSIC`](../reference.md#music), [`SFX`](../reference.md#sfx).
+[`SAMPLE`](../reference.md#sample), [`MUSIC`](../reference.md#music),
+[`SFX`](../reference.md#sfx).
 
 **Siguiente:** [11. Teclado y mando](11-keyboard-and-joystick.md) ·
 **Anterior:** [9. Dibujar](09-drawing.md)

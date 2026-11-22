@@ -7,15 +7,12 @@ enchufarla a la tele. Está hecha con dos placas **Raspberry Pi Pico 2**, unos
 cuantos conectores y unas decenas de piezas pequeñas. No hace falta programar
 nada: el software de las dos Pico viene listo para copiarlo en ellas.
 
-> **Estado.** El firmware de las dos Pico está escrito, y **cada Pico se ha
-> probado por separado**: la imagen y el sonido por HDMI con una sola Pico 2,
-> y la CPU, que ejecuta los programas exactamente igual que el emulador.
-> **Las dos Pico todavía no se han probado juntas**, así que la máquina
-> completa está sin probar, tanto en la placa como en una protoboard. La
-> **placa de circuito impreso (PCB) está diseñada del todo, pero todavía no
-> se ha fabricado ni probado**. Si la montas ahora, serás de los primeros en
-> hacerlo: lee con calma [La placa](board.md) y cuenta con que puede haber
-> algo que corregir.
+> **Estado.** **La primera placa funciona**, con las dos Pico juntas:
+> arranca en el BASIC en una pantalla HDMI, y el programa `boardtest` pasa la
+> imagen y las paletas, el sonido, el teclado USB, los mandos, el ratón, el
+> botón MODO y el reloj, y la tarjeta microSD lee, guarda y actualiza el
+> firmware. **Falta por probar en ella:** la pila del reloj. En una protoboard nadie ha montado todavía la máquina. Si la
+> montas ahora, serás de los primeros: lee con calma [La placa](board.md).
 
 ## Qué necesitas
 
@@ -33,6 +30,10 @@ nada: el software de las dos Pico viene listo para copiarlo en ellas.
 - **Un cargador de móvil USB-C** de 5 V que dé 2 A, con su cable.
 - Si quieres, **unos altavoces con amplificador** para la salida de audio, y
   **una pila de botón CR2032** para que el reloj no pierda la fecha y la hora.
+- Si quieres, **un adaptador USB-serie de 3,3 V** para la tira J5 de la
+  placa: con él mandas programas desde el PC y los ejecutas sin sacar la
+  tarjeta, depuras el BASIC en la placa y sirves una carpeta del PC como la
+  unidad `EXT:` ([Cargar programas desde el PC](firmware.md#cargar-programas-desde-el-pc-j5)).
 - Soldador, estaño, y un ordenador con un cable micro-USB para cargar el
   firmware en las Pico.
 
@@ -41,9 +42,9 @@ nada: el software de las dos Pico viene listo para copiarlo en ellas.
 | | La placa (lo recomendado) | Una protoboard |
 |---|---|---|
 | Qué es | Una placa de 100 × 100 mm con todo | Las dos Pico y unos módulos, cableados a mano |
-| Qué se suelda | Solo las dos Pico, dos pulsadores, un interruptor, dos LED y la pila: todo de agujero pasante | Muchos cables; el HDMI y el enlace entre las Pico piden cables cortos y ordenados |
+| Qué se suelda | Solo las dos Pico, dos pulsadores, un interruptor, dos LED, la pila y, si quieres, la tira J5 para la carga remota: todo de agujero pasante | Muchos cables; el HDMI y el enlace entre las Pico piden cables cortos y ordenados |
 | Conectores | HDMI, USB-A, microSD, jack de audio, USB-C para la corriente y reloj | Placas de conexión (*breakouts*) y módulos |
-| Estado | Diseñada, **sin fabricar ni probar** | Cada Pico probada por separado; **juntas, todavía no** |
+| Estado | **Funciona**: la primera placa pasa `boardtest` y usa la tarjeta microSD (falta por probar la pila) | Cada Pico probada por separado; el cableado de las dos juntas en una protoboard, **todavía no** (juntas funcionan en la placa) |
 | Guía | [La placa](board.md) | [En una protoboard](protoboard.md) |
 
 Las dos llevan el mismo firmware y funcionan igual.
@@ -94,8 +95,9 @@ y la mayoría de los mandos.
 
 - **Ctrl+Alt+F1**, **F2** y **F3** eligen la distribución del teclado:
   española, británica o de EE. UU. La máquina la recuerda.
-- **Ctrl+Alt+Supr** es el reinicio de emergencia: vuelve al BASIC aunque un
-  programa se haya colgado, y conserva tu programa en BASIC.
+- **Ctrl+Alt+Supr** es el reinicio de emergencia: reinicia la máquina, como
+  al encenderla, aunque un programa se haya colgado. El programa en BASIC que
+  no hayas guardado se pierde.
 - **Ctrl+Alt+F12** enseña o quita la página de diagnóstico (ver
   [El firmware](firmware.md#la-página-de-diagnóstico)).
 
@@ -126,8 +128,10 @@ USB. El USB-C solo lleva corriente, no datos.
 
 La placa tiene un reloj con una pila CR2032. Con la máquina apagada conserva la
 fecha y la hora (con ellas se fechan los ficheros que guardas), el idioma de la
-máquina y la distribución del teclado. La hora se pone desde el BASIC con
-`CLOCK`, por ejemplo `CLOCK 2026,10,20,18,30` (año, mes, día, hora y minutos).
+máquina y la distribución del teclado. Para ponerlo en hora, abre el menú del
+editor (EDIT, la tecla Tab) y elige **Fecha y hora** ([cómo
+funciona](../basic/editor.md#la-fecha-y-la-hora)), o usa `CLOCK` en el BASIC,
+por ejemplo `CLOCK 2026,10,20,18,30` (año, mes, día, hora y minutos).
 
 La máquina empieza en **inglés**. Para pasar al español, `LANGUAGE "es"`; con
 la pila puesta, se recuerda.
@@ -142,3 +146,5 @@ la pila puesta, se recuerda.
   o no hay sonido.
 - **[En una protoboard](protoboard.md)**: ZX-V sin la placa, con el cableado
   entre las dos Pico y a cada conector.
+- **[El protocolo](protocol.md)**: lo que viaja por J5, para quien quiera
+  hacer su propio servidor de la unidad `EXT:` o hablar con la placa.

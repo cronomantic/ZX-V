@@ -151,10 +151,12 @@ others, leaving out `files`.
 | [`keep`](../../../sdk/examples/keep) | **The Keep**, a top-down dungeon adventure: four floors of rooms, enemies, keys, treasures and a sorcerer; its floors are maps in `keep.gfx`, and the music and effects are editable files |
 | [`chess`](../../../sdk/examples/chess) | **ZXV Chess**, chess against the machine, with four levels, or for two players: all the FIDE rules except threefold repetition, the mouse, and the engine kept apart, which is also tested on the PC; the pieces are PNG images you can edit ([its README](../../../sdk/examples/chess/README.md)) |
 | [`gonesilent`](../../../sdk/examples/gonesilent) | **Gone Silent**, a 3D adventure: solid polygons with dithered shading drawn back to front, pixel-art sprites for the creatures and items (made by scripts and compressed at build time), two palettes through the line table, a motion tracker, a map and a saved game ([its README](../../../sdk/examples/gonesilent/README.md)) |
-| [`player`](../../../sdk/examples/player/player.c) | Music and effects with the `zxv_music.h` library: a player for PT3, TurboSound, PT2, STC, ASC and PSG modules and AYFX effect banks, with the registers of both AY chips on screen |
+| [`player`](../../../sdk/examples/player/player.c) | Music and effects with the `zxv_music.h` library: a player for `.zxm`, PT3, TurboSound, PT2, STC, ASC, PSG and VGM modules and AYFX effect banks, with the registers of both AY chips on screen |
+| [`samples`](../../../sdk/examples/samples/samples.c) | The twelve sample channels: a looped sine that moves from one side to the other, a string in 8 bits and in ADPCM (with an IMA encoder you can copy), a chord with all 12 at once, direct mode (the DAC) and interpolation |
 | [`gfxedit`](../../../sdk/examples/gfxedit) | **The graphics editor**: sprites, tiles, maps and textures in `.gfx` files, with the mouse ([in the graphics guide](graphics.md#the-graphics-editor-on-the-machine-gfxedit)) |
 
-To run one, the `.zxv` file has to be on the machine's SD card:
+To run one, the machine loads it from its SD card or from the `EXT:`
+drive:
 
 - **In the desktop emulator (`zxv`)**, open the file with File > Open
   (Alt+O) or drag it onto the window. The emulator offers to copy it to the
@@ -169,6 +171,13 @@ To run one, the `.zxv` file has to be on the machine's SD card:
 
   The `.zxv` extension is optional. In the web version, upload the file with
   File > The SD card first.
+- **On the board, from the PC**, without taking the card out: with a
+  USB-serial adapter on the J5 header, `zxv-link-gui` (or `zxv-link` on the
+  command line, or **ZX-V: Run on the board** in VS Code) sends the program
+  and runs it, from the card or from the `EXT:` drive, a folder on the PC
+  that the machine reads like a disk. See [Loading programs from the PC
+  (J5)](../hardware/firmware.md#loading-programs-from-the-pc-j5) and [The
+  EXT: drive](../hardware/firmware.md#the-ext-drive).
 
 The examples are also built into the machine, on the `ROM:` drive:
 `LOAD "ROM:graphics"` works on a new machine without copying anything.
@@ -299,8 +308,9 @@ good manners to leave things tidy yourself.
 
 If your program crashes (for example, it reads from a forbidden address),
 the machine also goes back to BASIC, with the report
-`W Native code error, 0:1`. **Ctrl+Alt+Delete** stops a program that hangs,
-with `L BREAK into program, 0:1`.
+`W Native code error, 0:1`. **Ctrl+Alt+Delete** stops a program that hangs:
+it restarts the whole machine, as if switched off and on, and goes back to
+BASIC without a report.
 
 A native program cannot start another one: every program is loaded at the
 same address, so `zxv_exec` returns `ZXV_E_ACCESS` when a `.zxv` calls it.
@@ -546,11 +556,13 @@ including how to convert your PNG images with
 
 ## Sound
 
-ZX-V has a **beeper** (one bit, like the Spectrum's) and **two AY-3-8912
+ZX-V has a **beeper** (one bit, like the Spectrum's), **two AY-3-8912
 sound chips**, the chip of the Spectrum 128, each with three square-wave
-channels (A, B and C), a noise generator and volume envelopes. The sound
-comes out in stereo: by default channel A on the left, C on the right and B
-in the middle.
+channels (A, B and C), a noise generator and volume envelopes, and **twelve
+sample channels**, which play recorded sounds at any pitch, like the Paula
+of an Amiga. The sound comes out in stereo: by default, on the AY chips,
+channel A on the left, C on the right and B in the middle; each sample
+channel has its own panning.
 
 ### The AY chip
 
@@ -641,7 +653,79 @@ There are two ways to move the speaker:
   sound system gets round to it, which is what multi-channel beeper music
   needs.
 
+### The sample channels
+
+For recorded sounds (a voice, an explosion, an instrument) there are the
+**twelve sample channels**. They play samples from the **sound memory**,
+96 KB apart from your program's RAM, without keeping the CPU busy: you only
+say which sample, at what pitch, how loud and on which side. They are mixed
+with the AY chips and the beeper. There are three steps:
+
+1. **Upload it:** `zxv_smp_upload(dest, src, bytes)` copies the sample
+   from your RAM to the sound memory, from byte `dest` (the bytes, a
+   multiple of 4).
+2. **Describe it:** `zxv_smp_define(slot, address, format, samples, loop)`
+   writes it into the **sample table** (256 slots): where it starts in the
+   sound memory, its format (`ZXV_SMP_PCM8`, signed 8 bits, or
+   `ZXV_SMP_ADPCM`, which takes a little over half), how many samples it has
+   and from which one it starts again (the number of samples or more: no
+   loop, it stops at the end).
+3. **Play it:** `zxv_smp_play(channel, slot, step, volume, pan)` plays it
+   on a channel (0–11) from the start. `zxv_smp_step(hz)` gives the step
+   that makes a sample recorded at `hz` samples per second sound at its own
+   pitch; twice that, an octave higher. The volume goes from 0 to 64 and the
+   panning from 0 (left) to 255 (right), with 128 in the middle.
+
+This program loads a sound recorded at 22,050 Hz, in signed 8 bits and
+without a header (a sound editor such as Audacity exports it like that),
+and plays it every time you press space:
+
+```c
+#include "zxv_api.h"
+
+static int8_t thud[32768];
+
+int main(void)
+{
+    int n = zxv_file_load("thud.raw", thud, sizeof thud);
+    if (n < 0)
+        zxv_report_error(n, "Cannot load thud.raw");
+    zxv_smp_upload(0, thud, (n + 3) & ~3);          /* to the sound memory */
+    zxv_smp_define(0, 0, ZXV_SMP_PCM8, n, n);       /* slot 0, no loop */
+    for (int k = 0; k != 0x1B; k = zxv_key_get()) { /* until Esc */
+        if (k == ' ')
+            zxv_smp_play(0, 0, zxv_smp_step(22050), 64, 128);
+        zxv_wait_vblank();
+    }
+    zxv_smp_stop(0);
+    return 0;
+}
+```
+
+- **Several at once:** each channel plays its own. To make several start on
+  the same sample (a chord), get them ready with `zxv_smp_prepare` and start
+  them together with `zxv_smp_start`.
+- **While it plays**, `zxv_smp_write(channel, register, value)` changes its
+  volume, panning or step, and `zxv_smp_stop` stops it.
+- **In ADPCM**, a channel goes no higher than step 2 (an octave above how it
+  was recorded); in 8 bits, any step.
+- **With a `.zxm` song** playing, the song uploads its samples to the start
+  of the sound memory and uses the first channels: `zxv_music_samples`
+  chooses where its samples go, and `zxv_music_smp_fx` plays a sample of
+  yours alongside the song (see [Music and
+  effects](reference.md#music-and-effects)).
+
+All the functions and the registers of a channel are in the
+[reference](reference.md#sample-channels). The
+[`samples`](../../../sdk/examples/samples/samples.c) example uses it all: a
+chord with the twelve channels, ADPCM (with an encoder you can copy), direct
+mode (an 8-bit DAC) and interpolation.
+
 ### Digitised sound
+
+This is the old technique, the one Spectrum 128 games used, with the AY.
+For recorded sounds, the [sample channels](#the-sample-channels) are
+simpler and do not keep the CPU busy.
 
 With the tone and noise of a channel turned off, its volume register *is*
 the output: writing volumes fast enough plays a sampled sound.
@@ -657,31 +741,34 @@ queue holds 256 writes: 32 ms of sound at 8 kHz.
 |---|---|
 | `ZXV_S_VOLUME` | Master volume, 0–255 (200 at start-up) |
 | `ZXV_S_AY_STEREO` | 0 mono, 1 ABC (A left, C right; the default), 2 ACB |
+| `ZXV_S_SMP_VOLUME` | Volume of the sample channels, 0–255 (255 at start-up) |
 | `ZXV_S_AFLAGS` | Bit 0: mute everything |
 
-Six channels at full volume at once can distort: lower `ZXV_S_VOLUME` or
+Many channels at full volume at once can distort: lower `ZXV_S_VOLUME` or
 the channel volumes.
 
 ### Tracker music and sound effects
 
 The SDK music library ([`zxv_music.h`](../../../sdk/include/zxv_music.h),
-in `sdk/music`) plays the modules of the Spectrum trackers and the effects
-of the AY Sound FX Editor:
+in `sdk/music`) plays the own format of ZX-V, the modules of the Spectrum
+trackers and the effects of the AY Sound FX Editor:
 
 | Format | What it is |
 |---|---|
+| **ZXM** (`.zxm`) | The own format: a song for the two AY chips and up to 12 tracks on the sample channels ([below](#the-own-format-zxm-and-zxv-music)). MOD, S3M and XM modules are converted to it |
 | **PT3** | Pro Tracker 3.x and Vortex Tracker II, the most used format for AY music |
 | **TurboSound** | Two PT3 in one file, one per AY: six voices |
 | **PT2** | Pro Tracker 2 |
 | **STC** | Sound Tracker 1.x (compiled modules) |
 | **ASC** | ASC Sound Master 0.x and 1.x |
 | **PSG** | A dump of the AY registers, step by step (the one many emulators record) |
+| **VGM** (`.vgm`, `.vgz`) | What is written to the AY chips, with its timing (see below) |
 | **AYFX** (`.afb`, `.afx`) | The effects of Shiru's [AY Sound FX Editor](https://shiru.untergrund.net/software.shtml): a bank or a single effect |
 
-Modules play at their tempo of 50 steps per second, as on the Spectrum,
-even though the machine runs at 60 frames: each step reaches the AY at its
-own time through the timestamped queue, so the music neither speeds up nor
-stutters. The registers it gives are the same as
+Spectrum modules play at their tempo of 50 steps per second, as they did
+there, even though the machine runs at 60 frames: each step reaches the AY
+at its own time through the timestamped queue, so the music neither speeds
+up nor stutters. The registers it gives are the same as
 [ZXTune](https://zxtune.bitbucket.io/)'s, step by step.
 
 ```c
@@ -748,64 +835,177 @@ of both AY chips.
 
 To make the music, the emulator packages come with **`zxv-tracker`**, a
 tracker for Windows and Linux (in the AppImage,
-`./ZX-V-x86_64.AppImage zxv-tracker`) that saves **PT3** modules and
-**AYFX** effect banks: the ones this library plays, and Vortex Tracker and
-the Spectrum players too. It sounds with the same code as the machine (this
-library and the ULA's AY), so what you hear is what will play. It is free
-software under the MIT licence: its code is in
-[`sdk/tools/tracker`](../../../sdk/tools/tracker), and it builds on its own
-with Qt 6 and SDL2 (`cmake -S sdk/tools/tracker -B build-tracker`). It
+`./ZX-V-x86_64.AppImage zxv-tracker`). It saves **`.zxm`** songs, with the
+two AY chips and up to 12 sample tracks (the [own format](#the-own-format-zxm-and-zxv-music));
+**PT3** modules, the ones Vortex Tracker and the Spectrum players use, when
+they only use the AY chips; and **AYFX** effect banks. That is everything
+this library plays. It sounds with the same code as the machine (the ULA's
+synthesizer, with its AY chips and its sample channels), so what you hear
+is what will play. It is free software under the MIT licence: its code is
+in [`sdk/tools/tracker`](../../../sdk/tools/tracker), and that of the
+machine's sound in [`sdk/sound`](../../../sdk/sound) (the same the Pico ULA
+and the emulator build). It builds on its own with Qt 6 and SDL2 (`cmake -S sdk/tools/tracker -B build-tracker`). It
 speaks Spanish or English, the system's language (or the one you ask for:
 `zxv-tracker --lang es`).
 
-![zxv-tracker with a demo module](../../images/sdk-tracker-en.png)
+![zxv-tracker with a demo song: one AY and four sample tracks](../../images/sdk-tracker-en.png)
 
-- **Patterns**, as in Vortex Tracker: per row, the envelope period, the
-  noise and, in each channel, the note, sample, envelope shape, ornament,
-  volume and an effect (1 and 2 the tone slides down and up, 3 portamento,
-  4 and 5 the position in the sample and in the ornament, 6 vibrato, 9 and A
-  the envelope, B the tempo). Notes are typed with the keyboard as a piano
-  (Z S X D C... and Q 2 W 3 E...) and play as you type them; the rest, in
-  hexadecimal. Select with Shift, copy, paste and transpose; undo has no
-  practical limit.
-- **The header and positions:** the title, author, tempo, note table and Pro
-  Tracker version; the order of the patterns and the position it loops
-  back to. **TurboSound** puts a second module on the second AY: six voices.
-- **Samples** (tone, noise and envelope at each step, their offsets and the
-  volume, which you paint with the mouse) and **ornaments**, with a piano to
-  hear them.
+- **Patterns:** on the left, the AY tracks, as in Vortex Tracker; on the
+  right, the sample tracks. Each AY has, per row, the envelope period, the
+  noise and, in each channel, the note, instrument, envelope shape,
+  ornament, volume and an effect (1 and 2 the tone slides down and up,
+  3 portamento, 4 and 5 the position in the instrument and in the ornament,
+  6 vibrato, 9 and A the envelope, B the tempo). Each sample track has the
+  note, the instrument (01-80), the volume (00-40) and two effects, with the
+  MOD, S3M and XM letter and parameter. Notes are typed with the keyboard as
+  a piano (Z S X D C... and Q 2 W 3 E...) and play as you type them; the
+  rest, in hexadecimal. Select with Shift, copy, paste and transpose; undo
+  has no practical limit. Clicking a track's name mutes it.
+- **The song and positions:** the title, author, speed and tempo; how many
+  AY chips it uses (none, one or two, a TurboSound: six voices) and how many
+  sample tracks. Each position says how many rows it has and which pattern
+  each AY and each sample track plays.
+- **AY instruments** (tone, noise and envelope at each step, their offsets
+  and the volume, with a graph of how a note sounds and templates to start
+  from: flat note, kick, snare...) and **ornaments**, with a piano to hear
+  them.
+- **Samples:** imported from a WAV (8 or 16 bits, mono or stereo, with its
+  loop if it has one), tuned so that a C-4 plays at the recording's pitch.
+  You see the waveform and set the loop with the mouse; each one goes in
+  8 bits or in ADPCM (a little over half the size), and a bar shows how much
+  of the 96 KB of sound memory they take. If they don't fit, importing turns
+  them into ADPCM and, if needed, halves their samples.
+- **Sample instruments**, as in FastTracker 2: which sample each note plays
+  (painted with the mouse), the volume and panning envelopes (up to 12
+  points you drag, with their sustain point and their loop), the fadeout
+  when the note is released and the auto-vibrato.
 - **AYFX effects**, in their own tab: a bank with names, the frames of each
   effect (tone, noise, their periods and the volume), importing and
   exporting `.afx`.
-- **Play** the song (F5), the pattern (F6) or from the cursor (F7), with the
-  cursor following what plays and any channels muted; and **export** the
+- **Play** the song (F5), the position (F6) or from the cursor (F7), with
+  the cursor following what plays and any tracks muted; and **export** the
   song to WAV.
 
-It opens Vortex Tracker and Pro Tracker 3 PT3 files: read and saved again
-they sound the same. If a module has commands the editor does not have (two
-effects in the same row, for example), it warns when opening it. The
-modules and effects are played by C programs, with this library, and by
-BASIC, with [`MUSIC` and `SFX`](../basic/reference.md#music).
+![Sample instruments: the note map and the envelopes](../../images/sdk-tracker-ins-en.png)
+
+It also opens Vortex Tracker and Pro Tracker 3 PT3 files (read and saved
+again they sound the same) and, converted, MOD, S3M and XM files (like
+[`zxv-music`](#the-own-format-zxm-and-zxv-music)); for one with more than
+12 channels with notes, it asks which ones to keep, with the busiest ones
+already ticked. If something could not
+be carried over (two effects in the same row of a PT3, for example), it
+warns when opening it. Saving keeps the song in its format: a PT3 stays a
+PT3 while it only uses the AY chips, and if it no longer fits, it offers to
+save it as `.zxm`. The songs and effects are played by C programs, with
+this library, and by BASIC, with [`MUSIC` and `SFX`](../basic/reference.md#music).
 
 The pattern keys (in the program, Help > Keys):
 
 | Keys | What they do |
 |---|---|
 | Z S X D C V G B H N J M · Q 2 W 3 E R 5 T 6 Y 7 U | Notes, in the note column: two octaves from the chosen one |
-| 1 or A | A note off (`R--`) |
-| 0-9 and A-F | The rest, in hexadecimal (the sample, 1 to 9 and A to V) |
+| 1 or A | A note off (`R--` on the AY chips; `===`, release the note, on the sample tracks) |
+| 0-9 and A-F | The rest, in hexadecimal (the AY instrument, 1 to 9 and A to V); a sample track's effect, with its letter |
 | \* and / on the numeric keypad | One octave higher or lower |
-| Arrows, Page Up, Page Down, Home and End · Tab | Move · to the next channel |
+| Arrows, Page Up, Page Down, Home and End · Tab | Move · to the next track |
 | Shift and the arrows · Ctrl+C, Ctrl+X, Ctrl+V | Select · copy, cut and paste |
-| Ctrl+↑ and Ctrl+↓ (with Shift, an octave) | Transpose the selection, or the channel |
+| Ctrl+↑ and Ctrl+↓ (with Shift, an octave) | Transpose the selection, or the track |
 | Delete · Insert · Backspace | Clear · insert a row · remove it |
-| F5 · F6 · F7 · F8 or Esc | Play the song · the pattern · from the cursor · stop |
+| F5 · F6 · F7 · F8 or Esc | Play the song · the position · from the cursor · stop |
 | Scroll Lock | Follow what plays |
 | Ctrl+Z · Ctrl+Y | Undo · redo |
 
-In samples, ornaments and effects, space or a click flips the switches
-(T, N, E), Insert and Delete add and remove lines, and the volume is
-painted by dragging the mouse along its bar; Enter plays the effect.
+In AY instruments, ornaments and effects, space or a click flips the
+switches (T, N, E), Insert and Delete add and remove lines, and the volume
+is painted by dragging the mouse along its bar; Enter plays the effect. In
+the sample instruments' envelopes, a click adds a point, dragging moves it
+and the right button removes it.
+
+#### The own format (`.zxm`) and `zxv-music`
+
+**`.zxm`** is ZX-V's music format: a song with up to six tracks of the two
+AY chips and twelve of the sample channels, with a single tempo, which the
+BASIC (`LOAD … MUSIC`) and `zxv_music_play` play. The AY tracks are those of
+PT3 (its instruments and ornaments, byte for byte); the sample tracks have
+their own instruments (with envelopes) and the effects of the sample
+trackers (MOD, S3M, XM). `sdk/music/zxm_format.h` describes it.
+
+You make one with [`zxv-tracker`](#the-tracker-for-the-pc-zxv-tracker), or
+by converting a PT3, a TurboSound, a MOD, an S3M or an XM with
+**`zxv-music`**, which comes with the emulator:
+
+```
+zxv-music song.pt3 song.zxm
+zxv-music song.xm song.zxm
+```
+
+A PT3 sounds the same, register by register. A TurboSound is converted if
+its two modules move in step (as Vortex Tracker makes them): a `.zxm` has a
+single tempo. A MOD (4 to 32 channels) carries over almost entirely: the
+Amiga filter (`E0x`), inverting the loop (`EFx`) and stopping the song with
+`F00` are lost. Samples that no pattern plays are left out; and if the
+rest do not fit in the 96 KB of sound memory, the biggest go in ADPCM until
+they fit, and if they still do not, also at half the rate (with less
+treble); one that plays above 96 kHz (the ADPCM ceiling) does not go in
+ADPCM without going at half the rate. An S3M or an XM carries over with its
+samples (8 or 16 bits, signed or not; the XM's ping-pong loops, unrolled),
+the XM's instruments (note map, envelopes, fade-out and auto-vibrato), the
+volume column and almost every effect. Lost are the S3M's FM (AdLib), `S1x`, `SAx` and
+`SFx`, and the XM's `E3x`, the vibrato speed in the volume column and the
+ModPlug effects. Repeated track patterns are stored once. It says what it
+could not carry over. The BASIC also plays a MOD, an S3M or an XM as it is
+(`LOAD "song.xm" MUSIC`): it converts it when loading. And
+[`zxv-tracker`](#the-tracker-for-the-pc-zxv-tracker) opens them to keep
+editing them and save them as `.zxm`.
+
+**More than 12 channels:** ZX-V has 12 sample channels. Of a module with
+more channels that have notes, the converter keeps the 12 that play the most
+notes in the song (each note counts as many times as its pattern plays; on a
+tie, the one further left), in their order, and says so. Channels that only
+play a few long notes (a bass, a pad) can lose to a busy drum channel: with
+**`--channels`** you choose them yourself, with the numbers the tracker
+shows (from 1), up to 12:
+
+```
+zxv-music --channels 1-8,11,13 song.xm song.zxm
+```
+
+`zxv-tracker` asks for them when opening it. The BASIC always chooses them
+this way; to choose them yourself, convert it with `zxv-music` or
+`zxv-tracker` and load the `.zxm`.
+
+**Room for `SAMPLE`:** the song's samples and the
+[`SAMPLE`](../basic/reference.md#sample) sounds share the 96 KB of sound
+memory. With **`--free KB`**, `zxv-music` leaves that many KB free: the
+samples that don't fit go in ADPCM, at half the samples or, if even that
+fails, out; and it says how much they take and how much is left.
+
+```
+zxv-music --free 32 song.xm song.zxm
+```
+
+BASIC does this by itself when it loads a MOD, an S3M or an XM as it is,
+but a `.zxm` is already converted: if it doesn't fit with the `SAMPLE`
+sounds already loaded, it gives `4 Out of memory`. In `zxv-tracker`, the
+bar in the samples tab shows how much they take.
+
+
+### VGM: the AY chips
+
+A **VGM** (`.vgm`, or gzip-compressed, `.vgz`, as [vgmrips](https://vgmrips.net)
+hands them out) is what an emulator writes to the sound chips, with its
+timing. ZX-V plays what goes to **the AY chips** (AY-3-8910 and family, and
+the YM2149), one or two: the periods are converted from the file's clock to
+ours, so music from an MSX (1.79 MHz), an Amstrad CPC (1 MHz), an Atari ST
+(2 MHz) or a Spectrum plays at its pitch.
+
+Writes to other chips are skipped, Konami's SCC in MSX cartridges included
+(a game with the AY and the SCC plays its AY part). A VGM with no AY is not
+recognised.
+
+A `.vgz` is decompressed while it plays, with 32 KB of work memory: the
+BASIC fits a `.vgz` of about 50 KB; in C, you give them with
+`zxv_music_work`.
 
 ## Keyboard, joystick and mouse
 
@@ -1004,14 +1204,16 @@ has the left, right and middle buttons in bits 0, 1 and 2.
 ### Esc and Ctrl+Alt+Delete
 
 Your program is not interrupted by Esc (BREAK): it is just another key,
-so give the player a way out. **Ctrl+Alt+Delete** always returns to BASIC,
-even if the program has hung, and never reaches your program.
+so give the player a way out. **Ctrl+Alt+Delete** always restarts the
+machine and returns to BASIC, even if the program has hung, and never
+reaches your program.
 
 ## Files on the SD card
 
-The machine has two drives: `SD:`, the **SD card**, where you read and
-write, and `ROM:`, the read-only drive with the built-in examples. A path
-without a drive refers to the current folder, which is where your program
+The machine has three drives: `SD:`, the **SD card**, where you read and
+write; `ROM:`, the read-only drive with the built-in examples; and `EXT:`,
+the **external drive**, a folder served by another device. A path without a
+drive refers to the current folder, which is where your program
 was loaded from (BASIC's `CD` changes it).
 
 - The separator is `/`; `.` and `..` work. Upper and lower case are the
@@ -1022,6 +1224,15 @@ was loaded from (BASIC's `CD` changes it).
 - Functions return 0 or more when they succeed and a negative error code
   when they fail: `ZXV_E_NOENT` (−1, it does not exist), `ZXV_E_NOCARD`
   (−12, no card), and so on (see [the reference](reference.md#error-codes)).
+- **`EXT:`** is read and written like the card, but only while another
+  device serves it: on the board, a PC through the J5 header with
+  `zxv-link` or `zxv-link-gui` (see [The EXT:
+  drive](../hardware/firmware.md#the-ext-drive)); in the emulator, a folder
+  you choose in File > EXT: drive or with `--ext FOLDER` (see [The
+  emulator](../emulator.md#the-ext-drive)). With no server, everything on
+  `EXT:` gives `ZXV_E_OFFLINE` (−18, "no server for EXT:"); if the server
+  goes away, the first call waits 1.5 seconds and fails. The details are in
+  [the reference](reference.md#files-and-folders).
 
 ```c
 #include "zxv_api.h"
