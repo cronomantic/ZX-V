@@ -2,14 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
   <title>ZX-V · News</title>
-  <link>https://cronomantic.github.io/ZX-V/news/</link>
-  <atom:link href="https://cronomantic.github.io/ZX-V/news/feed.xml" rel="self" type="application/rss+xml"/>
+  <link>https://zx-v.org/news/</link>
+  <atom:link href="https://zx-v.org/news/feed.xml" rel="self" type="application/rss+xml"/>
   <description>New versions of ZX-V, a 32-bit hobby computer inspired by the ZX Spectrum, and news about it.</description>
   <language>en</language>
   <item>
     <title>ZX-V 0.10.0: Twelve sample channels, programs sent from the PC, and the board as open hardware</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#v0.10.0</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#v0.10.0</guid>
+    <link>https://zx-v.org/news/#v0.10.0</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.10.0</guid>
     <pubDate>Sun, 22 Nov 2026 12:00:00 +0000</pubDate>
     <description>&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Twelve sample channels&lt;/strong&gt; in the ULA, next to the two AY chips and the beeper: recorded sounds, 8-bit or ADPCM, in 96 KB of sound memory. From BASIC, &lt;strong&gt;&lt;code&gt;SAMPLE&lt;/code&gt;&lt;/strong&gt; plays them (&lt;code&gt;LOAD "bang.wav" SAMPLE 0: SAMPLE 0&lt;/code&gt;); from C, the &lt;code&gt;zxv_smp_*&lt;/code&gt; functions and the new &lt;code&gt;samples&lt;/code&gt; example.&lt;/li&gt;
@@ -27,19 +27,19 @@
   </item>
   <item>
     <title>The first boards are here</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#2026-11-19-las-placas</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#2026-11-19-las-placas</guid>
+    <link>https://zx-v.org/news/#2026-11-19-las-placas</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#2026-11-19-las-placas</guid>
     <pubDate>Thu, 19 Nov 2026 12:00:00 +0000</pubDate>
     <description>&lt;p&gt;The first ZX-V boards are here. JLCPCB makes them with every small part already soldered; the two Raspberry Pi Pico 2 go in by hand (on this one, in sockets), with the buttons, the power switch and the LEDs.&lt;/p&gt;
-&lt;figure&gt;&lt;img src="https://cronomantic.github.io/ZX-V/news/2026-11-19-placa.jpg" alt="The ZX-V board seen from above: the two Pico 2 in their sockets, ULA on the left and CPU on the right, with the HDMI, USB-C and audio connectors along the top edge and the clock battery holder and the microSD slot on the right" width="1600" height="1600" loading="lazy"&gt;&lt;/figure&gt;
+&lt;figure&gt;&lt;img src="https://zx-v.org/news/2026-11-19-placa.jpg" alt="The ZX-V board seen from above: the two Pico 2 in their sockets, ULA on the left and CPU on the right, with the HDMI, USB-C and audio connectors along the top edge and the clock battery holder and the microSD slot on the right" width="1600" height="1600" loading="lazy"&gt;&lt;/figure&gt;
 &lt;p&gt;&lt;strong&gt;It works.&lt;/strong&gt; With the 0.9.0 firmware the first board starts straight into BASIC on an HDMI screen, and the &lt;code&gt;boardtest&lt;/code&gt; program on its ROM disk passes: picture and palettes, sound, the USB keyboard, the joysticks, the mouse, the MODO button and the clock. The microSD card and the clock battery are still to be tried, as soon as they arrive.&lt;/p&gt;
-&lt;figure&gt;&lt;img src="https://cronomantic.github.io/ZX-V/news/2026-11-19-placa-lado.jpg" alt="The same board from the front, slightly tilted: the power switch and the MODO button on the left, the USB-A connector in the middle, and RESET with the green and blue LEDs on the right" width="1600" height="1067" loading="lazy"&gt;&lt;/figure&gt;
-&lt;p&gt;If you want to build one, &lt;a href="https://cronomantic.github.io/ZX-V/docs/en/hardware/board.html"&gt;the board guide&lt;/a&gt; has the files for JLCPCB, the parts list and how to fit the Picos.&lt;/p&gt;</description>
+&lt;figure&gt;&lt;img src="https://zx-v.org/news/2026-11-19-placa-lado.jpg" alt="The same board from the front, slightly tilted: the power switch and the MODO button on the left, the USB-A connector in the middle, and RESET with the green and blue LEDs on the right" width="1600" height="1067" loading="lazy"&gt;&lt;/figure&gt;
+&lt;p&gt;If you want to build one, &lt;a href="https://zx-v.org/docs/en/hardware/board.html"&gt;the board guide&lt;/a&gt; has the files for JLCPCB, the parts list and how to fit the Picos.&lt;/p&gt;</description>
   </item>
   <item>
     <title>ZX-V 0.9.0: A key click in the editor, and borders in the games</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#v0.9.0</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#v0.9.0</guid>
+    <link>https://zx-v.org/news/#v0.9.0</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.9.0</guid>
     <pubDate>Wed, 04 Nov 2026 12:00:00 +0000</pubDate>
     <description>&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;The key click&lt;/strong&gt;, as on the 128K: every key in the BASIC editor (and in &lt;code&gt;INPUT&lt;/code&gt; and the EDIT menu) makes a short click. If it bothers you, turn it off in the EDIT menu (Tab, &lt;strong&gt;Key click off&lt;/strong&gt;), and the machine remembers it: on the board in its clock, with the language (with the new CPU firmware); in &lt;code&gt;zxv&lt;/code&gt; in its settings, and on the web in the browser. &lt;code&gt;zxv-cli&lt;/code&gt; and &lt;code&gt;zxv-sdl&lt;/code&gt; start without it with &lt;code&gt;--no-click&lt;/code&gt;. Loading a snapshot keeps the setting you have now.&lt;/li&gt;
@@ -48,8 +48,8 @@
   </item>
   <item>
     <title>ZX-V 0.8.0: A 3D adventure, a BASIC debugger in the emulator and smoother sound on the web</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#v0.8.0</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#v0.8.0</guid>
+    <link>https://zx-v.org/news/#v0.8.0</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.8.0</guid>
     <pubDate>Wed, 04 Nov 2026 12:00:00 +0000</pubDate>
     <description>&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Gone Silent&lt;/strong&gt; (&lt;code&gt;gonesilent.zxv&lt;/code&gt;, also on the &lt;code&gt;ROM:&lt;/code&gt; drive): a 3D adventure in a mining colony that has gone silent. Explore the outside and four installations in your suit, read the logs the colonists left, and find the four parts your lander needs. Solid polygons with dithered shading, pixel-art creatures and items, a motion tracker, a map (M) and a saved game at the charging pads. Its source is among the SDK examples.&lt;/li&gt;
@@ -60,8 +60,8 @@
   </item>
   <item>
     <title>ZX-V 0.7.2: A new game and the documentation on the web</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#v0.7.2</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#v0.7.2</guid>
+    <link>https://zx-v.org/news/#v0.7.2</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.7.2</guid>
     <pubDate>Mon, 02 Nov 2026 12:00:00 +0000</pubDate>
     <description>&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;ZXV Chess&lt;/strong&gt; (&lt;code&gt;chess.zxv&lt;/code&gt;, also on the &lt;code&gt;ROM:&lt;/code&gt; drive): chess against the machine, at four levels, or for two players, with the keyboard, a joystick or the mouse. It was written by a contributor, and its source is among the SDK examples. Its pieces are a &lt;code&gt;chess.gfx&lt;/code&gt; file: put another one next to the game to change them without compiling.&lt;/li&gt;
@@ -70,8 +70,8 @@
   </item>
   <item>
     <title>ZX-V 0.7.1: A small update to 0.7.0</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#v0.7.1</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#v0.7.1</guid>
+    <link>https://zx-v.org/news/#v0.7.1</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.7.1</guid>
     <pubDate>Sun, 01 Nov 2026 12:00:00 +0000</pubDate>
     <description>&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;zxv-check --keywords&lt;/code&gt;&lt;/strong&gt; gives the BASIC's keywords as JSON, taken from the ROM's own tokenizer: their codes, which ones are functions and where they are recognised. &lt;code&gt;zxv-check.js&lt;/code&gt; in &lt;code&gt;zxv-web.zip&lt;/code&gt; gives the same with &lt;code&gt;check_keywords()&lt;/code&gt;, so editors such as the ZX-V extension for VS Code can follow the BASIC exactly.&lt;/li&gt;
@@ -80,8 +80,8 @@
   </item>
   <item>
     <title>ZX-V 0.7.0: Colour palettes, files in ZX-V's own formats, loading screens, protected programs and a BASIC debugger</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#v0.7.0</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#v0.7.0</guid>
+    <link>https://zx-v.org/news/#v0.7.0</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.7.0</guid>
     <pubDate>Sat, 31 Oct 2026 12:00:00 +0000</pubDate>
     <description>&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Palettes:&lt;/strong&gt; each of the four colour tables now has its own palette of 16 colours out of 65,536, so a screen can show 16 colours per line and up to 64 at once. In BASIC, &lt;code&gt;PALETTE colour, r, g, b&lt;/code&gt;; in C, &lt;code&gt;ZXV_PALETTE(t)&lt;/code&gt; and &lt;code&gt;ZXV_RGB(r, g, b)&lt;/code&gt;. The usual 15 colours are still the default, and colour 8 is still transparent for sprites. Umbra uses them for a lamp that dims and flickers and a fog of real dark colours.&lt;/li&gt;
@@ -95,8 +95,8 @@
   </item>
   <item>
     <title>ZX-V 0.6.2: A BASIC checker for the PC, and fixes for two of the new games</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#v0.6.2</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#v0.6.2</guid>
+    <link>https://zx-v.org/news/#v0.6.2</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.6.2</guid>
     <pubDate>Fri, 30 Oct 2026 12:00:00 +0000</pubDate>
     <description>&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;zxv-check&lt;/code&gt;&lt;/strong&gt; checks a BASIC listing (&lt;code&gt;.bas&lt;/code&gt;) on the PC, without the machine: it reads every line as &lt;code&gt;LOAD&lt;/code&gt; does, with the same tokenizer and syntax check as the editor, and reports all the lines with errors (and repeated line numbers) as compilers do, with the line and column, in English or Spanish, or as JSON. It comes in the Windows, Linux and AppImage packages, and &lt;code&gt;zxv-web.zip&lt;/code&gt; has it as &lt;code&gt;zxv-check.js&lt;/code&gt; (WebAssembly, for Node and the browser). The ZX-V extension for VS Code uses it to mark the errors while you type.&lt;/li&gt;
@@ -107,8 +107,8 @@
   </item>
   <item>
     <title>ZX-V 0.6.1: Three new games, and a page to publish yours on the web</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#v0.6.1</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#v0.6.1</guid>
+    <link>https://zx-v.org/news/#v0.6.1</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.6.1</guid>
     <pubDate>Fri, 30 Oct 2026 12:00:00 +0000</pubDate>
     <description>&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Three new example games&lt;/strong&gt;, with their graphics, levels, music and effects in files you can edit with &lt;code&gt;zxv-gfx&lt;/code&gt; and &lt;code&gt;zxv-tracker&lt;/code&gt;: &lt;strong&gt;Umbra&lt;/strong&gt;, a 3D maze in the dark in C (raycast walls, mode 7 floor and ceiling, and a lamp whose light shrinks as its oil runs out; its levels are maps in &lt;code&gt;umbra.gfx&lt;/code&gt;); &lt;strong&gt;The Keep&lt;/strong&gt;, a top-down dungeon adventure in C, four floors of rooms and a sorcerer at the top (its floors are maps in &lt;code&gt;keep.gfx&lt;/code&gt;); and &lt;strong&gt;Cascade&lt;/strong&gt;, a falling-gems puzzle in BASIC. All three are on the &lt;code&gt;ROM:&lt;/code&gt; drive.&lt;/li&gt;
@@ -120,8 +120,8 @@
   </item>
   <item>
     <title>ZX-V 0.6.0: Music, sound effects and two editors to make them, and the graphics too</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#v0.6.0</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#v0.6.0</guid>
+    <link>https://zx-v.org/news/#v0.6.0</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.6.0</guid>
     <pubDate>Fri, 30 Oct 2026 12:00:00 +0000</pubDate>
     <description>&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Music and effects for the AY chips:&lt;/strong&gt; the SDK plays Pro Tracker 3 and Vortex Tracker modules, TurboSound (one module on each AY), Pro Tracker 2, Sound Tracker, ASC Sound Master and PSG dumps, and AYFX sound effects (&lt;code&gt;zxv_music.h&lt;/code&gt;). It plays at its own 50 steps per second, exactly on time, whatever the frame rate.&lt;/li&gt;
@@ -134,8 +134,8 @@
   </item>
   <item>
     <title>ZX-V 0.5.0: ZX-V now runs at 60 frames per second</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#v0.5.0</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#v0.5.0</guid>
+    <link>https://zx-v.org/news/#v0.5.0</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.5.0</guid>
     <pubDate>Thu, 29 Oct 2026 12:00:00 +0000</pubDate>
     <description>&lt;p&gt;&lt;strong&gt;ZX-V now runs at 60 frames per second&lt;/strong&gt;, the rate of every HDMI screen, PC monitor and browser. Before, it ran at 50 and showed one frame in five twice on a 60 Hz screen.&lt;/p&gt;
 &lt;ul&gt;
@@ -150,8 +150,8 @@
   </item>
   <item>
     <title>ZX-V 0.4.1</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#v0.4.1</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#v0.4.1</guid>
+    <link>https://zx-v.org/news/#v0.4.1</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.4.1</guid>
     <pubDate>Wed, 28 Oct 2026 12:00:00 +0000</pubDate>
     <description>&lt;ul&gt;
 &lt;li&gt;The line ZX-V shows when it starts, and after &lt;code&gt;NEW&lt;/code&gt;, now says who holds the copyright, as the Spectrum did: &lt;code&gt;© 2026 Cronomantic  ZX-V 0.4.1&lt;/code&gt;. It used to say &lt;code&gt;© 2026 ZX-V 0.4.0&lt;/code&gt;.&lt;/li&gt;
@@ -159,8 +159,8 @@
   </item>
   <item>
     <title>ZX-V 0.4.0: Three new games</title>
-    <link>https://cronomantic.github.io/ZX-V/news/#v0.4.0</link>
-    <guid isPermaLink="true">https://cronomantic.github.io/ZX-V/news/#v0.4.0</guid>
+    <link>https://zx-v.org/news/#v0.4.0</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.4.0</guid>
     <pubDate>Wed, 28 Oct 2026 12:00:00 +0000</pubDate>
     <description>&lt;p&gt;&lt;strong&gt;Three new games&lt;/strong&gt;, on the &lt;code&gt;ROM:&lt;/code&gt; drive and in the examples folder:&lt;/p&gt;
 &lt;ul&gt;
