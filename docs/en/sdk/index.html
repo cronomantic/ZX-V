@@ -13,9 +13,9 @@
 <a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
-<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
+<a class="ir sitio" href="https://zx-v.org/">Website</a>
 <a class="ir" href="../../es/sdk/index.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -45,6 +45,8 @@
 </li>
 <li><a href="graphics.html">Graphics</a>
 </li>
+<li><a href="libraries.html">The SDK libraries</a>
+</li>
 <li><a href="reference.html">API reference</a>
 </li>
 </ul>
@@ -58,8 +60,10 @@
 </li>
 <li><a href="../hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
 </li>
-<li><a href="../hardware/firmware.html#the-ext-drive"><code>EXT:</code>
-  drive</a>
+<li><a href="../hardware/firmware.html#loading-programs-over-wi-fi-pico-2-w">over
+  Wi-Fi</a>
+</li>
+<li><a href="../hardware/firmware.html#the-ext-drive"><code>EXT:</code> drive</a>
 </li>
 <li><a href="web.html">Publishing your game on the web</a>
 </li>
@@ -91,8 +95,9 @@ speed, has the whole machine to itself and can do everything BASIC does and
 more: games with dozens of sprites, digitised sound, your own file formats.</p>
 <p>This guide takes you from installing the tools to distributing a finished
 program. The complete list of functions, constants and formats is in the
-<a href="reference.html">API reference</a>, and the graphics engine has its own page:
-<a href="graphics.html">Graphics</a>.</p>
+<a href="reference.html">API reference</a>, the graphics engine has its own page,
+<a href="graphics.html">Graphics</a>, and the optional libraries for games (maths,
+input, saving, fonts, 3D...) another: <a href="libraries.html">The SDK libraries</a>.</p>
 <p><strong>Contents</strong></p>
 <ul>
 <li><a href="#native-programs-or-basic">Native programs or BASIC?</a></li>
@@ -121,7 +126,7 @@ again in a second.</p>
   million instructions per frame (60 frames per second).</li>
 <li><strong>Control.</strong> Your own data structures, fixed-point maths, your own sound
   engine, your own file formats.</li>
-<li><strong>Size.</strong> Up to almost 248 KB for code and data, with all the memory of the
+<li><strong>Size.</strong> Up to almost 244 KB for code and data, with all the memory of the
   machine at your disposal while the program runs.</li>
 </ul>
 <p>The price is that you write in C on your computer, compile, and then load
@@ -254,6 +259,10 @@ others, leaving out <code>files</code>.</p>
 <tr>
 <td><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/gonesilent"><code>gonesilent</code></a></td>
 <td><strong>Gone Silent</strong>, a 3D adventure: solid polygons with dithered shading drawn back to front, pixel-art sprites for the creatures and items (made by scripts and compressed at build time), two palettes through the line table, a motion tracker, a map and a saved game (<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/gonesilent/README.md">its README</a>)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/fases"><code>fases</code></a></td>
+<td>Banks: two stages, each with its code bank (what moves) and its data bank (the background, in hidden VRAM), loaded from the <code>.zxv</code> itself when the stage starts; built with <code>zxvbanks.py</code></td>
 </tr>
 <tr>
 <td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/player/player.c"><code>player</code></a></td>
@@ -416,8 +425,8 @@ Only BASIC launches programs.</p>
 <tbody>
 <tr>
 <td>User RAM</td>
-<td><code>0x2003_4000</code> – <code>0x2007_1FFF</code></td>
-<td>248 KB</td>
+<td><code>0x2003_4000</code> – <code>0x2007_0FFF</code></td>
+<td>244 KB</td>
 <td>Your code, data and stack</td>
 </tr>
 <tr>
@@ -453,10 +462,23 @@ Only BASIC launches programs.</p>
   comfortable amount.</li>
 <li>In mode 0 each video page only shows its first 24 KB; the other 72 KB of
   each page are free RAM if you need more space (unless you use the large
-  scrolling fields of <a href="graphics.html#hardware-scrolling">graphics</a>).</li>
-<li>The 64 KB above the user RAM belong to the system: touching them stops
-  your program.</li>
+  scrolling fields of <a href="graphics.html#hardware-scrolling">graphics</a>). That is
+  144 KB on top of the user RAM, and the SDK gives it to you with one word:</li>
 </ul>
+<p><code>c
+  ZXV_VRAM0_DATA static int32_t heights[4601];    /* behind page 0 */
+  ZXV_VRAM1_DATA static uint8_t music[48 * 1024]; /* behind page 1 */</code></p>
+<p>They start at zero, like any variable without an initial value, and cannot
+  have another one (they are not in the file: the compiler rejects it). They
+  suit large tables, sprite banks and whatever you load from the card: The
+  Keep keeps its sprites, tiles and music there. Two conditions: the program
+  runs in mode 0 and leaves <code>VSIZE</code> at 0 (set it yourself at the start: it
+  may come from another program), because mode 1 and the large scrolling
+  field use the whole page. And don't mix it with hand-made pointers to the
+  same area, as Route 128 and Umbra do (<code>SPARE0</code>, <code>SPARE1</code>): they would
+  overwrite each other.
+- The 68 KB above the user RAM belong to the system: touching them stops
+  your program.</p>
 <h3 id="the-rules-of-the-machine">The rules of the machine<a class="ancla" href="#the-rules-of-the-machine" aria-hidden="true">#</a></h3>
 <p>The same program has to work on the emulator and on the real machine. For
 that:</p>
@@ -505,6 +527,10 @@ headers:</p>
 <tr>
 <td><code>zxv_music.h</code></td>
 <td>Tracker music and sound effects (with <code>sdk/music</code>; see <a href="#tracker-music-and-sound-effects">Sound</a>)</td>
+</tr>
+<tr>
+<td><code>zxv_math.h</code>, <code>zxv_input.h</code>, <code>zxv_save.h</code>, <code>zxv_font.h</code>, <code>zxv_3d.h</code>...</td>
+<td>The optional libraries in <code>sdk/lib</code>: fixed-point maths, keyboard and gamepad, saving, fonts, 3D and more (see <a href="libraries.html">The SDK libraries</a>)</td>
 </tr>
 <tr>
 <td><code>zxv.h</code></td>
@@ -646,9 +672,8 @@ up.</p>
   at the top left: 32 × 24 in mode 0, 64 × 48 in mode 1. <code>zxv_cls</code> and
   <code>zxv_set_mode</code> also put it back at the top left.</li>
 <li><code>zxv_text_colors(ink, paper)</code> chooses the colours: each character is drawn
-  in <code>ink</code> on a cell filled with <code>paper</code>. They are black on white unless a
-  program changes them, and they stay changed after it ends, so set them
-  before you print.</li>
+  in <code>ink</code> on a cell filled with <code>paper</code>. Every program starts with black on
+  white, and the machine puts them back that way when it ends.</li>
 <li>Strings are UTF-8, as your C source is. Besides ASCII, the font has <code>©</code>
   and the Spanish letters <code>á é í ó ú ü ñ</code>, their capitals, <code>¿</code> and <code>¡</code>;
   any other character comes out as <code>?</code>. <code>\n</code> or <code>\r</code> starts a new line
@@ -734,7 +759,8 @@ channel has its own panning.</p>
 <h3 id="the-ay-chip">The AY chip<a class="ancla" href="#the-ay-chip" aria-hidden="true">#</a></h3>
 <p>You control an AY by writing its 16 registers with <code>zxv_ay_write(reg,
 value)</code>. For the second chip, add <code>ZXV_AY2</code> (16) to the register number.
-The main registers:</p>
+The main registers (all of them, with their values, in
+<a href="reference.html#zxv_ay_write"><code>zxv_ay_write</code></a>):</p>
 <table>
 <thead>
 <tr>
@@ -916,32 +942,10 @@ prepare samples ahead. The <a href="https://github.com/cronomantic/ZX-V/blob/mai
 example plays a sine wave at 8 kHz; Estela uses it for its explosions. The
 queue holds 256 writes: 32 ms of sound at 8 kHz.</p>
 <h3 id="volume-and-stereo">Volume and stereo<a class="ancla" href="#volume-and-stereo" aria-hidden="true">#</a></h3>
-<table>
-<thead>
-<tr>
-<th>Register</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>ZXV_S_VOLUME</code></td>
-<td>Master volume, 0–255 (200 at start-up)</td>
-</tr>
-<tr>
-<td><code>ZXV_S_AY_STEREO</code></td>
-<td>0 mono, 1 ABC (A left, C right; the default), 2 ACB</td>
-</tr>
-<tr>
-<td><code>ZXV_S_SMP_VOLUME</code></td>
-<td>Volume of the sample channels, 0–255 (255 at start-up)</td>
-</tr>
-<tr>
-<td><code>ZXV_S_AFLAGS</code></td>
-<td>Bit 0: mute everything</td>
-</tr>
-</tbody>
-</table>
+<p>The master volume (<code>ZXV_S_VOLUME</code>), the AY stereo (<code>ZXV_S_AY_STEREO</code>: mono,
+ABC or ACB), the volume of the sample channels (<code>ZXV_S_SMP_VOLUME</code>) and
+muting everything (<code>ZXV_S_AFLAGS</code>) are registers: their values are in
+<a href="reference.html#sound-registers">Sound registers</a>.</p>
 <p>Many channels at full volume at once can distort: lower <code>ZXV_S_VOLUME</code> or
 the channel volumes.</p>
 <h3 id="tracker-music-and-sound-effects">Tracker music and sound effects<a class="ancla" href="#tracker-music-and-sound-effects" aria-hidden="true">#</a></h3>
@@ -1305,6 +1309,10 @@ down:</p>
     return (map[hid &gt;&gt; 3] &gt;&gt; (hid &amp; 7)) &amp; 1;
 }
 </code></pre>
+<p>The <a href="libraries.html#keyboard-and-gamepads-at-once-zxv_inputh"><code>zxv_input.h</code></a>
+library already does this (<code>zxv_input_key_down</code>), with the keyboard and
+joysticks together. The most common codes (the rest are in
+<a href="reference.html#input-registers">Input registers</a>):</p>
 <table>
 <thead>
 <tr>
@@ -1575,6 +1583,173 @@ int main(void)
   <a href="graphics.html#images-from-png-files-png2gfxpy">graphics example</a> uses it).</li>
 <li>The folder listing comes in alphabetical order.</li>
 </ul>
+<h3 id="banks-more-data-than-fits-at-once">Banks: more data than fits at once<a class="ancla" href="#banks-more-data-than-fits-at-once" aria-hidden="true">#</a></h3>
+<p>A big game doesn't need everything at once: the graphics and the track of
+stage 2 can wait for stage 2. <strong>Banks</strong> go at the end of the <code>.zxv</code> itself
+and are loaded when needed, so the game is still a single file (on the card,
+on the ROM disk, on <code>EXT:</code> and on the web).</p>
+<pre><code class="language-c">#include &quot;zxv_bank.h&quot;
+
+ZXV_VRAM1_DATA static uint8_t stage[64 * 1024];
+
+int n = zxv_bank_load(&quot;stage2&quot;, stage, sizeof stage);
+if (n &lt; 0)
+    zxv_report_error(n, &quot;Cannot load stage 2&quot;);
+</code></pre>
+<p>You add them when converting the ELF, and link <code>zxvbank.c</code>:</p>
+<pre><code class="language-make">build/racer.zxv: build/racer.elf
+    $(PYTHON) $(SDK)/tools/elf2zxv.py $&lt; $@ --pack \
+        --bank stage1=stage1.gfx --bank stage2=stage2.gfx --bank track=track.bin
+</code></pre>
+<ul>
+<li><strong>A bank is any file:</strong> a <code>.gfx</code>, a table, a <code>.pt3</code>... With <code>--pack</code> each
+  one is compressed when that makes it smaller; <code>zxv_bank_load</code> unpacks it
+  straight into the destination and checks its CRC. <code>zxv_bank_size</code> tells
+  you its size, to make room for it.</li>
+<li><strong>They are read from the program's own file</strong>, which the system keeps open
+  while it runs: changing folder or drive doesn't matter. It takes one of
+  the 8 files that can be open at once.</li>
+<li><strong>How long it takes:</strong> 100 KB, a few milliseconds from the card or the ROM
+  disk, plus about 30 ms if compressed. From <code>EXT:</code> over J5 (about 80 KB/s),
+  more than a second: load at a moment where it doesn't show, like the
+  "Stage 2" banner.</li>
+<li><strong>If something goes wrong</strong>, <code>zxv_bank_load</code> returns an error, and
+  whatever is left in the destination is not valid: <code>ZXV_E_CHANGED</code> if the file is no longer the running
+  program's (another version copied to the card, or rebuilt on the PC while
+  it runs from <code>EXT:</code>: load it again), <code>ZXV_E_FORMAT</code> if a bank is damaged,
+  and the file errors (<code>ZXV_E_NOCARD</code>, <code>ZXV_E_OFFLINE</code>...).</li>
+<li>It needs a ROM with specification 0.2 or later; with an older one it
+  returns <code>ZXV_E_ACCESS</code>. The details are in <a href="reference.html#banks">the reference</a>.</li>
+</ul>
+<h3 id="code-banks-more-code-than-fits-at-once">Code banks: more code than fits at once<a class="ancla" href="#code-banks-more-code-than-fits-at-once" aria-hidden="true">#</a></h3>
+<p>With <strong>code banks</strong>, the functions of each stage (its enemies, its boss, its
+way of drawing) are not in memory at the same time. Each bank is loaded from
+the <code>.zxv</code> itself the first time you call one of its functions, into a
+<strong>region</strong> of RAM that it shares with other banks. You call them as usual:</p>
+<pre><code class="language-c">/* valley.c: the &quot;valley&quot; bank */
+void valle_draw(int frame) { ... }
+
+/* main.c: the resident part, always there */
+valle_draw(f);                  /* if the bank isn't there, it loads now */
+</code></pre>
+<p><strong>It is one program, not several chained programs.</strong> The resident part and
+all the banks are compiled and linked together, and every function and
+variable has its fixed address: a bank is just a piece of the code that is
+brought into memory when needed. So:</p>
+<ul>
+<li><strong>The global variables of the resident part belong to everyone:</strong> any bank
+  reads and writes them directly, and they keep their values when the bank
+  changes. That is how lives, points or the inventory go from one stage to
+  the next.</li>
+<li><strong>A bank calls directly</strong> the functions of the resident part and of the
+  libraries, and those of another bank through that bank's bridge. Data
+  goes and comes back as in any call: in the parameters and the result.</li>
+<li><strong>The only thing not shared is a bank's own variables</strong> (the ones defined
+  in its files): they start again every time it loads and can't be exported
+  (below).</li>
+<li><strong>Data banks</strong> are bytes that <code>zxv_bank_load</code> puts wherever you say: in a
+  resident variable, every bank uses them.</li>
+</ul>
+<pre><code class="language-c">/* game.h: what they all share */
+extern int lives, points;
+void add_points(int n);
+
+/* main.c, resident: they are defined here */
+int lives = 3, points;
+void add_points(int n) { points += n; }
+
+/* valle.c, bank &quot;valle&quot;: uses them like any file */
+if (crash)
+    lives--;
+add_points(100);                /* a resident function: no bridge */
+</code></pre>
+<p>You build it with <code>tools/zxvbanks.py</code>, which does the whole job: it compiles
+each bank on its own, generates the <strong>bridges</strong> (a small function in the
+resident part for each public function of a bank, which loads the bank if
+needed and jumps to it), links and calls <code>elf2zxv.py</code>. The loose files are
+the resident part. The rule makes the <code>.zxv</code> and the <code>.elf</code> together (<code>&amp;:</code>,
+GNU make 4.3 or later), so <code>make build/fases.elf</code>, which the VS Code
+extension runs to debug, doesn't link it without the banks:</p>
+<pre><code class="language-make">build/fases.zxv build/fases.elf &amp;: main.c valle.c espacio.c fondo1.bin fondo2.bin
+    $(PYTHON) $(SDK)/tools/zxvbanks.py -o build/fases.zxv --pack \
+        --code valle=valle.c --code espacio=espacio.c \
+        --bank fondo1=fondo1.bin --bank fondo2=fondo2.bin main.c
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-o OUT.zxv</code></td>
+<td>The program. It leaves <code>OUT.elf</code> next to it, with every bank and its symbols (for debugging), and the intermediate files in <code>OUT.bancos/</code>; in <code>OUT.bancos/gdb/</code>, the symbols for GDB (see <a href="#with-code-banks">With code banks</a>)</td>
+</tr>
+<tr>
+<td><code>--code NAME[@REGION]=a.c,b.c</code></td>
+<td>A code bank with those files, in region 0 to 7 (0 if not given); can be repeated</td>
+</tr>
+<tr>
+<td><code>--bank NAME=FILE</code>, <code>--pack</code></td>
+<td>The data banks, as in <code>elf2zxv.py</code></td>
+</tr>
+<tr>
+<td><code>--cc</code>, <code>--cflags</code>, <code>--sdk</code></td>
+<td>The compiler, its options (the SDK's by default) and the SDK folder</td>
+</tr>
+<tr>
+<td><code>--name</code>, <code>--mode</code>, <code>--screen</code></td>
+<td>Passed on to <code>elf2zxv.py</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Regions:</strong> a region is as big as its biggest bank and goes after the
+  program's variables. The banks of one region take turns; banks in
+  different regions can be loaded at the same time.</li>
+<li><strong>A bank in use is not replaced:</strong> if a function in bank <code>a</code> calls
+  (directly or not) one in bank <code>b</code> of the same region, <code>b</code> would have to
+  load over the code that is running. Instead of hanging, the program stops
+  with "Bank a in use: cannot load b in its region". Put banks that call
+  each other in different regions.</li>
+<li><strong>When it shows:</strong> the first call loads the bank: a few milliseconds from
+  the card or <code>ROM:</code>, more from <code>EXT:</code>. <code>zxv_bank_preload("valle")</code> loads it
+  now, for example with the stage banner, and returns an error instead of
+  stopping the program. The <a href="https://github.com/cronomantic/ZX-V/tree/main/sdk/examples/fases"><code>fases</code></a> example
+  does that: on the board, each stage's code and background load in 9 ms
+  from <code>ROM:</code>, 16 ms from <code>SD:</code> and 35 ms from <code>EXT:</code>.</li>
+<li><strong>If loading fails inside a call</strong> (the program has changed, there is no
+  card...), the function can't return an error: the program stops with the
+  message. Call <code>zxv_bank_preload</code> first to handle the error yourself.</li>
+<li><strong>A bank's variables start again</strong> every time it loads: initialised ones
+  get their value back and the rest are zeroed. What must last or be shared
+  goes in the resident part (above). A bank can't export variables (<code>zxvbanks.py</code> gives an
+  error: make them <code>static</code>), nor have them in the
+  <a href="#memory">hidden VRAM</a> (<code>ZXV_VRAM0_DATA</code>, <code>ZXV_VRAM1_DATA</code>): they
+  would not start again. <code>zxvbanks.py</code> gives an error: declare them in the
+  resident part, where they take no user RAM either.</li>
+<li><strong>Pointers:</strong> one to a public function of a bank, taken outside it, points
+  to its bridge and is always valid. One to anything else in the bank (a
+  <code>static</code> function, its data) stops being valid when another bank loads
+  into its region. The region is filled with <code>ebreak</code> before loading, so a
+  stray call stops at once instead of running garbage (the emulator says
+  where), and <code>zxvbanks.py</code> warns about functions whose address is taken
+  inside their own bank.</li>
+<li><strong>What you can't do:</strong> load a bank with interrupts disabled (it reads a
+  file) or with the frame hook pointing into its region (keep the hook in
+  the resident part), or nest more than 32 bank calls. The program stops
+  with a message saying so.</li>
+<li><strong>Libraries</strong> (<code>zxvlib.c</code>, libgcc...) always go in the resident part, even
+  if only one bank uses them.</li>
+<li><strong>What a call costs:</strong> going through the bridge costs more than a normal
+  call. Whatever runs many times per frame is better inside the bank: one
+  call per frame, like <code>valle_draw</code>.</li>
+<li><strong>Debugging:</strong> GDB, the <code>zxv</code> debugger and the profile know which bank is
+  loaded (see <a href="#with-code-banks">With code banks</a>).</li>
+<li>It needs a ROM with specification 0.2 or later.</li>
+</ul>
 <h3 id="with-the-standard-c-library">With the standard C library<a class="ancla" href="#with-the-standard-c-library" aria-hidden="true">#</a></h3>
 <p>With picolibc (see <a href="#two-ways-to-write-c">Two ways to write C</a>) you use
 the usual functions; errors arrive in <code>errno</code>. This is part of the
@@ -1749,7 +1924,7 @@ hooks.</p>
 warns, with the address of the instruction, when your program touches
 memory it must not, reads unaligned data, uses instructions the real
 processor lacks or writes to the video page being sent to the screen:</p>
-<pre><code>[strict] write in the system reserved area (20072000, PC=20034010)
+<pre><code>[strict] write in the system reserved area (20071000, PC=20034010)
 </code></pre>
 <p>To find which line of your code that address is:</p>
 <pre><code class="language-sh">riscv64-unknown-elf-addr2line -e hello.elf 20034010
@@ -1797,6 +1972,36 @@ Debug menu in <code>zxv</code>); the machine waits, stopped, until GDB connects:
 instruction per cycle, while on the real machine some code is slower: the
 graphics engine, for example, takes between the same and 1.8 times as long.
 Leave some spare time in each frame.</p>
+<h3 id="with-code-banks">With code banks<a class="ancla" href="#with-code-banks" aria-hidden="true">#</a></h3>
+<p>The functions of the <a href="#code-banks-more-code-than-fits-at-once">code banks</a>
+in one region share the same addresses. The program notes which one is
+loaded (in the <code>_ovly_table</code> table, GDB's), and the tools read it:</p>
+<ul>
+<li><strong>GDB</strong>, with the <code>sdk/tools/zxvbanks-gdb.py</code> script:</li>
+</ul>
+<p><code>sh
+  riscv64-unknown-elf-gdb fases.elf -x sdk/tools/zxvbanks-gdb.py -ex "target remote :1234"</code></p>
+<p><code>break valle_draw</code> stays pending until the <code>valle</code> bank loads, and stops
+  only in it; <code>bt</code>, <code>list</code>, <code>print</code> and <code>next</code> follow the bank that is
+  loaded, and <code>bt</code> goes through the bridge (<code>__zxvbank_call</code>) up to the
+  calling function. <code>zxvbanks</code> shows what is in each region. For that,
+  <code>zxvbanks.py</code> leaves the symbols of the resident part and of each bank in
+  <code>fases.bancos/gdb/</code>, and the script adds and removes them as banks load
+  (GDB can't hold two functions at the same address, and its <code>overlay auto</code>
+  can't read the table on RISC-V).
+  - <code>step</code> doesn't enter a bank function (the bridge has no line
+    information): put a <code>break</code> in it. <code>finish</code> from it returns to its
+    caller.
+  - The bridges are called <code>FUNCTION.puente</code> (<code>valle_draw.puente</code>).
+  - The VS Code extension loads the script by itself when the program has
+    code banks.
+- <strong>The <code>zxv</code> debugger</strong>, with the <code>.elf</code> next to the <code>.zxv</code>: each address in
+  a region gets the name of the function of the bank that is loaded. A
+  breakpoint in a bank function (by its name, or in the code while it is
+  loaded) stops only in that bank.
+- <strong>The profile:</strong> <code>zxv-cli --profile profile.txt --symbols fases.elf</code> notes
+  which bank each bank sample was in. <code>zxv</code> does it by itself, with the
+  <code>.elf</code> it loads next to the <code>.zxv</code>.</p>
 <h2 id="distributing-your-program">Distributing your program<a class="ancla" href="#distributing-your-program" aria-hidden="true">#</a></h2>
 <p>A program is its <code>.zxv</code> file, plus any data files it loads. To give it
 to someone:</p>
@@ -1836,6 +2041,14 @@ to someone:</p>
 <tr>
 <td><code>--screen SCREEN</code></td>
 <td>A loading screen: a PNG or a <code>.gfx</code> with a screen (from <code>zxv-gfx</code> or <code>png2gfx.py --screen</code>). It shows while the program loads, and on the game's web page while it starts</td>
+</tr>
+<tr>
+<td><code>--bank NAME=FILE</code></td>
+<td>A bank (see <a href="#banks-more-data-than-fits-at-once">Banks</a>); repeatable. Names of 1 to 15 ASCII characters, no spaces</td>
+</tr>
+<tr>
+<td><code>--pack</code></td>
+<td>Compress each bank (deflate) when that makes it smaller</td>
 </tr>
 </tbody>
 </table>

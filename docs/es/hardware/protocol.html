@@ -13,9 +13,9 @@
 <a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
-<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
+<a class="ir sitio" href="https://zx-v.org/es/">Web</a>
 <a class="ir" href="../../en/hardware/protocol.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -43,6 +43,8 @@
 </li>
 <li><a href="../sdk/graphics.html">Gráficos</a>
 </li>
+<li><a href="../sdk/libraries.html">Las bibliotecas del SDK</a>
+</li>
 <li><a href="../sdk/reference.html">Referencia de la API</a>
 </li>
 </ul>
@@ -55,6 +57,9 @@
 <li><a href="../sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
 </li>
 <li><a href="firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="firmware.html#cargar-programas-por-wi-fi-pico-2-w">por
+  Wi-Fi</a>
 </li>
 <li><a href="firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
 </li>
@@ -101,9 +106,9 @@ Aquí, lo que viaja.</p>
   máquina, GP13 entra), a <strong>921.600 baudios</strong>, 8 bits, sin paridad, 1 bit de
   parada, sin control de flujo, a <strong>3,3 V</strong>. Con un adaptador USB-serie de
   3,3 V: su RX al TX de la placa, su TX al RX, y masa con masa.</li>
-<li><strong>Más adelante, otros</strong> (el Wi-Fi de una Pico 2 W): los mismos mensajes por
-  otro camino. Si hay un servidor por cada uno a la vez, la máquina usa el del
-  cable.</li>
+<li><strong>La red, si la Pico CPU es una Pico 2 W</strong> (D106): las mismas tramas, cada
+  una en un paquete UDP firmado (<a href="#por-la-red-wi-fi">abajo</a>). Si hay un
+  servidor de <code>EXT:</code> por cada camino a la vez, la máquina usa el del cable.</li>
 </ul>
 <h2 id="las-tramas">Las tramas<a class="ancla" href="#las-tramas" aria-hidden="true">#</a></h2>
 <p>Cada mensaje va en una trama: sus bytes en <strong>COBS</strong>, con un <strong>cero</strong> detrás.
@@ -334,7 +339,7 @@ referencia):</p>
 <tr>
 <td><code>HELLO</code> (1)</td>
 <td>—</td>
-<td>Versión del protocolo (u16), si el BASIC espera una orden (u8), versión de la especificación (u32) y del firmware (texto)</td>
+<td>Versión del protocolo (u16), si el BASIC espera una orden (u8: 1 sí, 0 no, 2 está actualizando el firmware), versión de la especificación (u32) y del firmware (texto)</td>
 </tr>
 <tr>
 <td><code>OPEN</code> (2)</td>
@@ -381,17 +386,226 @@ referencia):</p>
 <td>arriba</td>
 <td>arriba</td>
 </tr>
+<tr>
+<td><code>UPDATE</code> (11)</td>
+<td>—</td>
+<td>— (la máquina se reinicia y actualiza su firmware con <code>EXT:/zxv-update.bin</code>: abajo)</td>
+</tr>
+<tr>
+<td><code>LIST</code> (12)</td>
+<td>desde (u16), ruta</td>
+<td>Cuántas entradas van en esta respuesta (en el estado), si hay más (u8) y cada una: tamaño (u32), atributos (u8: 1 carpeta), largo del nombre (u8) y el nombre</td>
+</tr>
+<tr>
+<td><code>GET</code> (13)</td>
+<td>posición (u32), ruta</td>
+<td>Cuántos bytes (en el estado, hasta 508), el tamaño del fichero (u32) y esos bytes</td>
+</tr>
+<tr>
+<td><code>REMOVE</code> (14)</td>
+<td>ruta</td>
+<td>— (un fichero o una carpeta vacía)</td>
+</tr>
+<tr>
+<td><code>RENAME</code> (15)</td>
+<td>ruta, 0, ruta nueva</td>
+<td>— (en la misma unidad; si ya hay otra cosa con el nombre nuevo, <code>ZXV_E_EXIST</code>; el mismo nombre con otras mayúsculas lo cambia)</td>
+</tr>
+<tr>
+<td><code>MKDIR</code> (16)</td>
+<td>ruta</td>
+<td>—</td>
+</tr>
 </tbody>
 </table>
+<p><strong>La tarjeta y la ROM como un explorador</strong> (<code>LIST</code>, <code>GET</code>, <code>REMOVE</code>,
+<code>RENAME</code>, <code>MKDIR</code>, desde la versión 6): las rutas llevan su unidad, <code>SD:</code> o
+<code>ROM:</code> (sin unidad, la tarjeta); <code>EXT:</code> no, porque es la carpeta del propio
+equipo de fuera. En <code>ROM:</code> solo se lee: lo demás da un error. <code>LIST</code>
+devuelve las entradas que caben en una trama, empezando por la número
+«desde»: si dice que hay más, se pide otra vez desde la siguiente. <code>GET</code>
+devuelve un trozo desde «posición»; mientras se pide el mismo fichero
+seguido, la máquina lo deja abierto, y cualquier otra petición lo cierra.
+Ejecutar lo que ya está en la máquina es <code>RUN</code> con la orden:
+<code>CD "SD:/juegos": LOAD "juego.zxv"</code>.</p>
 <p><strong>Estado 1 en <code>RUN</code> y <code>READY</code>:</strong> había un programa en marcha y la máquina se
 reinicia entera, como con Ctrl+Alt+Supr; lo pedido no se hace. Contesta otra
 vez al cabo de un arranque (uno o dos segundos): hay que mandar <code>HELLO</code>
 hasta que diga que el BASIC espera una orden, y pedirlo de nuevo.</p>
+<p><strong><code>UPDATE</code>:</strong> actualizar el firmware de las dos Pico desde fuera, sin tarjeta
+(<code>zxv-link update</code>). Antes hay que servir <code>EXT:</code> con el fichero en
+<code>/zxv-update.bin</code>, y el BASIC tiene que esperar una orden. Con el estado 0,
+la máquina se reinicia en su pantalla de actualización y lee el fichero de
+<code>EXT:</code>. Se vuelve a reiniciar tras escribir el firmware de la CPU y otra vez
+al acabar, así que hay que seguir sirviéndolo (y anunciándose) hasta el
+final. Mientras tanto, <code>HELLO</code> dice 2, el informe (canal <code>LOG</code>) cuenta los
+pasos (un paso que falla acaba en «: error») y lo demás, salvo <code>SERVE</code>,
+contesta <code>ZXV_E_ACCESS</code>. Al final la máquina vuelve al BASIC: si <code>HELLO</code> da
+la versión del fichero, ha ido bien. Errores: <code>ZXV_E_OFFLINE</code> si no ve el
+servidor de <code>EXT:</code>; <code>ZXV_E_ACCESS</code> con un programa en marcha, si la Pico no
+tiene particiones (hay que grabarla una vez por USB) o si ya está
+actualizando.</p>
+<h2 id="por-la-red-wi-fi">Por la red (Wi-Fi)<a class="ancla" href="#por-la-red-wi-fi" aria-hidden="true">#</a></h2>
+<p>Con una Pico 2 W en el zócalo de la CPU, la máquina se une a la red que se
+elige en <strong>EDIT &gt; Wi-Fi</strong> y escucha en el <strong>puerto UDP 5612</strong>. Cada trama de
+arriba (en COBS, con su cero) va <strong>entera en un paquete</strong>; la máquina contesta
+al puerto del que le llegó. Todo lo que no sea buscar y emparejar va
+<strong>firmado</strong> con una clave que solo tienen la máquina y ese PC, así que nadie
+más de la red puede mandarle programas ni hacerse pasar por su servidor de
+<code>EXT:</code>. No va cifrado: lo que viaja se puede leer. La referencia está en
+<code>zlnet.h</code>, <code>zlnet.c</code> y <code>netpc.c</code> (el PC) y en <code>pico/common/netsvc.c</code> (la
+máquina).</p>
+<p>Cada paquete empieza por <code>ZXV</code> y una letra, el tipo. Los números, en little
+endian:</p>
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Quién</th>
+<th>Qué lleva</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>F</code></td>
+<td>PC</td>
+<td>Buscar: el id del PC (8 bytes) y la versión del protocolo de la red del PC (u8). A la difusión de la red o a una dirección</td>
+</tr>
+<tr>
+<td><code>f</code></td>
+<td>Máquina</td>
+<td>El id de la máquina (8), su arranque (8, al azar en cada encendido), si está emparejada con ese PC (u8), la versión de las tramas (u16), su nombre (16, con ceros: <code>ZX-V-1A2B</code>, de su MAC), el firmware (texto: <code>ZX-V 0.11.0</code>), un 0 y la versión del protocolo de la red (u8)</td>
+</tr>
+<tr>
+<td><code>P</code></td>
+<td>PC</td>
+<td>Empezar a emparejar: id del PC (8), su clave pública X25519 (32) y su nombre</td>
+</tr>
+<tr>
+<td><code>p</code></td>
+<td>Máquina</td>
+<td>Estado (u8), su clave pública (32) y su compromiso (32)</td>
+</tr>
+<tr>
+<td><code>N</code></td>
+<td>PC</td>
+<td>id del PC (8) y su número al azar Npc (16). Desde la dirección y el puerto del <code>P</code></td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>Máquina</td>
+<td>Estado (u8) y su número al azar Nm (16)</td>
+</tr>
+<tr>
+<td><code>Q</code></td>
+<td>PC</td>
+<td>id del PC (8) y su prueba (16, abajo): ¿ha contestado el usuario?</td>
+</tr>
+<tr>
+<td><code>q</code></td>
+<td>Máquina</td>
+<td>Estado (u8) y, si es 1, su prueba (16)</td>
+</tr>
+<tr>
+<td><code>D</code></td>
+<td>PC</td>
+<td>Datos: id del PC (8), arranque de la máquina (8), contador (u64), una trama y la firma (16)</td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td>Máquina</td>
+<td>Datos, como <code>D</code></td>
+</tr>
+<tr>
+<td><code>b</code></td>
+<td>Máquina</td>
+<td>id del PC (8), su arranque nuevo (8), el contador del <code>D</code> al que contesta (u64) y la firma (16): contesta así a un <code>D</code> con otro arranque</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Los estados:</strong> 0 sigue (espera al usuario o al paso siguiente), 1
+aceptado, 2 rechazado (o se cerró el cuadro), 3 la máquina no está
+emparejando, 4 empareja con otro PC.</p>
+<h3 id="emparejar">Emparejar<a class="ancla" href="#emparejar" aria-hidden="true">#</a></h3>
+<p>Como la comparación de números de Bluetooth. El usuario abre <strong>EDIT &gt; Wi-Fi &gt;
+Emparejar un PC</strong> en la máquina; fuera de ahí contesta a <code>P</code> con el estado 3.</p>
+<ol>
+<li>El PC manda <code>P</code> con su clave pública Ppc.</li>
+<li>La máquina saca una clave X25519 nueva Pm y un número Nm, y contesta <code>p</code>
+   con Pm y el compromiso <code>SHA-256("ZX-V commit" | Nm | Pm | Ppc)</code>.</li>
+<li>El PC manda <code>N</code> con su número Npc; la máquina contesta <code>n</code> con Nm. El PC
+   comprueba que Nm da el compromiso de antes.</li>
+<li>Los dos enseñan el código: los 4 primeros bytes de
+   <code>SHA-256("ZX-V code" | Ppc | Pm | Npc | Nm)</code>, como número big endian, módulo
+   1.000.000 (seis cifras).</li>
+<li>El usuario mira que coinciden y acepta en la máquina. El PC pregunta con
+   <code>Q</code> hasta tener 1 o 2. En <code>Q</code> va la prueba de la clave que tiene el PC:
+   los 16 primeros bytes de <code>HMAC-SHA-256(clave, "ZX-V query" | id del PC |
+   id de la máquina)</code>. La máquina contesta 1 solo si tiene guardada esa
+   clave (el usuario ha aceptado), con su prueba, <code>"ZX-V paired"</code> en lugar
+   de <code>"ZX-V query"</code>; el PC no guarda la clave si no cuadra. Contesta 2 si
+   no la tiene (se rechazó o se cerró el cuadro), aunque ese PC ya
+   estuviera emparejado con otra clave.</li>
+<li>La clave del par es <code>SHA-256("ZX-V key" | X25519(su clave, la del otro) |
+   Ppc | Pm | Npc | Nm)</code>. La máquina la guarda con el id y el nombre del PC
+   (recuerda 8 PC; con uno más se olvida el más antiguo).</li>
+</ol>
+<p>Las etiquetas van en ASCII, sin cero. Como la máquina se compromete con Nm
+antes de ver Npc, quien se ponga en medio no puede buscar unas claves con las
+que los dos códigos coincidan: tendría una oportunidad entre un millón.</p>
+<h3 id="los-datos">Los datos<a class="ancla" href="#los-datos" aria-hidden="true">#</a></h3>
+<p><code>D</code> (del PC a la máquina), <code>d</code> (de la máquina al PC) y <code>b</code> van firmados con
+la clave del par: la firma son los 16 primeros bytes de <code>HMAC-SHA-256(clave,
+"ZX-V net" | la versión del protocolo de la red (u8) | todo lo anterior del
+paquete)</code>. La letra va firmada, así que un paquete devuelto a quien lo mandó
+no vale, y con la versión dentro, una máquina y un PC de versiones distintas
+no se aceptan nada. En los dos sentidos lleva el id del PC y el arranque de
+la máquina. <strong>Los contadores no se
+repiten:</strong> lo que llega con uno que la máquina ya ha visto, con la firma mal
+o de un PC que no conoce se tira sin contestar (no se puede repetir un
+paquete grabado). Como en un PC puede haber varios programas a la vez (por
+ejemplo <code>zxv-link serve</code> y <code>zxv-link log</code>), cada uno con su puerto UDP, sus
+paquetes pueden llegar desordenados: la máquina recuerda los 16 últimos
+contadores aceptados y, por debajo, un suelo por PC, y tira lo que no pasa
+del suelo. El de la máquina empieza en cada arranque; el del PC sale de su
+reloj, para que siga subiendo aunque se vuelva a abrir: <code>zxv-link</code> usa los
+milisegundos por 1024 con una vía al azar de cada programa en los bits 4 a 9,
+así que dos programas no dan el mismo contador en el mismo milisegundo. Y
+<strong>nunca baja para una máquina</strong>, aunque el reloj del PC se atrase: <code>zxv-link</code>
+apunta el último que ha usado con cada una (cada segundo, o cada 256 si el
+reloj se ha atrasado) y sigue por encima de lo apuntado; si el reloj está
+por detrás, de uno en uno.</p>
+<p>Si la máquina se ha reiniciado, el arranque ya no es el que tiene el PC: a un
+<code>D</code> bien firmado con el arranque de antes, la máquina contesta <code>b</code> con el
+nuevo y el contador de ese <code>D</code>. El PC solo lo cree si contesta a uno de sus
+últimos <code>D</code> y trae otro arranque; entonces lo cambia y repite lo último. Un
+<code>b</code> grabado no sirve: ya no contesta a ninguno de esos.</p>
+<p><strong>A cada programa del PC, lo suyo</strong> (cada uno es una dirección y un puerto
+UDP):</p>
+<ul>
+<li><strong>La respuesta</strong> de una petición va al programa que la hizo, también la de
+  <code>RUN</code>, que sale cuando el BASIC ha tecleado la orden, aunque mientras
+  hablen otros.</li>
+<li><strong>Lo que piden los programas a <code>EXT:</code></strong> va al programa que la sirve: el del
+  último <code>SERVE</code>.</li>
+<li><strong>El informe</strong> va a todos los que han dicho algo en los últimos 15
+  segundos (como mucho 4). Un programa que solo escucha el informe manda un
+  <code>HELLO</code> cada 5 segundos para seguir en la lista.</li>
+</ul>
+<p><strong>En el PC,</strong> <code>zxv-link</code> guarda su id y las claves de las máquinas en
+<code>zxv-link-net.txt</code> (en <code>%APPDATA%\ZX-V</code> en Windows y en <code>~/.config/ZX-V</code> en
+los demás), y el último contador de cada máquina, al lado, en
+<code>zxv-link-net-counters.txt</code>.</p>
+<p><strong>La versión del protocolo de la red</strong> va en <code>F</code> y en <code>f</code>; esta es la 2. Una
+máquina que no la dice en <code>f</code> tiene la 1 (las primeras de prueba). Con otra
+versión, <code>zxv-link</code> no habla con la máquina: dice que no son compatibles y
+qué hay que actualizar, la máquina o <code>zxv-link</code>. Las tramas de J5 no cambian.</p>
 <h2 id="las-versiones">Las versiones<a class="ancla" href="#las-versiones" aria-hidden="true">#</a></h2>
-<p><code>HELLO</code> dice la versión del protocolo de la máquina. <strong>Esta es la 4:</strong> la
-unidad <code>EXT:</code> (el canal <code>EXT</code> y <code>SERVE</code>). La 3 trajo el reinicio de la
-máquina en <code>RUN</code> y <code>READY</code>; la 2, <code>STAT</code>, <code>READY</code> y el depurador. Un servidor
-de <code>EXT:</code> necesita una máquina con la 4 o más.</p>
+<p><code>HELLO</code> dice la versión del protocolo de la máquina. <strong>Esta es la 6:</strong>
+<code>LIST</code>, <code>GET</code>, <code>REMOVE</code>, <code>RENAME</code> y <code>MKDIR</code>. La 5 trajo <code>UPDATE</code>; la 4,
+la unidad <code>EXT:</code> (el canal <code>EXT</code> y <code>SERVE</code>); la 3, el reinicio de la
+máquina en <code>RUN</code> y <code>READY</code>; la 2, <code>STAT</code>, <code>READY</code> y el depurador. Un servidor de <code>EXT:</code> necesita una máquina con la 4 o más;
+actualizar por J5, con la 5, y explorar la tarjeta, con la 6.</p>
 <nav class="pasos"><a class="anterior" href="protoboard.html"><small>Anterior</small>← En una protoboard</a></nav>
 <footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
 </main>

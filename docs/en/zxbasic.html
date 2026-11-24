@@ -13,9 +13,9 @@
 <a class="marca" href="index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
-<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
+<a class="ir sitio" href="https://zx-v.org/">Website</a>
 <a class="ir" href="../es/zxbasic.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -43,6 +43,8 @@
 </li>
 <li><a href="sdk/graphics.html">Graphics</a>
 </li>
+<li><a href="sdk/libraries.html">The SDK libraries</a>
+</li>
 <li><a href="sdk/reference.html">API reference</a>
 </li>
 </ul>
@@ -56,8 +58,10 @@
 </li>
 <li><a href="hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
 </li>
-<li><a href="hardware/firmware.html#the-ext-drive"><code>EXT:</code>
-  drive</a>
+<li><a href="hardware/firmware.html#loading-programs-over-wi-fi-pico-2-w">over
+  Wi-Fi</a>
+</li>
+<li><a href="hardware/firmware.html#the-ext-drive"><code>EXT:</code> drive</a>
 </li>
 <li><a href="sdk/web.html">Publishing your game on the web</a>
 </li>
@@ -92,8 +96,11 @@ version with a ZX-V target that turns a BASIC program into a native program
 <code>LOAD "name"</code> and it runs about 90 times faster than the same program in the
 machine's BASIC.</p>
 <p>It is not an official version of ZX Basic: it lives in a fork,
-<a href="https://github.com/cronomantic/zxbasic/tree/zxv">cronomantic/zxbasic</a>,
-based on version 1.19.0.</p>
+<a href="https://github.com/cronomantic/zxbasic/tree/zxv">cronomantic/zxbasic</a> (the
+<code>zxv</code> branch), based on version 1.19.0. This page is the introduction; all
+the detail (each command with its parameters, its errors and the version it
+appeared in, the compiler options, the memory) is in the
+<a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md">fork's documentation</a>.</p>
 <h2 id="which-basic-it-is">Which BASIC it is<a class="ancla" href="#which-basic-it-is" aria-hidden="true">#</a></h2>
 <p>ZX Basic <strong>is not ZX-V's BASIC</strong>. It is the Spectrum's BASIC with additions
 from modern BASICs: types (<code>UByte</code>, <code>Integer</code>, <code>Long</code>, <code>Float</code>, <code>String</code>...),
@@ -102,9 +109,9 @@ line numbers needed. A Spectrum program usually compiles as it is: <code>PRINT A
 <code>INK</code>, <code>PLOT</code>, <code>DRAW</code>, <code>CIRCLE</code>, <code>BEEP</code>, <code>INKEY$</code>, <code>PEEK</code> and <code>POKE</code> work as
 there, also with the addresses of the screen (16384) and of the system
 variables.</p>
-<p>What is only in ZX-V (the modes, the two pages, sprites, shapes, the joystick
-and the AY chips) is in the <code>zxv.bas</code> library, with the same names as in ZX-V's
-BASIC:</p>
+<p>What is only in ZX-V (the modes, the two pages, sprites, shapes, tile maps,
+mode 7, the joystick, the AY chips, music and sounds) is in the <code>zxv.bas</code>
+library, with the same names as in ZX-V's BASIC:</p>
 <pre><code class="language-basic">#include &lt;zxv.bas&gt;
 
 GRABSTR 0, 4, &quot;1111122112211111&quot;
@@ -113,74 +120,85 @@ FOR x = 0 TO 240 STEP 16
 NEXT x
 BOX 4, 100, 20, 20, 20
 </code></pre>
-<table>
-<thead>
-<tr>
-<th>Commands</th>
-<th></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>MODE</code>, <code>PAGE</code>, <code>SCREEN</code>, <code>SCROLL</code>, <code>REMAP</code>, <code>WAIT</code></td>
-<td>The modes, the page shown and the one drawn on (double buffering), scrolling, colour changes and a steady 60 frames per second</td>
-</tr>
-<tr>
-<td><code>PALETTE</code>, <code>PALETTERESET</code></td>
-<td>The palette: any colour (red, green and blue from 0 to 255) for each of the 16, and the standard ones again</td>
-</tr>
-<tr>
-<td><code>GRAB</code>, <code>GRABSTR</code>, <code>SPRITE</code>, <code>HIT</code></td>
-<td>Sprites, mirrored, recoloured or scaled, and pixel-exact collisions</td>
-</tr>
-<tr>
-<td><code>BOX</code>, <code>DISC</code>, <code>POLY</code>, <code>CLIP</code>, <code>PIXEL</code></td>
-<td>Filled shapes, clipping and the colour of a pixel</td>
-</tr>
-<tr>
-<td><code>KEY</code>, <code>JOY</code>, <code>SOUND</code>, <code>TIME</code></td>
-<td>Keys held down, joysticks, the AY registers and the frame counter</td>
-</tr>
-<tr>
-<td><code>MUSICLOAD</code>, <code>MUSICPLAY</code>, <code>MUSICSTOP</code>, <code>MUSICPAUSE</code>, <code>MUSICCONTINUE</code>, <code>MUSIC</code></td>
-<td>Music from a tracker (a <code>.zxm</code> or a <code>.pt3</code> from <a href="sdk/index.html#the-tracker-for-the-pc-zxv-tracker"><code>zxv-tracker</code></a>...), in the background while the program goes on</td>
-</tr>
-<tr>
-<td><code>SFXLOAD</code>, <code>SFX</code>, <code>SFXSTOP</code>, <code>SFXPLAYING</code></td>
-<td>Sound effects from an AYFX bank</td>
-</tr>
-<tr>
-<td><code>SAMPLELOAD</code>, <code>SAMPLE</code>, <code>SAMPLESTOP</code>, <code>SAMPLEPLAYING</code></td>
-<td>Recorded sounds (WAV) on the sample channels</td>
-</tr>
-</tbody>
-</table>
-<p>Where it differs from ZX-V's BASIC: the sprite of a string is <code>GRABSTR</code>
-(<code>GRAB n, width, a$</code> in ZX-V's); <code>KEY</code>, <code>JOY</code>, <code>HIT</code> and <code>PIXEL</code> take
-parentheses (<code>KEY(9)</code>); <code>REMAP</code> and <code>SOUND</code> take one pair at a time and
-<code>PALETTE</code> one colour, only in table 0 (no <code>#t</code>); <code>REMAP</code> and <code>PALETTE</code> alone
-are <code>REMAPRESET</code> and <code>PALETTERESET</code>; <code>POLY</code> takes up to 8 points; and music and effects are loaded with <code>MUSICLOAD f$</code> and
-<code>SFXLOAD f$</code> (<code>LOAD f$ MUSIC</code> and <code>SFX</code> in ZX-V's), played with <code>MUSICPLAY</code>,
-<code>MUSICSTOP</code>... and the function that says whether an effect plays is
-<code>SFXPLAYING</code>; recorded sounds, with <code>SAMPLELOAD f$, n</code> (<code>LOAD f$ SAMPLE n</code>),
-<code>SAMPLE n, tone, vol, pan, c</code> (<code>; c</code> in ZX-V's) and <code>SAMPLEPLAYING</code> (the
-function <code>SAMPLE</code>). <code>MUSICLOAD</code> plays <code>.zxm</code>, PT3, TurboSound, PT2, STC, ASC,
-PSG and AY VGM (also <code>.vgz</code>), but not MOD, S3M or XM, which ZX-V's BASIC
-converts while loading: so as not to carry the converter in every program,
-they are turned into a <code>.zxm</code> first with <code>zxv-music</code>.</p>
+<p>Almost everything is written as in ZX-V's BASIC. What changes are details of
+ZX Basic's syntax: <code>KEY</code> and <code>JOY</code> take parentheses (<code>KEY(9)</code>), and the
+two-word commands have a name of their own (<code>MAPDIM</code> instead of <code>MAP DIM</code>,
+<code>MUSICLOAD f$</code> instead of <code>LOAD f$ MUSIC</code>...). The
+<a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#zxvbas"><code>zxv.bas</code> reference</a> has an entry per command and the
+<a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#differences-with-the-zx-v-basic">list of the differences</a>, and also <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#what-the-zx-v-basic-has-and-zx-basic-does-not">what ZX-V's BASIC has and ZX Basic
+does not</a> (the mouse, <code>RASTER</code>, <code>PLAY</code>, the clock, the folder and file
+commands, <code>ON ERROR</code>...).</p>
+<p>Also, the <a href="sdk/libraries.html">SDK libraries</a>, each one in its own file
+(<code>#include &lt;zxvinput.bas&gt;</code>...), with the same C as the programs in C: keyboard
+and joysticks as actions, saving data and scores without losing them in a
+power cut, palette fades, text of any size, data compressed with gzip,
+integer maths, moving through a map without going through walls, things on
+the mode 7 floor and 3D models. A program that does not use them does not
+take a byte more. Their commands, in the <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#the-libraries-of-the-zx-v-sdk">fork's documentation</a>.</p>
 <p><code>SAVE</code>, <code>LOAD</code> and <code>VERIFY</code> use the SD card as ZX-V's BASIC does: without an
 extension, the screen goes in a <code>.gfx</code> (the ZX-V one, with its colours if they
-are not the standard ones) and <code>CODE</code> and <code>DATA</code> in a <code>.bin</code>, just the bytes; with the extension <code>.tap</code>, in a Spectrum tape. Compiled with
-<code>--enable-break</code>, Esc stops the program and errors say the line. The rest, and
-the libraries there are, is in its
-<a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md">target documentation</a>.</p>
+are not the standard ones) and <code>CODE</code> and <code>DATA</code> in a <code>.bin</code>, just the bytes;
+with the extension <code>.tap</code>, in a Spectrum tape. The <code>ROM:</code> and <code>EXT:</code> drives
+work. The details, in <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#files">Files</a>.</p>
+<h2 id="if-you-come-from-the-spectrum">If you come from the Spectrum<a class="ancla" href="#if-you-come-from-the-spectrum" aria-hidden="true">#</a></h2>
+<p>The program is written the same way, but the machine is a different one, and
+it shows in a few things (explained in <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#how-it-works">How it works</a>):</p>
+<ul>
+<li><strong>Addresses are 32-bit.</strong> <code>@x</code>, strings, <code>PEEK</code>, <code>POKE</code>, <code>USR</code> and
+  <code>LOAD ... CODE</code> use <code>ULong</code> addresses. Below 65536 the memory is the
+  Spectrum's, imitated: the screen at 16384, the attributes at 22528, the
+  system variables (<code>FRAMES</code>, <code>CHARS</code>, <code>UDG</code>...) and the free memory up to
+  65535, as in ZX-V's BASIC. Above it, the addresses are real: ZX-V's RAM,
+  its video memory and its registers. It is explained in
+  <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#memory-below-64k">Memory below 64K</a>.</li>
+<li><strong><code>Float</code> is different.</strong> It is an 8-byte <code>double</code>, with about 15 digits,
+  not the 5-byte number of the Spectrum's ROM; it gives the same results as
+  ZX-V's BASIC. <code>Fixed</code> and the integers are the same as on the Spectrum.</li>
+<li><strong>There is no Z80 code.</strong> <code>ASM</code> blocks are RISC-V and <code>USR</code> calls RISC-V
+  code: Spectrum machine code and the ZX Basic libraries written in Z80
+  assembler do not work. The ones the fork brings for ZX-V (<code>string.bas</code>,
+  <code>keys.bas</code>, <code>attr.bas</code>...) are called and work the same.</li>
+<li><strong>Time.</strong> <code>PAUSE</code> and <code>FRAMES</code> still count fiftieths of a second, as on the
+  Spectrum, even though ZX-V makes 60 frames per second; <code>TIME</code> and <code>WAIT</code>,
+  from <code>zxv.bas</code>, count those 60.</li>
+<li><strong>The Spectrum's screen</strong> is the top-left 256 × 192 pixels of the drawing
+  page, in any mode: <code>PRINT</code>, <code>PLOT</code>, <code>DRAW</code>, <code>CIRCLE</code> and <code>CLS</code> do not go
+  outside it. The shapes, sprites and maps of <code>zxv.bas</code> reach the whole page.</li>
+<li><strong>Memory.</strong> A program has 244 KB (code, data, heap and stack); the heap is
+  all that is left over, without <code>-H</code>. See
+  <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#how-much-memory-a-program-has">How much memory a program has</a>.</li>
+<li><strong>Compiler options.</strong> There is no <code>tap</code>, <code>tzx</code> or <code>sna</code>: the output is a
+  <code>.zxv</code> (or the assembler, with <code>-f asm</code>). <code>--org</code> and <code>-H</code> are accepted but
+  do nothing. <strong>Array indices are only checked with <code>--debug-array</code></strong> (it
+  gives <code>3 Subscript wrong</code>); without it, one out of range reads or writes
+  other memory without an error. The list, in <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#compiler-options">Compiler options</a>.</li>
+</ul>
+<h2 id="the-versions">The versions<a class="ancla" href="#the-versions" aria-hidden="true">#</a></h2>
+<p>This page is the one for <strong>v1.19.0-zxv.7</strong>, which comes out together with
+ZX-V 0.11.0: <code>zxv.bas</code> with the modes, the pages, sprites, shapes, tile maps
+(<code>TILE</code>, <code>MAPDIM</code>, <code>MAP</code>, <code>CELL</code>...), mode 7 (<code>TEXTURE</code>, <code>FLOOR</code>,
+<code>FLOORMAP</code>, <code>ROTATE</code>, <code>ROTATEMAP</code>), patterns (<code>PATTERN</code>, <code>PATTERNBITS</code>), the
+keyboard, the joysticks, the AY chips, music (<code>.zxm</code>, PT3, TurboSound,
+VGM...), effects and recorded sounds; <code>SAVE</code>, <code>LOAD</code> and <code>VERIFY</code>; the SDK
+libraries (<code>zxvinput.bas</code>... <code>zxv3d.bas</code>); and the <code>--loading-screen</code>,
+<code>--embed</code> and <code>--code-bank</code> options. Its programs need ZX-V 0.7.0 or later,
+and recorded sounds (<code>SAMPLE</code>), ZX-V 0.10.0 or later. Each entry of the
+<a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md">fork's documentation</a> says which version it exists since; an earlier
+version of the fork does not have what came later.</p>
+<p>Some things also need <strong>a ZX-V ROM of specification 0.2</strong>, that of ZX-V
+0.11.0 or later (0.10.0 and the earlier ones are specification 0.1): code
+banks, <code>PATTERN</code>, <code>PATTERNBITS</code>, <code>ROTATE</code>, <code>FLOORMAP</code>, <code>ROTATEMAP</code>
+and the shading of <code>zxv3d.bas</code>. With an earlier ROM the program loads, but a
+bank stops it with "the ROM has no banks", patterns come out in a plain
+colour and those mode 7 planes are not drawn properly. Each entry of the
+fork's documentation says which ROM it needs.</p>
 <h2 id="installing-it">Installing it<a class="ancla" href="#installing-it" aria-hidden="true">#</a></h2>
-<p><strong>On Windows:</strong> download <code>zxbasic-1.19.0-zxv.6-win64.zip</code> from the
-<a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.6">release page</a>
+<p><strong>On Windows:</strong> download <code>zxbasic-1.19.0-zxv.7-win64.zip</code> from the
+<a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.7">release page</a>
 and unzip it anywhere. It has <code>zxbc.exe</code>, which does not need Python.</p>
-<p><strong>On Linux and macOS:</strong> download the source code from that same page (or
-clone the fork's <code>zxv</code> branch). You need Python 3.14; the compiler is
-<code>zxbc.py</code>.</p>
+<p><strong>On Linux and macOS:</strong> download the source code from that same page, or
+clone the fork's <code>zxv</code> branch (<code>git clone -b zxv https://github.com/cronomantic/zxbasic</code>). You need
+Python 3.14; the compiler is <code>zxbc.py</code>.</p>
 <p><strong>Also, on all of them:</strong> the RISC-V C compiler, the same one the SDK uses.
 How to install it is in the <a href="sdk/index.html#installing-the-tools">SDK guide</a>.</p>
 <h2 id="your-first-program">Your first program<a class="ancla" href="#your-first-program" aria-hidden="true">#</a></h2>
@@ -198,22 +216,43 @@ NEXT x
 <p>(<code>zxbc.exe</code> on Windows, <code>python3 zxbc.py</code> with the source code.) That gives
 <code>hello.zxv</code>: copy it to the SD card (in the emulator, to the folder that acts
 as the card) and load it with <code>LOAD "hello"</code>. When it ends, its report (<code>0 OK</code>
-or the error) stays at the bottom until you press a key, as on the Spectrum.</p>
-<p>With <code>--loading-screen title.png</code> (or a <code>.gfx</code> with a screen), the <code>.zxv</code>
-carries a loading screen, as <code>elf2zxv.py --screen</code> does. The machine shows it
-while it loads the program.</p>
-<p>With <code>--embed song.pt3</code> (as many as needed: music, effects, <code>.gfx</code>, data), the
-<code>.zxv</code> carries those files inside, as the C games do. <code>LOAD</code>, <code>MUSICLOAD</code> and
-<code>SFXLOAD</code> use the file in the current folder if there is one and, if not, the
-one inside: the program works alone, also from <code>ROM:</code>, and a file on the card
-with the same name takes the place of the one inside.</p>
+or the error) stays at the bottom until you press a key, as on the Spectrum.
+The reports are in English, as in ZX Basic. Compiled with <code>--enable-break</code>,
+Esc stops the program and errors say the line.</p>
 <p><strong>Mind the types.</strong> Without <code>DIM</code>, a variable takes the smallest type that fits
 it: here, without the first line, <code>x</code> would be a <code>UByte</code> (0 to 255). And
 between integers, <code>/</code> divides as integers: <code>x / 20</code> would give 0, 0, 0... 1, 1,
 1, and the curve would come out in steps. And the <code>FOR</code> would never end,
 because a <code>UByte</code> never gets past 255. Declare as <code>FLOAT</code> whatever needs
-decimals, and with a bigger type the counters that reach the limit.</p>
-<h2 id="two-examples">Two examples<a class="ancla" href="#two-examples" aria-hidden="true">#</a></h2>
+decimals, and with a bigger type the counters that reach the limit. The same
+goes for arguments: if a parameter of <code>zxv.bas</code> is a <code>UByte</code>, a 257 arrives
+as 1, without an error.</p>
+<h2 id="more-compiler-options">More compiler options<a class="ancla" href="#more-compiler-options" aria-hidden="true">#</a></h2>
+<p>These three only exist with <code>--arch=zxv</code>:</p>
+<ul>
+<li><strong><code>--loading-screen title.png</code></strong> (since v1.19.0-zxv.5): a loading screen, a
+  PNG or a <code>.gfx</code> with a screen, as with <code>elf2zxv.py --screen</code>. The machine
+  shows it while it loads the program. See <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#loading-screen">Loading screen</a>.</li>
+<li><strong><code>--embed song.pt3</code></strong> (since v1.19.0-zxv.6; as many as needed: music,
+  effects, sounds, <code>.gfx</code>, data): the <code>.zxv</code> carries those files inside, as
+  the C games do. <code>LOAD</code>, <code>VERIFY</code>, <code>MUSICLOAD</code>, <code>SFXLOAD</code> and <code>SAMPLELOAD</code>
+  use the file in the current folder if there is one and, if not, the one
+  inside: the program works alone, also from <code>ROM:</code>, and a file on the card
+  with the same name takes the place of the one inside. See
+  <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#files-inside-the-program">Files inside the program</a>.</li>
+<li><strong><code>--code-bank stage1=stage1.bas</code></strong> (since v1.19.0-zxv.7; it needs ZX-V
+  0.11.0 or later): the <code>SUB</code>s and <code>FUNCTION</code>s of that file go in a
+  <strong>code bank</strong>, which is loaded from the <code>.zxv</code> itself the first time one of
+  them is called, into a region of memory that the banks of that region share
+  (<code>stage2@1=stage2.bas</code>, region 1). So a game can keep the code of each stage
+  in its own file, and only the one being played takes memory. It is still
+  one program: the global variables stay in the resident part and go from one
+  stage to the next. If a function of a bank calls one of another bank in the
+  same region, the program stops with "Bank a in use": put them in different
+  regions. See <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#code-banks">Code banks</a> and the
+  <a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/fases/README.md"><code>fases</code> example</a>.</li>
+</ul>
+<h2 id="the-examples">The examples<a class="ancla" href="#the-examples" aria-hidden="true">#</a></h2>
 <p><a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/stardust/README.md">Stardust</a> is a small game made
 with <code>zxv.bas</code>: double buffering, sprites from strings, collisions, keyboard
 or joystick and sound, at 60 frames per second.</p>
@@ -221,8 +260,15 @@ or joystick and sound, at 60 frames per second.</p>
 seven-a-side football against the machine or between two players, with a
 pitch bigger than the screen and scroll, sprites from a PNG sheet, and music
 and effects from a tracker. It carries its music and effects inside
-(<code>zxbc --embed</code>), so it also runs from the <code>ROM:</code> drive, where it comes built in:
-<code>LOAD "ROM:petitsoccer"</code>.</p>
+(<code>zxbc --embed</code>, since v1.19.0-zxv.6), so it also runs from the <code>ROM:</code> drive,
+where it comes built in: <code>LOAD "ROM:petitsoccer"</code>.</p>
+<p><a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/fases/README.md">Fases</a> is the one about code banks:
+two stages, each one in its own file and its own bank. It needs v1.19.0-zxv.7
+of the fork and ZX-V 0.11.0 or later.</p>
+<p><a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/nave3d/README.md">Nave 3D</a> is the 3D one: a ship of
+flat faces, made as an <code>.obj</code> and turned into BASIC with <code>obj2c.py --bas</code>,
+that turns with light among stars. It needs v1.19.0-zxv.7 of the fork; with a
+ROM older than ZX-V 0.11.0, the faces come out without the shading patterns.</p>
 <h2 id="the-licence-of-your-programs">The licence of your programs<a class="ancla" href="#the-licence-of-your-programs" aria-hidden="true">#</a></h2>
 <p>The compiler is AGPL 3, but what goes inside your programs (ZX Basic's runtime
 and libraries, and the parts of the ZX-V SDK) is MIT: your programs can have

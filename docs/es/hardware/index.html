@@ -13,9 +13,9 @@
 <a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
-<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
+<a class="ir sitio" href="https://zx-v.org/es/">Web</a>
 <a class="ir" href="../../en/hardware/index.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -43,6 +43,8 @@
 </li>
 <li><a href="../sdk/graphics.html">Gráficos</a>
 </li>
+<li><a href="../sdk/libraries.html">Las bibliotecas del SDK</a>
+</li>
 <li><a href="../sdk/reference.html">Referencia de la API</a>
 </li>
 </ul>
@@ -55,6 +57,9 @@
 <li><a href="../sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
 </li>
 <li><a href="firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="firmware.html#cargar-programas-por-wi-fi-pico-2-w">por
+  Wi-Fi</a>
 </li>
 <li><a href="firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
 </li>
@@ -92,9 +97,12 @@ nada: el software de las dos Pico viene listo para copiarlo en ellas.</p>
 <p><strong>Estado.</strong> <strong>La primera placa funciona</strong>, con las dos Pico juntas:
 arranca en el BASIC en una pantalla HDMI, y el programa <code>boardtest</code> pasa la
 imagen y las paletas, el sonido, el teclado USB, los mandos, el ratón, el
-botón MODO y el reloj, y la tarjeta microSD lee, guarda y actualiza el
-firmware. <strong>Falta por probar en ella:</strong> la pila del reloj. En una protoboard nadie ha montado todavía la máquina. Si la
-montas ahora, serás de los primeros: lee con calma <a href="board.html">La placa</a>.</p>
+botón MODO y el reloj (con su pila, guarda la hora apagada), y la tarjeta
+microSD lee, guarda y actualiza el firmware. Por la tira J5 también
+funcionan la carga de programas desde el PC, la unidad <code>EXT:</code> y la
+actualización del firmware sin tarjeta. En una protoboard nadie ha
+montado todavía la máquina. Si la montas ahora, serás de los primeros: lee
+con calma <a href="board.html">La placa</a>.</p>
 </blockquote>
 <h2 id="qué-necesitas">Qué necesitas<a class="ancla" href="#qué-necesitas" aria-hidden="true">#</a></h2>
 <ul>
@@ -146,7 +154,7 @@ montas ahora, serás de los primeros: lee con calma <a href="board.html">La plac
 </tr>
 <tr>
 <td>Estado</td>
-<td><strong>Funciona</strong>: la primera placa pasa <code>boardtest</code> y usa la tarjeta microSD (falta por probar la pila)</td>
+<td><strong>Funciona</strong>: la primera placa pasa <code>boardtest</code>, usa la tarjeta microSD, guarda la hora con la pila y carga y se actualiza por J5</td>
 <td>Cada Pico probada por separado; el cableado de las dos juntas en una protoboard, <strong>todavía no</strong> (juntas funcionan en la placa)</td>
 </tr>
 <tr>

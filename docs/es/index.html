@@ -13,9 +13,9 @@
 <a class="marca" href="index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
-<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
+<a class="ir sitio" href="https://zx-v.org/es/">Web</a>
 <a class="ir" href="../en/index.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -43,6 +43,8 @@
 </li>
 <li><a href="sdk/graphics.html">Gráficos</a>
 </li>
+<li><a href="sdk/libraries.html">Las bibliotecas del SDK</a>
+</li>
 <li><a href="sdk/reference.html">Referencia de la API</a>
 </li>
 </ul>
@@ -55,6 +57,9 @@
 <li><a href="sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
 </li>
 <li><a href="hardware/firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="hardware/firmware.html#cargar-programas-por-wi-fi-pico-2-w">por
+  Wi-Fi</a>
 </li>
 <li><a href="hardware/firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
 </li>
@@ -108,7 +113,11 @@ programarlo en BASIC o en C y cómo construir la máquina real.</p>
 <li><strong><a href="sdk/index.html">Programas nativos (SDK)</a></strong>: las herramientas, tu primer
   programa, gráficos, sonido, entrada y ficheros.</li>
 <li><strong><a href="sdk/graphics.html">Gráficos</a></strong>: el motor gráfico a fondo: la memoria de
-  vídeo, sprites, mapas de tiles, scroll, el modo 7 y convertir imágenes.</li>
+  vídeo, sprites, mapas de tiles, scroll, figuras con trama, el modo 7 y
+  convertir imágenes.</li>
+<li><strong><a href="sdk/libraries.html">Las bibliotecas del SDK</a></strong>: lo que casi todos los
+  juegos necesitan, en C y opcional: cuentas en coma fija, mover por un
+  mapa, teclado y mando, guardar, fuentes de letra, fundidos y 3D.</li>
 <li><strong><a href="sdk/reference.html">Referencia de la API</a></strong>: cada función del SDK.</li>
 </ul>
 <h2 id="herramientas-para-el-pc">Herramientas para el PC<a class="ancla" href="#herramientas-para-el-pc" aria-hidden="true">#</a></h2>
@@ -124,9 +133,11 @@ programarlo en BASIC o en C y cómo construir la máquina real.</p>
 <li><strong><a href="sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a></strong>:
   convierte PT3, TurboSound, MOD, S3M y XM al formato propio, <code>.zxm</code>.</li>
 <li><strong><a href="hardware/firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a></strong>:
-  mandan programas del PC a la placa por la tira J5 y los ejecutan, y sirven
-  una carpeta del PC como la <a href="hardware/firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
-  de la máquina.</li>
+  mandan programas del PC a la placa por la tira J5 (o <a href="hardware/firmware.html#cargar-programas-por-wi-fi-pico-2-w">por
+  Wi-Fi</a>, con una
+  Pico 2 W) y los ejecutan, enseñan su tarjeta y su ROM como un explorador
+  (mandar, traer, carpetas, borrar) y sirven una carpeta del PC como la
+  <a href="hardware/firmware.html#la-unidad-ext">unidad <code>EXT:</code></a> de la máquina.</li>
 <li><strong><a href="sdk/web.html">Publicar tu juego en la web</a></strong>: <code>mkweb.py</code> (en el SDK) hace
   una página con tu juego solo, en C o en BASIC, para itch.io o tu web, con
   controles táctiles para los móviles.</li>
@@ -191,6 +202,11 @@ programarlo en BASIC o en C y cómo construir la máquina real.</p>
 <li><a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/petitsoccer/README.es.md">Petit Soccer, fútbol en ZX Basic</a>:
   un campo más grande que la pantalla con scroll, equipos pintados con los
   mismos sprites, música y efectos, contra la máquina o entre dos jugadores.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/fases/README.es.md">Fases, en ZX Basic</a>: dos fases
+  de un juego, cada una con su código en un banco que se carga al llegar a
+  ella.</li>
+<li><a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/nave3d/README.es.md">Nave 3D, en ZX Basic</a>: una
+  nave de caras planas hecha en un <code>.obj</code>, que gira con luz entre estrellas.</li>
 </ul>
 <hr />
 <p>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son

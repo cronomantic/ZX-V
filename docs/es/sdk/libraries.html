@@ -1,0 +1,4410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Las bibliotecas del SDK · ZX-V</title>
+<link rel="stylesheet" href="../../style.css">
+<link rel="icon" type="image/png" href="../../favicon.png">
+</head>
+<body>
+<header>
+<button type="button" id="menu" aria-label="Índice" onclick="document.body.classList.toggle('abierto')">&#9776;</button>
+<a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
+<span class="seccion">Documentación</span>
+<span class="hueco"></span>
+<a class="ir sitio" href="https://zx-v.org/es/">Web</a>
+<a class="ir" href="../../en/sdk/libraries.html" hreflang="en" lang="en">English</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Pruébalo en el navegador</a>
+</header>
+<div class="marco">
+<aside>
+<p>Para empezar</p>
+<ul>
+<li><a href="../getting-started.html">Primeros pasos</a>
+</li>
+<li><a href="../emulator.html">El emulador</a>
+</li>
+<li><a href="../machine.html">La máquina</a>
+</li>
+</ul>
+<p>Programar en BASIC</p>
+<ul>
+<li><a href="../basic/index.html">Aprende BASIC</a>
+</li>
+<li><a href="../basic/editor.html">El editor</a>
+</li>
+<li><a href="../basic/reference.html">Referencia del BASIC</a>
+</li>
+</ul>
+<p>Programar en C</p>
+<ul>
+<li><a href="index.html">Programas nativos (SDK)</a>
+</li>
+<li><a href="graphics.html">Gráficos</a>
+</li>
+<li><a href="libraries.html" class="aqui">Las bibliotecas del SDK</a>
+<ul>
+</ul>
+</li>
+<li><a href="reference.html">Referencia de la API</a>
+</li>
+</ul>
+<p>Herramientas para el PC</p>
+<ul>
+<li><a href="graphics.html#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos, <code>zxv-gfx</code></a>
+</li>
+<li><a href="index.html#el-tracker-para-el-pc-zxv-tracker">El tracker, <code>zxv-tracker</code></a>
+</li>
+<li><a href="index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
+</li>
+<li><a href="../hardware/firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="../hardware/firmware.html#cargar-programas-por-wi-fi-pico-2-w">por
+  Wi-Fi</a>
+</li>
+<li><a href="../hardware/firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
+</li>
+<li><a href="web.html">Publicar tu juego en la web</a>
+</li>
+</ul>
+<p>Compilar BASIC</p>
+<ul>
+<li><a href="../zxbasic.html">ZX Basic</a>
+</li>
+</ul>
+<p>La máquina real</p>
+<ul>
+<li><a href="../hardware/index.html">Construir el hardware</a>
+</li>
+<li><a href="../hardware/board.html">La placa</a>
+</li>
+<li><a href="../hardware/firmware.html">El firmware</a>
+</li>
+<li><a href="../hardware/protoboard.html">En una protoboard</a>
+</li>
+<li><a href="../hardware/protocol.html">El protocolo</a>
+</li>
+</ul>
+</aside>
+<main>
+<h1 id="las-bibliotecas-del-sdk">Las bibliotecas del SDK</h1>
+<p>Además de las rutinas de la ROM, el SDK trae unas <strong>bibliotecas opcionales</strong>
+en <code>sdk/lib</code> para lo que casi todos los juegos acaban escribiendo: cuentas
+en coma fija, mover cosas por un mapa sin atravesar paredes, el teclado y el
+mando a la vez, guardar los récords, fuentes de letra, 3D... No están en la
+ROM: un programa solo lleva las que usa, y lo que no usa no ocupa nada.
+Todas son C normal (licencia MIT, como el SDK) y dan lo mismo en el
+emulador y en la máquina.</p>
+<p>Para usar una, incluye su cabecera y añade sus ficheros a los de tu
+programa. En el Makefile de <a href="index.html#un-makefile-para-tu-proyecto">Tu primer programa</a>:</p>
+<pre><code class="language-make">SOURCES := juego.c $(SDK)/lib/math.c $(SDK)/lib/input.c $(SDK)/lib/save.c
+</code></pre>
+<p>Las cabeceras están en <code>sdk/include</code>, la misma carpeta que las del sistema,
+así que no hace falta ningún <code>-I</code> más.</p>
+<table>
+<thead>
+<tr>
+<th>Biblioteca</th>
+<th>Cabecera</th>
+<th>Ficheros que se añaden</th>
+<th>Para qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#cuentas-zxv_mathh">Cuentas</a></td>
+<td><code>zxv_math.h</code></td>
+<td><code>lib/math.c</code></td>
+<td>Coma fija 16.16, seno y coseno, atan2, raíces, números al azar</td>
+</tr>
+<tr>
+<td><a href="#objetos-sobre-el-suelo-del-modo-7-zxv_m7h">Objetos sobre el modo 7</a></td>
+<td><code>zxv_m7.h</code></td>
+<td><code>lib/m7.c</code>, <code>lib/math.c</code></td>
+<td>Dónde y a qué tamaño se ve un punto del suelo</td>
+</tr>
+<tr>
+<td><a href="#mover-por-un-mapa-de-tiles-zxv_mapmoveh">Mover por un mapa</a></td>
+<td><code>zxv_mapmove.h</code></td>
+<td><code>lib/mapmove.c</code></td>
+<td>Chocar con las paredes, plataformas, escaleras</td>
+</tr>
+<tr>
+<td><a href="#fundidos-de-paleta-zxv_fadeh">Fundidos</a></td>
+<td><code>zxv_fade.h</code></td>
+<td><code>lib/fade.c</code></td>
+<td>Llevar la paleta a negro, a blanco o a otros colores</td>
+</tr>
+<tr>
+<td><a href="#teclado-y-mandos-a-la-vez-zxv_inputh">Entrada</a></td>
+<td><code>zxv_input.h</code></td>
+<td><code>lib/input.c</code></td>
+<td>Teclado y mandos como acciones, con teclas que se pueden cambiar</td>
+</tr>
+<tr>
+<td><a href="#guardar-datos-zxv_saveh">Guardar</a></td>
+<td><code>zxv_save.h</code></td>
+<td><code>lib/save.c</code></td>
+<td>Récords, opciones y partidas, sin perderlos si se va la luz</td>
+</tr>
+<tr>
+<td><a href="#descomprimir-zxv_inflateh">Descomprimir</a></td>
+<td><code>zxv_inflate.h</code></td>
+<td><code>lib/inflate.c</code></td>
+<td>Datos comprimidos con gzip dentro del programa</td>
+</tr>
+<tr>
+<td><a href="#fuentes-de-letra-zxv_fonth">Fuentes</a></td>
+<td><code>zxv_font.h</code></td>
+<td><code>lib/font.c</code>, <code>lib/font_rom.c</code></td>
+<td>Texto de cualquier tamaño y color, proporcional</td>
+</tr>
+<tr>
+<td><a href="#3d-sencillo-zxv_3dh">3D</a></td>
+<td><code>zxv_3d.h</code></td>
+<td><code>lib/3d.c</code>, <code>lib/math.c</code></td>
+<td>Modelos de caras planas con luz y sombras de trama</td>
+</tr>
+</tbody>
+</table>
+<p>Como no están en la ROM, las entradas de esta página no llevan «Desde»: la
+biblioteca va dentro de tu programa. Todas funcionan con una ROM de la
+especificación 0.1, salvo los tonos intermedios de la de 3D, que usan
+<a href="reference.html#figuras"><code>zxv_gfx_pattern</code></a> (especificación 0.2: con una ROM
+anterior, esas caras salen del color claro, sin trama).</p>
+<p>En <a href="../zxbasic.html">ZX Basic</a> están también: <code>zxvinput.bas</code>,
+<code>zxvsave.bas</code>, <code>zxvfade.bas</code>, <code>zxvfont.bas</code>, <code>zxvinflate.bas</code>, <code>zxvmath.bas</code>,
+<code>zxvmapmove.bas</code>, <code>zxvm7.bas</code> y <code>zxv3d.bas</code>, con el mismo C.</p>
+<p>Y tres herramientas para el PC, en <code>sdk/tools</code>:
+<a href="#fuentes-de-otros-sitios-fontconvpy"><code>fontconv.py</code></a> (fuentes de otros
+formatos), <a href="#modelos-de-blender-obj2cpy"><code>obj2c.py</code></a>
+(modelos 3D) y, para las hojas de letras y las texturas, el <code>png2gfx.py</code> de
+siempre.</p>
+<p><strong>Cómo leer las entradas.</strong> Casi ninguna de estas funciones devuelve
+códigos de error: con un valor fuera de rango, la mayoría lo recorta o no
+hace nada, y cada entrada dice qué. Las que sí los devuelven (<code>zxv_save</code>,
+<code>zxv_load</code> y las de descomprimir) los dan negativos, como las funciones de
+ficheros de la ROM. Un puntero <code>NULL</code> donde la entrada no dice que se
+admite cuelga el programa como cualquier puntero no válido.</p>
+<h2 id="cuentas-zxv_mathh">Cuentas: <code>zxv_math.h</code><a class="ancla" href="#cuentas-zxv_mathh" aria-hidden="true">#</a></h2>
+<p>El procesador no tiene coma flotante: <code>float</code> funciona, pero es lento. Los
+juegos hacen las cuentas en <strong>coma fija</strong>: un <code>int32_t</code> en el que 65536 es
+1 (16.16). <code>zxv_fix</code> es ese tipo. Los <strong>ángulos</strong> van en vueltas de
+0x10000: 0x4000 es un cuarto de vuelta, igual que en el motor gráfico.</p>
+<pre><code class="language-make">SOURCES := juego.c $(SDK)/lib/math.c
+</code></pre>
+<p>Las macros, <code>zxv_fmul</code> y <code>zxv_fdiv</code> están enteras en la cabecera: si solo
+usas eso, no hace falta <code>lib/math.c</code>.</p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+/* Un enemigo que va hacia el jugador a 1,5 píxeles por frame. */
+static zxv_fix ex, ey;                          /* su posición, en 16.16 */
+
+void chase(zxv_fix px, zxv_fix py)
+{
+    int32_t a = zxv_atan2(py - ey, px - ex);
+    ex += zxv_fmul(ZXV_FIX(1.5), zxv_cos(a));
+    ey += zxv_fmul(ZXV_FIX(1.5), zxv_sin(a));
+}
+</code></pre>
+<h3 id="zxv_fix"><code>zxv_fix</code><a class="ancla" href="#zxv_fix" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef int32_t zxv_fix;
+</code></pre>
+<p>Un número en coma fija 16.16: los 16 bits altos son la parte entera (con
+signo) y los 16 bajos, la fracción. 65536 (<code>ZXV_FIX_ONE</code>) es 1; 32768, un
+medio.</p>
+<table>
+<thead>
+<tr>
+<th>Rango</th>
+<th>Paso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>de −32768 a 32767,99998</td>
+<td>1/65536</td>
+</tr>
+</tbody>
+</table>
+<p>Se suma, se resta y se compara como un entero; para multiplicar y dividir
+dos <code>zxv_fix</code>, <a href="#zxv_fmul"><code>zxv_fmul</code></a> y <a href="#zxv_fdiv"><code>zxv_fdiv</code></a>. Por un
+entero se multiplica y se divide directamente (<code>3 * v</code>, <code>v / 2</code>). Nada
+comprueba que una cuenta se salga del rango: si se sale, da la vuelta (de
+32767 a −32768), como cualquier <code>int32_t</code>.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+#include &quot;zxv_math.h&quot;
+
+static zxv_fix x = ZXV_FIX(10);                 /* 10 píxeles */
+static const zxv_fix vx = ZXV_FIX(0.75);        /* 0,75 píxeles por frame */
+
+void step(void)
+{
+    x += vx;                                    /* se suma como un entero */
+    zxv_plot(ZXV_FIX_INT(x), 100, 7);           /* el píxel donde cae */
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_fix-zxv_fix_one"><code>ZXV_FIX</code>, <code>ZXV_FIX_ONE</code></a>,
+<a href="#zxv_fix_int-zxv_fix_round"><code>ZXV_FIX_INT</code>, <code>ZXV_FIX_ROUND</code></a>.</p>
+<h3 id="zxv_fix-zxv_fix_one"><code>ZXV_FIX</code>, <code>ZXV_FIX_ONE</code><a class="ancla" href="#zxv_fix-zxv_fix_one" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">#define ZXV_FIX_ONE  0x10000
+#define ZXV_FIX(n)   ((zxv_fix)((n) * 65536))
+</code></pre>
+<p><code>ZXV_FIX_ONE</code> es el 1 en 16.16. <code>ZXV_FIX(n)</code> pasa un número a 16.16. Con
+una constante de coma flotante (<code>ZXV_FIX(1.5)</code>, <code>ZXV_FIX(-0.25)</code>), la
+cuenta la hace el compilador: no queda nada de coma flotante en el programa.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>n</code></td>
+<td>de −32768 a 32767,99998</td>
+<td>El número. Mejor una constante.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> <code>n</code> · 65536, con los decimales que no caben cortados hacia el
+cero (<code>ZXV_FIX(0.00001)</code> es 0).</p>
+<p><strong>Fuera de rango:</strong> con <code>n</code> fuera del rango el resultado no vale (se
+desborda). Con una variable entera funciona (es <code>n</code> · 65536); con una
+variable <code>float</code> también, pero hace la cuenta en coma flotante, que es
+lenta: no la uses así en el bucle del juego.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+static const zxv_fix gravity = ZXV_FIX(0.25);
+static const zxv_fix jump = -ZXV_FIX(4);
+
+zxv_fix tile_to_fix(int tile) { return ZXV_FIX(tile * 8); }   /* con un entero */
+zxv_fix half(void) { return ZXV_FIX_ONE / 2; }
+zxv_fix fall(zxv_fix vy) { return vy &gt; jump ? vy + gravity : vy; }
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_fix"><code>zxv_fix</code></a>,
+<a href="#zxv_fix_int-zxv_fix_round"><code>ZXV_FIX_INT</code>, <code>ZXV_FIX_ROUND</code></a>.</p>
+<h3 id="zxv_fix_int-zxv_fix_round"><code>ZXV_FIX_INT</code>, <code>ZXV_FIX_ROUND</code><a class="ancla" href="#zxv_fix_int-zxv_fix_round" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">#define ZXV_FIX_INT(f)    ((int32_t)(f) &gt;&gt; 16)
+#define ZXV_FIX_ROUND(f)  ((int32_t)((f) + 0x8000) &gt;&gt; 16)
+</code></pre>
+<p>Pasan un <code>zxv_fix</code> a entero: <code>ZXV_FIX_INT</code> hacia abajo (hacia −∞, no hacia
+el cero) y <code>ZXV_FIX_ROUND</code> al más cercano, con los medios hacia arriba.</p>
+<table>
+<thead>
+<tr>
+<th><code>f</code></th>
+<th><code>ZXV_FIX_INT(f)</code></th>
+<th><code>ZXV_FIX_ROUND(f)</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2,5</td>
+<td>2</td>
+<td>3</td>
+</tr>
+<tr>
+<td>2,4</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td>−1,5</td>
+<td>−2</td>
+<td>−1</td>
+</tr>
+<tr>
+<td>−0,2</td>
+<td>−1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>f</code></td>
+<td>un <code>zxv_fix</code></td>
+<td>El número.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el entero, de −32768 a 32767.</p>
+<p><strong>Fuera de rango:</strong> <code>ZXV_FIX_ROUND</code> se desborda con <code>f</code> de 32767,5 en
+adelante (da un número negativo).</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+#include &quot;zxv_math.h&quot;
+
+void show(zxv_fix x, zxv_fix y)
+{
+    zxv_plot(ZXV_FIX_ROUND(x), ZXV_FIX_ROUND(y), 7);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_fix"><code>zxv_fix</code></a>,
+<a href="#zxv_fix-zxv_fix_one"><code>ZXV_FIX</code>, <code>ZXV_FIX_ONE</code></a>.</p>
+<h3 id="zxv_turn-zxv_deg"><code>ZXV_TURN</code>, <code>ZXV_DEG</code><a class="ancla" href="#zxv_turn-zxv_deg" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">#define ZXV_TURN    0x10000
+#define ZXV_DEG(d)  ((int32_t)((d) * 65536 / 360))
+</code></pre>
+<p>Los ángulos de estas bibliotecas (y del motor gráfico) son enteros en
+vueltas de 0x10000 (<code>ZXV_TURN</code>): 0x4000 es un cuarto de vuelta, 0x8000
+media. El 0 mira hacia x creciente y 0x4000 hacia y creciente, que en la
+pantalla es hacia abajo: los ángulos crecen en el sentido del reloj. Solo
+cuentan los 16 bits bajos, así que un ángulo puede pasar de una vuelta o ser
+negativo sin hacer nada: 0x14000 y −0xC000 son lo mismo que 0x4000. En el
+<a href="#3d-sencillo-zxv_3dh">3D</a>, la y va hacia arriba y cada ángulo dice hacia
+dónde gira.</p>
+<p><code>ZXV_DEG(d)</code> pasa grados a esas unidades, con los decimales cortados hacia
+el cero: <code>ZXV_DEG(90)</code> es 0x4000 y <code>ZXV_DEG(1)</code>, 182 (de 182,04).</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>d</code></td>
+<td>de −32767 a 32767 con enteros; cualquiera con coma flotante</td>
+<td>Los grados.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el ángulo, en vueltas de 0x10000.</p>
+<p><strong>Fuera de rango:</strong> con un entero de más de 32767 (o menos de −32767), la
+multiplicación se desborda. Con <code>90.0</code> en vez de <code>90</code> no pasa, y el
+compilador hace la cuenta igual.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+int32_t turn_right(int32_t angle)
+{
+    return (angle + ZXV_DEG(5)) &amp; (ZXV_TURN - 1);   /* 5 grados más, sin pasar de una vuelta */
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_sin"><code>zxv_sin</code></a>, <a href="#zxv_atan2"><code>zxv_atan2</code></a>.</p>
+<h3 id="zxv_fmul"><code>zxv_fmul</code><a class="ancla" href="#zxv_fmul" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">static inline zxv_fix zxv_fmul(zxv_fix a, zxv_fix b);
+</code></pre>
+<p>Multiplica dos números 16.16. La cuenta se hace con 64 bits, así que no se
+desborda antes de tiempo: solo si el resultado no cabe en 16.16.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a</code>, <code>b</code></td>
+<td>cualquier <code>zxv_fix</code></td>
+<td>Los factores.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> <code>a</code> · <code>b</code> en 16.16, redondeado hacia abajo (hacia −∞) al
+1/65536.</p>
+<p><strong>Fuera de rango:</strong> si el resultado pasa de ±32768, se quedan sus 32 bits
+bajos (un número que no vale). No hay error.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+zxv_fix brake(zxv_fix speed)
+{
+    return zxv_fmul(speed, ZXV_FIX(0.95));      /* un 5 % menos cada frame */
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_fdiv"><code>zxv_fdiv</code></a>, <a href="#zxv_fix"><code>zxv_fix</code></a>.</p>
+<h3 id="zxv_fdiv"><code>zxv_fdiv</code><a class="ancla" href="#zxv_fdiv" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">static inline zxv_fix zxv_fdiv(zxv_fix a, zxv_fix b);
+</code></pre>
+<p>Divide dos números 16.16, con 64 bits en medio.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a</code></td>
+<td>cualquier <code>zxv_fix</code></td>
+<td>El dividendo.</td>
+</tr>
+<tr>
+<td><code>b</code></td>
+<td>cualquier <code>zxv_fix</code> menos 0</td>
+<td>El divisor.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> <code>a</code> / <code>b</code> en 16.16, con los decimales que no caben cortados
+hacia el cero.</p>
+<p><strong>Fuera de rango:</strong> <code>b</code> = 0 no está definido: compruébalo antes. Si el
+cociente pasa de ±32768, se quedan sus 32 bits bajos.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+/* Cuántos frames tarda en recorrer dist a la velocidad v (los dos en 16.16). */
+zxv_fix frames_to(zxv_fix dist, zxv_fix v)
+{
+    return v ? zxv_fdiv(dist, v) : 0;
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_fmul"><code>zxv_fmul</code></a>.</p>
+<h3 id="zxv_sin"><code>zxv_sin</code><a class="ancla" href="#zxv_sin" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">zxv_fix zxv_sin(int32_t angle);
+</code></pre>
+<p>El seno de un ángulo, en 16.16. Sale de una tabla de un cuarto de vuelta
+con 256 pasos e interpolación: es <strong>exactamente el mismo seno que usa el
+motor gráfico</strong> en <a href="reference.html#modo-7"><code>zxv_m7_camera</code> y <code>zxv_m7_affine</code></a>,
+así que lo que pongas con él cuadra con el suelo del modo 7.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>angle</code></td>
+<td>cualquier <code>int32_t</code>; cuentan los 16 bits bajos</td>
+<td>El ángulo, en vueltas de 0x10000 (<a href="#zxv_turn-zxv_deg"><code>ZXV_DEG</code></a>).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> de −65536 a 65536 (de −1 a 1). <code>zxv_sin(0x4000)</code> es 65536
+justo. Se aparta del seno exacto 1,7/65536 como mucho.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+/* Un enemigo que sube y baja 16 píxeles alrededor de base_y. */
+int bob(int base_y, uint32_t frame)
+{
+    return base_y + ZXV_FIX_ROUND(16 * zxv_sin((int32_t)(frame * 512)));
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_cos"><code>zxv_cos</code></a>, <a href="#zxv_atan2"><code>zxv_atan2</code></a>.</p>
+<h3 id="zxv_cos"><code>zxv_cos</code><a class="ancla" href="#zxv_cos" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">zxv_fix zxv_cos(int32_t angle);
+</code></pre>
+<p>El coseno de un ángulo, en 16.16: <code>zxv_sin(angle + 0x4000)</code>, con la misma
+tabla.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>angle</code></td>
+<td>cualquier <code>int32_t</code>; cuentan los 16 bits bajos</td>
+<td>El ángulo, en vueltas de 0x10000.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> de −65536 a 65536. Con la misma precisión que
+<a href="#zxv_sin"><code>zxv_sin</code></a>.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+/* La velocidad en x y en y de algo que va a v (16.16) en la dirección a. */
+void velocity(int32_t a, zxv_fix v, zxv_fix *vx, zxv_fix *vy)
+{
+    *vx = zxv_fmul(v, zxv_cos(a));
+    *vy = zxv_fmul(v, zxv_sin(a));
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_sin"><code>zxv_sin</code></a>.</p>
+<h3 id="zxv_atan2"><code>zxv_atan2</code><a class="ancla" href="#zxv_atan2" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int32_t zxv_atan2(int32_t y, int32_t x);
+</code></pre>
+<p>El ángulo del vector (x, y): hacia dónde hay que mirar para ir de un punto
+a otro. Lo calcula con CORDIC, solo con enteros.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>y</code>, <code>x</code></td>
+<td>cualquier <code>int32_t</code></td>
+<td>El vector, los dos en las mismas unidades (enteros o 16.16, da igual). Ojo al orden: primero <code>y</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el ángulo, de 0 a 0xFFFF: 0 hacia x creciente, 0x4000 hacia
+y creciente (abajo en la pantalla), 0x8000 hacia x decreciente y 0xC000
+hacia y decreciente. <code>zxv_atan2(0, 0)</code> es 0.</p>
+<p>Se aparta del ángulo exacto 0,52/65536 de vuelta como mucho: da el valor
+exacto redondeado o, en unos pocos casos (unos 3 de cada 1.000), uno más o uno
+menos. Vale igual con vectores muy pequeños o muy grandes.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+/* Gira la torreta hacia el jugador, 2 grados por frame como mucho. */
+int32_t aim(int32_t turret, zxv_fix tx, zxv_fix ty, zxv_fix px, zxv_fix py)
+{
+    int32_t want = zxv_atan2(py - ty, px - tx);
+    int16_t diff = (int16_t)(want - turret);    /* de -0x8000 a 0x7FFF: por el lado corto */
+    if (diff &gt; ZXV_DEG(2))
+        diff = ZXV_DEG(2);
+    if (diff &lt; -ZXV_DEG(2))
+        diff = -ZXV_DEG(2);
+    return (turret + diff) &amp; 0xFFFF;
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_sin"><code>zxv_sin</code></a>, <a href="#zxv_hypot"><code>zxv_hypot</code></a>.</p>
+<h3 id="zxv_isqrt"><code>zxv_isqrt</code><a class="ancla" href="#zxv_isqrt" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">uint32_t zxv_isqrt(uint32_t v);
+</code></pre>
+<p>La raíz cuadrada entera de <code>v</code>, hacia abajo: <code>zxv_isqrt(10)</code> es 3.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>v</code></td>
+<td>de 0 a 4.294.967.295</td>
+<td>El número.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> la raíz, de 0 a 65535.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+/* El radio de un círculo de área 'area' píxeles (más o menos). */
+uint32_t radius(uint32_t area) { return zxv_isqrt(area * 100 / 314); }
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_isqrt64"><code>zxv_isqrt64</code></a>, <a href="#zxv_fsqrt"><code>zxv_fsqrt</code></a>,
+<a href="#zxv_hypot"><code>zxv_hypot</code></a>.</p>
+<h3 id="zxv_isqrt64"><code>zxv_isqrt64</code><a class="ancla" href="#zxv_isqrt64" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">uint32_t zxv_isqrt64(uint64_t v);
+</code></pre>
+<p>Como <a href="#zxv_isqrt"><code>zxv_isqrt</code></a>, con un número de 64 bits: para la suma de
+dos cuadrados grandes, por ejemplo.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>v</code></td>
+<td>cualquier <code>uint64_t</code></td>
+<td>El número.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> la raíz hacia abajo, de 0 a 4.294.967.295.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+/* La distancia entre dos puntos en 16.16 (sin desbordarse). */
+zxv_fix dist(zxv_fix ax, zxv_fix ay, zxv_fix bx, zxv_fix by)
+{
+    int64_t dx = (int64_t)bx - ax, dy = (int64_t)by - ay;
+    return (zxv_fix)zxv_isqrt64((uint64_t)(dx * dx) + (uint64_t)(dy * dy));
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_hypot"><code>zxv_hypot</code></a>, que hace esta misma cuenta.</p>
+<h3 id="zxv_fsqrt"><code>zxv_fsqrt</code><a class="ancla" href="#zxv_fsqrt" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">zxv_fix zxv_fsqrt(zxv_fix v);
+</code></pre>
+<p>La raíz cuadrada de un número 16.16, en 16.16.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>v</code></td>
+<td>de 0 a 32767,99998</td>
+<td>El número.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> la raíz, hacia abajo al 1/65536: <code>zxv_fsqrt(ZXV_FIX(2))</code> es
+92681 (1,41421). Como mucho, 181,02.</p>
+<p><strong>Fuera de rango:</strong> con <code>v</code> de 0 o negativo, da 0.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+/* La velocidad para llegar a una altura h (16.16) con la gravedad g: sqrt(2·g·h). */
+zxv_fix jump_speed(zxv_fix g, zxv_fix h) { return zxv_fsqrt(2 * zxv_fmul(g, h)); }
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_isqrt"><code>zxv_isqrt</code></a>.</p>
+<h3 id="zxv_hypot"><code>zxv_hypot</code><a class="ancla" href="#zxv_hypot" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">uint32_t zxv_hypot(int32_t x, int32_t y);
+</code></pre>
+<p>La longitud del vector (x, y), √(x² + y²), sin desbordarse aunque <code>x</code> e <code>y</code>
+sean grandes (las cuentas van en 64 bits).</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x</code>, <code>y</code></td>
+<td>cualquier <code>int32_t</code></td>
+<td>El vector, en las unidades que sean (enteros o 16.16).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> la longitud hacia abajo, en las mismas unidades que <code>x</code> e
+<code>y</code>, de 0 a 3.037.000.499. Con dos <code>zxv_fix</code>, la longitud es también 16.16
+(pásala a <code>zxv_fix</code> si es menor de 32768).</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+/* 1 si el disparo (en 16.16) está a menos de 6 píxeles del enemigo. */
+int hit(zxv_fix sx, zxv_fix sy, zxv_fix ex, zxv_fix ey)
+{
+    return zxv_hypot(ex - sx, ey - sy) &lt; (uint32_t)ZXV_FIX(6);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_atan2"><code>zxv_atan2</code></a>, <a href="#zxv_isqrt64"><code>zxv_isqrt64</code></a>.</p>
+<h3 id="zxv_srand"><code>zxv_srand</code><a class="ancla" href="#zxv_srand" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_srand(uint32_t seed);
+</code></pre>
+<p>Pone la semilla de <a href="#zxv_rand"><code>zxv_rand</code></a> y
+<a href="#zxv_rand_range"><code>zxv_rand_range</code></a>. La misma semilla da siempre la misma
+serie de números: sirve para repetir una partida o un nivel generado.</p>
+<p><strong>Sin llamarla, la serie empieza siempre igual</strong> (el estado inicial es fijo):
+el juego sería el mismo cada vez. Una buena semilla es
+<a href="reference.html#zxv_time_us"><code>zxv_time_us()</code></a> cuando el jugador pulsa una
+tecla para empezar.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>seed</code></td>
+<td>cualquier <code>uint32_t</code></td>
+<td>La semilla. El 0 vale como el 1.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+#include &quot;zxv_math.h&quot;
+
+void wait_start(void)
+{
+    while (zxv_key_get() &lt; 0)
+        zxv_wait_vblank();
+    zxv_srand(zxv_time_us());                   /* cada partida, distinta */
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_rand"><code>zxv_rand</code></a>, <a href="#zxv_rand_next"><code>zxv_rand_next</code></a>.</p>
+<h3 id="zxv_rand"><code>zxv_rand</code><a class="ancla" href="#zxv_rand" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">uint32_t zxv_rand(void);
+</code></pre>
+<p>El siguiente número al azar (xorshift32: rápido, de 32 bits, y no se repite
+hasta pasados 4.294.967.295).</p>
+<p><strong>Devuelve:</strong> de 1 a 4.294.967.295 (nunca 0).</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+int coin(void) { return (int)(zxv_rand() &gt;&gt; 31); }            /* 0 o 1 */
+int chance(int percent) { return zxv_rand_range(1, 100) &lt;= percent; }
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_rand_range"><code>zxv_rand_range</code></a>, <a href="#zxv_srand"><code>zxv_srand</code></a>.</p>
+<h3 id="zxv_rand_range"><code>zxv_rand_range</code><a class="ancla" href="#zxv_rand_range" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_rand_range(int lo, int hi);
+</code></pre>
+<p>Un número al azar entre <code>lo</code> y <code>hi</code>, los dos incluidos, todos con la misma
+probabilidad. Usa el mismo generador que <a href="#zxv_rand"><code>zxv_rand</code></a>.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lo</code>, <code>hi</code></td>
+<td>cualquier <code>int</code></td>
+<td>Los extremos. Si <code>hi</code> es menor que <code>lo</code>, se dan la vuelta.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el número, de <code>lo</code> a <code>hi</code>. Con <code>INT32_MIN</code> e <code>INT32_MAX</code>,
+cualquier <code>int</code>.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+int roll_dice(void) { return zxv_rand_range(1, 6); }
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_rand"><code>zxv_rand</code></a>, <a href="#zxv_srand"><code>zxv_srand</code></a>.</p>
+<h3 id="zxv_rand_next"><code>zxv_rand_next</code><a class="ancla" href="#zxv_rand_next" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">uint32_t zxv_rand_next(uint32_t *state);
+</code></pre>
+<p>Otro generador, con el estado en tu variable en vez del de
+<a href="#zxv_rand"><code>zxv_rand</code></a>. Sirve para tener series independientes: una para
+generar el nivel (siempre la misma con la misma semilla) y otra para el
+resto del juego, que no la descoloca.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>state</code></td>
+<td>puntero a un <code>uint32_t</code></td>
+<td>El estado: ponle la semilla al principio. Si vale 0, se toma como 1.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el siguiente número, de 1 a 4.294.967.295, que queda también
+en <code>*state</code>.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_math.h&quot;
+
+/* El nivel n se genera siempre igual. */
+void make_level(uint8_t *cells, int n_cells, uint32_t level)
+{
+    uint32_t st = 12345 + level;
+    for (int i = 0; i &lt; n_cells; i++)
+        cells[i] = (uint8_t)(zxv_rand_next(&amp;st) % 4);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_rand"><code>zxv_rand</code></a>.</p>
+<h2 id="objetos-sobre-el-suelo-del-modo-7-zxv_m7h">Objetos sobre el suelo del modo 7: <code>zxv_m7.h</code><a class="ancla" href="#objetos-sobre-el-suelo-del-modo-7-zxv_m7h" aria-hidden="true">#</a></h2>
+<p>Con la misma cámara con la que <a href="reference.html#modo-7"><code>zxv_m7_camera</code></a>
+calcula el suelo (ver <a href="graphics.html#modo-7">Modo 7</a>), <code>zxv_m7_project</code> dice
+dónde se ve un punto de ese suelo (o a cierta altura sobre él) y a qué
+tamaño: para los coches, los árboles y los conos de un juego de carreras,
+dibujados con <a href="reference.html#sprites"><code>zxv_spr_draw_scaled</code></a>. Y
+<code>zxv_m7_floor_at</code> hace lo contrario: qué punto del suelo hay en un píxel de
+la pantalla.</p>
+<pre><code class="language-make">SOURCES := juego.c $(SDK)/lib/m7.c $(SDK)/lib/math.c
+</code></pre>
+<p>La cabecera incluye <code>zxv_gfx.h</code> (por <code>zxv_m7cam</code>) y <code>zxv_math.h</code>. Las
+cuentas son las del motor gráfico, así que todo cuadra al píxel con lo que
+dibuja. Recuerda: en <code>zxv_m7cam</code>, todo va en 16.16 (también <code>focal</code>) salvo
+<code>horizon</code>, que es la línea entera de la pantalla.</p>
+<p>Para que unos objetos tapen a otros, <strong>dibújalos de lejos a cerca</strong>, por su
+<code>depth</code>.</p>
+<h3 id="zxv_m7pos"><code>zxv_m7pos</code><a class="ancla" href="#zxv_m7pos" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {
+    int32_t x, y;
+    zxv_fix scale;
+    zxv_fix depth;
+} zxv_m7pos;
+</code></pre>
+<p>Dónde se ve un punto, lo que rellena <a href="#zxv_m7_project"><code>zxv_m7_project</code></a>.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x</code></td>
+<td>píxeles (enteros)</td>
+<td>La columna del destino.</td>
+</tr>
+<tr>
+<td><code>y</code></td>
+<td>píxeles (enteros)</td>
+<td>La línea del destino. Para un punto del suelo, la línea donde se apoya: dibuja el objeto con su base ahí.</td>
+</tr>
+<tr>
+<td><code>scale</code></td>
+<td>16.16, mayor que 0</td>
+<td>Los píxeles que mide un texel a esa distancia: el tamaño del objeto en texels por <code>scale</code> da su tamaño en píxeles.</td>
+</tr>
+<tr>
+<td><code>depth</code></td>
+<td>16.16, de 1 texel a 32767,99998</td>
+<td>Lo lejos que está, hacia delante (la distancia perpendicular a la pantalla). Para ordenar.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ver también:</strong> <a href="#zxv_m7_project"><code>zxv_m7_project</code></a>.</p>
+<h3 id="zxv_m7_project"><code>zxv_m7_project</code><a class="ancla" href="#zxv_m7_project" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_m7_project(const zxv_m7cam *cam, int width, zxv_fix px, zxv_fix py, zxv_fix h, zxv_m7pos *p);
+</code></pre>
+<p>Dónde se ve el punto (<code>px</code>, <code>py</code>) del suelo, a la altura <code>h</code> sobre él, con
+la cámara <code>cam</code>, y a qué escala. Redondea al píxel más cercano.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cam</code></td>
+<td>la cámara de <code>zxv_m7_camera</code></td>
+<td>La misma con la que se calcula el suelo. <code>focal</code> tiene que ser mayor que 0.</td>
+</tr>
+<tr>
+<td><code>width</code></td>
+<td>píxeles</td>
+<td>El ancho del destino en el que se dibuja el suelo (256 en el modo 0): la cámara está en su columna <code>width / 2</code>.</td>
+</tr>
+<tr>
+<td><code>px</code>, <code>py</code></td>
+<td>texels, 16.16</td>
+<td>El punto del suelo.</td>
+</tr>
+<tr>
+<td><code>h</code></td>
+<td>texels, 16.16</td>
+<td>La altura sobre el suelo: 0, apoyado; para lo que salta o vuela, más. A la altura de la cámara (<code>cam-&gt;height</code>) cae en el horizonte.</td>
+</tr>
+<tr>
+<td><code>p</code></td>
+<td>puntero a un <code>zxv_m7pos</code></td>
+<td>Donde se deja el resultado.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> 1 si el punto está delante de la cámara, y entonces rellena
+<code>*p</code>; 0 si no, y <code>*p</code> no cambia. Un punto con 1 puede caer fuera de la
+pantalla (de lado, o por debajo): el sprite se recorta solo al dibujarlo.</p>
+<p>Da 0 cuando:</p>
+<table>
+<thead>
+<tr>
+<th>Caso</th>
+<th>Por qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>El punto está detrás de la cámara o a menos de un texel por delante</td>
+<td>Allí no se puede ver (o saldría enorme).</td>
+</tr>
+<tr>
+<td>La posición pasa de ±2³⁰ píxeles o <code>scale</code>, de 32768</td>
+<td>Demasiado cerca para dibujarlo.</td>
+</tr>
+<tr>
+<td><code>cam</code> o <code>p</code> son <code>NULL</code>, o <code>cam-&gt;focal</code> es 0 o negativo</td>
+<td>No hay cámara.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_m7.h&quot;
+
+/* Un árbol de 32 texels de alto y 16 de ancho, apoyado en (tx, ty). */
+void draw_tree(const zxv_m7cam *cam, const void *tree_spr, zxv_fix tx, zxv_fix ty)
+{
+    zxv_m7pos p;
+    if (zxv_m7_project(cam, 256, tx, ty, 0, &amp;p)) {
+        int h = (int)((32 * (int64_t)p.scale) &gt;&gt; 16);
+        int w = (int)((16 * (int64_t)p.scale) &gt;&gt; 16);
+        if (w &gt; 0 &amp;&amp; h &gt; 0)
+            zxv_spr_draw_scaled(tree_spr, p.x - w / 2, p.y - h, w, h, 0, 0);
+    }
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_m7pos"><code>zxv_m7pos</code></a>, <a href="#zxv_m7_floor_at"><code>zxv_m7_floor_at</code></a>,
+<a href="reference.html#modo-7"><code>zxv_m7_camera</code></a>.</p>
+<h3 id="zxv_m7_floor_at"><code>zxv_m7_floor_at</code><a class="ancla" href="#zxv_m7_floor_at" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_m7_floor_at(const zxv_m7cam *cam, int width, int sx, int sy, zxv_fix *px, zxv_fix *py);
+</code></pre>
+<p>Lo contrario de <a href="#zxv_m7_project"><code>zxv_m7_project</code></a>: el punto del suelo que
+se ve en el píxel (<code>sx</code>, <code>sy</code>) del destino. Es exactamente el texel que
+dibuja <code>zxv_m7_draw</code> con las líneas de <code>zxv_m7_camera</code>. Sirve para el
+ratón, o para saber qué pisa un coche.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cam</code></td>
+<td>la cámara de <code>zxv_m7_camera</code></td>
+<td>La misma con la que se calcula el suelo.</td>
+</tr>
+<tr>
+<td><code>width</code></td>
+<td>píxeles</td>
+<td>El ancho del destino, como en <code>zxv_m7_project</code>.</td>
+</tr>
+<tr>
+<td><code>sx</code></td>
+<td>píxeles</td>
+<td>La columna. No se comprueba: fuera del destino da el punto que se vería si siguiera.</td>
+</tr>
+<tr>
+<td><code>sy</code></td>
+<td>píxeles, por debajo de <code>cam-&gt;horizon</code></td>
+<td>La línea.</td>
+</tr>
+<tr>
+<td><code>px</code>, <code>py</code></td>
+<td>punteros, o <code>NULL</code></td>
+<td>Donde se deja el punto, en texels 16.16. El que sea <code>NULL</code> no se rellena.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> 1 y el punto; o 0 si <code>sy</code> está en el horizonte o por encima
+(allí no hay suelo), si <code>cam</code> es <code>NULL</code> o si <code>cam-&gt;focal</code> es 0 o
+negativo. Con 0, <code>*px</code> y <code>*py</code> no cambian.</p>
+<p>El punto no se ajusta al tamaño de la textura: si se repite, el texel es
+<code>(px &gt;&gt; 16) &amp; (lado - 1)</code>.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_m7.h&quot;
+
+/* El texel de la pista que hay bajo el coche (dibujado en la columna 128, línea 170). */
+int under_car(const zxv_m7cam *cam, const uint8_t *track, int log2size)
+{
+    zxv_fix u, v;
+    if (!zxv_m7_floor_at(cam, 256, 128, 170, &amp;u, &amp;v))
+        return -1;
+    int mask = (1 &lt;&lt; log2size) - 1;
+    return track[(((v &gt;&gt; 16) &amp; mask) &lt;&lt; log2size) + ((u &gt;&gt; 16) &amp; mask)];
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_m7_project"><code>zxv_m7_project</code></a>.</p>
+<h2 id="mover-por-un-mapa-de-tiles-zxv_mapmoveh">Mover por un mapa de tiles: <code>zxv_mapmove.h</code><a class="ancla" href="#mover-por-un-mapa-de-tiles-zxv_mapmoveh" aria-hidden="true">#</a></h2>
+<p>El núcleo de un juego de plataformas: mover un rectángulo por un
+<a href="graphics.html#mapas-de-tiles">mapa de tiles</a> parando contra las paredes, sin
+atravesarlas aunque vaya muy deprisa, y saber si está en el suelo. El juego
+dice de qué <strong>tipo</strong> es cada tile (vacío, sólido, plataforma o uno suyo:
+escalera, pinchos, agua, monedas).</p>
+<pre><code class="language-make">SOURCES := juego.c $(SDK)/lib/mapmove.c
+</code></pre>
+<p>La cabecera incluye <code>zxv_gfx.h</code> (por <code>zxv_tilemap</code>) y <code>zxv_math.h</code> (por
+<code>zxv_fix</code>), pero <code>lib/math.c</code> no hace falta.</p>
+<p><strong>Las medidas.</strong> Las posiciones van en píxeles del mapa, en 16.16: (0, 0)
+es la esquina de arriba a la izquierda de la celda (0, 0). Un rectángulo
+con la esquina en (x, y) y w × h píxeles ocupa de x a x + w (sin incluir) y
+de y a y + h. <code>w</code> y <code>h</code> son enteros; menos de 1 cuenta como 1. De cada
+celda solo cuenta el número de tile (los 12 bits bajos): los espejos y la
+prioridad dan igual.</p>
+<p><strong>Mapa no válido.</strong> Si <code>ms</code> o <code>ms-&gt;map</code> o sus <code>cells</code> son <code>NULL</code>, si el
+mapa mide 0 de ancho o de alto, o si sus tiles no son de 8 ni de 16, las
+funciones no hacen nada: <code>zxv_map_move</code> no mueve y da 0,
+<code>zxv_map_on_ground</code> y <code>zxv_map_find</code> dan 0 y <code>zxv_map_kind</code>,
+<code>ZXV_TILE_EMPTY</code>.</p>
+<pre><code class="language-c">#include &quot;zxv_input.h&quot;
+#include &quot;zxv_mapmove.h&quot;
+
+enum { LADDER = 3, COIN = 4 };
+extern const zxv_tilemap level;
+static const uint8_t kinds[] = { ZXV_TILE_EMPTY, ZXV_TILE_SOLID, ZXV_TILE_PLATFORM, LADDER, COIN };
+static zxv_mapsolid ms = { &amp;level, kinds, sizeof kinds, ZXV_TILE_SOLID };   /* fuera del mapa, pared */
+
+static zxv_fix px, py, vy;                      /* posición y velocidad vertical, 16.16 */
+
+void take_coin(int cx, int cy);                 /* del juego: quita la moneda del mapa */
+
+void player_step(const zxv_input *in)
+{
+    zxv_fix vx = 0;
+    if (in-&gt;held &amp; ZXV_IN_LEFT)
+        vx = -ZXV_FIX(1.5);
+    if (in-&gt;held &amp; ZXV_IN_RIGHT)
+        vx = ZXV_FIX(1.5);
+    unsigned through = (in-&gt;held &amp; ZXV_IN_DOWN) ? ZXV_MOVE_THROUGH : 0;
+    if (zxv_map_on_ground(&amp;ms, px, py, 12, 16, through) &amp;&amp; (in-&gt;pressed &amp; ZXV_IN_FIRE))
+        vy = -ZXV_FIX(4);                       /* salto */
+    vy += ZXV_FIX(0.25);                        /* gravedad */
+    unsigned hit = zxv_map_move(&amp;ms, &amp;px, &amp;py, 12, 16, vx, vy, through);
+    if (hit &amp; (ZXV_HIT_DOWN | ZXV_HIT_UP))
+        vy = 0;
+    int cx, cy;
+    if (zxv_map_find(&amp;ms, px, py, 12, 16, COIN, &amp;cx, &amp;cy))
+        take_coin(cx, cy);
+}
+</code></pre>
+<p>No hay rampas ni tiles en diagonal.</p>
+<h3 id="zxv_tile_empty-zxv_tile_solid-zxv_tile_platform"><code>ZXV_TILE_EMPTY</code>, <code>ZXV_TILE_SOLID</code>, <code>ZXV_TILE_PLATFORM</code><a class="ancla" href="#zxv_tile_empty-zxv_tile_solid-zxv_tile_platform" aria-hidden="true">#</a></h3>
+<p>Los tipos de tile que entiende la biblioteca. El juego le da uno a cada
+número de tile con la tabla <code>kinds</code> de <a href="#zxv_mapsolid"><code>zxv_mapsolid</code></a>.</p>
+<table>
+<thead>
+<tr>
+<th>Tipo</th>
+<th>Valor</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_TILE_EMPTY</code></td>
+<td>0</td>
+<td>Nada: se atraviesa.</td>
+</tr>
+<tr>
+<td><code>ZXV_TILE_SOLID</code></td>
+<td>1</td>
+<td>Para por los cuatro lados.</td>
+</tr>
+<tr>
+<td><code>ZXV_TILE_PLATFORM</code></td>
+<td>2</td>
+<td>Solo para al caer desde encima: se atraviesa saltando por debajo y de lado, y bajando con <code>ZXV_MOVE_THROUGH</code>.</td>
+</tr>
+<tr>
+<td>del 3 al 255</td>
+<td></td>
+<td>Del juego (escaleras, pinchos, agua, monedas): no paran nada, pero <a href="#zxv_map_find"><code>zxv_map_find</code></a> y <a href="#zxv_map_kind"><code>zxv_map_kind</code></a> los encuentran.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ver también:</strong> <a href="#zxv_mapsolid"><code>zxv_mapsolid</code></a>.</p>
+<h3 id="zxv_mapsolid"><code>zxv_mapsolid</code><a class="ancla" href="#zxv_mapsolid" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {
+    const zxv_tilemap *map;
+    const uint8_t *kinds;
+    uint16_t nkinds;
+    uint8_t outside;
+} zxv_mapsolid;
+</code></pre>
+<p>El mapa con los tipos de sus tiles: lo que reciben todas las funciones.
+Solo se lee, así que puede ser <code>const</code> y compartirse entre todos los
+personajes.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>map</code></td>
+<td>un <code>zxv_tilemap</code></td>
+<td>El mapa (<a href="reference.html#tipos">Tipos</a>): sus celdas, su tamaño, tiles de 8 o de 16 y <code>ZXV_MAP_WRAP</code> si se repite. Es el mismo que se dibuja con <code>zxv_map_draw</code>.</td>
+</tr>
+<tr>
+<td><code>kinds</code></td>
+<td>tabla de <code>uint8_t</code>, o <code>NULL</code></td>
+<td>El tipo de cada tile, por su número (de 0 a 4095). <code>NULL</code>: el tile 0 está vacío y todos los demás son sólidos.</td>
+</tr>
+<tr>
+<td><code>nkinds</code></td>
+<td>de 0 a 65535</td>
+<td>Cuántos tipos hay en <code>kinds</code>. Los tiles con un número mayor o igual están vacíos.</td>
+</tr>
+<tr>
+<td><code>outside</code></td>
+<td>un tipo, de 0 a 255</td>
+<td>El tipo de lo que hay fuera de un mapa que no se repite: <code>ZXV_TILE_SOLID</code> para que los bordes sean paredes, <code>ZXV_TILE_EMPTY</code> para que se pueda salir. En un mapa que se repite no cuenta.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_mapmove.h&quot;
+
+extern const zxv_tilemap cave;
+/* Sin tabla: el tile 0 vacío y los demás sólidos; los bordes, abiertos. */
+const zxv_mapsolid cave_solid = { &amp;cave, 0, 0, ZXV_TILE_EMPTY };
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_tile_empty-zxv_tile_solid-zxv_tile_platform"><code>ZXV_TILE_EMPTY</code>, <code>ZXV_TILE_SOLID</code>, <code>ZXV_TILE_PLATFORM</code></a>.</p>
+<h3 id="zxv_hit_left-zxv_hit_right-zxv_hit_up-zxv_hit_down"><code>ZXV_HIT_LEFT</code>, <code>ZXV_HIT_RIGHT</code>, <code>ZXV_HIT_UP</code>, <code>ZXV_HIT_DOWN</code><a class="ancla" href="#zxv_hit_left-zxv_hit_right-zxv_hit_up-zxv_hit_down" aria-hidden="true">#</a></h3>
+<p>Los bits de lo que devuelve <a href="#zxv_map_move"><code>zxv_map_move</code></a>: los lados del
+rectángulo que han chocado.</p>
+<table>
+<thead>
+<tr>
+<th>Constante</th>
+<th>Valor</th>
+<th>Qué ha pasado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_HIT_LEFT</code></td>
+<td>0x01</td>
+<td>Ha chocado por la izquierda (iba hacia la izquierda).</td>
+</tr>
+<tr>
+<td><code>ZXV_HIT_RIGHT</code></td>
+<td>0x02</td>
+<td>Ha chocado por la derecha.</td>
+</tr>
+<tr>
+<td><code>ZXV_HIT_UP</code></td>
+<td>0x04</td>
+<td>Ha chocado con la cabeza.</td>
+</tr>
+<tr>
+<td><code>ZXV_HIT_DOWN</code></td>
+<td>0x08</td>
+<td>Ha chocado con los pies: está en el suelo.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ver también:</strong> <a href="#zxv_map_move"><code>zxv_map_move</code></a>.</p>
+<h3 id="zxv_move_through"><code>ZXV_MOVE_THROUGH</code><a class="ancla" href="#zxv_move_through" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">#define ZXV_MOVE_THROUGH  0x01u
+</code></pre>
+<p>La opción de <a href="#zxv_map_move"><code>zxv_map_move</code></a> y
+<a href="#zxv_map_on_ground"><code>zxv_map_on_ground</code></a> para atravesar las plataformas al
+bajar: para bajarse de una (abajo + saltar, en muchos juegos). Con ella, las
+plataformas no paran nada.</p>
+<p><strong>Ver también:</strong> <a href="#zxv_tile_empty-zxv_tile_solid-zxv_tile_platform"><code>ZXV_TILE_EMPTY</code>, <code>ZXV_TILE_SOLID</code>, <code>ZXV_TILE_PLATFORM</code></a>.</p>
+<h3 id="zxv_map_move"><code>zxv_map_move</code><a class="ancla" href="#zxv_map_move" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">unsigned zxv_map_move(const zxv_mapsolid *ms, zxv_fix *x, zxv_fix *y, int w, int h,
+                      zxv_fix dx, zxv_fix dy, unsigned flags);
+</code></pre>
+<p>Mueve el rectángulo primero <code>dx</code> en horizontal y luego <code>dy</code> en vertical
+(desde la x nueva), parando cada eje en la primera celda que lo bloquea: se
+queda tocándola, sin solaparse. Mira todas las celdas por las que pasa, así
+que <strong>no atraviesa ninguna pared por rápido que vaya</strong> (pero cuanto más
+lejos va, más celdas mira).</p>
+<ul>
+<li>Las plataformas solo paran al bajar, y solo las filas que estaban enteras
+  por debajo de los pies antes de moverse: «venir de encima».</li>
+<li>Si el rectángulo ya estaba metido en algo sólido, las celdas que ocupa no
+  lo paran: sale por donde se mueve.</li>
+<li>La velocidad es del juego: al chocar, ponla a 0 tú (<code>vy = 0</code> con
+  <code>ZXV_HIT_DOWN</code> o <code>ZXV_HIT_UP</code>).</li>
+</ul>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ms</code></td>
+<td>un <code>zxv_mapsolid</code></td>
+<td>El mapa.</td>
+</tr>
+<tr>
+<td><code>x</code>, <code>y</code></td>
+<td>punteros a la esquina de arriba a la izquierda, 16.16</td>
+<td>Dónde está; se cambian por dónde queda.</td>
+</tr>
+<tr>
+<td><code>w</code>, <code>h</code></td>
+<td>píxeles (enteros); menos de 1 es 1</td>
+<td>El tamaño del rectángulo.</td>
+</tr>
+<tr>
+<td><code>dx</code>, <code>dy</code></td>
+<td>16.16, cualquier valor</td>
+<td>Lo que se mueve en este paso.</td>
+</tr>
+<tr>
+<td><code>flags</code></td>
+<td>0 o <code>ZXV_MOVE_THROUGH</code></td>
+<td><code>ZXV_MOVE_THROUGH</code>: atravesar las plataformas.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> los <code>ZXV_HIT_</code> de los lados que han chocado, juntos; 0 si no
+ha chocado con nada. Al chocar, la coordenada de ese eje queda justo en el
+borde de la celda (sin fracción).</p>
+<p><strong>Errores:</strong> ninguno. Con un <a href="#mover-por-un-mapa-de-tiles-zxv_mapmoveh">mapa no válido</a>
+o con <code>x</code> o <code>y</code> <code>NULL</code>, no mueve nada y da 0.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_mapmove.h&quot;
+
+/* Una pelota que rebota en las paredes. */
+void ball_step(const zxv_mapsolid *ms, zxv_fix *x, zxv_fix *y, zxv_fix *vx, zxv_fix *vy)
+{
+    unsigned hit = zxv_map_move(ms, x, y, 6, 6, *vx, *vy, 0);
+    if (hit &amp; (ZXV_HIT_LEFT | ZXV_HIT_RIGHT))
+        *vx = -*vx;
+    if (hit &amp; (ZXV_HIT_UP | ZXV_HIT_DOWN))
+        *vy = -*vy;
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_map_on_ground"><code>zxv_map_on_ground</code></a>,
+<a href="#zxv_hit_left-zxv_hit_right-zxv_hit_up-zxv_hit_down"><code>ZXV_HIT_LEFT</code>...</a>,
+<a href="#zxv_move_through"><code>ZXV_MOVE_THROUGH</code></a>.</p>
+<h3 id="zxv_map_on_ground"><code>zxv_map_on_ground</code><a class="ancla" href="#zxv_map_on_ground" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_map_on_ground(const zxv_mapsolid *ms, zxv_fix x, zxv_fix y, int w, int h, unsigned flags);
+</code></pre>
+<p>Dice si el rectángulo está apoyado, sin moverlo: si sus pies están justo
+en el borde de arriba de una celda que para al bajar (sólida, o una
+plataforma sin <code>ZXV_MOVE_THROUGH</code>). Es como queda después de que
+<a href="#zxv_map_move"><code>zxv_map_move</code></a> lo pare al caer; con los pies a media celda
+(cayendo, o en una escalera) da 0.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ms</code></td>
+<td>un <code>zxv_mapsolid</code></td>
+<td>El mapa.</td>
+</tr>
+<tr>
+<td><code>x</code>, <code>y</code></td>
+<td>16.16</td>
+<td>La esquina de arriba a la izquierda.</td>
+</tr>
+<tr>
+<td><code>w</code>, <code>h</code></td>
+<td>píxeles; menos de 1 es 1</td>
+<td>El tamaño.</td>
+</tr>
+<tr>
+<td><code>flags</code></td>
+<td>0 o <code>ZXV_MOVE_THROUGH</code></td>
+<td>Con <code>ZXV_MOVE_THROUGH</code>, las plataformas no cuentan.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> 1 si está apoyado; 0 si no (o con un mapa no válido).</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_mapmove.h&quot;
+
+/* Solo se puede saltar desde el suelo. */
+zxv_fix try_jump(const zxv_mapsolid *ms, zxv_fix x, zxv_fix y, zxv_fix vy)
+{
+    return zxv_map_on_ground(ms, x, y, 12, 16, 0) ? -ZXV_FIX(4) : vy;
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_map_move"><code>zxv_map_move</code></a>.</p>
+<h3 id="zxv_map_find"><code>zxv_map_find</code><a class="ancla" href="#zxv_map_find" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_map_find(const zxv_mapsolid *ms, zxv_fix x, zxv_fix y, int w, int h, int kind, int *cx, int *cy);
+</code></pre>
+<p>Busca una celda del tipo <code>kind</code> entre las que toca el rectángulo: para las
+escaleras, el agua, los pinchos o las monedas. Las mira de arriba abajo y,
+en cada fila, de izquierda a derecha, y se queda con la primera.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ms</code></td>
+<td>un <code>zxv_mapsolid</code></td>
+<td>El mapa.</td>
+</tr>
+<tr>
+<td><code>x</code>, <code>y</code></td>
+<td>16.16</td>
+<td>La esquina de arriba a la izquierda.</td>
+</tr>
+<tr>
+<td><code>w</code>, <code>h</code></td>
+<td>píxeles; menos de 1 es 1</td>
+<td>El tamaño.</td>
+</tr>
+<tr>
+<td><code>kind</code></td>
+<td>de 0 a 255</td>
+<td>El tipo que se busca (también los de la biblioteca: <code>ZXV_TILE_SOLID</code>...).</td>
+</tr>
+<tr>
+<td><code>cx</code>, <code>cy</code></td>
+<td>punteros, o <code>NULL</code></td>
+<td>Donde se deja la celda encontrada (columna y fila). El que sea <code>NULL</code> no se rellena.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> 1 si la encuentra, con su celda en <code>*cx</code>, <code>*cy</code>; 0 si no
+(o con un mapa no válido), y entonces no cambian. En un mapa que se repite,
+la celda está siempre dentro del mapa (de 0 a ancho − 1). En uno que no se
+repite, si <code>kind</code> es el tipo <code>outside</code>, la celda puede estar fuera
+(negativa, o más allá del borde).</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_mapmove.h&quot;
+
+enum { SPIKES = 5 };
+
+int touching_spikes(const zxv_mapsolid *ms, zxv_fix x, zxv_fix y)
+{
+    return zxv_map_find(ms, x, y, 12, 16, SPIKES, 0, 0);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_map_kind"><code>zxv_map_kind</code></a>.</p>
+<h3 id="zxv_map_kind"><code>zxv_map_kind</code><a class="ancla" href="#zxv_map_kind" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_map_kind(const zxv_mapsolid *ms, int px, int py);
+</code></pre>
+<p>El tipo de la celda que hay en un píxel del mapa.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ms</code></td>
+<td>un <code>zxv_mapsolid</code></td>
+<td>El mapa.</td>
+</tr>
+<tr>
+<td><code>px</code>, <code>py</code></td>
+<td>píxeles <strong>enteros</strong> (no 16.16)</td>
+<td>El punto. Puede estar fuera del mapa.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el tipo, de 0 a 255. Fuera de un mapa que no se repite, el
+tipo <code>outside</code>; en uno que se repite, el de la celda que toca. Con un mapa
+no válido, <code>ZXV_TILE_EMPTY</code>.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_mapmove.h&quot;
+
+enum { WATER = 6 };
+
+/* ¿Tiene la cabeza bajo el agua? (x, y en 16.16; 12 de ancho) */
+int underwater(const zxv_mapsolid *ms, zxv_fix x, zxv_fix y)
+{
+    return zxv_map_kind(ms, ZXV_FIX_INT(x) + 6, ZXV_FIX_INT(y)) == WATER;
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_map_find"><code>zxv_map_find</code></a>.</p>
+<h2 id="fundidos-de-paleta-zxv_fadeh">Fundidos de paleta: <code>zxv_fade.h</code><a class="ancla" href="#fundidos-de-paleta-zxv_fadeh" aria-hidden="true">#</a></h2>
+<p>Llevan los colores de <a href="graphics.html#el-remapeo-de-colores">las paletas</a> a
+otros en unos frames: a negro al acabar una fase, de negro a sus colores al
+empezar la siguiente, un destello blanco al recibir un golpe. Los píxeles
+no se tocan: solo cambia cómo se ven, así que no cuesta nada dibujar.
+Cambia los colores de las 4 tablas de paleta (16 colores RGB565 cada una,
+ver <a href="reference.html#la-paleta">La paleta</a>); las tablas de remapeo no.</p>
+<pre><code class="language-make">SOURCES := juego.c $(SDK)/lib/fade.c
+</code></pre>
+<pre><code class="language-c">#include &quot;zxv.h&quot;                                /* ZXV_RGB */
+#include &quot;zxv_api.h&quot;
+#include &quot;zxv_fade.h&quot;
+
+void load_level(int n);                         /* del juego */
+void game_frame(void);
+
+void next_level(int n)
+{
+    zxv_fade_to_colour(ZXV_RGB(0, 0, 0), 30, ZXV_FADE_ALL);  /* a negro en medio segundo */
+    zxv_fade_wait();
+    load_level(n);
+    zxv_fade_to(NULL, 30, ZXV_FADE_ALL);                     /* a los colores de siempre */
+    while (zxv_fade_busy()) {
+        zxv_fade_step();                                     /* un paso por frame... */
+        game_frame();                                        /* ...mientras el juego sigue */
+        zxv_wait_vblank();
+    }
+}
+</code></pre>
+<ul>
+<li><strong>Un fundido a la vez:</strong> empezar otro sustituye al que hubiera, y sale de
+  los colores por donde iba. Uno y el de vuelta pasan por los mismos
+  colores.</li>
+<li>La máquina tiene un solo <a href="index.html#el-gancho-de-frame">gancho de frame</a> y
+  la música suele usarlo, así que la biblioteca no lo toma: llama a
+  <code>zxv_fade_step()</code> una vez por frame, en tu bucle o en tu gancho.</li>
+<li><code>zxv_fade.h</code> no incluye <code>zxv.h</code>: para <code>ZXV_RGB</code> (un color de r, g, b de
+  0 a 255), inclúyelo tú.</li>
+</ul>
+<h3 id="zxv_fade_all"><code>ZXV_FADE_ALL</code><a class="ancla" href="#zxv_fade_all" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">#define ZXV_FADE_ALL  0x0Fu
+</code></pre>
+<p>Las cuatro tablas de paleta. El argumento <code>tables</code> de los fundidos es una
+máscara: el bit <code>t</code> es la tabla <code>t</code> (de 0 a 3). Con solo algunas, se funde
+el juego y no el marcador, por ejemplo (si el marcador usa otra tabla, ver
+<a href="graphics.html#la-tabla-por-línea">La tabla por línea</a>).</p>
+<table>
+<thead>
+<tr>
+<th>Valor</th>
+<th>Tablas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0x01</code></td>
+<td>Solo la 0.</td>
+</tr>
+<tr>
+<td><code>0x0E</code></td>
+<td>La 1, la 2 y la 3.</td>
+</tr>
+<tr>
+<td><code>ZXV_FADE_ALL</code> (0x0F)</td>
+<td>Todas.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ver también:</strong> <a href="#zxv_fade_to"><code>zxv_fade_to</code></a>.</p>
+<h3 id="zxv_fade_to"><code>zxv_fade_to</code><a class="ancla" href="#zxv_fade_to" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_fade_to(const uint16_t to[16], int frames, unsigned tables);
+</code></pre>
+<p>Empieza a llevar las tablas de <code>tables</code> a los colores <code>to</code>, desde los que
+tienen ahora, en <code>frames</code> pasos de <a href="#zxv_fade_step"><code>zxv_fade_step</code></a>. Las
+tablas elegidas acaban todas con los mismos 16 colores. Hasta el primer
+paso no cambia nada (salvo con <code>frames</code> 0).</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>to</code></td>
+<td>16 colores RGB565, o <code>NULL</code></td>
+<td>Adónde se va. Se copian: puede ser una variable local. <code>NULL</code>: los 16 colores de siempre (<code>ZXV_STD_RGB565</code>), no los de un <code>.gfx</code> que hayas cargado; para esos, pásale su paleta.</td>
+</tr>
+<tr>
+<td><code>frames</code></td>
+<td>1 o más; 0 o menos, ya</td>
+<td>Cuántos pasos dura. Con 0 o menos, pone los colores enseguida y no queda fundido.</td>
+</tr>
+<tr>
+<td><code>tables</code></td>
+<td>máscara de 4 bits (<a href="#zxv_fade_all"><code>ZXV_FADE_ALL</code></a>)</td>
+<td>Qué tablas cambia. Los bits de más arriba no cuentan; con 0 no cambia nada, pero el fundido «dura» igual <code>frames</code> pasos.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+#include &quot;zxv_fade.h&quot;
+
+/* De negro a la paleta del nivel (16 colores, por ejemplo los de su .gfx). */
+void fade_in(const uint16_t level_pal[16])
+{
+    zxv_fade_to(level_pal, 25, ZXV_FADE_ALL);
+    zxv_fade_wait();
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_fade_to_colour"><code>zxv_fade_to_colour</code></a>,
+<a href="#zxv_fade_step"><code>zxv_fade_step</code></a>, <a href="#zxv_rgb_mix"><code>zxv_rgb_mix</code></a>.</p>
+<h3 id="zxv_fade_to_colour"><code>zxv_fade_to_colour</code><a class="ancla" href="#zxv_fade_to_colour" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_fade_to_colour(uint16_t rgb, int frames, unsigned tables);
+</code></pre>
+<p>Como <a href="#zxv_fade_to"><code>zxv_fade_to</code></a>, con los 16 colores iguales: a negro, a
+blanco, a rojo...</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>rgb</code></td>
+<td>un color RGB565</td>
+<td>Adónde van todos: <code>ZXV_RGB(0, 0, 0)</code> (o 0), negro; <code>ZXV_RGB(255, 255, 255)</code>, blanco.</td>
+</tr>
+<tr>
+<td><code>frames</code></td>
+<td>1 o más; 0 o menos, ya</td>
+<td>Cuántos pasos dura.</td>
+</tr>
+<tr>
+<td><code>tables</code></td>
+<td>máscara de 4 bits</td>
+<td>Qué tablas cambia.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv.h&quot;
+#include &quot;zxv_fade.h&quot;
+
+/* Un destello blanco al recibir un golpe: de blanco a lo de siempre en 8 frames. */
+void flash(void)
+{
+    zxv_fade_to_colour(ZXV_RGB(255, 255, 255), 0, ZXV_FADE_ALL);   /* blanco, ya */
+    zxv_fade_to(0, 8, ZXV_FADE_ALL);                              /* y de vuelta (0: NULL) */
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_fade_to"><code>zxv_fade_to</code></a>.</p>
+<h3 id="zxv_fade_step"><code>zxv_fade_step</code><a class="ancla" href="#zxv_fade_step" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_fade_step(void);
+</code></pre>
+<p>Da un paso del fundido: pone en las tablas los colores del paso siguiente.
+El último paso deja exactamente los colores de destino. Si no hay fundido,
+no hace nada.</p>
+<p>Llámala una vez por frame: en tu bucle o en tu
+<a href="index.html#el-gancho-de-frame">gancho de frame</a> (no espera nada, así que
+puede ir ahí).</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_fade.h&quot;
+
+void music_tick(void);                          /* del juego */
+
+/* El gancho de frame del juego: la música y el fundido. */
+void frame_hook(void)
+{
+    music_tick();
+    zxv_fade_step();
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_fade_busy"><code>zxv_fade_busy</code></a>, <a href="#zxv_fade_wait"><code>zxv_fade_wait</code></a>.</p>
+<h3 id="zxv_fade_busy"><code>zxv_fade_busy</code><a class="ancla" href="#zxv_fade_busy" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_fade_busy(void);
+</code></pre>
+<p><strong>Devuelve:</strong> 1 mientras quedan pasos del fundido; 0 cuando ha acabado o
+no hay ninguno.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_fade.h&quot;
+
+/* No se puede pausar mientras se funde. */
+int can_pause(void) { return !zxv_fade_busy(); }
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_fade_step"><code>zxv_fade_step</code></a>.</p>
+<h3 id="zxv_fade_wait"><code>zxv_fade_wait</code><a class="ancla" href="#zxv_fade_wait" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_fade_wait(void);
+</code></pre>
+<p>Espera a que acabe el fundido: en cada VBLANK
+(<a href="reference.html#zxv_wait_vblank"><code>zxv_wait_vblank</code></a>) da un paso. Sin
+fundido, vuelve enseguida. Mientras, el juego está parado (el gancho de
+frame, con la música, sigue). <strong>No la llames desde un gancho de frame:</strong>
+espera al VBLANK.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_fade.h&quot;
+
+void fade_out(void)
+{
+    zxv_fade_to_colour(0, 30, ZXV_FADE_ALL);    /* 0 es el negro */
+    zxv_fade_wait();
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_fade_step"><code>zxv_fade_step</code></a>.</p>
+<h3 id="zxv_rgb_mix"><code>zxv_rgb_mix</code><a class="ancla" href="#zxv_rgb_mix" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">uint16_t zxv_rgb_mix(uint16_t a, uint16_t b, int k, int n);
+</code></pre>
+<p>Un color a medio camino entre <code>a</code> y <code>b</code>: el que usan los fundidos, para tus
+propios efectos. Cada componente (rojo, verde y azul, por separado) es
+a + (b − a) · k / n, al más cercano, con los medios hacia arriba.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>a</code>, <code>b</code></td>
+<td>colores RGB565</td>
+<td>Los dos extremos.</td>
+</tr>
+<tr>
+<td><code>k</code></td>
+<td>de 0 a <code>n</code></td>
+<td>El paso.</td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>1 o más</td>
+<td>Los pasos de <code>a</code> a <code>b</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el color RGB565. Con <code>k</code> 0 o menos, <code>a</code>; con <code>k</code> igual o
+mayor que <code>n</code>, o con <code>n</code> 0 o negativo, <code>b</code>.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv.h&quot;
+#include &quot;zxv_fade.h&quot;
+
+/* El color de una barra de vida: de verde (llena) a rojo (vacía). */
+uint16_t life_colour(int life, int max)
+{
+    return zxv_rgb_mix(ZXV_RGB(215, 0, 0), ZXV_RGB(0, 215, 0), life, max);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_fade_to"><code>zxv_fade_to</code></a>.</p>
+<h2 id="teclado-y-mandos-a-la-vez-zxv_inputh">Teclado y mandos a la vez: <code>zxv_input.h</code><a class="ancla" href="#teclado-y-mandos-a-la-vez-zxv_inputh" aria-hidden="true">#</a></h2>
+<p>El juego piensa en <strong>acciones</strong> (izquierda, fuego, pausa: hasta 16, un bit
+cada una) y un <strong>mapa</strong> dice qué teclas (hasta 3) y qué botones del mando
+hacen cada una. Una vez por frame, <code>zxv_input_update</code> mira el teclado y el
+mando y dice qué acciones están pulsadas, cuáles se acaban de pulsar o de
+soltar y cuánto llevan. Con dos mapas, dos jugadores.</p>
+<pre><code class="language-make">SOURCES := juego.c $(SDK)/lib/input.c
+</code></pre>
+<p>Lee directamente el mapa de <a href="index.html#las-teclas-mantenidas">teclas mantenidas</a>
+(por su código HID) y los <a href="index.html#los-mandos">mandos</a>, sin llamar a la
+ROM.</p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+#include &quot;zxv_input.h&quot;
+
+void game(void)
+{
+    zxv_input in;
+    int x = 128;
+    zxv_input_init(&amp;in, NULL);                  /* el mapa de siempre */
+    for (;;) {
+        zxv_wait_vblank();
+        zxv_input_update(&amp;in);                  /* una vez por frame */
+        if (in.held &amp; ZXV_IN_LEFT)
+            x--;
+        if (in.held &amp; ZXV_IN_RIGHT)
+            x++;
+        if (in.pressed &amp; ZXV_IN_ESC)
+            break;
+        zxv_plot(x, 100, 7);
+    }
+}
+</code></pre>
+<p><strong>Redefinir las teclas:</strong> <a href="#zxv_input_new_key"><code>zxv_input_new_key</code></a> da la
+tecla que se acaba de pulsar y <a href="#zxv_input_key_name"><code>zxv_input_key_name</code></a>
+su nombre. El mapa son datos: se copia, se cambia y se guarda con
+<a href="#zxv_save"><code>zxv_save</code></a>.</p>
+<h3 id="zxv_in_actions-zxv_in_keys"><code>ZXV_IN_ACTIONS</code>, <code>ZXV_IN_KEYS</code><a class="ancla" href="#zxv_in_actions-zxv_in_keys" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">#define ZXV_IN_ACTIONS  16
+#define ZXV_IN_KEYS     3
+</code></pre>
+<p><code>ZXV_IN_ACTIONS</code>: cuántas acciones hay (16; la acción <code>a</code> es el bit
+<code>1 &lt;&lt; a</code>). <code>ZXV_IN_KEYS</code>: cuántas teclas puede tener cada una en un mapa
+(3).</p>
+<p><strong>Ver también:</strong> <a href="#zxv_input_map"><code>zxv_input_map</code></a>.</p>
+<h3 id="zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc"><code>ZXV_IN_RIGHT</code>, <code>ZXV_IN_LEFT</code>, <code>ZXV_IN_DOWN</code>, <code>ZXV_IN_UP</code>, <code>ZXV_IN_FIRE</code>, <code>ZXV_IN_FIRE2</code>, <code>ZXV_IN_FIRE3</code>, <code>ZXV_IN_START</code>, <code>ZXV_IN_SELECT</code>, <code>ZXV_IN_ESC</code><a class="ancla" href="#zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc" aria-hidden="true">#</a></h3>
+<p>Las acciones del <a href="#zxv_input_default">mapa de siempre</a>. Son los mismos bits
+que los botones del mando (<code>ZXV_JOY_...</code>), más Esc. Los bits que no usa
+(de 0x0400 a 0x8000) son para el juego, con un mapa suyo; y un juego puede
+dar a estos el sentido que quiera.</p>
+<table>
+<thead>
+<tr>
+<th>Acción</th>
+<th>Valor</th>
+<th>Teclas</th>
+<th>Botón del mando</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_IN_RIGHT</code></td>
+<td>0x0001</td>
+<td>Cursor derecha, P</td>
+<td><code>ZXV_JOY_RIGHT</code></td>
+</tr>
+<tr>
+<td><code>ZXV_IN_LEFT</code></td>
+<td>0x0002</td>
+<td>Cursor izquierda, O</td>
+<td><code>ZXV_JOY_LEFT</code></td>
+</tr>
+<tr>
+<td><code>ZXV_IN_DOWN</code></td>
+<td>0x0004</td>
+<td>Cursor abajo, A</td>
+<td><code>ZXV_JOY_DOWN</code></td>
+</tr>
+<tr>
+<td><code>ZXV_IN_UP</code></td>
+<td>0x0008</td>
+<td>Cursor arriba, Q</td>
+<td><code>ZXV_JOY_UP</code></td>
+</tr>
+<tr>
+<td><code>ZXV_IN_FIRE</code></td>
+<td>0x0010</td>
+<td>Espacio, M</td>
+<td><code>ZXV_JOY_FIRE1</code></td>
+</tr>
+<tr>
+<td><code>ZXV_IN_FIRE2</code></td>
+<td>0x0020</td>
+<td>N, Z</td>
+<td><code>ZXV_JOY_FIRE2</code></td>
+</tr>
+<tr>
+<td><code>ZXV_IN_FIRE3</code></td>
+<td>0x0040</td>
+<td>B, X</td>
+<td><code>ZXV_JOY_FIRE3</code></td>
+</tr>
+<tr>
+<td><code>ZXV_IN_START</code></td>
+<td>0x0080</td>
+<td>Intro</td>
+<td><code>ZXV_JOY_START</code></td>
+</tr>
+<tr>
+<td><code>ZXV_IN_SELECT</code></td>
+<td>0x0100</td>
+<td>Tab</td>
+<td><code>ZXV_JOY_SELECT</code></td>
+</tr>
+<tr>
+<td><code>ZXV_IN_ESC</code></td>
+<td>0x0200</td>
+<td>Esc</td>
+<td>ninguno</td>
+</tr>
+</tbody>
+</table>
+<p>Las letras son las de su sitio en un teclado de EE. UU. (en uno español
+son las mismas).</p>
+<p><strong>Ver también:</strong> <a href="#zxv_input_default"><code>zxv_input_default</code></a>.</p>
+<h3 id="zxv_in_keep_queue"><code>ZXV_IN_KEEP_QUEUE</code><a class="ancla" href="#zxv_in_keep_queue" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">#define ZXV_IN_KEEP_QUEUE  0x01u
+</code></pre>
+<p>Una opción del mapa (campo <code>flags</code>). Sin ella,
+<a href="#zxv_input_update"><code>zxv_input_update</code></a> vacía cada frame la cola de teclas
+de <a href="reference.html#zxv_key_get"><code>zxv_key_get</code></a>, para que lo tecleado durante
+la partida no le llegue al BASIC al volver. Con ella, la cola se queda: para
+un juego que también lee teclas con <code>zxv_key_get</code> (escribir un nombre, por
+ejemplo).</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_input.h&quot;
+
+static zxv_input_map typing_map;
+
+/* El mapa de siempre, sin vaciar la cola de teclas. */
+void make_typing_map(void)
+{
+    typing_map = zxv_input_default;
+    typing_map.flags |= ZXV_IN_KEEP_QUEUE;
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_input_map"><code>zxv_input_map</code></a>.</p>
+<h3 id="zxv_input_map"><code>zxv_input_map</code><a class="ancla" href="#zxv_input_map" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {
+    uint8_t keys[ZXV_IN_ACTIONS][ZXV_IN_KEYS];
+    uint16_t joy[ZXV_IN_ACTIONS];
+    int8_t pad;
+    uint8_t flags;
+} zxv_input_map;
+</code></pre>
+<p>Qué teclas y qué botones hacen cada acción. Son datos (82 bytes): se
+pueden copiar, cambiar y guardar.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>keys[a][k]</code></td>
+<td>códigos HID de 1 a 255; 0, ninguna</td>
+<td>Las teclas (hasta 3) de la acción <code>a</code>. Cualquiera de ellas la hace.</td>
+</tr>
+<tr>
+<td><code>joy[a]</code></td>
+<td>bits <code>ZXV_JOY_...</code>; 0, ninguno</td>
+<td>Los botones del mando que hacen la acción <code>a</code> (cualquiera de ellos).</td>
+</tr>
+<tr>
+<td><code>pad</code></td>
+<td>0 o 1; otro (−1), ninguno</td>
+<td>El mando que se mira. Si no está conectado, solo cuentan las teclas.</td>
+</tr>
+<tr>
+<td><code>flags</code></td>
+<td>0 o <code>ZXV_IN_KEEP_QUEUE</code></td>
+<td>Opciones.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv.h&quot;                                /* ZXV_JOY_... */
+#include &quot;zxv_input.h&quot;
+
+/* El segundo jugador: W A S D, fuego con Mayús izquierda, y el mando 1. */
+const zxv_input_map player2 = {
+    .keys = {
+        [0] = { 0x07 },                         /* ZXV_IN_RIGHT: D */
+        [1] = { 0x04 },                         /* LEFT: A */
+        [2] = { 0x16 },                         /* DOWN: S */
+        [3] = { 0x1A },                         /* UP: W */
+        [4] = { 0xE1 },                         /* FIRE: Mayús izquierda */
+    },
+    .joy = { ZXV_JOY_RIGHT, ZXV_JOY_LEFT, ZXV_JOY_DOWN, ZXV_JOY_UP, ZXV_JOY_FIRE1 },
+    .pad = 1,
+};
+</code></pre>
+<p><code>zxv_input.h</code> no incluye <code>zxv.h</code>: para los <code>ZXV_JOY_...</code>, inclúyelo tú.</p>
+<p><strong>Ver también:</strong> <a href="#zxv_input_default"><code>zxv_input_default</code></a>,
+<a href="#zxv_input_init"><code>zxv_input_init</code></a>.</p>
+<h3 id="zxv_input_default"><code>zxv_input_default</code><a class="ancla" href="#zxv_input_default" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">extern const zxv_input_map zxv_input_default;
+</code></pre>
+<p>El mapa de siempre: cursores o Q A O P, fuego con Espacio o M, fuego 2 con
+N o Z, fuego 3 con B o X, Intro para START, Tab para SELECT, Esc, y el
+mando 0. La tabla de <a href="#zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc">las acciones</a>
+dice qué hace cada una. Es el que se usa con <code>zxv_input_init(&amp;in, NULL)</code>.</p>
+<p>Es <code>const</code>: para cambiarlo, cópialo.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_input.h&quot;
+
+static zxv_input_map my_map;
+static zxv_input in;
+
+/* Como el de siempre, pero con fuego también en Ctrl izquierdo. */
+void setup_input(void)
+{
+    my_map = zxv_input_default;
+    my_map.keys[4][2] = 0xE0;                   /* FIRE es la acción 4; su tercera tecla */
+    zxv_input_init(&amp;in, &amp;my_map);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_input_map"><code>zxv_input_map</code></a>.</p>
+<h3 id="zxv_input"><code>zxv_input</code><a class="ancla" href="#zxv_input" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {
+    const zxv_input_map *map;
+    uint16_t held;
+    uint16_t pressed;
+    uint16_t released;
+    uint16_t frames[ZXV_IN_ACTIONS];
+} zxv_input;
+</code></pre>
+<p>El estado de un jugador. Lo pone a punto <a href="#zxv_input_init"><code>zxv_input_init</code></a>
+y lo actualiza <a href="#zxv_input_update"><code>zxv_input_update</code></a>; el juego solo lo
+lee.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>map</code></td>
+<td>un <code>zxv_input_map</code></td>
+<td>El mapa que usa.</td>
+</tr>
+<tr>
+<td><code>held</code></td>
+<td>bits de acciones</td>
+<td>Las que están pulsadas ahora.</td>
+</tr>
+<tr>
+<td><code>pressed</code></td>
+<td>bits de acciones</td>
+<td>Las que se han pulsado en este frame (no lo estaban en el anterior).</td>
+</tr>
+<tr>
+<td><code>released</code></td>
+<td>bits de acciones</td>
+<td>Las que se han soltado en este frame.</td>
+</tr>
+<tr>
+<td><code>frames[a]</code></td>
+<td>de 0 a 65535</td>
+<td>Cuántos frames lleva pulsada la acción <code>a</code> (la del bit <code>1 &lt;&lt; a</code>): 1 en el frame en que se pulsa, 0 si no lo está. No pasa de 65535.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ver también:</strong> <a href="#zxv_input_update"><code>zxv_input_update</code></a>,
+<a href="#zxv_input_repeat"><code>zxv_input_repeat</code></a>.</p>
+<h3 id="zxv_input_init"><code>zxv_input_init</code><a class="ancla" href="#zxv_input_init" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_input_init(zxv_input *in, const zxv_input_map *map);
+</code></pre>
+<p>Prepara el estado de un jugador con un mapa, sin nada pulsado. Se puede
+volver a llamar para cambiar de mapa (también se olvida lo pulsado).</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>in</code></td>
+<td>puntero a un <code>zxv_input</code></td>
+<td>El estado.</td>
+</tr>
+<tr>
+<td><code>map</code></td>
+<td>un mapa, o <code>NULL</code></td>
+<td>El mapa. <code>NULL</code>: <a href="#zxv_input_default"><code>zxv_input_default</code></a>. <strong>No se copia:</strong> tiene que seguir existiendo mientras se use (global o <code>static</code>, no una variable local que se acaba).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_input.h&quot;
+
+extern const zxv_input_map player2;             /* el del ejemplo de zxv_input_map */
+static zxv_input p1, p2;
+
+void setup_players(void)
+{
+    zxv_input_init(&amp;p1, 0);                     /* 0 (NULL): el mapa de siempre */
+    zxv_input_init(&amp;p2, &amp;player2);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_input_update"><code>zxv_input_update</code></a>.</p>
+<h3 id="zxv_input_update"><code>zxv_input_update</code><a class="ancla" href="#zxv_input_update" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_input_update(zxv_input *in);
+</code></pre>
+<p>Lee el teclado y el mando y actualiza <code>held</code>, <code>pressed</code>, <code>released</code> y
+<code>frames</code>. Una acción está pulsada si lo está cualquiera de sus teclas o,
+con el mando conectado, cualquiera de sus botones.</p>
+<p>Llámala <strong>una vez por frame</strong> y por jugador (antes de mirar el estado):
+<code>pressed</code> y <code>released</code> comparan con la llamada anterior, así que con dos
+llamadas en un frame la segunda no vería nada recién pulsado.</p>
+<p>Después, salvo con <a href="#zxv_in_keep_queue"><code>ZXV_IN_KEEP_QUEUE</code></a> en el mapa,
+<strong>vacía la cola de teclas</strong>: <code>zxv_key_get</code> no dará nada de lo tecleado
+mientras tanto. Con dos jugadores, basta con que uno de los mapas no lleve
+la opción para que se vacíe.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>in</code></td>
+<td>un <code>zxv_input</code> preparado con <code>zxv_input_init</code></td>
+<td>El estado.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+#include &quot;zxv_input.h&quot;
+
+static zxv_input p1, p2;
+
+void read_players(void)
+{
+    zxv_wait_vblank();
+    zxv_input_update(&amp;p1);
+    zxv_input_update(&amp;p2);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_input"><code>zxv_input</code></a>, <a href="#zxv_input_repeat"><code>zxv_input_repeat</code></a>.</p>
+<h3 id="zxv_input_repeat"><code>zxv_input_repeat</code><a class="ancla" href="#zxv_input_repeat" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_input_repeat(const zxv_input *in, uint16_t actions, int delay, int rate);
+</code></pre>
+<p>Para moverse por un menú: da 1 al pulsar y, si se deja pulsado, otra vez
+cada <code>rate</code> frames después de <code>delay</code>. Con <code>delay</code> 10 y <code>rate</code> 3, en los
+frames 1, 13, 16, 19... de la pulsación. No guarda nada: mira <code>frames</code>, así
+que llámala justo después de <code>zxv_input_update</code>, una vez por frame.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>in</code></td>
+<td>un <code>zxv_input</code></td>
+<td>El estado.</td>
+</tr>
+<tr>
+<td><code>actions</code></td>
+<td>bits de acciones</td>
+<td>Las que se miran (basta una).</td>
+</tr>
+<tr>
+<td><code>delay</code></td>
+<td>frames, 0 o más</td>
+<td>Cuánto esperar antes de repetir.</td>
+</tr>
+<tr>
+<td><code>rate</code></td>
+<td>frames; menos de 1 es 1</td>
+<td>Cada cuánto se repite.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> 1 si alguna de <code>actions</code> se acaba de pulsar o le toca
+repetir en este frame; 0 si no.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_input.h&quot;
+
+/* La opción elegida de un menú de n, con abajo y arriba. */
+int menu_move(const zxv_input *in, int sel, int n)
+{
+    if (zxv_input_repeat(in, ZXV_IN_DOWN, 10, 3))
+        sel = (sel + 1) % n;
+    if (zxv_input_repeat(in, ZXV_IN_UP, 10, 3))
+        sel = (sel + n - 1) % n;
+    return sel;
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_input"><code>zxv_input</code></a>.</p>
+<h3 id="zxv_input_key_down"><code>zxv_input_key_down</code><a class="ancla" href="#zxv_input_key_down" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_input_key_down(int hid);
+</code></pre>
+<p>Dice si una tecla está pulsada ahora, por su código USB HID (ver
+<a href="index.html#las-teclas-mantenidas">Las teclas mantenidas</a>). No necesita
+ningún <code>zxv_input</code>: sirve para una tecla suelta que no es una acción
+(F1 para la ayuda, por ejemplo).</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hid</code></td>
+<td>de 0 a 255</td>
+<td>El código HID de la tecla (de 0xE0 a 0xE7, las de Ctrl, Mayús, Alt y Windows).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> 1 si está pulsada; 0 si no, o si <code>hid</code> está fuera de 0–255.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_input.h&quot;
+
+int help_key(void) { return zxv_input_key_down(0x3A); }      /* F1 */
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_input_new_key"><code>zxv_input_new_key</code></a>.</p>
+<h3 id="zxv_input_new_key"><code>zxv_input_new_key</code><a class="ancla" href="#zxv_input_new_key" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_input_new_key(void);
+</code></pre>
+<p>La tecla que se ha pulsado desde la llamada anterior: para redefinir las
+teclas. Llámala una vez por frame mientras esperas.</p>
+<p>La primera vez que se llama (en todo el programa) solo toma nota de lo que
+ya está pulsado y da −1. Una tecla que ya estaba pulsada no cuenta hasta
+que se suelta y se vuelve a pulsar. El estado es uno solo para todo el
+programa.</p>
+<p><strong>Devuelve:</strong> el código HID de la tecla recién pulsada (si son varias, la
+de código más bajo), o −1 si no hay ninguna.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+#include &quot;zxv_input.h&quot;
+
+/* Espera una tecla nueva y se la pone a la acción a del mapa. */
+void redefine(zxv_input_map *m, int a)
+{
+    int k;
+    zxv_input_new_key();                        /* olvida lo que ya estaba pulsado */
+    while ((k = zxv_input_new_key()) &lt; 0)
+        zxv_wait_vblank();
+    m-&gt;keys[a][0] = (uint8_t)k;
+    m-&gt;keys[a][1] = m-&gt;keys[a][2] = 0;
+    zxv_print_str(zxv_input_key_name(k));
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_input_key_name"><code>zxv_input_key_name</code></a>,
+<a href="#zxv_input_key_down"><code>zxv_input_key_down</code></a>.</p>
+<h3 id="zxv_input_key_name"><code>zxv_input_key_name</code><a class="ancla" href="#zxv_input_key_name" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">const char *zxv_input_key_name(int hid);
+</code></pre>
+<p>El nombre de una tecla para enseñarlo, en UTF-8 y en el idioma de la
+máquina (<a href="reference.html#zxv_lang_get-zxv_lang_set"><code>zxv_lang_get</code></a>): en
+castellano si es <code>ZXV_LANG_ES</code> y en inglés con cualquier otro.</p>
+<table>
+<thead>
+<tr>
+<th>Códigos</th>
+<th>Nombre</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x04–0x1D</td>
+<td>La letra, de «A» a «Z» (por su sitio en un teclado de EE. UU.)</td>
+</tr>
+<tr>
+<td>0x1E–0x27</td>
+<td>La cifra, de «1» a «9» y «0»</td>
+</tr>
+<tr>
+<td>0x3A–0x45</td>
+<td>De «F1» a «F12»</td>
+</tr>
+<tr>
+<td>0x59–0x62</td>
+<td>«Numérico 1»... «Numérico 0» («Keypad 1»...)</td>
+</tr>
+<tr>
+<td>0x28, 0x29, 0x2A, 0x2B, 0x2C</td>
+<td>«Intro», «Esc», «Retroceso», «Tab», «Espacio»</td>
+</tr>
+<tr>
+<td>0x39, 0x46, 0x47, 0x48</td>
+<td>«Bloq Mayús», «Impr Pant», «Bloq Despl», «Pausa»</td>
+</tr>
+<tr>
+<td>0x49–0x4E</td>
+<td>«Insertar», «Inicio», «Re Pág», «Supr», «Fin», «Av Pág»</td>
+</tr>
+<tr>
+<td>0x4F–0x52</td>
+<td>«Cursor derecha», «Cursor izquierda», «Cursor abajo», «Cursor arriba»</td>
+</tr>
+<tr>
+<td>0x58</td>
+<td>«Intro numérico»</td>
+</tr>
+<tr>
+<td>0xE0–0xE7</td>
+<td>«Ctrl izquierdo», «Mayús izquierda», «Alt», «Windows izquierda», «Ctrl derecho», «Mayús derecha», «Alt Gr», «Windows derecha»</td>
+</tr>
+<tr>
+<td>las demás</td>
+<td>«Tecla» y su código en hexadecimal: «Tecla 33» («Key 33»)</td>
+</tr>
+</tbody>
+</table>
+<p>Las teclas de símbolos (la Ñ, la coma, el guion...) salen por su código
+porque cambian de sitio según el teclado: la Ñ de un teclado español es
+«Tecla 33».</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hid</code></td>
+<td>de 0 a 255</td>
+<td>El código HID. Fuera de ese rango, cuentan sus 8 bits bajos (−1 sale como «Tecla FF»).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el nombre. Las letras, las cifras, las F, las del teclado
+numérico y las de «Tecla XX» van en un buffer que se sobrescribe en la
+siguiente llamada: si quieres dos nombres a la vez, copia el primero.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+#include &quot;zxv_input.h&quot;
+
+/* «Fuego: Espacio» */
+void show_fire_key(const zxv_input_map *m)
+{
+    zxv_print_str(&quot;Fuego: &quot;);
+    zxv_print_str(zxv_input_key_name(m-&gt;keys[4][0]));
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_input_new_key"><code>zxv_input_new_key</code></a>.</p>
+<h2 id="guardar-datos-zxv_saveh">Guardar datos: <code>zxv_save.h</code><a class="ancla" href="#guardar-datos-zxv_saveh" aria-hidden="true">#</a></h2>
+<p>Guarda una estructura de tu juego (los récords, las opciones, una partida)
+y la lee de vuelta, comprobando que es la tuya y que no está dañada.</p>
+<pre><code class="language-make">SOURCES := juego.c $(SDK)/lib/save.c
+</code></pre>
+<pre><code class="language-c">#include &quot;zxv_save.h&quot;
+
+static struct {
+    uint8_t music, level;
+    zxv_score top[5];
+} data;
+
+void load_data(void)
+{
+    if (zxv_load(&quot;juego.sav&quot;, 1, &amp;data, sizeof data) &lt; 0) {    /* no hay, o no vale */
+        data.music = 1;
+        data.level = 0;
+    }
+}
+
+void game_over(uint32_t score, const char *name)
+{
+    if (zxv_score_add(data.top, 5, score, name) &gt;= 0)          /* ha entrado en la tabla */
+        zxv_save(&quot;juego.sav&quot;, 1, &amp;data, sizeof data);
+}
+</code></pre>
+<ul>
+<li>El fichero lleva la <strong>versión</strong> de tus datos (el 1 de arriba): cuando
+  cambies la estructura, súbela, y los ficheros de antes darán
+  <code>ZXV_SAVE_E_VERSION</code> en vez de leerse mal. Si <code>zxv_load</code> falla, <strong>tus
+  datos no cambian</strong> (con más de 256 bytes, salvo un caso: ver
+  <a href="#zxv_load"><code>zxv_load</code></a>): rellénalos antes con los valores de siempre o
+  después de que falle.</li>
+<li><strong>Si se va la luz</strong>: se escribe en <code>juego.sav~</code> y luego se cambia por el
+  de verdad: si la máquina se apaga a medias, se queda el de antes. Si se
+  apaga justo entre borrar el viejo y renombrar, <code>zxv_load</code> lee el <code>~</code> y el
+  siguiente <code>zxv_save</code> lo pone en su sitio.</li>
+<li><strong>Sin tarjeta</strong>, en <code>ROM:</code> o sin servidor en <code>EXT:</code>, devuelve el error del
+  sistema y el juego sigue: solo que no se guarda. No hace falta avisar de
+  nada si no quieres.</li>
+<li><strong>Dónde se guarda.</strong> El nombre es una <a href="reference.html#ficheros-y-carpetas">ruta</a>:
+  sin unidad ni carpeta, el fichero va en la <strong>carpeta actual</strong> (la de <code>CD</code>
+  o <a href="reference.html#carpetas"><code>zxv_dir_change</code></a>), no en la del programa:
+  cargar un <code>.zxv</code> no cambia la carpeta actual. Si el juego se carga con
+  <code>LOAD "SD:/juegos/nave"</code> desde otra carpeta, guarda en esa otra carpeta;
+  y si la carpeta actual está en <code>ROM:</code>, no puede guardar (<code>ZXV_E_ACCESS</code>).
+  Para que vaya siempre al mismo sitio, pon la ruta entera
+  (<code>"SD:/juegos/nave.sav"</code>).</li>
+</ul>
+<p><strong>Errores comunes.</strong> <code>zxv_save</code> y <code>zxv_load</code> usan las funciones de
+<a href="reference.html#ficheros-y-carpetas">ficheros</a>, y además de los suyos pueden
+dar sus errores:</p>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_E_NOCARD</code></td>
+<td>La ruta va a <code>SD:</code> y no hay tarjeta.</td>
+</tr>
+<tr>
+<td><code>ZXV_E_OFFLINE</code></td>
+<td>La ruta va a <code>EXT:</code> y no hay servidor.</td>
+</tr>
+<tr>
+<td><code>ZXV_E_IO</code></td>
+<td>La tarjeta falló al leer o escribir.</td>
+</tr>
+<tr>
+<td><code>ZXV_E_NOTDIR</code>, <code>ZXV_E_ISDIR</code>, <code>ZXV_E_MFILE</code></td>
+<td>Como en <a href="reference.html#zxv_file_open"><code>zxv_file_open</code></a>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="zxv_save_e_damaged-zxv_save_e_version"><code>ZXV_SAVE_E_DAMAGED</code>, <code>ZXV_SAVE_E_VERSION</code><a class="ancla" href="#zxv_save_e_damaged-zxv_save_e_version" aria-hidden="true">#</a></h3>
+<p>Los errores propios de <a href="#zxv_load"><code>zxv_load</code></a> (los demás son los
+<code>ZXV_E_</code> de los ficheros, en <code>zxv.h</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Valor</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_SAVE_E_DAMAGED</code></td>
+<td>−64</td>
+<td>El fichero no es de <code>zxv_save</code> (no empieza por <code>ZXVS</code>), está cortado, le sobran bytes o su CRC no cuadra.</td>
+</tr>
+<tr>
+<td><code>ZXV_SAVE_E_VERSION</code></td>
+<td>−65</td>
+<td>Es de <code>zxv_save</code>, pero de otra versión o de otra longitud: se guardó con otra estructura.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ver también:</strong> <a href="#zxv_load"><code>zxv_load</code></a>.</p>
+<h3 id="zxv_save"><code>zxv_save</code><a class="ancla" href="#zxv_save" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_save(const char *name, uint16_t version, const void *data, uint32_t len);
+</code></pre>
+<p>Guarda <code>len</code> bytes de <code>data</code> en el fichero <code>name</code>, con una cabecera (la
+versión, la longitud y un CRC) para que <a href="#zxv_load"><code>zxv_load</code></a> los
+compruebe. Lo hace sin perder el de antes si se va la luz:</p>
+<ol>
+<li>Si solo queda <code>name~</code> (de una vez que se apagó entre los pasos 3 y 4),
+   lo renombra a <code>name</code>.</li>
+<li>Escribe todo en <code>name~</code>.</li>
+<li>Borra <code>name</code>.</li>
+<li>Renombra <code>name~</code> a <code>name</code>.</li>
+</ol>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>ruta de hasta 254 caracteres; el nombre del fichero, hasta 62</td>
+<td>Dónde se guarda (se usa también <code>name~</code>, por eso uno menos de lo normal). Ver <a href="#guardar-datos-zxv_saveh">Dónde se guarda</a>.</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>de 0 a 65535</td>
+<td>La versión de tus datos.</td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td>puntero a los datos</td>
+<td>Lo que se guarda. Puede ser <code>NULL</code> con <code>len</code> 0.</td>
+</tr>
+<tr>
+<td><code>len</code></td>
+<td>bytes</td>
+<td>Cuánto se guarda.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> <code>ZXV_OK</code> (0), o un error (negativo).</p>
+<p><strong>Errores</strong></p>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_E_NAME</code></td>
+<td><code>name</code> es <code>NULL</code> o está vacío, acaba en <code>/</code> o en <code>:</code>, la ruta pasa de 254 caracteres o el nombre de 62; o <code>data</code> es <code>NULL</code> con <code>len</code> mayor que 0. No se toca nada.</td>
+</tr>
+<tr>
+<td><code>ZXV_E_ACCESS</code></td>
+<td>La ruta va a <code>ROM:</code>; <code>name</code> está abierto; en <code>EXT:</code>, el servidor no deja sustituir el fichero.</td>
+</tr>
+<tr>
+<td><code>ZXV_E_NOENT</code></td>
+<td>No existe una carpeta de la ruta.</td>
+</tr>
+<tr>
+<td><code>ZXV_E_NOSPC</code></td>
+<td>No cabe en la tarjeta. Se borra <code>name~</code> y <code>name</code> sigue como estaba.</td>
+</tr>
+<tr>
+<td><code>ZXV_E_FAULT</code></td>
+<td><code>data</code> no está entero en la memoria del programa ni en la ROM. Se borra <code>name~</code>.</td>
+</tr>
+<tr>
+<td>(comunes)</td>
+<td>Ver <a href="#guardar-datos-zxv_saveh">Errores comunes</a>.</td>
+</tr>
+</tbody>
+</table>
+<p>Si falla al escribir <code>name~</code>, se borra y <code>name</code> sigue como estaba. Si falla
+al renombrar (paso 4), <code>name~</code> se queda con los datos nuevos y
+<a href="#zxv_load"><code>zxv_load</code></a> los encuentra.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_save.h&quot;
+
+static struct { uint8_t music, sfx, lang; } options;
+
+int save_options(void)
+{
+    return zxv_save(&quot;SD:/opciones.cfg&quot;, 2, &amp;options, sizeof options);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_load"><code>zxv_load</code></a>, <a href="#el-fichero-de-zxv_save">El fichero</a>.</p>
+<h3 id="zxv_load"><code>zxv_load</code><a class="ancla" href="#zxv_load" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_load(const char *name, uint16_t version, void *data, uint32_t len);
+</code></pre>
+<p>Lee en <code>data</code> lo que guardó <a href="#zxv_save"><code>zxv_save</code></a> con la misma versión y
+la misma longitud. Antes de tocar <code>data</code> lo lee entero y comprueba el CRC:
+<strong>si falla, <code>data</code> no cambia</strong>. Con hasta 256 bytes lo lee en la pila y lo
+copia; con más no hay sitio para una copia, así que lo lee otra vez en
+<code>data</code> y comprueba el CRC otra vez (si esa lectura falla, lo intenta de
+nuevo). Solo si la tarjeta falla justo entre las dos lecturas (se saca en
+ese momento), devuelve el error con <code>data</code> a medias: con cualquier error,
+pon los valores de siempre, como en el ejemplo.</p>
+<p>Si <code>name</code> no está o no vale (por cualquier error salvo <code>ZXV_E_NOCARD</code> y
+<code>ZXV_E_OFFLINE</code>), prueba con <code>name~</code>, por si la máquina se apagó a medio
+guardar.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>ruta, como en <code>zxv_save</code></td>
+<td>El fichero.</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>de 0 a 65535</td>
+<td>La versión que se espera.</td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td>puntero</td>
+<td>Donde se leen los datos. Puede ser <code>NULL</code> con <code>len</code> 0.</td>
+</tr>
+<tr>
+<td><code>len</code></td>
+<td>bytes</td>
+<td>Cuánto se espera: tiene que ser lo mismo que se guardó.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> <code>ZXV_OK</code> (0) si ha leído los datos (de <code>name</code> o de <code>name~</code>),
+o un error (negativo). Si los dos fallan, el error es el de <code>name</code>.</p>
+<p><strong>Errores</strong></p>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_E_NOENT</code></td>
+<td>No hay fichero (la primera vez que se juega), o no existe una carpeta de la ruta.</td>
+</tr>
+<tr>
+<td><code>ZXV_SAVE_E_DAMAGED</code></td>
+<td>El fichero no es de <code>zxv_save</code>, está dañado o cortado.</td>
+</tr>
+<tr>
+<td><code>ZXV_SAVE_E_VERSION</code></td>
+<td>Es de otra versión o de otra longitud.</td>
+</tr>
+<tr>
+<td><code>ZXV_E_NAME</code></td>
+<td>Como en <code>zxv_save</code>.</td>
+</tr>
+<tr>
+<td>(comunes)</td>
+<td>Ver <a href="#guardar-datos-zxv_saveh">Errores comunes</a>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_save.h&quot;
+
+static struct { uint8_t music, sfx, lang; } options;
+
+void load_options(void)
+{
+    if (zxv_load(&quot;SD:/opciones.cfg&quot;, 2, &amp;options, sizeof options) &lt; 0) {
+        options.music = 1;                      /* los de siempre */
+        options.sfx = 1;
+        options.lang = 0;
+    }
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_save"><code>zxv_save</code></a>,
+<a href="#zxv_save_e_damaged-zxv_save_e_version"><code>ZXV_SAVE_E_DAMAGED</code>, <code>ZXV_SAVE_E_VERSION</code></a>.</p>
+<h3 id="zxv_crc32"><code>zxv_crc32</code><a class="ancla" href="#zxv_crc32" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">uint32_t zxv_crc32(const void *data, uint32_t n);
+</code></pre>
+<p>El CRC-32 de <code>n</code> bytes: el de zip, PNG y gzip (polinomio 0xEDB88320,
+empezando en 0xFFFFFFFF y con la vuelta al final). Es el que llevan los
+ficheros de <code>zxv_save</code>; sirve también para comprobar tus propios datos.
+Va bit a bit, sin tabla: no ocupa memoria, pero es más lento que con una.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data</code></td>
+<td>puntero</td>
+<td>Los datos.</td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>bytes</td>
+<td>Cuántos. Con 0, el CRC es 0.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el CRC. El de los nueve bytes <code>"123456789"</code> es 0xCBF43926.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_save.h&quot;
+
+/* 1 si el nivel cargado es el que se esperaba. */
+int level_ok(const uint8_t *lvl, uint32_t size, uint32_t expected)
+{
+    return zxv_crc32(lvl, size) == expected;
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#el-fichero-de-zxv_save">El fichero</a>.</p>
+<h3 id="zxv_score"><code>zxv_score</code><a class="ancla" href="#zxv_score" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {
+    uint32_t score;
+    char name[8];
+} zxv_score;
+</code></pre>
+<p>Una línea de una tabla de récords (12 bytes). Una tabla es un array de
+ellas, de mayor a menor, que se guarda con lo demás.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>score</code></td>
+<td>de 0 a 4.294.967.295</td>
+<td>Los puntos.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>hasta 7 bytes y un 0</td>
+<td>El nombre. En UTF-8, una letra con tilde ocupa 2 bytes.</td>
+</tr>
+</tbody>
+</table>
+<p>Una tabla que empieza a ceros (como la de una variable global) vale: son
+líneas de 0 puntos sin nombre.</p>
+<p><strong>Ver también:</strong> <a href="#zxv_score_add"><code>zxv_score_add</code></a>.</p>
+<h3 id="zxv_score_add"><code>zxv_score_add</code><a class="ancla" href="#zxv_score_add" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_score_add(zxv_score *table, int n, uint32_t score, const char *name);
+</code></pre>
+<p>Mete una puntuación en su sitio de la tabla (de mayor a menor) y quita la
+última. Con un empate, la nueva va detrás de las que ya estaban.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>table</code></td>
+<td>una tabla de <code>n</code> líneas, de mayor a menor</td>
+<td>La tabla.</td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>1 o más</td>
+<td>Cuántas líneas tiene.</td>
+</tr>
+<tr>
+<td><code>score</code></td>
+<td>cualquier <code>uint32_t</code></td>
+<td>Los puntos.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>texto, o <code>NULL</code></td>
+<td>El nombre. Se quedan los 7 primeros bytes (puede cortar una letra con tilde por la mitad); <code>NULL</code>, sin nombre.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> la posición en la que ha entrado (0 es la mejor), o −1 si no
+entra: si no supera a la última (o la iguala), o si <code>table</code> es <code>NULL</code> o
+<code>n</code> es 0 o negativo. Con −1 la tabla no cambia.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_save.h&quot;
+
+static zxv_score top[10];
+
+/* La posición, para resaltarla en la tabla; -1 si no ha entrado. */
+int new_score(uint32_t score, const char *initials)
+{
+    int at = zxv_score_add(top, 10, score, initials);
+    if (at &gt;= 0)
+        zxv_save(&quot;records.sav&quot;, 1, top, sizeof top);
+    return at;
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_score"><code>zxv_score</code></a>, <a href="#zxv_save"><code>zxv_save</code></a>.</p>
+<h3 id="el-fichero-de-zxv_save">El fichero de <code>zxv_save</code><a class="ancla" href="#el-fichero-de-zxv_save" aria-hidden="true">#</a></h3>
+<p>Por si quieres leerlo o escribirlo desde el PC. Todo va con el byte bajo
+primero:</p>
+<table>
+<thead>
+<tr>
+<th>Posición</th>
+<th>Tamaño</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>4</td>
+<td><code>ZXVS</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>2</td>
+<td>La versión de los datos.</td>
+</tr>
+<tr>
+<td>6</td>
+<td>2</td>
+<td>0</td>
+</tr>
+<tr>
+<td>8</td>
+<td>4</td>
+<td>La longitud de los datos.</td>
+</tr>
+<tr>
+<td>12</td>
+<td>4</td>
+<td>El CRC-32 de los datos (<a href="#zxv_crc32"><code>zxv_crc32</code></a>).</td>
+</tr>
+<tr>
+<td>16</td>
+<td>la longitud</td>
+<td>Los datos, tal cual estaban en la memoria.</td>
+</tr>
+</tbody>
+</table>
+<p>Los datos son la estructura como la deja el compilador (con los huecos de
+alineación): un fichero guardado por un programa se lee bien con el mismo
+programa, o con otro con la misma estructura.</p>
+<h2 id="descomprimir-zxv_inflateh">Descomprimir: <code>zxv_inflate.h</code><a class="ancla" href="#descomprimir-zxv_inflateh" aria-hidden="true">#</a></h2>
+<p>Para llevar dentro del programa (o en un fichero) gráficos, mapas o textos
+comprimidos, y sacarlos cuando hacen falta. Vale lo de cualquier programa
+que comprime en deflate: un <code>.gz</code> de gzip, 7-Zip o Python.</p>
+<pre><code class="language-make">SOURCES := juego.c $(SDK)/lib/inflate.c
+</code></pre>
+<pre><code class="language-c">#include &quot;zxv_inflate.h&quot;
+
+extern const unsigned char level1_gz[];         /* de «xxd -i nivel1.bin.gz» */
+extern const unsigned int level1_gz_len;
+static uint8_t level[16384];
+
+int unpack_level(void)
+{
+    return zxv_gunzip(level1_gz, level1_gz_len, level, sizeof level);   /* &lt; 0: dañado, o no cabe */
+}
+</code></pre>
+<ul>
+<li>Necesita unos 2 KB de pila y nada más: descomprime directamente en el
+  destino, sin otro buffer.</li>
+<li><strong>Es rápido:</strong> en el emulador, 64 KB salen en 11 ms (tiles repetidos),
+  23 ms (texto) o 54 ms (texels al azar): de 1,2 a 6 MB por segundo.</li>
+<li><strong>Comprimir se hace en el PC:</strong> <code>gzip -9 nivel1.bin</code>. Para meterlo en el
+  programa, <code>xxd -i nivel1.bin.gz</code> (un array de C) o lo lees de la tarjeta
+  con <a href="reference.html#zxv_file_load"><code>zxv_file_load</code></a>.</li>
+</ul>
+<h3 id="zxv_inflate_e_data-zxv_inflate_e_space"><code>ZXV_INFLATE_E_DATA</code>, <code>ZXV_INFLATE_E_SPACE</code><a class="ancla" href="#zxv_inflate_e_data-zxv_inflate_e_space" aria-hidden="true">#</a></h3>
+<p>Los errores de las funciones de descomprimir.</p>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Valor</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_INFLATE_E_DATA</code></td>
+<td>−66</td>
+<td>Los datos no son deflate (o gzip), están dañados o cortados, o el CRC o la longitud de un <code>.gz</code> no cuadran. También con punteros <code>NULL</code> o un <code>out_max</code> de más de 0x7FFFFFFF.</td>
+</tr>
+<tr>
+<td><code>ZXV_INFLATE_E_SPACE</code></td>
+<td>−67</td>
+<td>Lo descomprimido no cabe en <code>out_max</code> bytes.</td>
+</tr>
+</tbody>
+</table>
+<p>Con cualquiera de los dos, <code>out</code> puede tener escrito parte de lo
+descomprimido, pero nunca más allá de <code>out_max</code>.</p>
+<p><strong>Ver también:</strong> <a href="#zxv_inflate"><code>zxv_inflate</code></a>, <a href="#zxv_gunzip"><code>zxv_gunzip</code></a>.</p>
+<h3 id="zxv_inflate"><code>zxv_inflate</code><a class="ancla" href="#zxv_inflate" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_inflate(const void *in, uint32_t in_len, void *out, uint32_t out_max);
+</code></pre>
+<p>Descomprime deflate sin más (RFC 1951), sin cabecera ni comprobación: el de
+<code>zlib.compressobj(9, zlib.DEFLATED, -15)</code> de Python. Lo que hay en <code>in</code>
+detrás del final de los datos comprimidos no se mira.</p>
+<p>Un zlib con cabecera (el de <code>zlib.compress</code> de Python) no vale tal cual: es
+deflate con 2 bytes delante y 4 detrás; pásale <code>in + 2</code>.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>in</code></td>
+<td>puntero</td>
+<td>Los datos comprimidos.</td>
+</tr>
+<tr>
+<td><code>in_len</code></td>
+<td>bytes</td>
+<td>Cuántos hay.</td>
+</tr>
+<tr>
+<td><code>out</code></td>
+<td>puntero</td>
+<td>Donde se descomprime. Puede ser <code>NULL</code> con <code>out_max</code> 0.</td>
+</tr>
+<tr>
+<td><code>out_max</code></td>
+<td>de 0 a 0x7FFFFFFF bytes</td>
+<td>El sitio que hay en <code>out</code>. Nunca se escribe más allá.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> los bytes descomprimidos, o un error (negativo).</p>
+<p><strong>Errores</strong></p>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_INFLATE_E_DATA</code></td>
+<td>No es deflate, está dañado o cortado; <code>in</code> es <code>NULL</code>; <code>out</code> es <code>NULL</code> con <code>out_max</code> mayor que 0; <code>out_max</code> pasa de 0x7FFFFFFF.</td>
+</tr>
+<tr>
+<td><code>ZXV_INFLATE_E_SPACE</code></td>
+<td>No cabe en <code>out_max</code> bytes.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_inflate.h&quot;
+
+extern const uint8_t title_z[];                 /* zlib.compress(datos, 9), de Python */
+extern const uint32_t title_z_len;
+static uint8_t title[6144];
+
+int unpack_title(void)
+{
+    /* Sin los 2 bytes de la cabecera de zlib (los 4 del final no se miran). */
+    return zxv_inflate(title_z + 2, title_z_len - 2, title, sizeof title);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_gunzip"><code>zxv_gunzip</code></a>.</p>
+<h3 id="zxv_gunzip"><code>zxv_gunzip</code><a class="ancla" href="#zxv_gunzip" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_gunzip(const void *in, uint32_t in_len, void *out, uint32_t out_max);
+</code></pre>
+<p>Descomprime un <code>.gz</code> (RFC 1952) entero, de un solo miembro (lo que hacen
+gzip y 7-Zip con un fichero), y comprueba el CRC y la longitud que lleva al
+final. Se salta el nombre, el comentario y los campos de más de la
+cabecera.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>in</code></td>
+<td>puntero</td>
+<td>El <code>.gz</code>.</td>
+</tr>
+<tr>
+<td><code>in_len</code></td>
+<td>bytes</td>
+<td>Su tamaño <strong>exacto</strong> (el final lleva el CRC y la longitud).</td>
+</tr>
+<tr>
+<td><code>out</code></td>
+<td>puntero</td>
+<td>Donde se descomprime. Puede ser <code>NULL</code> con <code>out_max</code> 0.</td>
+</tr>
+<tr>
+<td><code>out_max</code></td>
+<td>de 0 a 0x7FFFFFFF bytes</td>
+<td>El sitio que hay en <code>out</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> los bytes descomprimidos, o un error (negativo).</p>
+<p><strong>Errores</strong></p>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_INFLATE_E_DATA</code></td>
+<td>No es un <code>.gz</code> (mide menos de 18 bytes, no empieza por 1F 8B 08, tiene bits reservados); el deflate está dañado; el CRC o la longitud no cuadran (también si <code>in_len</code> no es el tamaño exacto, o si el <code>.gz</code> tiene varios miembros); punteros o <code>out_max</code> como en <code>zxv_inflate</code>.</td>
+</tr>
+<tr>
+<td><code>ZXV_INFLATE_E_SPACE</code></td>
+<td>No cabe en <code>out_max</code> bytes.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_api.h&quot;
+#include &quot;zxv_inflate.h&quot;
+
+static uint8_t packed[8192], map[32768];
+
+/* Un mapa comprimido en la tarjeta. */
+int load_map(const char *path)
+{
+    int n = zxv_file_load(path, packed, sizeof packed);
+    if (n &lt; 0)
+        return n;
+    return zxv_gunzip(packed, (uint32_t)n, map, sizeof map);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_gunzip_size"><code>zxv_gunzip_size</code></a>, <a href="#zxv_inflate"><code>zxv_inflate</code></a>.</p>
+<h3 id="zxv_gunzip_size"><code>zxv_gunzip_size</code><a class="ancla" href="#zxv_gunzip_size" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_gunzip_size(const void *in, uint32_t in_len);
+</code></pre>
+<p>Lo que ocupará un <code>.gz</code> descomprimido, sin descomprimirlo: lo dicen sus 4
+últimos bytes. Solo mira la cabecera y el final; que los datos estén bien
+lo dice <a href="#zxv_gunzip"><code>zxv_gunzip</code></a>.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>in</code></td>
+<td>puntero</td>
+<td>El <code>.gz</code>.</td>
+</tr>
+<tr>
+<td><code>in_len</code></td>
+<td>bytes</td>
+<td>Su tamaño exacto.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el tamaño descomprimido en bytes, o <code>ZXV_INFLATE_E_DATA</code>.</p>
+<p><strong>Errores</strong></p>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_INFLATE_E_DATA</code></td>
+<td>No parece un <code>.gz</code> (como en <code>zxv_gunzip</code>), <code>in</code> es <code>NULL</code>, o el tamaño que dice pasa de 0x7FFFFFFF.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_inflate.h&quot;
+
+static uint8_t buf[16384];
+
+int unpack_if_fits(const uint8_t *gz, uint32_t len)
+{
+    int size = zxv_gunzip_size(gz, len);
+    if (size &lt; 0 || size &gt; (int)sizeof buf)
+        return ZXV_INFLATE_E_SPACE;
+    return zxv_gunzip(gz, len, buf, sizeof buf);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_gunzip"><code>zxv_gunzip</code></a>.</p>
+<h2 id="fuentes-de-letra-zxv_fonth">Fuentes de letra: <code>zxv_font.h</code><a class="ancla" href="#fuentes-de-letra-zxv_fonth" aria-hidden="true">#</a></h2>
+<p>Texto de <strong>cualquier tamaño y color</strong>, proporcional o de ancho fijo, con
+tildes y eñes. Una fuente sale de:</p>
+<ul>
+<li><strong>la de la ROM</strong>, la 8 × 8 de la máquina, ya hecha:
+  <a href="#zxv_font_rom"><code>zxv_font_rom</code></a>;</li>
+<li><strong>una hoja</strong>: un bitmap con un carácter en cada celda (de cualquier
+  tamaño, en color y con el 8 transparente), por ejemplo un sprite de un
+  <code>.gfx</code> dibujado en <code>zxv-gfx</code> o hecho con <code>png2gfx</code>:
+  <a href="#zxv_font_sheet"><code>zxv_font_sheet</code></a>;</li>
+<li><strong>una tabla de 1 bit</strong> hecha con <a href="#fuentes-de-otros-sitios-fontconvpy"><code>fontconv.py</code></a>:
+  <a href="#zxv_font_bits"><code>zxv_font_bits</code></a>.</li>
+</ul>
+<pre><code class="language-make">SOURCES := juego.c $(SDK)/lib/font.c $(SDK)/lib/font_rom.c
+</code></pre>
+<p><strong>Añade siempre los dos ficheros</strong>, aunque no uses la fuente de la ROM:
+<code>font.c</code> hace referencia a ella y, con las opciones del Makefile del SDK,
+sin <code>font_rom.c</code> no enlaza. (<code>font_rom.c</code> ocupa algo más de 1 KB. Si
+compilas con <code>-ffunction-sections</code> y no llamas a <code>zxv_font_rom</code>, el
+enlazador lo quita y puedes no ponerlo.)</p>
+<pre><code class="language-c">#include &quot;zxv_font.h&quot;
+
+static zxv_font f;
+
+void game_over_title(void)
+{
+    zxv_font_rom(&amp;f, 0);
+    const char *t = &quot;¡Fin de la partida!&quot;;
+    int w = zxv_font_width(&amp;f, t, 2);
+    zxv_font_draw(&amp;f, (256 - w) / 2 + 1, 81, t, 0, 2);     /* la sombra */
+    zxv_font_draw(&amp;f, (256 - w) / 2, 80, t, 14, 2);        /* el doble de grande, centrado */
+}
+</code></pre>
+<ul>
+<li><strong>El texto</strong> va en UTF-8 y puede tener <code>\n</code> (cambia de línea). Lo que no
+  es UTF-8 válido se toma byte a byte como Latin-1. Lo que no está en la
+  fuente sale como <code>?</code> (y si tampoco está el <code>?</code>, como un hueco de media
+  celda).</li>
+<li><strong>Se dibuja con <a href="reference.html#figuras"><code>zxv_gfx_rect</code></a></strong>, en el destino
+  actual: respeta el recorte y también la <a href="graphics.html#figuras-con-trama">trama</a>
+  (texto con trama). Cada tramo de píxeles seguidos del mismo color de una
+  fila es un rectángulo, así que ampliar no cuesta más.</li>
+<li>En las proporcionales, cada carácter empieza en su primera columna con
+  tinta y avanza lo que mide más <code>spacing</code> (1 píxel); un carácter sin tinta
+  (el espacio) avanza media celda.</li>
+</ul>
+<h3 id="zxv_font_chars-zxv_font_fixed-zxv_font_own"><code>ZXV_FONT_CHARS</code>, <code>ZXV_FONT_FIXED</code>, <code>ZXV_FONT_OWN</code><a class="ancla" href="#zxv_font_chars-zxv_font_fixed-zxv_font_own" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Constante</th>
+<th>Valor</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_FONT_CHARS</code></td>
+<td>224</td>
+<td>Los caracteres que caben en una fuente, como mucho.</td>
+</tr>
+<tr>
+<td><code>ZXV_FONT_FIXED</code></td>
+<td>0x01</td>
+<td>Opción al crear la fuente: de ancho fijo, todos avanzan el ancho de la celda y sin espacio entre letras. Sin ella, proporcional.</td>
+</tr>
+<tr>
+<td><code>ZXV_FONT_OWN</code></td>
+<td>−1</td>
+<td>El color de <code>zxv_font_draw</code> para dibujar con los colores de la hoja (o el 15, en las de 1 bit).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ver también:</strong> <a href="#zxv_font"><code>zxv_font</code></a>, <a href="#zxv_font_draw"><code>zxv_font_draw</code></a>.</p>
+<h3 id="zxv_font"><code>zxv_font</code><a class="ancla" href="#zxv_font" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {
+    zxv_bitmap sheet;
+    const uint8_t *bits;
+    const uint16_t *codes;
+    uint16_t first, count;
+    uint8_t w, h;
+    uint8_t spacing;
+    uint8_t flags;
+    uint8_t left[ZXV_FONT_CHARS];
+    uint8_t adv[ZXV_FONT_CHARS];
+} zxv_font;
+</code></pre>
+<p>Una fuente lista para dibujar. La rellenan <a href="#zxv_font_rom"><code>zxv_font_rom</code></a>,
+<a href="#zxv_font_sheet"><code>zxv_font_sheet</code></a> o <a href="#zxv_font_bits"><code>zxv_font_bits</code></a>,
+que miden cada carácter. Ocupa unos 480 bytes: mejor global o <code>static</code> que
+en la pila. Los gráficos no se copian: la hoja o la tabla tienen que seguir
+existiendo.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sheet</code></td>
+<td>La hoja (4 bpp), en las de hoja; <code>sheet.pix</code> es <code>NULL</code> en las de 1 bit.</td>
+</tr>
+<tr>
+<td><code>bits</code></td>
+<td>La tabla de 1 bit (<code>h</code> bytes por carácter, el bit 7 a la izquierda); <code>NULL</code> en las de hoja.</td>
+</tr>
+<tr>
+<td><code>codes</code></td>
+<td>El código Unicode de cada carácter, de menor a mayor; <code>NULL</code>: <code>first</code>, <code>first + 1</code>...</td>
+</tr>
+<tr>
+<td><code>first</code>, <code>count</code></td>
+<td>El código del primero y cuántos hay (hasta 224).</td>
+</tr>
+<tr>
+<td><code>w</code>, <code>h</code></td>
+<td>El tamaño de la celda, en píxeles (en las de 1 bit, <code>w</code> es 8).</td>
+</tr>
+<tr>
+<td><code>spacing</code></td>
+<td>Los píxeles entre letras: 1 en las proporcionales, 0 en las de ancho fijo. <strong>Se puede cambiar</strong> después de crear la fuente (<code>f.spacing = 2;</code>).</td>
+</tr>
+<tr>
+<td><code>flags</code></td>
+<td>Las opciones con que se creó.</td>
+</tr>
+<tr>
+<td><code>left[i]</code>, <code>adv[i]</code></td>
+<td>De cada carácter, las columnas vacías a su izquierda y lo que avanza (sin <code>spacing</code>). Las calcula la biblioteca.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ver también:</strong> <a href="#zxv_font_chars-zxv_font_fixed-zxv_font_own"><code>ZXV_FONT_CHARS</code>...</a>.</p>
+<h3 id="zxv_font_rom"><code>zxv_font_rom</code><a class="ancla" href="#zxv_font_rom" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_font_rom(zxv_font *f, unsigned flags);
+</code></pre>
+<p>La fuente de 8 × 8 de la máquina, con 112 caracteres: del 32 al 126 de
+ASCII, el 127 (©), y ¡ ¿ Á É Í Ñ Ó Ú Ü á é í ñ ó ú ü. Está en
+<code>lib/font_rom.c</code>, no se lee de la ROM.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>f</code></td>
+<td>puntero a un <code>zxv_font</code></td>
+<td>Donde se prepara. Con <code>NULL</code>, no hace nada.</td>
+</tr>
+<tr>
+<td><code>flags</code></td>
+<td>0 o <code>ZXV_FONT_FIXED</code></td>
+<td>0: proporcional, con 1 píxel entre letras; <code>ZXV_FONT_FIXED</code>: de 8 en 8, como el texto de la máquina.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_font.h&quot;
+
+static zxv_font hud;
+
+void hud_init(void) { zxv_font_rom(&amp;hud, ZXV_FONT_FIXED); }   /* los números no bailan */
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_font_draw"><code>zxv_font_draw</code></a>.</p>
+<h3 id="zxv_font_sheet"><code>zxv_font_sheet</code><a class="ancla" href="#zxv_font_sheet" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_font_sheet(zxv_font *f, const zxv_bitmap *sheet, int cell_w, int cell_h, int first, unsigned flags);
+</code></pre>
+<p>Una fuente de una hoja: un bitmap de 4 bpp (como los de la memoria de
+vídeo: el nibble bajo es el píxel par) con un carácter en cada celda de
+<code>cell_w</code> × <code>cell_h</code>, de izquierda a derecha y de arriba abajo, con códigos
+seguidos desde <code>first</code>. Los caracteres pueden ser de colores; el 8 es el
+transparente (y lo que cuenta como vacío para medirlos).</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>f</code></td>
+<td>puntero a un <code>zxv_font</code></td>
+<td>Donde se prepara.</td>
+</tr>
+<tr>
+<td><code>sheet</code></td>
+<td>un <code>zxv_bitmap</code> con <code>pix</code></td>
+<td>La hoja. No se copia: tiene que seguir existiendo.</td>
+</tr>
+<tr>
+<td><code>cell_w</code>, <code>cell_h</code></td>
+<td>de 1 a 255, y no más que la hoja</td>
+<td>El tamaño de cada celda.</td>
+</tr>
+<tr>
+<td><code>first</code></td>
+<td>de 0 a 65535</td>
+<td>El código del carácter de la primera celda (32 para empezar en el espacio).</td>
+</tr>
+<tr>
+<td><code>flags</code></td>
+<td>0 o <code>ZXV_FONT_FIXED</code></td>
+<td>Proporcional o de ancho fijo.</td>
+</tr>
+</tbody>
+</table>
+<p>Caben tantas celdas enteras como haya en la hoja (hasta 224); las que
+sobran por el borde derecho o por abajo no cuentan.</p>
+<p><strong>Devuelve:</strong> 0 si la fuente vale; −1 si no, y entonces <code>*f</code> no cambia.</p>
+<p><strong>Errores</strong></p>
+<table>
+<thead>
+<tr>
+<th>Devuelve</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>−1</td>
+<td><code>f</code> o <code>sheet</code> son <code>NULL</code>, <code>sheet-&gt;pix</code> es <code>NULL</code>, <code>cell_w</code> o <code>cell_h</code> están fuera de 1–255 o son mayores que la hoja, o <code>first</code> es negativo.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_font.h&quot;
+
+extern zxv_bitmap digits_sheet;                 /* del .gfx: «0123456789» en celdas de 12 x 16 */
+static zxv_font digits;
+
+int score_font(void) { return zxv_font_sheet(&amp;digits, &amp;digits_sheet, 12, 16, '0', ZXV_FONT_FIXED); }
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_font_bits"><code>zxv_font_bits</code></a>, <a href="#zxv_font_draw"><code>zxv_font_draw</code></a>.</p>
+<h3 id="zxv_font_bits"><code>zxv_font_bits</code><a class="ancla" href="#zxv_font_bits" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_font_bits(zxv_font *f, const uint8_t *bits, const uint16_t *codes, int n, int h, unsigned flags);
+</code></pre>
+<p>Una fuente de una tabla de 1 bit de 8 píxeles de ancho: la que escribe
+<a href="#fuentes-de-otros-sitios-fontconvpy"><code>fontconv.py</code></a>. Cada carácter son
+<code>h</code> bytes, uno por fila, con la columna de la izquierda en el bit 7.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>f</code></td>
+<td>puntero a un <code>zxv_font</code></td>
+<td>Donde se prepara.</td>
+</tr>
+<tr>
+<td><code>bits</code></td>
+<td><code>n</code> · <code>h</code> bytes</td>
+<td>Los caracteres. No se copian.</td>
+</tr>
+<tr>
+<td><code>codes</code></td>
+<td><code>n</code> códigos de menor a mayor, o <code>NULL</code></td>
+<td>El código Unicode de cada carácter. Tienen que ir ordenados: si no, algunos no se encuentran. <code>NULL</code>: del 32 en adelante, seguidos.</td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>de 1 a 224</td>
+<td>Cuántos caracteres hay.</td>
+</tr>
+<tr>
+<td><code>h</code></td>
+<td>de 1 a 255</td>
+<td>Las filas de cada uno.</td>
+</tr>
+<tr>
+<td><code>flags</code></td>
+<td>0 o <code>ZXV_FONT_FIXED</code></td>
+<td>Proporcional o de ancho fijo.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> 0 si la fuente vale; −1 si no, y <code>*f</code> no cambia.</p>
+<p><strong>Errores</strong></p>
+<table>
+<thead>
+<tr>
+<th>Devuelve</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>−1</td>
+<td><code>f</code> o <code>bits</code> son <code>NULL</code>, <code>n</code> está fuera de 1–224 o <code>h</code> fuera de 1–255.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ejemplo:</strong> ver <a href="#fuentes-de-otros-sitios-fontconvpy"><code>fontconv.py</code></a>.</p>
+<p><strong>Ver también:</strong> <a href="#zxv_font_sheet"><code>zxv_font_sheet</code></a>, <a href="#zxv_font_draw"><code>zxv_font_draw</code></a>.</p>
+<h3 id="zxv_font_draw"><code>zxv_font_draw</code><a class="ancla" href="#zxv_font_draw" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_font_draw(const zxv_font *f, int x, int y, const char *text, int colour, int scale);
+</code></pre>
+<p>Dibuja el texto con la esquina de arriba a la izquierda de su primera
+celda en (<code>x</code>, <code>y</code>). Un <code>\n</code> vuelve a <code>x</code>, <code>h</code> · <code>scale</code> píxeles más abajo.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>f</code></td>
+<td>una fuente preparada</td>
+<td>La fuente.</td>
+</tr>
+<tr>
+<td><code>x</code>, <code>y</code></td>
+<td>píxeles del destino, cualquier valor</td>
+<td>Dónde. Lo que cae fuera del recorte no se dibuja.</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td>UTF-8</td>
+<td>El texto.</td>
+</tr>
+<tr>
+<td><code>colour</code></td>
+<td>0–15, o <code>ZXV_FONT_OWN</code></td>
+<td>0–15: toda la tinta de ese color. Cualquier otro valor (<code>ZXV_FONT_OWN</code>): los colores de la hoja; en las de 1 bit, el 15.</td>
+</tr>
+<tr>
+<td><code>scale</code></td>
+<td>de 1 a 8</td>
+<td>Cuántas veces más grande. Menos de 1 es 1 y más de 8 es 8.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> la x en la que acaba la última línea (contando el <code>spacing</code>
+tras la última letra): para seguir escribiendo detrás. Con <code>f</code> o <code>text</code>
+<code>NULL</code>, no dibuja nada y devuelve <code>x</code>.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_font.h&quot;
+
+static zxv_font f;
+
+/* «Puntos: » en blanco y el número en amarillo, detrás. */
+void draw_score(const char *digits)
+{
+    zxv_font_rom(&amp;f, 0);
+    int x = zxv_font_draw(&amp;f, 8, 4, &quot;Puntos: &quot;, 15, 1);
+    zxv_font_draw(&amp;f, x, 4, digits, 14, 1);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_font_width"><code>zxv_font_width</code></a>,
+<a href="#zxv_font_height"><code>zxv_font_height</code></a>.</p>
+<h3 id="zxv_font_width"><code>zxv_font_width</code><a class="ancla" href="#zxv_font_width" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_font_width(const zxv_font *f, const char *text, int scale);
+</code></pre>
+<p>Lo que mide de ancho el texto: el de su línea más larga, sin el <code>spacing</code>
+de detrás de la última letra. Para centrarlo o alinearlo a la derecha.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>f</code></td>
+<td>una fuente preparada</td>
+<td>La fuente.</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td>UTF-8</td>
+<td>El texto.</td>
+</tr>
+<tr>
+<td><code>scale</code></td>
+<td>de 1 a 8</td>
+<td>Como en <code>zxv_font_draw</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el ancho en píxeles; 0 con <code>f</code> o <code>text</code> <code>NULL</code> o con un
+texto vacío.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_font.h&quot;
+
+/* Alineado a la derecha, acabando en la columna 248. */
+void draw_right(const zxv_font *f, int y, const char *t)
+{
+    zxv_font_draw(f, 248 - zxv_font_width(f, t, 1), y, t, 7, 1);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_font_height"><code>zxv_font_height</code></a>.</p>
+<h3 id="zxv_font_height"><code>zxv_font_height</code><a class="ancla" href="#zxv_font_height" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_font_height(const zxv_font *f, const char *text, int scale);
+</code></pre>
+<p>Lo que mide de alto el texto: sus líneas por el alto de la celda por
+<code>scale</code>. Cada <code>\n</code> es una línea más, también al final.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>f</code></td>
+<td>una fuente preparada</td>
+<td>La fuente.</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td>UTF-8</td>
+<td>El texto.</td>
+</tr>
+<tr>
+<td><code>scale</code></td>
+<td>de 1 a 8</td>
+<td>Como en <code>zxv_font_draw</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el alto en píxeles; 0 con <code>f</code> o <code>text</code> <code>NULL</code> o con un texto
+vacío.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_font.h&quot;
+
+/* Un texto de varias líneas, centrado en la pantalla de 256 x 192. */
+void draw_centred(const zxv_font *f, const char *t)
+{
+    int w = zxv_font_width(f, t, 1), h = zxv_font_height(f, t, 1);
+    zxv_font_draw(f, (256 - w) / 2, (192 - h) / 2, t, 15, 1);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_font_width"><code>zxv_font_width</code></a>.</p>
+<h3 id="fuentes-de-otros-sitios-fontconvpy">Fuentes de otros sitios: <code>fontconv.py</code><a class="ancla" href="#fuentes-de-otros-sitios-fontconvpy" aria-hidden="true">#</a></h3>
+<p><code>sdk/tools/fontconv.py</code> convierte fuentes de mapa de bits de hasta 8
+columnas y de 1 a 32 filas en C para <a href="#zxv_font_bits"><code>zxv_font_bits</code></a>, o
+en texto para retocarlas:</p>
+<pre><code class="language-sh">python3 sdk/tools/fontconv.py mifuente.ch8 mifuente.c mifuente
+python3 sdk/tools/fontconv.py mifuente.ch8 mifuente.txt
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Formato</th>
+<th>Cómo lo reconoce</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>El de ZX-V en texto (<code>== CÓDIGO</code> y las filas con <code>#</code> y <code>.</code>, como <code>rom/font</code>)</td>
+<td><code>.txt</code></td>
+</tr>
+<tr>
+<td>ZX Spectrum (96 caracteres, 768 bytes): su ↑, £ y © van a sus códigos (<code>--ascii</code>, no)</td>
+<td><code>.ch8</code>, o 768 bytes</td>
+</tr>
+<tr>
+<td>Un volcado de 8 bytes por carácter (PC, MSX, Amstrad CPC...): <code>--first</code>, <code>--height</code>, <code>--charset</code> (CP437 para los de PC: las tildes y la ñ en su sitio)</td>
+<td><code>.bin</code>, <code>.rom</code>, <code>.fnt</code>...</td>
+</tr>
+<tr>
+<td>PSF 1 y 2 (las de la consola de Linux), con su tabla Unicode</td>
+<td>por su firma</td>
+</tr>
+<tr>
+<td>BDF (X11)</td>
+<td><code>.bdf</code></td>
+</tr>
+<tr>
+<td><code>.hex</code> (GNU Unifont: <code>CÓDIGO:BYTES</code>): los caracteres anchos (los de 16 columnas) se quedan fuera, con un aviso</td>
+<td><code>.hex</code></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Opción</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--format F</code></td>
+<td><code>txt</code>, <code>zx</code>, <code>raw</code>, <code>psf</code>, <code>bdf</code> o <code>hex</code>, si la extensión no basta.</td>
+</tr>
+<tr>
+<td><code>--first N</code></td>
+<td>En un volcado, el código del primer carácter (0; 32 si son 96).</td>
+</tr>
+<tr>
+<td><code>--height H</code></td>
+<td>En un volcado, las filas de cada carácter (8). En un <code>.hex</code>, las de los de 8 columnas (si no, las de los más estrechos del fichero; si todos miden lo mismo y son de más de 16 bytes, hay que decirlo: 16 para los anchos de Unifont).</td>
+</tr>
+<tr>
+<td><code>--charset C</code></td>
+<td>En un volcado, cómo pasar los códigos de más de 127 a Unicode: <code>cp437</code> (el de siempre si son 256 desde el 0), <code>latin-1</code>...</td>
+</tr>
+<tr>
+<td><code>--ascii</code></td>
+<td>En una del Spectrum, deja <code>^</code>, <code>`</code> y el 127 como en ASCII.</td>
+</tr>
+<tr>
+<td><code>--range R</code></td>
+<td>Los caracteres que se quedan, en hexadecimal: por defecto <code>20-7E,A0-FF</code> (ASCII y Latin-1, con las tildes, la ñ, ¿ y ¡).</td>
+</tr>
+</tbody>
+</table>
+<p>Primero se quedan los de <code>--range</code>: lo que no está no cuenta (ni sus
+filas). Se quedan como mucho 224 caracteres: si hay más en <code>--range</code>, da un
+error. En un volcado, los códigos son de un byte: uno de más de 256
+caracteres (o que pase del 255 desde <code>--first</code>) da un error; suele ser que
+<code>--height</code> no es el de la fuente.
+Los códigos van en 16 bits: un <code>--range</code> con algo por encima de FFFF (o
+un intervalo al revés) da un error. La licencia de una fuente sigue siendo la suya: que se pueda
+convertir no quiere decir que se pueda repartir.</p>
+<p><strong>Lo que escribe.</strong> El <code>.c</code> define cuatro cosas, con el nombre que le das
+(el tercer argumento) delante:</p>
+<table>
+<thead>
+<tr>
+<th>Definición</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>const unsigned NOMBRE_n</code></td>
+<td>Cuántos caracteres hay.</td>
+</tr>
+<tr>
+<td><code>const unsigned NOMBRE_h</code></td>
+<td>Las filas de cada uno.</td>
+</tr>
+<tr>
+<td><code>const uint16_t NOMBRE_codes[]</code></td>
+<td>Sus códigos Unicode, de menor a mayor.</td>
+</tr>
+<tr>
+<td><code>const uint8_t NOMBRE_bits[]</code></td>
+<td>Los caracteres, <code>NOMBRE_h</code> bytes cada uno.</td>
+</tr>
+</tbody>
+</table>
+<p>No escribe ninguna cabecera: añade el <code>.c</code> a <code>SOURCES</code> y declara lo que
+usas con <code>extern</code>:</p>
+<pre><code class="language-c">#include &quot;zxv_font.h&quot;
+
+/* De «fontconv.py mifuente.ch8 mifuente.c mifuente» (mifuente.c, en SOURCES). */
+extern const unsigned mifuente_n, mifuente_h;
+extern const uint16_t mifuente_codes[];
+extern const uint8_t mifuente_bits[];
+
+static zxv_font f;
+
+int load_font(void)
+{
+    return zxv_font_bits(&amp;f, mifuente_bits, mifuente_codes, (int)mifuente_n, (int)mifuente_h, 0);
+}
+</code></pre>
+<h2 id="3d-sencillo-zxv_3dh">3D sencillo: <code>zxv_3d.h</code><a class="ancla" href="#3d-sencillo-zxv_3dh" aria-hidden="true">#</a></h2>
+<p>Modelos de <strong>caras planas</strong> con luz y sombras de trama, como los juegos 3D
+de los 8 y los 16 bits: cada cara tiene un color oscuro y uno claro, y
+según le dé la luz se ve de uno, del otro o de una mezcla con
+<a href="graphics.html#figuras-con-trama">las tramas</a> (cinco tonos). Dibujar con trama
+cuesta lo mismo que con un color.</p>
+<pre><code class="language-make">SOURCES := juego.c $(SDK)/lib/3d.c $(SDK)/lib/math.c
+</code></pre>
+<p>Los tonos intermedios necesitan una ROM de la especificación 0.2 (usan
+<a href="reference.html#figuras"><code>zxv_gfx_pattern</code></a>; con una anterior, esas caras
+salen del color claro, sin trama). Ocupa unos 29 KB de memoria
+(las tablas del frame, fijas). El 3D nota mucho la optimización: el ejemplo
+Gone Silent compila <code>3d.c</code> con <code>-O2</code> en vez del <code>-Os</code> de siempre.</p>
+<pre><code class="language-c">#include &quot;zxv_3d.h&quot;
+#include &quot;zxv_gfx.h&quot;
+
+extern const zxv_model house;                   /* de obj2c.py (abajo) */
+
+int main(void)
+{
+    zxv_camera cam = { .pos = { ZXV_FIX(-3), ZXV_FIX(2), ZXV_FIX(-7) },   /* dónde está */
+                       .yaw = ZXV_DEG(20), .pitch = -ZXV_DEG(10),         /* gira, mira abajo */
+                       .focal = 128, .cx = 128, .cy = 96, .w = 256, .h = 192 };
+    zxv_xform pos;
+    for (int32_t a = 0; zxv_key_get() &lt; 0; a += 256) {
+        zxv_gfx_rect(0, 0, 256, 80, 5);                            /* cielo y suelo */
+        zxv_gfx_rect(0, 80, 256, 112, 4);
+        zxv_xform_set(&amp;pos, a, 0, 0, 0, ZXV_FIX(1), 0);            /* la casa, girando */
+        zxv_3d_begin(&amp;cam);
+        zxv_3d_add(&amp;house, &amp;pos);
+        zxv_3d_draw();
+        zxv_wait_vblank();
+    }
+    return 0;
+}
+</code></pre>
+<p>(Para que no parpadee, dibuja en la página oculta: ver <a href="graphics.html#las-páginas-y-el-doble-buffer">Las páginas y el
+doble buffer</a>.)</p>
+<ul>
+<li><strong>Coordenadas:</strong> x a la derecha, y hacia arriba, z hacia delante (adonde
+  mira la cámara sin girar), en 16.16. El mundo cabe en ±32768 unidades.
+  Los ángulos, en vueltas de 0x10000: <code>yaw</code> gira a la derecha, <code>pitch</code> mira
+  hacia arriba y <code>roll</code> inclina a la derecha.</li>
+<li><strong>Cada frame:</strong> <a href="#zxv_3d_begin"><code>zxv_3d_begin(&amp;cam)</code></a>, un
+  <a href="#zxv_3d_add"><code>zxv_3d_add(&amp;modelo, &amp;pos)</code></a> por objeto (con un
+  <a href="#zxv_xform"><code>zxv_xform</code></a>: su giro y su sitio) y
+  <a href="#zxv_3d_draw"><code>zxv_3d_draw()</code></a>. Las caras que dan la espalda no se
+  dibujan, todo se recorta contra la vista y las caras se dibujan de lejos
+  a cerca (el algoritmo del pintor).</li>
+<li><strong>El pintor se equivoca</strong> con caras que se cruzan, o con caras muy largas
+  que se solapan con otras: un suelo grande, mejor con <code>zxv_gfx_rect</code> o con
+  el modo 7 antes del 3D. Ver también los consejos de
+  <a href="#modelos-de-blender-obj2cpy"><code>obj2c.py</code></a>.</li>
+</ul>
+<h3 id="zxv_3d_max_faces-zxv_3d_max_verts-zxv_3d_face_sides"><code>ZXV_3D_MAX_FACES</code>, <code>ZXV_3D_MAX_VERTS</code>, <code>ZXV_3D_FACE_SIDES</code><a class="ancla" href="#zxv_3d_max_faces-zxv_3d_max_verts-zxv_3d_face_sides" aria-hidden="true">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Constante</th>
+<th>Valor</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ZXV_3D_MAX_FACES</code></td>
+<td>400</td>
+<td>Las caras que se ven en un frame, entre todos los objetos.</td>
+</tr>
+<tr>
+<td><code>ZXV_3D_MAX_VERTS</code></td>
+<td>512</td>
+<td>Los vértices de un modelo.</td>
+</tr>
+<tr>
+<td><code>ZXV_3D_FACE_SIDES</code></td>
+<td>32</td>
+<td>Los lados de una cara, como mucho. Una cara no convexa se parte en triángulos al dibujarla.</td>
+</tr>
+</tbody>
+</table>
+<p>Las dos primeras se cambian al compilar <code>lib/3d.c</code> con <code>-D</code>
+(<code>EXTRA_CFLAGS=-DZXV_3D_MAX_FACES=800</code>): con los valores de siempre, las
+tablas ocupan unos 29 KB; cada cara de más, unos 43 bytes, y cada vértice,
+24. Además de las caras, hay sitio para 6 puntos por cara de media (las
+recortadas tienen más): un frame lleno de caras de muchos lados puede
+quedarse sin sitio antes.</p>
+<p><strong>Ver también:</strong> <a href="#zxv_3d_add"><code>zxv_3d_add</code></a>.</p>
+<h3 id="zxv_3d_mat-zxv_3d_two_sided-zxv_3d_flat-zxv_3d_decal"><code>ZXV_3D_MAT</code>, <code>ZXV_3D_TWO_SIDED</code>, <code>ZXV_3D_FLAT</code>, <code>ZXV_3D_DECAL</code><a class="ancla" href="#zxv_3d_mat-zxv_3d_two_sided-zxv_3d_flat-zxv_3d_decal" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">#define ZXV_3D_MAT(dark, light, flags) ((uint16_t)((dark) | (light) &lt;&lt; 4 | (flags)))
+#define ZXV_3D_TWO_SIDED  0x0100u
+#define ZXV_3D_FLAT       0x0200u
+#define ZXV_3D_DECAL      0x0400u
+</code></pre>
+<p>El material de una cara, el número que va en el modelo detrás del número de
+lados: sus dos colores y sus opciones.</p>
+<table>
+<thead>
+<tr>
+<th>Parte</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dark</code></td>
+<td>0–15</td>
+<td>El color oscuro: el de la cara de espaldas a la luz.</td>
+</tr>
+<tr>
+<td><code>light</code></td>
+<td>0–15</td>
+<td>El color claro: el de la cara de frente a la luz. Si es igual que <code>dark</code>, la cara es lisa, sin tramas.</td>
+</tr>
+<tr>
+<td><code>ZXV_3D_TWO_SIDED</code></td>
+<td>0x0100</td>
+<td>Se ve por los dos lados (una hoja, una valla). Por detrás, la luz le da por ese lado.</td>
+</tr>
+<tr>
+<td><code>ZXV_3D_FLAT</code></td>
+<td>0x0200</td>
+<td>Sin luz: siempre del color oscuro.</td>
+</tr>
+<tr>
+<td><code>ZXV_3D_DECAL</code></td>
+<td>0x0400</td>
+<td>Va pegada encima de otra (una puerta en una pared): se ordena por su vértice más cercano, así que se dibuja después de la cara en la que está.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ejemplo:</strong> ver <a href="#zxv_model"><code>zxv_model</code></a>.</p>
+<p><strong>Ver también:</strong> <a href="#zxv_model"><code>zxv_model</code></a>, <a href="#zxv_3d_light"><code>zxv_3d_light</code></a>.</p>
+<h3 id="zxv_vec3"><code>zxv_vec3</code><a class="ancla" href="#zxv_vec3" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {
+    zxv_fix x, y, z;
+} zxv_vec3;
+</code></pre>
+<p>Un punto o un vector del mundo, en 16.16: x a la derecha, y hacia arriba,
+z hacia delante.</p>
+<p><strong>Ver también:</strong> <a href="#zxv_xform_apply"><code>zxv_xform_apply</code></a>, <a href="#zxv_3d_project"><code>zxv_3d_project</code></a>.</p>
+<h3 id="zxv_xform"><code>zxv_xform</code><a class="ancla" href="#zxv_xform" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {
+    zxv_fix m[3][3];
+    zxv_vec3 t;
+} zxv_xform;
+</code></pre>
+<p>Dónde está un objeto y cómo está girado: una rotación (matriz de 3 × 3 en
+16.16) y una traslación. Se prepara con <a href="#zxv_xform_set"><code>zxv_xform_set</code></a>
+y se combina con <a href="#zxv_xform_mul"><code>zxv_xform_mul</code></a>. Un punto <code>p</code> del
+objeto va a <code>m</code> · <code>p</code> + <code>t</code> en el mundo.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>m[i][j]</code></td>
+<td>La rotación, fila <code>i</code>, columna <code>j</code>, en 16.16. Puede llevar también una escala (multiplica la matriz por ella).</td>
+</tr>
+<tr>
+<td><code>t</code></td>
+<td>Dónde va el origen del objeto, en el mundo.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ver también:</strong> <a href="#zxv_xform_set"><code>zxv_xform_set</code></a>.</p>
+<h3 id="zxv_model"><code>zxv_model</code><a class="ancla" href="#zxv_model" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {
+    const int16_t (*verts)[3];
+    const uint16_t *faces;
+    uint16_t nverts, nfaces;
+    zxv_fix scale;
+} zxv_model;
+</code></pre>
+<p>Un modelo: lo que escribe <a href="#modelos-de-blender-obj2cpy"><code>obj2c.py</code></a>, o uno
+hecho a mano.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>verts</code></td>
+<td><code>nverts</code> vértices de 3 enteros de 16 bits</td>
+<td>x, y, z de cada vértice, en unidades del modelo.</td>
+</tr>
+<tr>
+<td><code>faces</code></td>
+<td>una lista de <code>uint16_t</code></td>
+<td>Las caras, una tras otra: el número de vértices (3 a 32), el <a href="#zxv_3d_mat-zxv_3d_two_sided-zxv_3d_flat-zxv_3d_decal">material</a> y los índices de sus vértices (de 0 a <code>nverts</code> − 1).</td>
+</tr>
+<tr>
+<td><code>nverts</code></td>
+<td>de 0 a 512</td>
+<td>Cuántos vértices.</td>
+</tr>
+<tr>
+<td><code>nfaces</code></td>
+<td>0 o más</td>
+<td>Cuántas caras.</td>
+</tr>
+<tr>
+<td><code>scale</code></td>
+<td>16.16</td>
+<td>Lo que mide una unidad del modelo en el mundo: con <code>ZXV_FIX_ONE</code>, cada unidad es una del mundo; con <code>ZXV_FIX_ONE / 256</code>, 256 unidades del modelo son una del mundo.</td>
+</tr>
+</tbody>
+</table>
+<p>Una cara <strong>se ve por delante si sus vértices van en el sentido del reloj
+mirándola desde fuera</strong>; por detrás no se dibuja (salvo con
+<code>ZXV_3D_TWO_SIDED</code>). La luz y si se ve salen de la normal de toda la cara,
+así que da igual por qué vértice empiece. Una cara es <strong>plana y no se cruza
+consigo misma</strong>, pero puede no ser convexa (una L, una sierra): se parte en
+triángulos al dibujarla, en cada frame (<a href="#modelos-de-blender-obj2cpy"><code>obj2c.py</code></a>
+ya las da partidas, que es más rápido).</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_3d.h&quot;
+
+/* Un cubo de 2 unidades de lado, azul (1 y 9). */
+static const int16_t cube_v[8][3] = {
+    { -1, -1, -1 }, { 1, -1, -1 }, { -1, 1, -1 }, { 1, 1, -1 },
+    { -1, -1, 1 },  { 1, -1, 1 },  { -1, 1, 1 },  { 1, 1, 1 },
+};
+#define BLUE ZXV_3D_MAT(1, 9, 0)
+static const uint16_t cube_f[] = {
+    4, BLUE, 0, 2, 3, 1,                        /* delante (z = -1) */
+    4, BLUE, 5, 7, 6, 4,                        /* detrás */
+    4, BLUE, 1, 3, 7, 5,                        /* derecha */
+    4, BLUE, 4, 6, 2, 0,                        /* izquierda */
+    4, BLUE, 2, 6, 7, 3,                        /* arriba */
+    4, BLUE, 0, 1, 5, 4,                        /* abajo */
+};
+const zxv_model cube = { cube_v, cube_f, 8, 6, ZXV_FIX_ONE };
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_3d_add"><code>zxv_3d_add</code></a>, <a href="#modelos-de-blender-obj2cpy"><code>obj2c.py</code></a>.</p>
+<h3 id="zxv_camera"><code>zxv_camera</code><a class="ancla" href="#zxv_camera" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">typedef struct {
+    zxv_vec3 pos;
+    int32_t yaw, pitch, roll;
+    int32_t focal;
+    int16_t cx, cy;
+    int16_t w, h;
+    zxv_fix near;
+} zxv_camera;
+</code></pre>
+<p>Desde dónde se mira y cómo se ve en la pantalla.</p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pos</code></td>
+<td>16.16</td>
+<td>Dónde está la cámara.</td>
+</tr>
+<tr>
+<td><code>yaw</code>, <code>pitch</code>, <code>roll</code></td>
+<td>vueltas de 0x10000</td>
+<td>Hacia dónde mira: <code>yaw</code> gira a la derecha, <code>pitch</code> mira hacia arriba, <code>roll</code> inclina a la derecha. Con los tres a 0, mira hacia z creciente.</td>
+</tr>
+<tr>
+<td><code>focal</code></td>
+<td>píxeles (entero), hasta 32767 (más cuenta como 32767); 0 o menos, 128</td>
+<td>La distancia focal: con 128 y una vista de 256 de ancho, unos 90° de lado a lado. Más, más zoom.</td>
+</tr>
+<tr>
+<td><code>cx</code>, <code>cy</code></td>
+<td>píxeles</td>
+<td>El centro de la vista en el destino (128, 96 para la pantalla entera del modo 0). <strong>Sin valor por defecto:</strong> ponlos.</td>
+</tr>
+<tr>
+<td><code>w</code>, <code>h</code></td>
+<td>píxeles; 0 o menos, 256 y 192</td>
+<td>El tamaño de la vista, para recortar. Lo que se dibuja de verdad lo recorta además el <a href="reference.html#destino-y-recorte">recorte</a> del motor gráfico: para una ventana, pon los dos.</td>
+</tr>
+<tr>
+<td><code>near</code></td>
+<td>16.16; 0 o menos, 0,25</td>
+<td>Lo más cerca que se dibuja: lo que está más cerca se recorta.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ver también:</strong> <a href="#zxv_3d_begin"><code>zxv_3d_begin</code></a>, <a href="#zxv_3d_project"><code>zxv_3d_project</code></a>.</p>
+<h3 id="zxv_xform_set"><code>zxv_xform_set</code><a class="ancla" href="#zxv_xform_set" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_xform_set(zxv_xform *x, int32_t yaw, int32_t pitch, int32_t roll, zxv_fix px, zxv_fix py, zxv_fix pz);
+</code></pre>
+<p>Prepara una posición: el giro de los tres ángulos y el sitio. Al aplicarla,
+el objeto se inclina primero (<code>roll</code>), luego se levanta o se baja
+(<code>pitch</code>) y por último gira (<code>yaw</code>), y se lleva a (<code>px</code>, <code>py</code>, <code>pz</code>).</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x</code></td>
+<td>puntero a un <code>zxv_xform</code></td>
+<td>Donde se deja.</td>
+</tr>
+<tr>
+<td><code>yaw</code></td>
+<td>vueltas de 0x10000</td>
+<td>Gira a la derecha (alrededor de y).</td>
+</tr>
+<tr>
+<td><code>pitch</code></td>
+<td>vueltas de 0x10000</td>
+<td>Mira hacia arriba (alrededor de x).</td>
+</tr>
+<tr>
+<td><code>roll</code></td>
+<td>vueltas de 0x10000</td>
+<td>Se inclina a la derecha (alrededor de z).</td>
+</tr>
+<tr>
+<td><code>px</code>, <code>py</code>, <code>pz</code></td>
+<td>16.16</td>
+<td>El sitio.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_3d.h&quot;
+
+/* Una nave en (x, 1, z) que mira hacia 'heading' y se inclina en las curvas. */
+void place_ship(zxv_xform *pos, zxv_fix x, zxv_fix z, int32_t heading, int32_t bank)
+{
+    zxv_xform_set(pos, heading, 0, bank, x, ZXV_FIX(1), z);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_xform_mul"><code>zxv_xform_mul</code></a>, <a href="#zxv_3d_add"><code>zxv_3d_add</code></a>.</p>
+<h3 id="zxv_xform_apply"><code>zxv_xform_apply</code><a class="ancla" href="#zxv_xform_apply" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">zxv_vec3 zxv_xform_apply(const zxv_xform *x, zxv_vec3 p);
+</code></pre>
+<p>Dónde va un punto con una posición: <code>m</code> · <code>p</code> + <code>t</code>. Para saber dónde
+queda en el mundo un punto de un objeto (la boca del cañón, para que salga
+de ahí el disparo).</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x</code></td>
+<td>un <code>zxv_xform</code></td>
+<td>La posición.</td>
+</tr>
+<tr>
+<td><code>p</code></td>
+<td>16.16</td>
+<td>El punto, en las coordenadas del objeto.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> el punto en el mundo, en 16.16. Si se sale de ±32768, no vale
+(se desborda).</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_3d.h&quot;
+
+/* El cañón está 1,5 unidades por delante del centro de la nave. */
+zxv_vec3 gun_position(const zxv_xform *ship)
+{
+    zxv_vec3 gun = { 0, 0, ZXV_FIX(1.5) };
+    return zxv_xform_apply(ship, gun);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_xform_set"><code>zxv_xform_set</code></a>, <a href="#zxv_3d_project"><code>zxv_3d_project</code></a>.</p>
+<h3 id="zxv_xform_mul"><code>zxv_xform_mul</code><a class="ancla" href="#zxv_xform_mul" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_xform_mul(zxv_xform *out, const zxv_xform *a, const zxv_xform *b);
+</code></pre>
+<p>Combina dos posiciones: <code>out</code> = <code>a</code> · <code>b</code>, que es aplicar primero <code>b</code> y
+luego <code>a</code>. Sirve para poner un objeto sobre otro: un brazo sobre un cuerpo
+es <code>cuerpo · brazo</code>, con la posición del brazo relativa al cuerpo.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>out</code></td>
+<td>puntero a un <code>zxv_xform</code></td>
+<td>Donde se deja. Puede ser el mismo que <code>a</code> o que <code>b</code>.</td>
+</tr>
+<tr>
+<td><code>a</code></td>
+<td>un <code>zxv_xform</code></td>
+<td>La de fuera (el cuerpo).</td>
+</tr>
+<tr>
+<td><code>b</code></td>
+<td>un <code>zxv_xform</code></td>
+<td>La de dentro (el brazo, relativo al cuerpo).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_3d.h&quot;
+
+extern const zxv_model tank_body, tank_turret;
+
+/* La torreta gira sobre el tanque, 0,5 unidades por encima de su centro. */
+void add_tank(const zxv_xform *body, int32_t turret_angle)
+{
+    zxv_xform rel, turret;
+    zxv_xform_set(&amp;rel, turret_angle, 0, 0, 0, ZXV_FIX(0.5), 0);
+    zxv_xform_mul(&amp;turret, body, &amp;rel);
+    zxv_3d_add(&amp;tank_body, body);
+    zxv_3d_add(&amp;tank_turret, &amp;turret);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_xform_set"><code>zxv_xform_set</code></a>.</p>
+<h3 id="zxv_3d_light"><code>zxv_3d_light</code><a class="ancla" href="#zxv_3d_light" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_3d_light(zxv_fix x, zxv_fix y, zxv_fix z, int ambient);
+</code></pre>
+<p>Pone la luz: de dónde viene y el tono de lo que no la recibe. Se queda
+para los frames siguientes. <strong>Cuenta desde el siguiente
+<a href="#zxv_3d_begin"><code>zxv_3d_begin</code></a></strong>, que es quien la gira con la cámara.</p>
+<p>Cada cara tiene cinco tonos, del 0 (el color oscuro) al 4 (el claro),
+pasando por tramas de un cuarto, la mitad y tres cuartos del claro. Una
+cara de espaldas a la luz tiene el tono <code>ambient</code>; una de frente, el 4; y
+las de en medio, según el ángulo.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x</code>, <code>y</code>, <code>z</code></td>
+<td>16.16, cualquier largo</td>
+<td>Un vector <strong>hacia</strong> la luz, en el mundo. Solo cuenta la dirección. Con (0, 0, 0), todas las caras tienen el tono <code>ambient</code>.</td>
+</tr>
+<tr>
+<td><code>ambient</code></td>
+<td>de 0 a 4</td>
+<td>El tono de lo que no recibe luz. Menos de 0 es 0 y más de 4 es 4.</td>
+</tr>
+</tbody>
+</table>
+<p>Sin llamarla, la luz viene de arriba, de la izquierda y de delante (del
+vector −1, 1,85, −1) con <code>ambient</code> 1.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_3d.h&quot;
+
+void night(void) { zxv_3d_light(0, ZXV_FIX(1), 0, 0); }         /* desde arriba, sombras negras */
+void noon(void) { zxv_3d_light(ZXV_FIX(1), ZXV_FIX(2), 0, 2); }  /* mucha luz por todas partes */
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_3d_mat-zxv_3d_two_sided-zxv_3d_flat-zxv_3d_decal"><code>ZXV_3D_MAT</code>...</a>.</p>
+<h3 id="zxv_3d_wireframe"><code>zxv_3d_wireframe</code><a class="ancla" href="#zxv_3d_wireframe" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_3d_wireframe(int colour);
+</code></pre>
+<p>Dibuja las aristas de las caras en vez de rellenarlas, con
+<a href="reference.html#figuras"><code>zxv_gfx_line</code></a>: para depurar, o para un juego de
+líneas. Se queda hasta que se cambie, y cuenta desde el siguiente
+<code>zxv_3d_draw</code>. Las caras de espaldas siguen sin dibujarse.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>colour</code></td>
+<td>0–15, o −1</td>
+<td>El color de las aristas. Cualquier otro valor (−1): caras otra vez.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_3d.h&quot;
+
+void debug_view(int on) { zxv_3d_wireframe(on ? 4 : -1); }      /* verde */
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_3d_draw"><code>zxv_3d_draw</code></a>.</p>
+<h3 id="zxv_3d_begin"><code>zxv_3d_begin</code><a class="ancla" href="#zxv_3d_begin" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_3d_begin(const zxv_camera *cam);
+</code></pre>
+<p>Empieza un frame: vacía la lista de caras y toma la cámara (y la luz). Los
+campos de la cámara que valen 0 (<code>focal</code>, <code>w</code>, <code>h</code>, <code>near</code>) toman sus
+valores por defecto; <code>cx</code> y <code>cy</code>, no.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cam</code></td>
+<td>una <code>zxv_camera</code></td>
+<td>La cámara. Se copia.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo:</strong> ver el de la <a href="#3d-sencillo-zxv_3dh">introducción</a>.</p>
+<p><strong>Ver también:</strong> <a href="#zxv_3d_add"><code>zxv_3d_add</code></a>, <a href="#zxv_camera"><code>zxv_camera</code></a>.</p>
+<h3 id="zxv_3d_add"><code>zxv_3d_add</code><a class="ancla" href="#zxv_3d_add" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_3d_add(const zxv_model *m, const zxv_xform *pos);
+</code></pre>
+<p>Añade un modelo al frame: lo pone en su sitio, quita las caras que dan la
+espalda, calcula el tono de cada una con la luz, las recorta contra la
+vista y las guarda para <a href="#zxv_3d_draw"><code>zxv_3d_draw</code></a>. Todavía no dibuja
+nada.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>m</code></td>
+<td>un <code>zxv_model</code></td>
+<td>El modelo.</td>
+</tr>
+<tr>
+<td><code>pos</code></td>
+<td>un <code>zxv_xform</code>, o <code>NULL</code></td>
+<td>Dónde va. <code>NULL</code>: en el origen, sin girar.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> las caras del modelo que se ven (0 si no se ve ninguna), o
+−1 si el modelo no vale o no caben.</p>
+<p><strong>Errores</strong></p>
+<table>
+<thead>
+<tr>
+<th>Devuelve</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>−1</td>
+<td><code>m</code> es <code>NULL</code>, o sus <code>verts</code> o <code>faces</code>; tiene más de 512 vértices (<code>ZXV_3D_MAX_VERTS</code>); una cara tiene menos de 3 o más de 32 lados, o un índice de vértice que no existe.</td>
+</tr>
+<tr>
+<td>−1</td>
+<td>Ya hay <code>ZXV_3D_MAX_FACES</code> caras en el frame, o no queda sitio para sus puntos.</td>
+</tr>
+</tbody>
+</table>
+<p>Con −1, las caras de ese modelo que ya se habían añadido se quedan (se
+dibujará a medias); las de los modelos de antes, también.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_3d.h&quot;
+
+extern const zxv_model rock;
+static zxv_xform rocks[20];
+
+/* Las rocas, hasta que no quepan más. */
+int add_rocks(int n)
+{
+    int faces = 0;
+    for (int i = 0; i &lt; n; i++) {
+        int r = zxv_3d_add(&amp;rock, &amp;rocks[i]);
+        if (r &lt; 0)
+            break;
+        faces += r;
+    }
+    return faces;
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_3d_begin"><code>zxv_3d_begin</code></a>, <a href="#zxv_3d_draw"><code>zxv_3d_draw</code></a>,
+<a href="#zxv_3d_max_faces-zxv_3d_max_verts-zxv_3d_face_sides"><code>ZXV_3D_MAX_FACES</code>...</a>.</p>
+<h3 id="zxv_3d_draw"><code>zxv_3d_draw</code><a class="ancla" href="#zxv_3d_draw" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">void zxv_3d_draw(void);
+</code></pre>
+<p>Dibuja todo lo añadido desde <code>zxv_3d_begin</code>, de lejos a cerca (por la
+distancia media de los vértices de cada cara; las <code>ZXV_3D_DECAL</code>, por la
+del más cercano), con <a href="reference.html#figuras"><code>zxv_gfx_poly</code></a> en el destino
+actual y con su recorte. No borra nada antes: el fondo es tuyo.</p>
+<p>Si ha usado alguna trama, al acabar <strong>deja la trama del motor quitada</strong>
+(<code>zxv_gfx_pattern(NULL, 0)</code>): si dibujas con trama después, vuelve a
+ponerla. La lista de caras no se vacía hasta el siguiente <code>zxv_3d_begin</code>:
+llamarla dos veces dibuja dos veces lo mismo.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_3d.h&quot;
+#include &quot;zxv_gfx.h&quot;
+
+/* El 3D solo en una ventana de 160 x 120, con el centro en (128, 80). */
+void draw_window(const zxv_camera *cam, const zxv_model *m, const zxv_xform *pos)
+{
+    zxv_gfx_clip(48, 20, 208, 140);
+    zxv_gfx_rect(48, 20, 160, 120, 0);
+    zxv_3d_begin(cam);                          /* con cx 128, cy 80, w 160, h 120 */
+    zxv_3d_add(m, pos);
+    zxv_3d_draw();
+    zxv_gfx_clip(0, 0, 256, 192);
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_3d_add"><code>zxv_3d_add</code></a>, <a href="#zxv_3d_wireframe"><code>zxv_3d_wireframe</code></a>.</p>
+<h3 id="zxv_3d_project"><code>zxv_3d_project</code><a class="ancla" href="#zxv_3d_project" aria-hidden="true">#</a></h3>
+<pre><code class="language-c">int zxv_3d_project(const zxv_camera *cam, zxv_vec3 p, int *sx, int *sy, zxv_fix *scale);
+</code></pre>
+<p>Dónde se ve un punto del mundo con una cámara: para poner sprites en el
+mundo 3D (una explosión, un letrero) o un punto de mira. No necesita
+<code>zxv_3d_begin</code> ni cambia nada del frame.</p>
+<p><strong>Parámetros</strong></p>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valores</th>
+<th>Qué es</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cam</code></td>
+<td>una <code>zxv_camera</code></td>
+<td>La cámara (con los mismos valores por defecto que en <code>zxv_3d_begin</code>).</td>
+</tr>
+<tr>
+<td><code>p</code></td>
+<td>16.16</td>
+<td>El punto, en el mundo.</td>
+</tr>
+<tr>
+<td><code>sx</code>, <code>sy</code></td>
+<td>punteros, o <code>NULL</code></td>
+<td>Donde se deja el píxel.</td>
+</tr>
+<tr>
+<td><code>scale</code></td>
+<td>puntero, o <code>NULL</code></td>
+<td>Donde se dejan los píxeles que mide una unidad del mundo a esa distancia, en 16.16 (como mucho 32767,99998).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Devuelve:</strong> 1 si el punto está delante de la cámara (más allá de
+<code>near</code>), con el resultado; 0 si no, o si cae a más de 2³⁰ píxeles, y
+entonces no se rellena nada. Con 1, el punto puede estar fuera de la
+vista: no se recorta.</p>
+<p><strong>Errores:</strong> ninguno.</p>
+<p><strong>Ejemplo</strong></p>
+<pre><code class="language-c">#include &quot;zxv_3d.h&quot;
+#include &quot;zxv_gfx.h&quot;
+
+/* Una explosión (un sprite de 16 x 16) en el punto p, del tamaño de 1 unidad. */
+void draw_blast(const zxv_camera *cam, zxv_vec3 p, const void *spr)
+{
+    int x, y;
+    zxv_fix s;
+    if (zxv_3d_project(cam, p, &amp;x, &amp;y, &amp;s)) {
+        int size = ZXV_FIX_INT(s);
+        if (size &gt; 0)
+            zxv_spr_draw_scaled(spr, x - size / 2, y - size / 2, size, size, 0, 0);
+    }
+}
+</code></pre>
+<p><strong>Ver también:</strong> <a href="#zxv_xform_apply"><code>zxv_xform_apply</code></a>.</p>
+<h3 id="modelos-de-blender-obj2cpy">Modelos de Blender: <code>obj2c.py</code><a class="ancla" href="#modelos-de-blender-obj2cpy" aria-hidden="true">#</a></h3>
+<p><code>sdk/tools/obj2c.py</code> convierte un modelo <code>.obj</code> (Blender: Archivo &gt;
+Exportar &gt; Wavefront) en C:</p>
+<pre><code class="language-sh">python3 sdk/tools/obj2c.py casa.obj casa.c house --size 2 --mat puerta=1,9,flat,decal
+</code></pre>
+<p>Escribe <code>const zxv_model house</code> (el tercer argumento) con sus vértices y
+sus caras. Añade <code>casa.c</code> a <code>SOURCES</code> y declara el modelo donde lo uses:</p>
+<pre><code class="language-c">#include &quot;zxv_3d.h&quot;
+
+extern const zxv_model house;
+
+void add_house(const zxv_xform *where) { zxv_3d_add(&amp;house, where); }
+</code></pre>
+<ul>
+<li>Centra el modelo (salvo con <code>--keep-origin</code>) y lo escala para que su lado
+  más largo mida <code>--size</code> unidades del mundo (2 por defecto). Los vértices
+  quedan como enteros de hasta ±4096 y <code>scale</code> dice cuánto mide cada uno.</li>
+<li>Pasa la z del <code>.obj</code> (hacia la cámara) a la de <code>zxv_3d</code> (hacia delante) y
+  da la vuelta a las caras para que sigan viéndose por fuera.</li>
+<li>Los colores salen del material de cada cara: un material llamado
+  <code>zxv_OSCURO_CLARO</code> (<code>zxv_2_10</code>) usa esos, y con <code>_two</code>, <code>_flat</code> o
+  <code>_decal</code> detrás (<code>zxv_2_10_two</code>), esas opciones; si no, el color difuso
+  (<code>Kd</code>) del <code>.mtl</code> da el más parecido de los 16 y su pareja con brillo o
+  sin él. Sin material, <code>--default OSCURO,CLARO</code> (1,9: azul).</li>
+<li><code>--mat nombre=oscuro,claro[,two][,flat][,decal]</code> cambia un material;
+  <code>--two-sided</code>, todas las caras de los dos lados.</li>
+<li>Las caras no convexas (una L, una sierra, una corona) y las de más de 32
+  lados se parten en triángulos, que luego se juntan en trozos convexos de
+  hasta 32 lados: se dibujan bien y más deprisa que si <code>zxv_3d_add</code> tuviera
+  que partirlas en cada frame. Las caras sin área (vértices repetidos o en
+  línea) se quitan, y de una que se cruza consigo misma avisa. Con más de
+  512 vértices avisa (<code>zxv_3d_add</code> no lo aceptaría).</li>
+<li>Cada cara empieza por la esquina que mejor da su normal, para que la luz
+  salga bien aunque tenga vértices en línea.</li>
+<li>Con un <code>.obj</code> o unas opciones que no valen (un vértice sin sus tres
+  números, una opción sin valor...), un mensaje que dice qué y dónde. Los
+  comentarios (<code>#</code>) pueden ir también al final de una línea.</li>
+<li><strong>Para que el pintor acierte:</strong> que las piezas se toquen sin meterse unas
+  en otras, y parte una cara grande por donde se apoya en ella una
+  pequeña (como el lomo de la nave del ejemplo Nave 3D, partido bajo la
+  deriva).</li>
+<li>Con <code>--bas</code> sale ZX Basic para <code>zxv3d.bas</code> en lugar de C (abajo).</li>
+</ul>
+<h3 id="en-zx-basic-zxv3dbas">En ZX Basic: <code>zxv3d.bas</code><a class="ancla" href="#en-zx-basic-zxv3dbas" aria-hidden="true">#</a></h3>
+<p>En el <a href="../zxbasic.html">fork de ZX Basic</a>, <code>zxv3d.bas</code> hace lo mismo con
+órdenes de BASIC, y <code>obj2c.py --bas</code> escribe el modelo como dos matrices y
+un <code>SUB casa_model(n)</code> que lo pone como el modelo <code>n</code> (de 0 a 15):</p>
+<pre><code class="language-sh">python3 sdk/tools/obj2c.py casa.obj casa.bas casa --size 2 --bas
+</code></pre>
+<pre><code class="language-basic">#include &lt;zxv3d.bas&gt;
+#include &quot;casa.bas&quot;
+
+casa_model(0)
+CAMERA3D -3, 2, -7, 3640, -1820             ' dónde está; gira y mira abajo
+FOR a = 0 TO 65535 STEP 256
+    BOX 5, 0, 0, 256, 80: BOX 4, 0, 80, 256, 112
+    BEGIN3D: LET n = ADD3D(0, 0, 1, 0, a): DRAW3D: WAIT
+NEXT a
+</code></pre>
+<p>Las órdenes (<code>CAMERA3D</code>, <code>LIGHT3D</code>, <code>WIREFRAME3D</code>, <code>BEGIN3D</code>, <code>ADD3D</code>,
+<code>DRAW3D</code>, <code>PROJECT3D</code>, <code>MAT3D</code>, <code>MODEL3D</code>) son las funciones de esta
+página con las coordenadas en <code>FIXED</code> y los ángulos en vueltas de 65536;
+las matrices del modelo no se copian y tienen que ser globales. Su
+referencia está en la <a href="../zxbasic.html">página de ZX Basic</a>. Un ejemplo
+entero, con doble buffer: <a href="https://github.com/cronomantic/ZX-V/blob/main/examples/zxbasic/nave3d/README.es.md">Nave 3D</a>.</p>
+<nav class="pasos"><a class="anterior" href="graphics.html"><small>Anterior</small>← Gráficos</a><a class="siguiente" href="reference.html"><small>Siguiente</small>Referencia de la API →</a></nav>
+<footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
+</main>
+</div>
+<script>
+var aqui = document.querySelector('aside .aqui');
+if (aqui) aqui.closest('aside').scrollTop = aqui.offsetTop - 120;
+document.querySelector('main').addEventListener('click', function () {
+    document.body.classList.remove('abierto');
+});
+</script>
+</body>
+</html>

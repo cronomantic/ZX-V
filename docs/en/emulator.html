@@ -13,9 +13,9 @@
 <a class="marca" href="index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
-<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
+<a class="ir sitio" href="https://zx-v.org/">Website</a>
 <a class="ir" href="../es/emulator.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -45,6 +45,8 @@
 </li>
 <li><a href="sdk/graphics.html">Graphics</a>
 </li>
+<li><a href="sdk/libraries.html">The SDK libraries</a>
+</li>
 <li><a href="sdk/reference.html">API reference</a>
 </li>
 </ul>
@@ -58,8 +60,10 @@
 </li>
 <li><a href="hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
 </li>
-<li><a href="hardware/firmware.html#the-ext-drive"><code>EXT:</code>
-  drive</a>
+<li><a href="hardware/firmware.html#loading-programs-over-wi-fi-pico-2-w">over
+  Wi-Fi</a>
+</li>
+<li><a href="hardware/firmware.html#the-ext-drive"><code>EXT:</code> drive</a>
 </li>
 <li><a href="sdk/web.html">Publishing your game on the web</a>
 </li>
@@ -134,11 +138,11 @@ other way round. It comes in several forms:</p>
 </tr>
 <tr>
 <td><strong><code>zxv-link</code></strong></td>
-<td>Sends programs from the PC to the real machine and runs them, through the board's J5 header with a USB-serial adapter, and serves a folder as its <code>EXT:</code> drive (see <a href="hardware/firmware.html#loading-programs-from-the-pc-j5">The firmware</a>)</td>
+<td>Sends programs from the PC to the real machine and runs them, through the board's J5 header with a USB-serial adapter (or over Wi-Fi, with a Pico 2 W), and serves a folder as its <code>EXT:</code> drive (see <a href="hardware/firmware.html#loading-programs-from-the-pc-j5">The firmware</a>)</td>
 </tr>
 <tr>
 <td><strong><code>zxv-link-gui</code></strong></td>
-<td>The same as <code>zxv-link</code>, with a window, in steps: the board, the program, where the board loads it from (the <code>EXT:</code> drive or the card), run or only copy, and the result; with the recent programs and the machine's report</td>
+<td>The same as <code>zxv-link</code>, with a window: the machine (by cable or Wi-Fi, and pairing it), running a file from the PC straight into memory, and the card, the ROM and <code>EXT:</code> like an explorer (run, send, fetch, folders, rename, delete); with the machine's report</td>
 </tr>
 </tbody>
 </table>
@@ -461,7 +465,10 @@ a gamepad; most games, like <em>Estela</em>, accept both the keyboard and a game
 <p>A folder card behaves like a real card: names are not case sensitive
 (<code>GAME.ZVB</code> and <code>game.zvb</code> are the same file) and programs cannot see anything
 outside the folder. File names can use only unaccented letters, digits and
-some symbols, up to 63 characters; files with other names do not show up.</p>
+some symbols, up to 63 characters; files with other names do not show up.
+And, as on the card, a file the machine has open cannot be opened for
+writing, removed or renamed (<code>ZXV_E_ACCESS</code>). The <code>EXT:</code> drive does allow it,
+as the <code>zxv-link</code> server does.</p>
 <p><strong><code>sdimg</code></strong> creates and fills card images from the command line:</p>
 <pre><code class="language-sh">sdimg new card.img 64 fat32          # a new 64 MB image (fat, fat32 or exfat)
 sdimg put card.img game.zvb /game.zvb   # copy a file into the image
@@ -736,12 +743,12 @@ lists them all). These are the ones you are most likely to use:</p>
 </tr>
 <tr>
 <td><code>--version</code></td>
-<td>Print the ZX-V version (<code>ZX-V 0.10.0</code>) and exit. On Windows <code>zxv</code> has no console: its version is in <strong>Help &gt; About ZX-V</strong></td>
+<td>Print the ZX-V version (<code>ZX-V 0.11.0</code>) and exit. On Windows <code>zxv</code> has no console: its version is in <strong>Help &gt; About ZX-V</strong></td>
 </tr>
 </tbody>
 </table>
 <p>The rest (<code>--rom</code>, <code>--elf</code>, <code>--load</code>, <code>--gdb</code>, <code>--basic-debug</code>, <code>--debug</code>,
-<code>--profile</code>, <code>--panel</code>, <code>--test</code>, <code>--fail-on-warning</code>) are for programmers:
+<code>--profile</code>, <code>--symbols</code>, <code>--panel</code>, <code>--test</code>, <code>--fail-on-warning</code>) are for programmers:
 <code>zxv-cli --help</code> explains them, and the <a href="sdk/index.html#debugging">SDK guide</a>
 tells how to debug.</p>
 <h3 id="zxv-cli-the-machine-without-a-window"><code>zxv-cli</code>: the machine without a window<a class="ancla" href="#zxv-cli-the-machine-without-a-window" aria-hidden="true">#</a></h3>

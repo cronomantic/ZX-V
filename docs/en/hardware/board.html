@@ -13,9 +13,9 @@
 <a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
-<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
+<a class="ir sitio" href="https://zx-v.org/">Website</a>
 <a class="ir" href="../../es/hardware/board.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -43,6 +43,8 @@
 </li>
 <li><a href="../sdk/graphics.html">Graphics</a>
 </li>
+<li><a href="../sdk/libraries.html">The SDK libraries</a>
+</li>
 <li><a href="../sdk/reference.html">API reference</a>
 </li>
 </ul>
@@ -56,8 +58,10 @@
 </li>
 <li><a href="firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
 </li>
-<li><a href="firmware.html#the-ext-drive"><code>EXT:</code>
-  drive</a>
+<li><a href="firmware.html#loading-programs-over-wi-fi-pico-2-w">over
+  Wi-Fi</a>
+</li>
+<li><a href="firmware.html#the-ext-drive"><code>EXT:</code> drive</a>
 </li>
 <li><a href="../sdk/web.html">Publishing your game on the web</a>
 </li>
@@ -93,9 +97,9 @@ parts already soldered</strong>. When it arrives you only solder the two Picos a
 few large through-hole parts.</p>
 <blockquote>
 <p><strong>The first boards have been made and one has been tested:</strong> with the two
-Picos together it passes <code>boardtest</code> and uses the microSD card; the
-clock's coin cell is still to be tried. If you order it, check
-everything this page asks you to check.
+Picos together it passes <code>boardtest</code>, uses the microSD card, keeps the time
+with the clock's coin cell and loads and updates through J5. If you order
+it, check everything this page asks you to check.
 The design files are in <a href="https://github.com/cronomantic/ZX-V/tree/main/pcb"><code>pcb/</code></a> (KiCad), as open hardware:
 CERN-OHL-W v2 licence.</p>
 </blockquote>
@@ -482,7 +486,7 @@ link pins. If something does not work, see
 <td><code>MODO</code></td>
 <td>Front, left</td>
 <td>SW2</td>
-<td><strong>Mode</strong>: a short press switches video mode; a long press (1 to 5 s) shows or hides the diagnostic page; held at power-on, the safe mode</td>
+<td><strong>Mode</strong>: a short press switches video mode; held for a second, it shows or hides the diagnostic page; held at power-on, the safe mode</td>
 </tr>
 <tr>
 <td><code>USB</code></td>

@@ -13,9 +13,9 @@
 <a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
-<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
+<a class="ir sitio" href="https://zx-v.org/es/">Web</a>
 <a class="ir" href="../../en/hardware/protoboard.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -43,6 +43,8 @@
 </li>
 <li><a href="../sdk/graphics.html">Gráficos</a>
 </li>
+<li><a href="../sdk/libraries.html">Las bibliotecas del SDK</a>
+</li>
 <li><a href="../sdk/reference.html">Referencia de la API</a>
 </li>
 </ul>
@@ -55,6 +57,9 @@
 <li><a href="../sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
 </li>
 <li><a href="firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="firmware.html#cargar-programas-por-wi-fi-pico-2-w">por
+  Wi-Fi</a>
 </li>
 <li><a href="firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
 </li>
@@ -353,14 +358,14 @@ alimentación, mejor.</p>
 <ul>
 <li>La fuente va al <strong>VSYS (pin 39) de cada Pico por un diodo Schottky</strong> (el
   ánodo a la fuente; el cátodo, el lado de la raya, a VSYS). Así se puede
-  enchufar a la vez el micro-USB de una Pico (para actualizarla, o para el
-  puerto serie) sin que sus 5 V vuelvan a la fuente.</li>
+  enchufar a la vez el micro-USB de una Pico (para actualizarla, o el puerto
+  serie de la ULA) sin que sus 5 V vuelvan a la fuente.</li>
 <li>La fuente también da los <strong>5 V del USB-A (VBUS) por el fusible rearmable de
   500 mA</strong>.</li>
 </ul>
 <p>Si en cambio metes la fuente por el <strong>VBUS (pin 40) de la Pico CPU</strong>, sin
 diodos, <strong>tienes que desconectarla antes de enchufar el micro-USB</strong> de esa
-Pico (para cargarle el firmware, o para el puerto serie), o sus 5 V llegarían
+Pico (para cargarle el firmware), o sus 5 V llegarían
 a tu ordenador.</p>
 <h2 id="el-enlace-entre-las-dos-pico">El enlace entre las dos Pico<a class="ancla" href="#el-enlace-entre-las-dos-pico" aria-hidden="true">#</a></h2>
 <p>Cables cortos (<strong>como mucho, unos 20 cm</strong>), con <strong>al menos tres cables de
@@ -698,10 +703,12 @@ luego un PCF8563, y usa el que encuentre.</p>
    pulsador del modo y el LED, y prueba los modos.</li>
 <li><strong>Las dos Pico.</strong> Cablea el enlace, carga <code>zxv_cpu.uf2</code> en la Pico CPU y
    <code>zxv_ula_link.uf2</code> en la Pico ULA. En la pantalla debería salir el BASIC.
-   Abre el puerto serie de la Pico CPU (su micro-USB) con un terminal: cada
-   5 segundos escribe un informe. (Las dos Pico juntas funcionan en la placa,
-   pero este cableado en una protoboard no se ha probado: si falla, empieza
-   por el informe del puerto serie.)</li>
+   Cada 5 segundos la Pico CPU escribe un informe por la carga remota (GP12 y GP13): con
+   un adaptador USB-serie de 3,3 V y <code>zxv-link log</code> (<a href="firmware.html#el-informe">El
+   firmware</a>). Sin adaptador, lo principal sale en la
+   página de diagnóstico (Ctrl+Alt+F12). (Las dos Pico juntas funcionan en la
+   placa, pero este cableado en una protoboard no se ha probado: si falla,
+   empieza por el informe.)</li>
 <li><strong>La tarjeta SD, el USB-A y el reloj</strong>, de uno en uno, mirando cada uno en
    el informe (<code>tarjeta</code>, <code>USB</code>, <code>reloj</code>) y desde el BASIC: <code>CAT</code> para la
    tarjeta, escribir algo para el teclado, y <code>CLOCK 2026,10,20,18,30</code> y luego

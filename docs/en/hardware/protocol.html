@@ -13,9 +13,9 @@
 <a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
-<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
+<a class="ir sitio" href="https://zx-v.org/">Website</a>
 <a class="ir" href="../../es/hardware/protocol.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -43,6 +43,8 @@
 </li>
 <li><a href="../sdk/graphics.html">Graphics</a>
 </li>
+<li><a href="../sdk/libraries.html">The SDK libraries</a>
+</li>
 <li><a href="../sdk/reference.html">API reference</a>
 </li>
 </ul>
@@ -56,8 +58,10 @@
 </li>
 <li><a href="firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
 </li>
-<li><a href="firmware.html#the-ext-drive"><code>EXT:</code>
-  drive</a>
+<li><a href="firmware.html#loading-programs-over-wi-fi-pico-2-w">over
+  Wi-Fi</a>
+</li>
+<li><a href="firmware.html#the-ext-drive"><code>EXT:</code> drive</a>
 </li>
 <li><a href="../sdk/web.html">Publishing your game on the web</a>
 </li>
@@ -101,9 +105,10 @@ travels.</p>
   the machine, GP13 comes in), at <strong>921,600 baud</strong>, 8 bits, no parity, 1 stop
   bit, no flow control, at <strong>3.3 V</strong>. With a 3.3 V USB-serial adapter: its RX
   to the board's TX, its TX to the RX, and ground to ground.</li>
-<li><strong>Later, others</strong> (the Wi-Fi of a Pico 2 W): the same messages by another
-  way. If there is a server on each one at the same time, the machine uses
-  the one on the cable.</li>
+<li><strong>The network, if the CPU Pico is a Pico 2 W</strong> (D106): the same frames,
+  each one in a signed UDP packet (<a href="#over-the-network-wi-fi">below</a>). If there
+  is an <code>EXT:</code> server on each path at the same time, the machine uses the one
+  on the cable.</li>
 </ul>
 <h2 id="the-frames">The frames<a class="ancla" href="#the-frames" aria-hidden="true">#</a></h2>
 <p>Each message goes in a frame: its bytes in <strong>COBS</strong>, followed by a <strong>zero</strong>.
@@ -336,7 +341,7 @@ reference one):</p>
 <tr>
 <td><code>HELLO</code> (1)</td>
 <td>—</td>
-<td>Protocol version (u16), whether BASIC is waiting for a command (u8), specification version (u32) and firmware version (text)</td>
+<td>Protocol version (u16), whether BASIC is waiting for a command (u8: 1 yes, 0 no, 2 it is updating its firmware), specification version (u32) and firmware version (text)</td>
 </tr>
 <tr>
 <td><code>OPEN</code> (2)</td>
@@ -383,17 +388,223 @@ reference one):</p>
 <td>above</td>
 <td>above</td>
 </tr>
+<tr>
+<td><code>UPDATE</code> (11)</td>
+<td>—</td>
+<td>— (the machine restarts and updates its firmware from <code>EXT:/zxv-update.bin</code>: below)</td>
+</tr>
+<tr>
+<td><code>LIST</code> (12)</td>
+<td>from (u16), path</td>
+<td>How many entries this reply has (in the status), whether there are more (u8) and each one: size (u32), attributes (u8: 1 folder), name length (u8) and the name</td>
+</tr>
+<tr>
+<td><code>GET</code> (13)</td>
+<td>position (u32), path</td>
+<td>How many bytes (in the status, up to 508), the file size (u32) and those bytes</td>
+</tr>
+<tr>
+<td><code>REMOVE</code> (14)</td>
+<td>path</td>
+<td>— (a file or an empty folder)</td>
+</tr>
+<tr>
+<td><code>RENAME</code> (15)</td>
+<td>path, 0, new path</td>
+<td>— (on the same drive; if something else already has the new name, <code>ZXV_E_EXIST</code>; the same name with other capitals changes it)</td>
+</tr>
+<tr>
+<td><code>MKDIR</code> (16)</td>
+<td>path</td>
+<td>—</td>
+</tr>
 </tbody>
 </table>
+<p><strong>The card and the ROM like an explorer</strong> (<code>LIST</code>, <code>GET</code>, <code>REMOVE</code>,
+<code>RENAME</code>, <code>MKDIR</code>, since version 6): paths carry their drive, <code>SD:</code> or
+<code>ROM:</code> (with no drive, the card); not <code>EXT:</code>, which is the outside
+device's own folder. <code>ROM:</code> is read only: the rest gives an error. <code>LIST</code>
+returns the entries that fit in a frame, starting at number "from": if it
+says there are more, ask again from the next one. <code>GET</code> returns a piece
+from "position"; while the same file is asked for in a row, the machine
+keeps it open, and any other request closes it. Running what is already on
+the machine is <code>RUN</code> with the command: <code>CD "SD:/games": LOAD "game.zxv"</code>.</p>
 <p><strong>Status 1 in <code>RUN</code> and <code>READY</code>:</strong> a program was running and the machine
 restarts completely, as with Ctrl+Alt+Del; what was asked is not done. It
 answers again after a boot (one or two seconds): send <code>HELLO</code> until it says
 that BASIC is waiting for a command, and ask again.</p>
+<p><strong><code>UPDATE</code>:</strong> updating the firmware of both Picos from outside, with no card
+(<code>zxv-link update</code>). First serve <code>EXT:</code> with the file at <code>/zxv-update.bin</code>;
+BASIC must be waiting for a command. With status 0, the machine restarts into
+its update screen and reads the file from <code>EXT:</code>. It restarts again after
+writing the CPU firmware and once more at the end, so keep serving it (and
+announcing) until the end. Meanwhile, <code>HELLO</code> says 2, the report (<code>LOG</code>
+channel) tells the steps (a step that fails ends in ": error") and everything
+else, except <code>SERVE</code>, answers <code>ZXV_E_ACCESS</code>. At the end the machine goes
+back to BASIC: if <code>HELLO</code> gives the file's version, it went well. Errors:
+<code>ZXV_E_OFFLINE</code> if it does not see the <code>EXT:</code> server; <code>ZXV_E_ACCESS</code> with a
+program running, if the Pico has no partitions (flash it once over USB) or if
+it is already updating.</p>
+<h2 id="over-the-network-wi-fi">Over the network (Wi-Fi)<a class="ancla" href="#over-the-network-wi-fi" aria-hidden="true">#</a></h2>
+<p>With a Pico 2 W in the CPU socket, the machine joins the network chosen in
+<strong>EDIT &gt; Wi-Fi</strong> and listens on <strong>UDP port 5612</strong>. Each frame above (in COBS,
+with its zero) goes <strong>whole in one packet</strong>; the machine answers to the port
+it came from. Everything except finding and pairing is <strong>signed</strong> with a key
+that only the machine and that PC have, so nobody else on the network can
+send it programs or pose as its <code>EXT:</code> server. It is not encrypted: what
+travels can be read. The reference is <code>zlnet.h</code>, <code>zlnet.c</code> and <code>netpc.c</code> (the
+PC) and <code>pico/common/netsvc.c</code> (the machine).</p>
+<p>Each packet starts with <code>ZXV</code> and a letter, the type. Numbers in little
+endian:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Who</th>
+<th>What it carries</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>F</code></td>
+<td>PC</td>
+<td>Find: the PC's id (8 bytes) and the PC's network protocol version (u8). To the network broadcast or to an address</td>
+</tr>
+<tr>
+<td><code>f</code></td>
+<td>Machine</td>
+<td>The machine's id (8), its boot (8, random at each power-up), whether it is paired with that PC (u8), the frame version (u16), its name (16, zero-padded: <code>ZX-V-1A2B</code>, from its MAC), the firmware (text: <code>ZX-V 0.11.0</code>), a 0 and the network protocol version (u8)</td>
+</tr>
+<tr>
+<td><code>P</code></td>
+<td>PC</td>
+<td>Start pairing: the PC's id (8), its X25519 public key (32) and its name</td>
+</tr>
+<tr>
+<td><code>p</code></td>
+<td>Machine</td>
+<td>State (u8), its public key (32) and its commitment (32)</td>
+</tr>
+<tr>
+<td><code>N</code></td>
+<td>PC</td>
+<td>The PC's id (8) and its random number Npc (16). From the address and port of the <code>P</code></td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>Machine</td>
+<td>State (u8) and its random number Nm (16)</td>
+</tr>
+<tr>
+<td><code>Q</code></td>
+<td>PC</td>
+<td>The PC's id (8) and its proof (16, below): has the user answered?</td>
+</tr>
+<tr>
+<td><code>q</code></td>
+<td>Machine</td>
+<td>State (u8) and, if it is 1, its proof (16)</td>
+</tr>
+<tr>
+<td><code>D</code></td>
+<td>PC</td>
+<td>Data: the PC's id (8), the machine's boot (8), counter (u64), one frame and the tag (16)</td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td>Machine</td>
+<td>Data, like <code>D</code></td>
+</tr>
+<tr>
+<td><code>b</code></td>
+<td>Machine</td>
+<td>The PC's id (8), its new boot (8), the counter of the <code>D</code> it answers (u64) and the tag (16): its answer to a <code>D</code> with another boot</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The states:</strong> 0 carry on (waiting for the user or the next step), 1
+accepted, 2 rejected (or the box was closed), 3 the machine is not pairing,
+4 it is pairing with another PC.</p>
+<h3 id="pairing">Pairing<a class="ancla" href="#pairing" aria-hidden="true">#</a></h3>
+<p>Like Bluetooth's numeric comparison. The user opens <strong>EDIT &gt; Wi-Fi &gt; Pair a PC</strong>
+on the machine; otherwise it answers <code>P</code> with state 3.</p>
+<ol>
+<li>The PC sends <code>P</code> with its public key Ppc.</li>
+<li>The machine makes a new X25519 key Pm and a number Nm, and answers <code>p</code>
+   with Pm and the commitment <code>SHA-256("ZX-V commit" | Nm | Pm | Ppc)</code>.</li>
+<li>The PC sends <code>N</code> with its number Npc; the machine answers <code>n</code> with Nm. The
+   PC checks that Nm gives the earlier commitment.</li>
+<li>Both show the code: the first 4 bytes of
+   <code>SHA-256("ZX-V code" | Ppc | Pm | Npc | Nm)</code>, as a big-endian number,
+   modulo 1,000,000 (six digits).</li>
+<li>The user checks that they match and accepts on the machine. The PC asks
+   with <code>Q</code> until it gets 1 or 2. <code>Q</code> carries the proof of the key the PC
+   has: the first 16 bytes of <code>HMAC-SHA-256(key, "ZX-V query" | PC's id |
+   machine's id)</code>. The machine answers 1 only if it has stored that key (the
+   user accepted), with its own proof, <code>"ZX-V paired"</code> instead of
+   <code>"ZX-V query"</code>; the PC does not keep the key if it doesn't match. It
+   answers 2 if it doesn't have it (rejected, or the box was closed), even if
+   that PC was already paired with another key.</li>
+<li>The pair's key is <code>SHA-256("ZX-V key" | X25519(own key, the other's) |
+   Ppc | Pm | Npc | Nm)</code>. The machine keeps it with the PC's id and name (it
+   remembers 8 PCs; one more forgets the oldest).</li>
+</ol>
+<p>The labels are ASCII, without a zero. Since the machine commits to Nm before
+it sees Npc, someone in the middle cannot search for keys that make both codes
+match: they would have one chance in a million.</p>
+<h3 id="the-data">The data<a class="ancla" href="#the-data" aria-hidden="true">#</a></h3>
+<p><code>D</code> (from the PC to the machine), <code>d</code> (from the machine to the PC) and <code>b</code>
+are signed with the pair's key: the tag is the first 16 bytes of
+<code>HMAC-SHA-256(key, "ZX-V net" | the network protocol version (u8) |
+everything before it in the packet)</code>. The letter is signed, so a packet sent
+back to whoever sent it is worthless, and with the version inside, a machine
+and a PC of different versions accept nothing from each other. In both
+directions it carries the PC's id and the machine's boot. <strong>Counters never
+repeat:</strong> a
+packet with one the machine has already seen, with a bad tag or from a PC it
+doesn't know is dropped without an answer (a recorded packet cannot be
+replayed). As a PC may run several programs at once (for example <code>zxv-link
+serve</code> and <code>zxv-link log</code>), each with its own UDP port, their packets may
+arrive out of order: the machine remembers the last 16 counters it accepted
+and, below them, a floor per PC, and drops whatever is not above the floor.
+The machine's starts at each boot; the PC's comes from its clock, so it keeps
+going up when it is opened again: <code>zxv-link</code> uses milliseconds times 1024
+with a random lane per program in bits 4 to 9, so two programs don't produce
+the same counter in the same millisecond. And it <strong>never goes down for a
+machine</strong>, even if the PC's clock goes back: <code>zxv-link</code> writes down the last
+one it used with each (every second, or every 256 if the clock has gone
+back) and carries on above it; while the clock is behind, one by one.</p>
+<p>If the machine has restarted, the boot is no longer the one the PC has: to a
+well-signed <code>D</code> with the old boot, the machine answers <code>b</code> with the new one
+and that <code>D</code>'s counter. The PC only believes it if it answers one of its
+latest <code>D</code>s and brings another boot; then it switches and repeats the last
+one. A recorded <code>b</code> is useless: it no longer answers any of those.</p>
+<p><strong>Each PC program gets its own</strong> (each one is an address and a UDP port):</p>
+<ul>
+<li><strong>The reply</strong> to a request goes to the program that made it, including the
+  one to <code>RUN</code>, which comes when BASIC has typed the command, even if others
+  speak in the meantime.</li>
+<li><strong>What programs ask of <code>EXT:</code></strong> goes to the program serving it: the one of
+  the last <code>SERVE</code>.</li>
+<li><strong>The report</strong> goes to everyone who has said something in the last 15
+  seconds (4 at most). A program that only listens to the report sends a
+  <code>HELLO</code> every 5 seconds to stay on the list.</li>
+</ul>
+<p><strong>On the PC,</strong> <code>zxv-link</code> keeps its id and the machines' keys in
+<code>zxv-link-net.txt</code> (in <code>%APPDATA%\ZX-V</code> on Windows and <code>~/.config/ZX-V</code>
+elsewhere), and the last counter for each machine next to it, in
+<code>zxv-link-net-counters.txt</code>.</p>
+<p><strong>The network protocol version</strong> goes in <code>F</code> and <code>f</code>; this is version 2. A
+machine that doesn't give it in <code>f</code> has version 1 (the first test builds).
+With another version, <code>zxv-link</code> does not talk to the machine: it says they
+are not compatible and which to update, the machine or <code>zxv-link</code>. The J5
+frames don't change.</p>
 <h2 id="the-versions">The versions<a class="ancla" href="#the-versions" aria-hidden="true">#</a></h2>
-<p><code>HELLO</code> gives the machine's protocol version. <strong>This is 4:</strong> the <code>EXT:</code> drive
-(the <code>EXT</code> channel and <code>SERVE</code>). Version 3 brought the machine restart in
-<code>RUN</code> and <code>READY</code>; version 2, <code>STAT</code>, <code>READY</code> and the debugger. An <code>EXT:</code>
-server needs a machine with 4 or later.</p>
+<p><code>HELLO</code> gives the machine's protocol version. <strong>This is 6:</strong> <code>LIST</code>,
+<code>GET</code>, <code>REMOVE</code>, <code>RENAME</code> and <code>MKDIR</code>. Version 5 brought <code>UPDATE</code>; version
+4, the <code>EXT:</code> drive (the <code>EXT</code> channel and <code>SERVE</code>); version 3, the machine
+restart in <code>RUN</code> and <code>READY</code>; version 2, <code>STAT</code>, <code>READY</code> and the debugger. An <code>EXT:</code> server needs a machine with 4 or later; updating
+through J5, 5; and browsing the card, 6.</p>
 <nav class="pasos"><a class="anterior" href="protoboard.html"><small>Previous</small>← On a protoboard</a></nav>
 <footer>This documentation is licensed under <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; its code examples are public domain (CC0).</footer>
 </main>

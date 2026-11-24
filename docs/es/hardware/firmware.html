@@ -13,9 +13,9 @@
 <a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
-<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
+<a class="ir sitio" href="https://zx-v.org/es/">Web</a>
 <a class="ir" href="../../en/hardware/firmware.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -43,6 +43,8 @@
 </li>
 <li><a href="../sdk/graphics.html">Gráficos</a>
 </li>
+<li><a href="../sdk/libraries.html">Las bibliotecas del SDK</a>
+</li>
 <li><a href="../sdk/reference.html">Referencia de la API</a>
 </li>
 </ul>
@@ -55,6 +57,9 @@
 <li><a href="../sdk/index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
 </li>
 <li><a href="firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="firmware.html#cargar-programas-por-wi-fi-pico-2-w">por
+  Wi-Fi</a>
 </li>
 <li><a href="firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
 </li>
@@ -161,6 +166,21 @@ actualizaciones desde la tarjeta) y, en la Pico CPU, la unidad <code>ROM:</code>
    segundos con la versión nueva. Luego puedes borrar <code>zxv-update.bin</code> de la
    tarjeta.</li>
 </ol>
+<p><strong>Desde el PC por J5</strong>, sin tarjeta: con el adaptador USB-serie de
+<a href="#cargar-programas-desde-el-pc-j5">Cargar programas desde el PC</a> y
+<code>zxv-link</code>:</p>
+<pre><code>zxv-link --port COM5 update zxv-update.bin
+</code></pre>
+<p><code>zxv-link</code> dice la versión de la máquina y la del fichero y pregunta antes
+(con <code>--yes</code>, no). La máquina se reinicia en la misma pantalla de
+actualización, pero lee el fichero del PC por J5: no hace falta tarjeta, ni
+que la que haya funcione. Mientras tanto, <code>zxv-link</code> cuenta cómo va. La
+máquina se reinicia dos veces: tras escribir su firmware y al final. Tarda
+dos o tres minutos (J5 es más lento que la tarjeta). <strong>No la apagues ni
+desenchufes el adaptador</strong>; si se corta, es como si fallara la tarjeta (lo de
+abajo). Si había un programa en marcha, antes se para. La primera vez la
+máquina tiene que llevar ya un firmware que sepa hacerlo: si es anterior,
+<code>zxv-link</code> lo dice; actualízala una vez desde la tarjeta o por USB.</p>
 <p>Cada Pico guarda <strong>dos copias</strong> de su firmware: la actualización se escribe
 en la que no está en uso, y la Pico solo pasa a ella cuando está escrita y
 comprobada. Así, si se va la corriente a medias o falla la tarjeta, las dos
@@ -178,27 +198,25 @@ Pico. Usa siempre los dos ficheros de la misma versión: si la CPU y la ULA
 llevan versiones distintas del enlace, la CPU lo dice en su informe (ver
 abajo), y puede que no salga la imagen.</p>
 <p><strong>Sin tocar BOOTSEL.</strong> Si tienes <code>picotool</code> (viene con la extensión Raspberry
-Pi Pico de VS Code), una Pico que ya lleva un firmware de ZX-V se puede
+Pi Pico de VS Code), la Pico ULA, si ya lleva el firmware de ZX-V, se puede
 actualizar por su cable USB, sin tocar BOOTSEL:</p>
-<pre><code class="language-sh">picotool load -f -x zxv_cpu.uf2
+<pre><code class="language-sh">picotool load -f -x zxv_ula_link.uf2
 </code></pre>
 <p><code>-f</code> reinicia la Pico en modo de carga y <code>-x</code> arranca el firmware nuevo al
 acabar. Si la Pico está colgada, o nunca ha llevado el firmware de ZX-V, usa
-BOOTSEL.</p>
+BOOTSEL. Con la Pico CPU no se puede: su micro-USB ya no es un puerto
+serie, y sin él picotool no la reinicia. Usa BOOTSEL o la
+tarjeta.</p>
 <h2 id="el-informe">El informe<a class="ancla" href="#el-informe" aria-hidden="true">#</a></h2>
 <p><strong>Cada 5 segundos la Pico CPU escribe un informe</strong>, en el idioma de la
 máquina (el que elige <code>LANGUAGE</code>), sobre el enlace, el sonido, la tarjeta,
 los aparatos USB, el reloj y la ULA. Es lo primero que hay que mirar cuando
-algo no va. Se ve de dos formas:</p>
-<ul>
-<li><strong>Por J5</strong>, con <code>zxv-link log</code> (en <a href="#cargar-programas-desde-el-pc-j5">Cargar programas desde el
-  PC</a>).</li>
-<li><strong>Por el micro-USB de la Pico CPU</strong>, que es también un puerto serie: con
-  cualquier terminal (el <em>Serial Monitor</em> de VS Code, PuTTY en Windows o
-  <code>screen /dev/ttyACM0</code> en Linux; la velocidad da igual). Se enchufa con la
-  placa encendida.</li>
-</ul>
-<p>La Pico ULA escribe sus mensajes por su micro-USB.</p>
+algo no va. Sale por J5: se ve con <code>zxv-link log</code> y un adaptador USB-serie
+de 3,3 V (en <a href="#cargar-programas-desde-el-pc-j5">Cargar programas desde el
+PC</a>). Sin adaptador, lo principal está en
+la <a href="#la-página-de-diagnóstico">página de diagnóstico</a>, en la pantalla.</p>
+<p>El micro-USB de la Pico CPU no es un puerto serie: solo sirve para grabarle
+el firmware. La Pico ULA sí escribe sus mensajes por su micro-USB.</p>
 <h2 id="cargar-programas-desde-el-pc-j5">Cargar programas desde el PC (J5)<a class="ancla" href="#cargar-programas-desde-el-pc-j5" aria-hidden="true">#</a></h2>
 <p>La tira <code>UART</code> de la placa (J5) es para <strong>mandar programas desde el PC y
 ejecutarlos</strong>, sin sacar la tarjeta. Hace falta soldar sus 3 pines y un
@@ -215,55 +233,80 @@ selector: ponlo en 3,3 V):</p>
   <code>zxv-link</code> dice que no hay permiso para abrirlo.</li>
 </ul>
 <p>En el PC, <strong><code>zxv-link-gui</code></strong>, con ventana, que va en los paquetes del
-emulador. Se usa en pasos, de arriba abajo:</p>
-<ol>
-<li><strong>Placa:</strong> elige el puerto del adaptador; al elegirlo se conecta y dice
-   qué firmware tiene la máquina y si el BASIC espera una orden.</li>
-<li><strong>Programa:</strong> elígelo, arrástralo a la ventana o pulsa uno de los
-   recientes. Eso solo lo pone ahí: nada se manda todavía.</li>
-<li><strong>Desde dónde lo carga la placa:</strong> <strong>EXT:</strong>, lo normal (la carpeta
-   compartida, sin copiar nada a la tarjeta: ver <a href="#la-unidad-ext">La unidad
-   EXT:</a>), o <strong>La tarjeta</strong> (copia antes el programa y sus
-   ficheros).</li>
-<li>Con <strong>EXT:</strong>, el recuadro <strong>EXT: es</strong> dice qué carpeta es, y
-     <strong>Elegir...</strong> cambia de carpeta. Si el programa no está dentro, avisa y
-     ofrece <strong>Copiarlo a esa carpeta</strong> (con sus ficheros, y usa esa copia) o
-     <strong>Ejecutar desde la tarjeta</strong>.</li>
-<li>Con <strong>La tarjeta</strong>, los ficheros de su carpeta que puede cargar
-     (gráficos, música, sonidos...), marcados, y los que añadas. Con la
-     placa conectada dice qué hay en la tarjeta con cada nombre: nada, lo
-     mismo (no se manda), lo que puso <code>zxv-link</code> la última vez pero ha
-     cambiado (se sustituye) u otro distinto que no puso <code>zxv-link</code> (antes
-     de sustituirlo, pregunta). También dice si la placa no tiene tarjeta.</li>
-<li><strong>Ejecutar en la placa</strong> (lo manda todo y lo ejecuta) o <strong>Solo copiar a
-   la tarjeta</strong> (sin ejecutar nada; sin programa, copia solo los ficheros
-   del paso 3). Son los únicos botones que mandan algo. Si hay otro programa
-   en marcha, pregunta antes de pararlo. Mientras manda, <strong>Parar</strong> lo deja.</li>
-<li><strong>Resultado:</strong> cómo va cada fichero, la orden que se teclea en la
-   máquina y lo que la máquina lee y escribe en <code>EXT:</code>.</li>
-</ol>
-<p>Debajo, los programas recientes y el informe de la máquina mientras está
-conectada. <strong>Desconectar</strong> suelta el puerto, para usarlo con otro programa
-(como la extensión de VS Code).</p>
+emulador. De arriba abajo:</p>
+<ul>
+<li><strong>Máquina:</strong> elige el adaptador de J5 (<code>COM5 · cable (J5)</code>) o una ZX-V de
+  la red (<code>ZX-V-1A2B · Wi-Fi</code>); al elegirla se conecta y dice qué firmware
+  tiene y si el BASIC espera una orden. Con una de la red sale
+  <strong>Emparejar...</strong> (<a href="#cargar-programas-por-wi-fi-pico-2-w">por Wi-Fi</a>).
+  <strong>Desconectar</strong> suelta el puerto, para usarlo con otro programa (como la
+  extensión de VS Code). En el menú <strong>Máquina</strong>, <strong>Actualizar firmware...</strong>
+  pide un <code>zxv-update.bin</code>, dice su versión y la de la máquina y, si
+  aceptas, la actualiza sin tarjeta (<a href="#cómo-se-actualiza">Cómo se actualiza</a>).</li>
+<li><strong>Ejecutar un fichero del PC, directo a la memoria:</strong> elígelo, arrástralo
+  a la ventana o toma uno reciente, y <strong>Ejecutar</strong>. La máquina lo lee del
+  PC y lo ejecuta: no se copia a la tarjeta. Si el programa carga otros
+  ficheros (gráficos, música...), tienen que estar en la máquina: es para
+  programas sencillos, como un <code>.bas</code> de pruebas.</li>
+<li><strong>En la máquina</strong>, un explorador con tres unidades: <strong>Tarjeta</strong> (<code>SD:</code>),
+  <strong>ROM</strong> (solo leer) y <strong>EXT:</strong> (la carpeta del PC que se le sirve: ver
+  <a href="#la-unidad-ext">La unidad EXT:</a>). Doble clic en una carpeta entra; en un
+  programa, lo ejecuta (entrando antes en su carpeta, para que encuentre
+  sus ficheros). Arriba, <strong>Ejecutar</strong>, <strong>Mandar...</strong> (ficheros del PC a
+  esa carpeta; también arrastrándolos a la lista), <strong>Traer...</strong> (a una
+  carpeta del PC), <strong>Carpeta nueva...</strong>, <strong>Renombrar...</strong> y <strong>Borrar</strong> (las
+  carpetas, con lo que tienen dentro). <strong>Sustituir y borrar preguntan
+  antes</strong>; en la tarjeta no hay papelera, y lo que se borra de <code>EXT:</code> va a
+  la papelera del PC.</li>
+<li><strong>Abajo</strong>, cómo va lo que se hace (con <strong>Parar</strong>) y el <strong>Informe de la
+  máquina</strong>, plegado: un clic lo abre.</li>
+</ul>
+<p>Si hay un programa en marcha, ejecutar otro pregunta antes de reiniciar la
+máquina.</p>
 <p>Lo mismo, en la consola, con <code>zxv-link</code>:</p>
 <pre><code>zxv-link ports
 zxv-link --port COM5 run juego.zxv
-zxv-link --port COM5 send graficos.gfx
+zxv-link --port COM5 run --pc prueba.bas
+zxv-link --port COM5 exec SD:/juegos/juego.zxv
+zxv-link --port COM5 ls SD:/juegos
+zxv-link --port COM5 send graficos.gfx SD:/juegos/graficos.gfx
+zxv-link --port COM5 get SD:/record.txt
+zxv-link --port COM5 rm SD:/viejo.bas
+zxv-link --port COM5 mv SD:/a.bas SD:/juegos/a.bas
+zxv-link --port COM5 mkdir SD:/juegos
 zxv-link --port COM5 info
 zxv-link --port COM5 log
+zxv-link --port COM5 update zxv-update.bin
 </code></pre>
 <ul>
-<li><strong><code>ports</code></strong> dice qué puertos serie hay: el del adaptador es el que aparece
-  al enchufarlo (<code>COM5</code> en Windows, <code>/dev/ttyUSB0</code> en Linux).</li>
+<li><strong><code>ports</code></strong> dice qué puertos serie hay y qué ZX-V de la red contestan: el
+  del adaptador es el que aparece al enchufarlo (<code>COM5</code> en Windows,
+  <code>/dev/ttyUSB0</code> en Linux).</li>
 <li><strong><code>run</code></strong> copia el programa a la raíz de la tarjeta y lo carga (un <code>.bas</code>,
   con <code>RUN</code>). Detrás del programa pueden ir los ficheros que carga
   (<code>run juego.zxv juego.gfx musica.zxm</code>). Lo que ya está igual en la tarjeta
   no se vuelve a mandar. Si hay un programa en marcha, antes reinicia la
   máquina entera, como Ctrl+Alt+Supr, y espera a que vuelva el BASIC.</li>
-<li><strong><code>send</code></strong> solo lo copia (con otro nombre detrás, a otro sitio:
-  <code>send x.gfx SD:juego/x.gfx</code>).</li>
+<li><strong><code>run --pc</code></strong> lo ejecuta directo a la memoria, sin copiarlo a la
+  tarjeta (la máquina lo lee del PC), y espera a que acabe de leerlo. Un
+  <code>.zxv</code> con bancos de código sigue abierto mientras el programa está en
+  marcha (carga de él cada banco): entonces <code>zxv-link</code> lo sigue sirviendo,
+  sin límite de tiempo, hasta que el programa acaba o se pulsa Ctrl+C, y lo
+  dice; para los programas que lo usan (la extensión de VS Code), escribe
+  además en la salida estándar la línea fija <code>zxv-link: serving-ext</code>.</li>
+<li><strong><code>exec</code></strong> ejecuta lo que ya está en la máquina: en la tarjeta, en la ROM
+  (<code>exec ROM:/sentry.bas</code>) o en <code>EXT:</code>.</li>
+<li><strong><code>ls</code></strong>, <strong><code>get</code></strong>, <strong><code>rm</code></strong>, <strong><code>mv</code></strong> y <strong><code>mkdir</code></strong>: la tarjeta (y,
+  para leer, la ROM) como un explorador. <code>rm</code> borra un fichero o una
+  carpeta vacía, y <code>mv</code> no sustituye lo que haya con el nombre nuevo.</li>
+<li><strong><code>send</code></strong> solo copia (con otro nombre o a una carpeta detrás:
+  <code>send x.gfx SD:/juego/x.gfx</code>).</li>
 <li><strong><code>info</code></strong>, la versión de la máquina; <strong><code>log</code></strong>, el informe hasta que
   pulsas Ctrl+C.</li>
+<li><strong><code>update</code></strong> actualiza el firmware de las dos Pico con un <code>zxv-update.bin</code>,
+  sin tarjeta (<a href="#cómo-se-actualiza">Cómo se actualiza</a>).</li>
+<li>Explorar la tarjeta y ejecutar directo a la memoria necesitan el
+  protocolo 6 (<code>zxv-link info</code> lo dice).</li>
 </ul>
 <p><strong>Lo que hay en la tarjeta no se pierde sin querer:</strong></p>
 <ul>
@@ -288,10 +331,11 @@ por TCP igual que el emulador con <code>--basic-debug</code>.</p>
 <p>Además de <code>SD:</code> (la tarjeta) y <code>ROM:</code> (el disco de la ROM, de solo
 lectura), la máquina tiene una tercera unidad: <strong><code>EXT:</code>, la unidad
 externa</strong>, los ficheros de una carpeta que sirve <strong>otro equipo</strong> (el
-servidor: un PC, una Raspberry Pi, un móvil, otra ZX-V...). Hoy va por J5,
-con el mismo adaptador; más adelante, quizá por Wi-Fi. Es <strong>una sola unidad
-sea cual sea el enlace</strong>: un programa que usa <code>EXT:datos.dat</code> funciona igual
-por cable que por Wi-Fi (si hubiera servidor por los dos, gana el cable).</p>
+servidor: un PC, una Raspberry Pi, un móvil, otra ZX-V...). Va por J5, con
+el mismo adaptador, o por <a href="#cargar-programas-por-wi-fi-pico-2-w">Wi-Fi</a>. Es
+<strong>una sola unidad sea cual sea el enlace</strong>: un programa que usa
+<code>EXT:datos.dat</code> funciona igual por cable que por Wi-Fi (si hay servidor por
+los dos, gana el cable).</p>
 <p>Los programas y el BASIC la usan como las otras, para leer <strong>y escribir</strong>:
 <code>LOAD "EXT:juego.bas"</code>, <code>SAVE "EXT:copia"</code>, <code>CAT "EXT:"</code>, <code>CD "EXT:"</code>,
 <code>OPEN #</code> y las funciones de ficheros de la API de C, con los mismos nombres
@@ -304,11 +348,10 @@ que vuelve. Nada se cuelga. Por J5 va a unos <strong>80 KB/s</strong> (un progra
 puede crear ficheros en ella, y la del programa podría ser tu carpeta
 personal, Descargas o una carpeta del sistema. En <code>zxv-link-gui</code> es, por
 defecto, <code>Documentos/ZX-V-EXT</code> (se crea la primera vez; no es
-<code>Documentos/ZX-V</code>, que es la tarjeta del emulador), y <strong>Elegir...</strong> pone
-otra. Se sirve mientras la placa está conectada (<em>Se sirve como EXT:
-mientras la placa está conectada.</em>), así que la máquina también puede usarla
-sola: con <code>SAVE "EXT:copia"</code> desde el BASIC guardas en el PC lo que tecleas
-en la máquina.</p>
+<code>Documentos/ZX-V</code>, que es la tarjeta del emulador), y en la unidad <strong>EXT:</strong>
+del explorador, <strong>Carpeta...</strong> pone otra. Se sirve mientras la máquina está
+conectada, así que también puede usarla sola: con <code>SAVE "EXT:copia"</code> desde
+el BASIC guardas en el PC lo que tecleas en la máquina.</p>
 <p>En la consola:</p>
 <pre><code>zxv-link --port COM5 serve --folder CARPETA
 zxv-link --port COM5 serve --folder CARPETA --run CARPETA/juegos/juego.zxv
@@ -329,11 +372,10 @@ ventana y la extensión de VS Code):</p>
 <li>Un fichero se escribe entero o no se escribe: va a uno temporal que solo
   al final toma su nombre.</li>
 <li><strong>No sustituye ni borra los ficheros que no escribió la máquina</strong> (le da
-  <code>ZXV_E_ACCESS</code>), salvo que lo permitas: con <code>--overwrite</code>
-  (<code>zxv-link --port COM5 --overwrite serve --folder CARPETA</code>) o, en la
-  ventana, con la casilla <strong>Dejar que la máquina sustituya o borre ficheros
-  que no escribió ella</strong> (sin marcar al principio). Lo que escribe la
-  máquina lo apunta en el PC.</li>
+  <code>ZXV_E_ACCESS</code>), salvo que lo permitas con <code>--overwrite</code>
+  (<code>zxv-link --port COM5 --overwrite serve --folder CARPETA</code>). Lo que
+  escribe la máquina lo apunta en el PC. En la ventana, lo que haya que
+  cambiar en esa carpeta lo cambias tú desde el explorador.</li>
 </ul>
 <p><strong>En VS Code</strong>, <strong>ZX-V: Ejecutar en la placa</strong> carga por defecto desde
 <code>EXT:</code> (el ajuste <code>zxv.boardFrom</code>: <code>ext</code> o <code>card</code>). La carpeta es la del
@@ -346,6 +388,49 @@ ejecutarlo desde la tarjeta. Al <strong>depurar en la placa</strong> (<code>"tar
 programa se carga desde <code>EXT:</code>.</p>
 <p>Para hacer otro servidor (en otro equipo, en otro lenguaje), lo que viaja
 por J5 está en <a href="protocol.html">El protocolo</a>.</p>
+<h2 id="cargar-programas-por-wi-fi-pico-2-w">Cargar programas por Wi-Fi (Pico 2 W)<a class="ancla" href="#cargar-programas-por-wi-fi-pico-2-w" aria-hidden="true">#</a></h2>
+<p>Con una <strong>Pico 2 W</strong> en el zócalo de la CPU en lugar de la Pico 2, todo lo de
+J5 (mandar y ejecutar programas, el informe, la unidad <code>EXT:</code>) va también por
+la red, sin cables. El firmware es el mismo: ve solo si tiene radio. Sin
+ella, el cuadro Wi-Fi lo dice y todo sigue como antes.</p>
+<p><strong>En la máquina,</strong> <strong>EDIT &gt; Wi-Fi</strong>:</p>
+<ul>
+<li><strong>Elegir una red:</strong> busca las que hay; elige una con arriba/abajo y Enter y
+  escribe su contraseña (de 8 a 63 letras; una red abierta no la pide).
+  Tienen que ser de <strong>2,4 GHz</strong> con WPA2 o WPA (la radio de la Pico 2 W no
+  ve las de 5 GHz ni las que solo admiten WPA3). La red se recuerda: al
+  encender, la máquina vuelve a unirse sola, y si se pierde, lo reintenta.</li>
+<li>Arriba dice el estado (<strong>Conectada</strong>, <strong>Contraseña incorrecta</strong>, <strong>No
+  encuentra la red</strong>...), el nombre de la máquina en la red (<code>ZX-V-1A2B</code>) y
+  cuántos PC están emparejados.</li>
+<li><strong>Emparejar un PC:</strong> ver abajo. <strong>Olvidar los PC</strong> borra todas las claves
+  (pregunta antes). <strong>Desconectar</strong> sale de la red y la olvida.</li>
+</ul>
+<p><strong>Emparejar</strong> es necesario una vez con cada PC: hasta entonces la máquina no
+acepta nada de él, para que nadie más de la red pueda mandarle programas.</p>
+<ol>
+<li>En la máquina, <strong>EDIT &gt; Wi-Fi &gt; Emparejar un PC</strong>: espera a un PC.</li>
+<li>En el PC, <code>zxv-link --port ZX-V-1A2B pair</code> (o en <code>zxv-link-gui</code>, elige la
+   máquina y pulsa <strong>Emparejar...</strong>; si eliges una sin emparejar, también
+   lo ofrece).</li>
+<li>Los dos enseñan un <strong>código de seis cifras</strong>. Si es el mismo, pulsa Enter
+   en la máquina (Esc si no: alguien podría estar en medio).</li>
+</ol>
+<p>La máquina recuerda 8 PC (con uno más, olvida el más antiguo); el PC guarda
+sus claves en <code>zxv-link-net.txt</code> (en <code>%APPDATA%\ZX-V</code> en Windows y en
+<code>~/.config/ZX-V</code> en los demás).</p>
+<p><strong>En el PC,</strong> lo mismo que por J5 con el nombre de la máquina (o su IP) en
+lugar del puerto: <code>zxv-link ports</code> dice los puertos serie y las ZX-V de la
+red que contestan, y <code>zxv-link --port ZX-V-1A2B run juego.zxv</code> o
+<code>... serve --folder CARPETA</code> funcionan igual. En <code>zxv-link-gui</code>, las
+máquinas de la red salen en la lista del paso 1 junto a los puertos. Una
+con un firmware de otra versión del protocolo de la red sale aparte («No
+compatibles» en <code>zxv-link ports</code>; en gris en la lista de la ventana), con
+qué actualizar: la máquina (por J5 o desde la tarjeta) o <code>zxv-link</code>. En VS
+Code, pon el nombre en el ajuste del puerto de la placa.</p>
+<p><strong>Lo que no va por la red:</strong> actualizar el firmware (al reiniciarse para
+actualizar, la máquina solo escucha a J5): hazlo por J5 o desde la tarjeta.
+Lo que viaja va firmado, no cifrado: en tu red se puede leer lo que mandas.</p>
 <h2 id="si-no-hay-imagen-o-no-hay-sonido">Si no hay imagen o no hay sonido<a class="ancla" href="#si-no-hay-imagen-o-no-hay-sonido" aria-hidden="true">#</a></h2>
 <h3 id="no-hay-imagen">No hay imagen<a class="ancla" href="#no-hay-imagen" aria-hidden="true">#</a></h3>
 <p>Fíjate en el <strong>LED rojo del enlace</strong> (<code>ENLACE</code> en la placa) al encender.</p>
@@ -359,7 +444,7 @@ por J5 está en <a href="protocol.html">El protocolo</a>.</p>
 <li><strong>Parpadea y luego se queda encendido.</strong> Las imágenes llegan bien: el
   problema está entre la ULA y la pantalla. Prueba el modo seguro (abajo),
   otra entrada HDMI o un cable más corto y sin adaptadores. En la placa, el
-  informe del puerto serie dice si se ve el monitor (<code>monitor: conectado</code>): si
+  informe dice si se ve el monitor (<code>monitor: conectado</code>): si
   se queda en <code>no se sabe</code> con la pantalla enchufada y encendida, mira el cable
   y el conector HDMI.</li>
 <li><strong>No deja de parpadear.</strong> Llegan imágenes, pero algunas con errores. En una
@@ -419,7 +504,7 @@ además 5 V en el pin 18 del conector HDMI
 </ul>
 <h3 id="otras-cosas">Otras cosas<a class="ancla" href="#otras-cosas" aria-hidden="true">#</a></h3>
 <ul>
-<li><strong>El teclado no hace nada.</strong> Mira el informe del puerto serie: la parte
+<li><strong>El teclado no hace nada.</strong> Mira el informe o la página de diagnóstico: la parte
   <code>USB:</code> dice cuántos teclados, ratones y mandos ve. Prueba sin el hub, o con
   un hub con alimentación.</li>
 <li><strong>La tarjeta no va.</strong> Tiene que estar en FAT, FAT32 o exFAT. El informe dice
@@ -433,7 +518,7 @@ además 5 V en el pin 18 del conector HDMI
   programas siempre se les dice que la salida es HDMI.</li>
 </ul>
 <h3 id="la-página-de-diagnóstico">La página de diagnóstico<a class="ancla" href="#la-página-de-diagnóstico" aria-hidden="true">#</a></h3>
-<p><strong>Una pulsación larga de MODO</strong> (de 1 a 5 segundos) o <strong>Ctrl+Alt+F12</strong> en el
+<p><strong>MODO apretado un segundo</strong> (sale sin soltarlo) o <strong>Ctrl+Alt+F12</strong> en el
 teclado enseñan una franja azul en el centro de la pantalla con cómo van las
 dos Pico, al día cada segundo: arriba la ULA (su modo, las imágenes por
 segundo, los errores del enlace, el CRC de las paletas que le llegan, el

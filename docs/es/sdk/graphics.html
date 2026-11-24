@@ -13,9 +13,9 @@
 <a class="marca" href="../index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentación</span>
 <span class="hueco"></span>
-<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/es/">Web</a>
+<a class="ir sitio" href="https://zx-v.org/es/">Web</a>
 <a class="ir" href="../../en/sdk/graphics.html" hreflang="en" lang="en">English</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Pruébalo en el navegador</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Pruébalo en el navegador</a>
 </header>
 <div class="marco">
 <aside>
@@ -45,6 +45,8 @@
 <ul>
 </ul>
 </li>
+<li><a href="libraries.html">Las bibliotecas del SDK</a>
+</li>
 <li><a href="reference.html">Referencia de la API</a>
 </li>
 </ul>
@@ -57,6 +59,9 @@
 <li><a href="index.html#el-formato-propio-zxm-y-zxv-music">El conversor de música, <code>zxv-music</code></a>
 </li>
 <li><a href="../hardware/firmware.html#cargar-programas-desde-el-pc-j5">La carga remota, <code>zxv-link</code> y <code>zxv-link-gui</code></a>
+</li>
+<li><a href="../hardware/firmware.html#cargar-programas-por-wi-fi-pico-2-w">por
+  Wi-Fi</a>
 </li>
 <li><a href="../hardware/firmware.html#la-unidad-ext">unidad <code>EXT:</code></a>
 </li>
@@ -86,8 +91,8 @@
 <h1 id="gráficos">Gráficos</h1>
 <p>ZX-V no tiene hardware de sprites ni de tiles. En su lugar, la ROM trae un
 <strong>motor gráfico</strong>: rutinas que funcionan en el procesador principal y
-dibujan sprites, mapas de tiles, figuras y suelos con textura en la memoria
-de vídeo, muy deprisa. El hardware de vídeo pone lo que el software no
+dibujan sprites, mapas de tiles, figuras (lisas o con trama) y planos con
+textura (suelos y fondos que giran) en la memoria de vídeo, muy deprisa. El hardware de vídeo pone lo que el software no
 puede hacer bien: dos páginas de pantalla, scroll por hardware, efectos por
 línea y remapeo de colores.</p>
 <p>Esta página lo explica todo con programas completos. Cada función se
@@ -103,6 +108,7 @@ Para empezar con C en ZX-V, lee antes la <a href="index.html">guía del SDK</a>.
 <li><a href="#mapas-de-tiles">Mapas de tiles</a></li>
 <li><a href="#scroll-por-hardware">Scroll por hardware</a></li>
 <li><a href="#efectos-por-línea-y-remapeo-de-colores">Efectos por línea y remapeo de colores</a></li>
+<li><a href="#figuras-con-trama">Figuras con trama</a></li>
 <li><a href="#modo-7">Modo 7</a></li>
 <li><a href="#imágenes-desde-ficheros-png-png2gfxpy">Imágenes desde ficheros PNG: <code>png2gfx.py</code></a></li>
 <li><a href="#el-editor-de-gráficos-para-el-pc-zxv-gfx">El editor de gráficos para el PC: <code>zxv-gfx</code></a></li>
@@ -666,16 +672,65 @@ int main(void)
 <p>El ejemplo <a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/scroll/scroll.c"><code>scroll</code></a> usa el campo
 de scroll de la tabla por línea para el parallax: las montañas de arriba
 van a la mitad de velocidad que el suelo.</p>
+<h2 id="figuras-con-trama">Figuras con trama<a class="ancla" href="#figuras-con-trama" aria-hidden="true">#</a></h2>
+<p>Las líneas, los rectángulos, los triángulos, los polígonos y los círculos
+pueden dibujarse con una <strong>trama</strong> de dos colores en vez de un color liso,
+como en los ordenadores de 8 y 16 bits: un patrón de 8 × 8 píxeles, un
+byte por fila, con el bit 7 para el píxel de la izquierda. Después de
+<code>zxv_gfx_pattern(trama, papel)</code>, las figuras pintan su color donde la trama
+tiene un 1 y el <code>papel</code> donde tiene un 0. Con <code>ZXV_CLEAR</code> como papel, lo
+que hay debajo se queda donde la trama tiene un 0: así salen sombras y
+cristales «a medias» con solo 16 colores. <code>zxv_gfx_pattern(0, 0)</code> vuelve
+al color liso.</p>
+<p>La trama va <strong>anclada al destino</strong>, no a la figura: dos figuras que se
+tocan casan, y una figura que se mueve deja la trama quieta (como una
+ventana sobre ella). Rellenar con trama va igual de rápido que con un
+color, porque una fila de la trama es justo una palabra de 8 píxeles.</p>
+<pre><code class="language-c">#include &quot;zxv_gfx.h&quot;
+
+static const uint8_t bricks[8] = { 0xFF, 0x80, 0x80, 0x80, 0xFF, 0x08, 0x08, 0x08 };
+static const uint8_t half[8] = { 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55 };
+
+int main(void)
+{
+    zxv_gfx_rect(0, 0, 256, 192, 5);            /* el cielo */
+    zxv_gfx_pattern(bricks, 2);                 /* argamasa blanca, ladrillos rojos */
+    zxv_gfx_rect(32, 96, 192, 96, 15);
+    zxv_gfx_pattern(half, ZXV_CLEAR);           /* la sombra: medio negro, medio lo de debajo */
+    int16_t shadow[8] = { 32, 96, 224, 96, 224, 112, 64, 140 };
+    zxv_gfx_poly(shadow, 4, 0);
+    zxv_gfx_pattern(0, 0);                      /* otra vez liso */
+    zxv_gfx_circle(200, 40, 16, 14, 1);         /* el sol */
+    while (zxv_key_get() &lt; 0)
+        zxv_wait_vblank();
+    return 0;
+}
+</code></pre>
+<p>En las líneas y los contornos de los círculos la trama también vale, pero
+se ve según dónde cae cada píxel: con el ajedrez, una línea horizontal
+sale punteada y una diagonal a 45° de un solo color. El BASIC tiene 11
+tramas ya hechas (<a href="../basic/reference.html#pattern"><code>PATTERN</code></a>); por ejemplo,
+la de ladrillos es la <code>bricks</code> de arriba y el ajedrez, la <code>half</code>.</p>
 <h2 id="modo-7">Modo 7<a class="ancla" href="#modo-7" aria-hidden="true">#</a></h2>
 <p>El <strong>modo 7</strong> (se llama así por el modo de la SNES que lo hizo famoso)
-dibuja una <strong>textura</strong> en cada línea con su propia posición y su paso:
-girada, ampliada o en perspectiva, como un suelo visto desde arriba.</p>
+dibuja un <strong>plano</strong>, una textura o un mapa de tiles, en cada línea con su
+propia posición y su paso: girado, ampliado o en perspectiva, como un suelo
+visto desde arriba.</p>
 <ul>
 <li>La textura (<code>zxv_m7tex</code>) es un cuadrado de 2^<code>log2size</code> texels de lado,
   de 2 × 2 (<code>log2size</code> 1) a 1024 × 1024 (10), con <strong>un byte por texel</strong>
-  (0–15). Como un programa tiene 248 KB de RAM de usuario, en la práctica
+  (0–15). Como un programa tiene 244 KB de RAM de usuario, en la práctica
   una textura en la RAM llega hasta 256 × 256 (<code>log2size</code> 8, 64 KB). Con
-  <code>wrap</code> = 1 se repite sin fin; con 0, fuera de ella se ve el color <code>out</code>.</li>
+  <code>wrap</code> = 1 se repite sin fin; con 0, fuera de ella se ve el color <code>out</code>.
+  Con <code>ZXV_M7_TRANSPARENT</code> en <code>flags</code>, el color 8 no se dibuja (ni lo de
+  fuera si <code>out</code> es el 8): se ve lo que había debajo.</li>
+<li>Un <strong>mapa de tiles</strong> también sirve de plano, con <code>zxv_m7_draw_map</code>: es
+  lo que hacía la SNES (un mapa de 128 × 128 tiles de 8 × 8). Un circuito
+  de 1024 × 1024 píxeles es un mapa de 128 × 128 celdas (32 KB) con sus
+  tiles, en vez del megabyte que sería como textura. Cada celda lleva sus
+  espejos y su 8 transparente, como en <code>zxv_map_draw</code>; un mapa que se
+  repite se repite también aquí, y lo de fuera de uno que no se repite es
+  del color que se dé, o no se dibuja con <code>ZXV_CLEAR</code>.</li>
 <li>Cada línea (<code>zxv_m7line</code>) lleva la posición en la textura (u, v) de su
   primer píxel y el paso (du, dv) por píxel, en <strong>coma fija</strong> 16.16
   (65536 = un texel).</li>
@@ -683,8 +738,14 @@ girada, ampliada o en perspectiva, como un suelo visto desde arriba.</p>
   desde una cámara: posición, altura, ángulo (0x10000 es una vuelta
   entera), distancia focal y la línea de la pantalla donde está el
   horizonte. Las líneas por encima del horizonte quedan vacías.</li>
+<li><code>zxv_m7_affine(líneas, n, &amp;plano)</code> calcula las líneas de un plano
+  <strong>girado y ampliado</strong>, como la matriz de la SNES: el punto (x, y) del
+  plano se ve en (cx, cy) de la pantalla, girado en el sentido del reloj y
+  ampliado (0x10000 es su tamaño; 0x20000, el doble) en cada eje. Sirve
+  para fondos que giran, jefes enormes o un mapa que se acerca.</li>
 <li><code>zxv_m7_draw(&amp;textura, líneas, y, n)</code> dibuja <code>n</code> líneas en el destino a
-  partir de la línea <code>y</code>.</li>
+  partir de la línea <code>y</code>; <code>zxv_m7_draw_map(&amp;mapa, líneas, y, n, fuera)</code>, lo
+  mismo con un mapa.</li>
 </ul>
 <pre><code class="language-c">#include &quot;zxv_gfx.h&quot;
 
@@ -721,11 +782,25 @@ int main(void)
     return 0;
 }
 </code></pre>
-<p>El modo 7 cuesta unas 15 instrucciones por píxel: la pantalla entera en el
-modo 0 es un cuarto del frame, y en el modo 1 no cabe en un frame, así que
-dibuja solo el suelo. El ejemplo <a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/graphics/graphics.c"><code>graphics</code></a>
-pone objetos sobre el suelo con sprites escalados, proyectados con la
-misma cámara.</p>
+<p>Para el mismo suelo con un mapa, cambia la textura por el mapa y
+<code>zxv_m7_draw</code> por <code>zxv_m7_draw_map(&amp;mapa, rows + 72, 72, 120, ZXV_CLEAR)</code>.
+Y para girar un fondo alrededor del centro de la pantalla:</p>
+<pre><code class="language-c">zxv_m7aff a = { .x = 32 &lt;&lt; 16, .y = 32 &lt;&lt; 16,  /* el centro de la textura de 64x64 */
+                .angle = frame * 256, .zoom_x = 0x20000, .zoom_y = 0x20000,
+                .cx = 128, .cy = 96 };
+zxv_m7_affine(rows, 192, &amp;a);
+zxv_m7_draw(&amp;tex, rows, 0, 192);
+</code></pre>
+<p>El modo 7 con una textura cuesta unas 15 instrucciones por píxel: la
+pantalla entera en el modo 0 es un cuarto del frame, y en el modo 1 no
+cabe en un frame, así que dibuja solo el suelo. Con un mapa cuesta más,
+unos 33 ciclos por píxel en la placa (algo menos con tiles de 16 × 16, que
+cambian menos de celda): un suelo de 120 líneas en el modo 0 se lleva unos
+dos quintos del frame, y la pantalla entera girando (algo más cara que el
+suelo), unas tres cuartas partes: cabe a 60 frames por segundo si el resto
+del juego es ligero. El ejemplo
+<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/graphics/graphics.c"><code>graphics</code></a> pone objetos sobre
+el suelo con sprites escalados, proyectados con la misma cámara.</p>
 <h2 id="imágenes-desde-ficheros-png-png2gfxpy">Imágenes desde ficheros PNG: <code>png2gfx.py</code><a class="ancla" href="#imágenes-desde-ficheros-png-png2gfxpy" aria-hidden="true">#</a></h2>
 <p>Dibujar todo con código va bien para las figuras, pero para el pixel art
 de verdad querrás un programa de dibujo. <code>sdk/tools/png2gfx.py</code> convierte
@@ -778,6 +853,10 @@ sistema está en español, y si no, en inglés.</p>
 <td>El mapa M se repite</td>
 </tr>
 <tr>
+<td><code>--transparent N</code></td>
+<td>Lo transparente del PNG de la textura N no se dibuja (el color 8; si su color de fuera es el 8, tampoco lo de fuera). Sin esto, lo transparente de una textura queda negro</td>
+</tr>
+<tr>
 <td><code>--screen N IMAGEN [B]</code></td>
 <td>La pantalla N (como las de <code>SAVE "x" SCREEN$</code> y las pantallas de carga): de 256 × 192 (modo 0) o 512 × 384 (modo 1), o el cuadro entero (320 × 240 o 640 × 480) con el borde del color de su esquina; B, el color del borde. Con colores que no son los de siempre (16 como mucho), lleva su paleta</td>
 </tr>
@@ -828,7 +907,7 @@ cabecera de 8 bytes (tipo, 0, número en 16 bits y longitud de sus datos en
 <tr>
 <td>4</td>
 <td>Textura</td>
-<td>log2 del lado, repetición, color de fuera, 0 (bytes) y los texels (un byte cada uno)</td>
+<td>log2 del lado, repetición, color de fuera, marcas (bit 0: el 8 es transparente) (bytes) y los texels (un byte cada uno)</td>
 </tr>
 <tr>
 <td>5</td>
@@ -954,7 +1033,7 @@ el del sistema (o el que se le pida: <code>zxv-gfx --lang en</code>).</p>
 <li><strong>Una pestaña por clase de objeto</strong> (sprites, tiles de 8 y de 16, mapas,
   texturas y pantallas) y, a la izquierda, sus miniaturas; doble clic en un hueco vacío
   lo crea. A la derecha, la paleta, las propiedades (el tamaño, la
-  repetición, el color de fuera…) y una vista previa: los sprites animados
+  repetición, el color de fuera, si el 8 de una textura es transparente…) y una vista previa: los sprites animados
   con los siguientes, los tiles repetidos 3 × 3 para ver si casan, y las
   texturas también como suelo del modo 7 (Ver &gt; La textura en el modo 7).</li>
 <li><strong>Para dibujar:</strong> lápiz, línea, caja, elipse (vacías o llenas), rellenar,
@@ -1007,7 +1086,7 @@ el ratón. Arriba hay una pestaña por cada clase de gráfico:</p>
 </tr>
 <tr>
 <td>Texturas</td>
-<td>Las 4 texturas del modo 7: su lado, si se repiten y el color de fuera</td>
+<td>Las 4 texturas del modo 7: su lado, si se repiten y el color de fuera (si el 8 es transparente se cambia en <code>zxv-gfx</code>; aquí se conserva)</td>
 </tr>
 </tbody>
 </table>
@@ -1033,7 +1112,7 @@ grabarlo no las lleva.</p>
 escribe los <code>.gfx</code> y tu programa puede usarlo tal cual.</p>
 <h2 id="cuánto-cuesta">¿Cuánto cuesta?<a class="ancla" href="#cuánto-cuesta" aria-hidden="true">#</a></h2>
 <p>A 60 frames por segundo el procesador tiene unos <strong>2,4 millones de ciclos
-por frame</strong>. Estas cifras se midieron en la máquina real:</p>
+por frame</strong>. Estas cifras se midieron en la máquina real (<code>pico/bench</code>):</p>
 <table>
 <thead>
 <tr>
@@ -1084,6 +1163,11 @@ por frame</strong>. Estas cifras se midieron en la máquina real:</p>
 <td>121 %</td>
 </tr>
 <tr>
+<td>Modo 7 con un mapa de tiles de 8 × 8, pantalla entera</td>
+<td>68 %</td>
+<td>256 %</td>
+</tr>
+<tr>
 <td>100 triángulos de unos 470 píxeles</td>
 <td>29 %</td>
 <td>28 %</td>
@@ -1104,7 +1188,7 @@ por frame</strong>. Estas cifras se midieron en la máquina real:</p>
 <li>Los sprites escalados son para unos pocos objetos que se acercan, no
   para todos.</li>
 </ul>
-<nav class="pasos"><a class="anterior" href="index.html"><small>Anterior</small>← Programas nativos (SDK)</a><a class="siguiente" href="reference.html"><small>Siguiente</small>Referencia de la API →</a></nav>
+<nav class="pasos"><a class="anterior" href="index.html"><small>Anterior</small>← Programas nativos (SDK)</a><a class="siguiente" href="libraries.html"><small>Siguiente</small>Las bibliotecas del SDK →</a></nav>
 <footer>Esta documentación tiene licencia <a href="https://github.com/cronomantic/ZX-V/blob/main/docs/LICENSE">CC BY 4.0</a>; sus ejemplos de código son de dominio público (CC0).</footer>
 </main>
 </div>

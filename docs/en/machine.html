@@ -13,9 +13,9 @@
 <a class="marca" href="index.html"><svg class="logo" viewBox="-2 -2 216 86" role="img" aria-label="ZX-V"><g fill="currentColor"><polygon points="0,0 44,0 44,11 15,49 44,49 44,60 0,60 0,49 29,11 0,11"/><polygon points="56,0 69,0 78,20 87,0 100,0 85,30 100,60 87,60 78,40 69,60 56,60 71,30"/><rect x="120" y="25" width="28" height="11"/><polygon points="168,0 181,0 190,44 199,0 212,0 197,60 183,60"/></g><rect x="0" y="72" width="53" height="9" fill="#d70000"/><rect x="53" y="72" width="53" height="9" fill="#d7d700"/><rect x="106" y="72" width="53" height="9" fill="#00d700"/><rect x="159" y="72" width="53" height="9" fill="#00d7d7"/></svg></a>
 <span class="seccion">Documentation</span>
 <span class="hueco"></span>
-<a class="ir sitio" href="https://cronomantic.github.io/ZX-V/">Website</a>
+<a class="ir sitio" href="https://zx-v.org/">Website</a>
 <a class="ir" href="../es/machine.html" hreflang="es" lang="es">Español</a>
-<a class="ir web" href="https://cronomantic.github.io/ZX-V/emulator/">Try it in your browser</a>
+<a class="ir web" href="https://zx-v.org/emulator/">Try it in your browser</a>
 </header>
 <div class="marco">
 <aside>
@@ -45,6 +45,8 @@
 </li>
 <li><a href="sdk/graphics.html">Graphics</a>
 </li>
+<li><a href="sdk/libraries.html">The SDK libraries</a>
+</li>
 <li><a href="sdk/reference.html">API reference</a>
 </li>
 </ul>
@@ -58,8 +60,10 @@
 </li>
 <li><a href="hardware/firmware.html#loading-programs-from-the-pc-j5">Remote loading, <code>zxv-link</code> and <code>zxv-link-gui</code></a>
 </li>
-<li><a href="hardware/firmware.html#the-ext-drive"><code>EXT:</code>
-  drive</a>
+<li><a href="hardware/firmware.html#loading-programs-over-wi-fi-pico-2-w">over
+  Wi-Fi</a>
+</li>
+<li><a href="hardware/firmware.html#the-ext-drive"><code>EXT:</code> drive</a>
 </li>
 <li><a href="sdk/web.html">Publishing your game on the web</a>
 </li>
@@ -103,7 +107,7 @@ machine in the emulator and in the real hardware.</p>
 </tr>
 <tr>
 <td>Memory</td>
-<td>520 KB of RAM in total; about 94 KB free for a BASIC program, and up to 248 KB for a native program</td>
+<td>520 KB of RAM in total; about 94 KB free for a BASIC program, and up to 244 KB for a native program</td>
 </tr>
 <tr>
 <td>Screen</td>
@@ -423,22 +427,22 @@ is lost; the language and the key click are kept.</p>
 </tr>
 <tr>
 <td>User memory</td>
-<td>248 KB</td>
+<td>244 KB</td>
 <td>Your program and its data</td>
 </tr>
 <tr>
 <td>System</td>
-<td>80 KB</td>
+<td>84 KB</td>
 <td>The machine's own variables and buffers</td>
 </tr>
 </tbody>
 </table>
 <p><strong>From BASIC</strong>, about 94 KB are free for your program, its variables and its
 graphics (sprites, tiles and maps): the editor shows the exact number,
-93,856 bytes when the machine starts. The rest of the user memory is BASIC's
+93,832 bytes when the machine starts. The rest of the user memory is BASIC's
 own working space.</p>
 <p><strong>A native program</strong> takes over the user memory: it can use nearly all of the
-248 KB. In mode 0 each video page only needs 24 KB for the screen, so a
+244 KB. In mode 0 each video page only needs 24 KB for the screen, so a
 program that does not use a large virtual playfield can also use the other
 72 KB of each page.</p>
 <p>The ROM, with the BASIC, takes 512 KB, and the <code>ROM:</code> drive up to 2.5 MB;
