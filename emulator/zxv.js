@@ -204,7 +204,7 @@ function translatePage() {
     for (const el of document.querySelectorAll('[data-t]'))
         el.textContent = t(el.dataset.t);
     keysIn.setAttribute('aria-label', t('Teclado de ZX-V'));
-    document.getElementById('b-docs').href = 'https://cronomantic.github.io/ZX-V/docs/' + uiLang + '/';
+    document.getElementById('b-docs').href = 'https://zx-v.org/docs/' + uiLang + '/';
     const help = (uiLang === 'es' ? ES_HELP : EN.AYUDA);
     const version = E.core && E.core.version();
     document.getElementById('ayuda-texto').innerHTML = version ? help.replace('<h2>ZX-V</h2>', `<h2>ZX-V ${version}</h2>`)

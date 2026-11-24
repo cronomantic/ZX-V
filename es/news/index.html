@@ -61,9 +61,33 @@
       <h1>Lo nuevo de ZX-V.</h1>
       <p>Las versiones nuevas y las noticias del proyecto, de lo más nuevo a lo más antiguo. <a class="rss" href="feed.xml">Síguelas por RSS</a></p>
     </div>
-<article class="release" id="v0.10.0" style="--c: var(--red)">
+<article class="release" id="v0.11.0" style="--c: var(--red)">
   <div class="when">
-    <a class="ver" href="#v0.10.0">v0.10.0</a><span class="latest">La última</span>
+    <a class="ver" href="#v0.11.0">v0.11.0</a><span class="latest">La última</span>
+    <time datetime="2026-11-24">24 de noviembre de 2026</time>
+  </div>
+  <div class="what">
+    <h2>Wi-Fi, juegos más grandes y la tarjeta de la máquina desde el PC</h2>
+<ul>
+<li><strong>Wi-Fi con una Pico 2 W</strong> en el zócalo de la CPU: todo lo de J5 (mandar y ejecutar programas, el informe, la unidad <code>EXT:</code>, el depurador del BASIC) va también por la red. El firmware es el mismo y ve solo si tiene radio. En la máquina, <strong>EDIT &gt; Wi-Fi</strong> elige la red y <strong>empareja un PC</strong> con un código de seis cifras que enseñan los dos; <code>zxv-link</code>, <code>zxv-link-gui</code> y la extensión de VS Code encuentran las máquinas de la red. Lo que viaja va firmado, no cifrado.</li>
+<li><strong>Actualizar el firmware desde el PC</strong> por J5, sin tarjeta: <code>zxv-link update zxv-update.bin</code>, o Máquina &gt; Actualizar firmware en <code>zxv-link-gui</code>.</li>
+<li><strong>La máquina como un explorador de ficheros</strong>: <code>zxv-link</code> lista, trae, borra, renombra y crea carpetas en la tarjeta (<code>ls</code>, <code>get</code>, <code>rm</code>, <code>mv</code>, <code>mkdir</code>), ejecuta lo que ya está (<code>exec</code>) o un fichero del PC directo a la memoria, sin copiarlo (<code>run --pc</code>). La ventana de <code>zxv-link-gui</code> se ha rehecho alrededor de eso: la máquina arriba (cable o Wi-Fi), la tarjeta, <code>ROM:</code> y <code>EXT:</code> a la vista, arrastrar y soltar.</li>
+<li><strong>Juegos más grandes: bancos en el <code>.zxv</code>.</strong> Un programa lleva bancos de datos (gráficos, fases, música: cualquier fichero) y de código (funciones que se cargan en una zona fija cuando hacen falta), así que lo limita lo que necesita cada fase, no lo que cabe a la vez. Los hace <code>zxvbanks.py</code>; en VS Code se depuran. ZX Basic los tiene con <code>--code-bank</code>. Especificación 0.2 (las variables del sistema <code>PROG_FILE</code> y <code>PROG_CRC</code>).</li>
+<li><strong>La VRAM oculta, como memoria del programa</strong>: en el modo 0, los 72 KB de cada página de vídeo que no se ven se declaran como variables normales (<code>ZXV_VRAM0_DATA</code>, <code>ZXV_VRAM1_DATA</code>).</li>
+<li><strong>Tramas en las figuras y un modo 7 como el de la SNES</strong>: líneas, rectángulos, triángulos, polígonos y círculos con una trama de dos colores, con el papel transparente si se quiere (<code>PATTERN</code> en el BASIC); y el modo 7 gana un <strong>mapa de tiles como suelo</strong> (<code>FLOOR MAP</code>), la <strong>transparencia</strong> y el <strong>giro con zoom</strong> de un plano entero (<code>ROTATE</code>).</li>
+<li><strong>Nueve bibliotecas opcionales del SDK para juegos</strong>: matemáticas en coma fija, objetos sobre el suelo del modo 7, moverse por un mapa de tiles, fundidos de paleta, teclado y mandos como acciones, guardar datos sin perderlos, gzip, fuentes de cualquier tamaño y color, y modelos 3D con luz y sombras. Y <code>fontconv.py</code> y <code>obj2c.py</code>. Todas también en ZX Basic, con el ejemplo nuevo <strong>Nave 3D</strong>.</li>
+<li><strong>Las referencias, rehechas desde el código</strong>: cada función y orden del SDK, sus bibliotecas, el BASIC y ZX Basic con sus parámetros, lo que devuelve, sus errores, un ejemplo y la versión en que apareció.</li>
+<li>Los coches de <strong>Route 128</strong> salen ahora de modelos 3D, y los rivales también giran.</li>
+<li><strong>Arreglos</strong>: un <code>.zxv</code> dañado ya no pisa el programa del BASIC; <code>SAVE CODE</code> ya no deja ficheros abiertos; los emuladores no dejan escribir, borrar ni renombrar un fichero abierto, como la tarjeta; <code>CONTINUE</code> tras una parada en una orden directa da N; los canales de muestras se paran cuando un programa vuelve al BASIC; la página de diagnóstico de MODO sale al cumplir un segundo apretado; en la demostración de Route 128 el coche ya no tiembla al girar.</li>
+<li>La RAM de usuario acaba 4 KB antes (244 KB), para hacer sitio al Wi-Fi en el firmware; el BASIC sigue con sus 93.832 bytes libres.</li>
+<li>Con ella sale <strong>ZX Basic v1.19.0-zxv.7</strong>: las bibliotecas del SDK, los bancos de código, el 3D, <code>PATTERN</code>, <code>--debug-array</code> y un aviso para las funciones <code>FASTCALL</code> cuyo BASIC lee sus parámetros.</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.11.0">Descargas de la v0.11.0 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.10.0" style="--c: var(--yellow)">
+  <div class="when">
+    <a class="ver" href="#v0.10.0">v0.10.0</a>
     <time datetime="2026-11-22">22 de noviembre de 2026</time>
   </div>
   <div class="what">
@@ -84,7 +108,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.10.0">Descargas de la v0.10.0 →</a></p>
   </div>
 </article>
-<article class="release" id="2026-11-19-las-placas" style="--c: var(--yellow)">
+<article class="release" id="2026-11-19-las-placas" style="--c: var(--green)">
   <div class="when">
     <a class="kind" href="#2026-11-19-las-placas">Noticia</a>
     <time datetime="2026-11-19">19 de noviembre de 2026</time>
@@ -98,7 +122,7 @@
 <p>Si quieres montar una, <a href="https://zx-v.org/docs/es/hardware/board.html">la guía de la placa</a> tiene los ficheros para JLCPCB, la lista de piezas y cómo poner las Pico.</p>
   </div>
 </article>
-<article class="release" id="v0.9.0" style="--c: var(--green)">
+<article class="release" id="v0.9.0" style="--c: var(--cyan)">
   <div class="when">
     <a class="ver" href="#v0.9.0">v0.9.0</a>
     <time datetime="2026-11-04">4 de noviembre de 2026</time>
@@ -112,7 +136,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.9.0">Descargas de la v0.9.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.8.0" style="--c: var(--cyan)">
+<article class="release" id="v0.8.0" style="--c: var(--red)">
   <div class="when">
     <a class="ver" href="#v0.8.0">v0.8.0</a>
     <time datetime="2026-11-04">4 de noviembre de 2026</time>
@@ -128,7 +152,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.8.0">Descargas de la v0.8.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.7.2" style="--c: var(--red)">
+<article class="release" id="v0.7.2" style="--c: var(--yellow)">
   <div class="when">
     <a class="ver" href="#v0.7.2">v0.7.2</a>
     <time datetime="2026-11-02">2 de noviembre de 2026</time>
@@ -142,7 +166,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.7.2">Descargas de la v0.7.2 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.7.1" style="--c: var(--yellow)">
+<article class="release" id="v0.7.1" style="--c: var(--green)">
   <div class="when">
     <a class="ver" href="#v0.7.1">v0.7.1</a>
     <time datetime="2026-11-01">1 de noviembre de 2026</time>
@@ -156,7 +180,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.7.1">Descargas de la v0.7.1 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.7.0" style="--c: var(--green)">
+<article class="release" id="v0.7.0" style="--c: var(--cyan)">
   <div class="when">
     <a class="ver" href="#v0.7.0">v0.7.0</a>
     <time datetime="2026-10-31">31 de octubre de 2026</time>
@@ -175,7 +199,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.7.0">Descargas de la v0.7.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.6.2" style="--c: var(--cyan)">
+<article class="release" id="v0.6.2" style="--c: var(--red)">
   <div class="when">
     <a class="ver" href="#v0.6.2">v0.6.2</a>
     <time datetime="2026-10-30">30 de octubre de 2026</time>
@@ -191,7 +215,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.6.2">Descargas de la v0.6.2 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.6.1" style="--c: var(--red)">
+<article class="release" id="v0.6.1" style="--c: var(--yellow)">
   <div class="when">
     <a class="ver" href="#v0.6.1">v0.6.1</a>
     <time datetime="2026-10-30">30 de octubre de 2026</time>
@@ -208,7 +232,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.6.1">Descargas de la v0.6.1 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.6.0" style="--c: var(--yellow)">
+<article class="release" id="v0.6.0" style="--c: var(--green)">
   <div class="when">
     <a class="ver" href="#v0.6.0">v0.6.0</a>
     <time datetime="2026-10-30">30 de octubre de 2026</time>
@@ -226,7 +250,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.6.0">Descargas de la v0.6.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.5.0" style="--c: var(--green)">
+<article class="release" id="v0.5.0" style="--c: var(--cyan)">
   <div class="when">
     <a class="ver" href="#v0.5.0">v0.5.0</a>
     <time datetime="2026-10-29">29 de octubre de 2026</time>
@@ -246,7 +270,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.5.0">Descargas de la v0.5.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.4.1" style="--c: var(--cyan)">
+<article class="release" id="v0.4.1" style="--c: var(--red)">
   <div class="when">
     <a class="ver" href="#v0.4.1">v0.4.1</a>
     <time datetime="2026-10-28">28 de octubre de 2026</time>
@@ -260,7 +284,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.4.1">Descargas de la v0.4.1 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.4.0" style="--c: var(--red)">
+<article class="release" id="v0.4.0" style="--c: var(--yellow)">
   <div class="when">
     <a class="ver" href="#v0.4.0">v0.4.0</a>
     <time datetime="2026-10-28">28 de octubre de 2026</time>

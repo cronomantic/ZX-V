@@ -61,9 +61,33 @@
       <h1>What's new in ZX-V.</h1>
       <p>New versions and news about the project, newest first. <a class="rss" href="feed.xml">Follow it by RSS</a></p>
     </div>
-<article class="release" id="v0.10.0" style="--c: var(--red)">
+<article class="release" id="v0.11.0" style="--c: var(--red)">
   <div class="when">
-    <a class="ver" href="#v0.10.0">v0.10.0</a><span class="latest">Latest</span>
+    <a class="ver" href="#v0.11.0">v0.11.0</a><span class="latest">Latest</span>
+    <time datetime="2026-11-24">24 November 2026</time>
+  </div>
+  <div class="what">
+    <h2>Wi-Fi, bigger games and the machine's card from the PC</h2>
+<ul>
+<li><strong>Wi-Fi with a Pico 2 W</strong> in the CPU socket: everything J5 does (sending and running programs, the report, the <code>EXT:</code> drive, the BASIC debugger) also goes over the network. The firmware is the same and sees for itself whether it has a radio. On the machine, <strong>EDIT &gt; Wi-Fi</strong> chooses the network and <strong>pairs a PC</strong> with a six-digit code that both show; <code>zxv-link</code>, <code>zxv-link-gui</code> and the VS Code extension find the machines on the network. What travels is signed, not encrypted.</li>
+<li><strong>Updating the firmware from the PC</strong> through J5, with no card: <code>zxv-link update zxv-update.bin</code>, or Machine &gt; Update firmware in <code>zxv-link-gui</code>.</li>
+<li><strong>The machine as a file explorer</strong>: <code>zxv-link</code> lists, fetches, deletes, renames and creates folders on the card (<code>ls</code>, <code>get</code>, <code>rm</code>, <code>mv</code>, <code>mkdir</code>), runs what is already there (<code>exec</code>) or a PC file straight into memory without copying it (<code>run --pc</code>). The <code>zxv-link-gui</code> window was redone around it: the machine at the top (cable or Wi-Fi), the card, <code>ROM:</code> and <code>EXT:</code> side by side, drag and drop.</li>
+<li><strong>Bigger games: banks in the <code>.zxv</code>.</strong> A program carries data banks (graphics, levels, music: any file) and code banks (functions loaded into a fixed area when needed), so it is limited by what each level needs, not by what fits at once. <code>zxvbanks.py</code> builds them; in VS Code they can be debugged. ZX Basic gets them with <code>--code-bank</code>. Specification 0.2 (the <code>PROG_FILE</code> and <code>PROG_CRC</code> system variables).</li>
+<li><strong>The hidden VRAM as program memory</strong>: in mode 0, the 72 KB of each video page that are not shown are declared as normal variables (<code>ZXV_VRAM0_DATA</code>, <code>ZXV_VRAM1_DATA</code>).</li>
+<li><strong>Pattern fills and a mode 7 like the SNES's</strong>: lines, boxes, triangles, polygons and circles with a two-colour pattern, with transparent paper if wanted (<code>PATTERN</code> in BASIC); and mode 7 gains a <strong>tile map as the floor</strong> (<code>FLOOR MAP</code>), <strong>transparency</strong> and <strong>rotation with zoom</strong> of a whole plane (<code>ROTATE</code>).</li>
+<li><strong>Nine optional SDK libraries for games</strong>: fixed-point maths, objects on the mode 7 floor, moving around a tile map, palette fades, keyboard and joysticks as actions, saving data without losing it, gzip, fonts of any size and colour, and 3D models with light and shading. Plus <code>fontconv.py</code> and <code>obj2c.py</code>. All of them in ZX Basic too, with the new <strong>Nave 3D</strong> example.</li>
+<li><strong>The references rewritten from the code</strong>: every function and command of the SDK, its libraries, the BASIC and ZX Basic with its parameters, what it returns, its errors, an example and the version it appeared in.</li>
+<li><strong>Route 128</strong>'s cars are now rendered from 3D models, and the rivals turn too.</li>
+<li><strong>Fixes</strong>: a damaged <code>.zxv</code> no longer overwrites the BASIC program; <code>SAVE CODE</code> no longer leaves files open; the emulators refuse to write, delete or rename an open file, like the card; <code>CONTINUE</code> after a stop in a direct command gives N; the sample channels stop when a program returns to BASIC; the MODE diagnostic page appears after one second held; in Route 128's demo the car no longer shakes when it turns.</li>
+<li>The user RAM ends 4 KB lower (244 KB), to make room for the Wi-Fi in the firmware; the BASIC keeps its 93,832 free bytes.</li>
+<li>Together with it, <strong>ZX Basic v1.19.0-zxv.7</strong>: the SDK libraries, code banks, 3D, <code>PATTERN</code>, <code>--debug-array</code> and a warning for <code>FASTCALL</code> functions whose BASIC reads their parameters.</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.11.0">Downloads for v0.11.0 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.10.0" style="--c: var(--yellow)">
+  <div class="when">
+    <a class="ver" href="#v0.10.0">v0.10.0</a>
     <time datetime="2026-11-22">22 November 2026</time>
   </div>
   <div class="what">
@@ -84,7 +108,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.10.0">Downloads for v0.10.0 →</a></p>
   </div>
 </article>
-<article class="release" id="2026-11-19-las-placas" style="--c: var(--yellow)">
+<article class="release" id="2026-11-19-las-placas" style="--c: var(--green)">
   <div class="when">
     <a class="kind" href="#2026-11-19-las-placas">News</a>
     <time datetime="2026-11-19">19 November 2026</time>
@@ -98,7 +122,7 @@
 <p>If you want to build one, <a href="https://zx-v.org/docs/en/hardware/board.html">the board guide</a> has the files for JLCPCB, the parts list and how to fit the Picos.</p>
   </div>
 </article>
-<article class="release" id="v0.9.0" style="--c: var(--green)">
+<article class="release" id="v0.9.0" style="--c: var(--cyan)">
   <div class="when">
     <a class="ver" href="#v0.9.0">v0.9.0</a>
     <time datetime="2026-11-04">4 November 2026</time>
@@ -112,7 +136,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.9.0">Downloads for v0.9.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.8.0" style="--c: var(--cyan)">
+<article class="release" id="v0.8.0" style="--c: var(--red)">
   <div class="when">
     <a class="ver" href="#v0.8.0">v0.8.0</a>
     <time datetime="2026-11-04">4 November 2026</time>
@@ -128,7 +152,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.8.0">Downloads for v0.8.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.7.2" style="--c: var(--red)">
+<article class="release" id="v0.7.2" style="--c: var(--yellow)">
   <div class="when">
     <a class="ver" href="#v0.7.2">v0.7.2</a>
     <time datetime="2026-11-02">2 November 2026</time>
@@ -142,7 +166,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.7.2">Downloads for v0.7.2 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.7.1" style="--c: var(--yellow)">
+<article class="release" id="v0.7.1" style="--c: var(--green)">
   <div class="when">
     <a class="ver" href="#v0.7.1">v0.7.1</a>
     <time datetime="2026-11-01">1 November 2026</time>
@@ -156,7 +180,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.7.1">Downloads for v0.7.1 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.7.0" style="--c: var(--green)">
+<article class="release" id="v0.7.0" style="--c: var(--cyan)">
   <div class="when">
     <a class="ver" href="#v0.7.0">v0.7.0</a>
     <time datetime="2026-10-31">31 October 2026</time>
@@ -175,7 +199,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.7.0">Downloads for v0.7.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.6.2" style="--c: var(--cyan)">
+<article class="release" id="v0.6.2" style="--c: var(--red)">
   <div class="when">
     <a class="ver" href="#v0.6.2">v0.6.2</a>
     <time datetime="2026-10-30">30 October 2026</time>
@@ -191,7 +215,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.6.2">Downloads for v0.6.2 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.6.1" style="--c: var(--red)">
+<article class="release" id="v0.6.1" style="--c: var(--yellow)">
   <div class="when">
     <a class="ver" href="#v0.6.1">v0.6.1</a>
     <time datetime="2026-10-30">30 October 2026</time>
@@ -208,7 +232,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.6.1">Downloads for v0.6.1 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.6.0" style="--c: var(--yellow)">
+<article class="release" id="v0.6.0" style="--c: var(--green)">
   <div class="when">
     <a class="ver" href="#v0.6.0">v0.6.0</a>
     <time datetime="2026-10-30">30 October 2026</time>
@@ -226,7 +250,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.6.0">Downloads for v0.6.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.5.0" style="--c: var(--green)">
+<article class="release" id="v0.5.0" style="--c: var(--cyan)">
   <div class="when">
     <a class="ver" href="#v0.5.0">v0.5.0</a>
     <time datetime="2026-10-29">29 October 2026</time>
@@ -246,7 +270,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.5.0">Downloads for v0.5.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.4.1" style="--c: var(--cyan)">
+<article class="release" id="v0.4.1" style="--c: var(--red)">
   <div class="when">
     <a class="ver" href="#v0.4.1">v0.4.1</a>
     <time datetime="2026-10-28">28 October 2026</time>
@@ -259,7 +283,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.4.1">Downloads for v0.4.1 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.4.0" style="--c: var(--red)">
+<article class="release" id="v0.4.0" style="--c: var(--yellow)">
   <div class="when">
     <a class="ver" href="#v0.4.0">v0.4.0</a>
     <time datetime="2026-10-28">28 October 2026</time>
