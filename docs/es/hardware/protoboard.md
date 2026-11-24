@@ -87,14 +87,14 @@ alimentación, mejor.
 
 - La fuente va al **VSYS (pin 39) de cada Pico por un diodo Schottky** (el
   ánodo a la fuente; el cátodo, el lado de la raya, a VSYS). Así se puede
-  enchufar a la vez el micro-USB de una Pico (para actualizarla, o para el
-  puerto serie) sin que sus 5 V vuelvan a la fuente.
+  enchufar a la vez el micro-USB de una Pico (para actualizarla, o el puerto
+  serie de la ULA) sin que sus 5 V vuelvan a la fuente.
 - La fuente también da los **5 V del USB-A (VBUS) por el fusible rearmable de
   500 mA**.
 
 Si en cambio metes la fuente por el **VBUS (pin 40) de la Pico CPU**, sin
 diodos, **tienes que desconectarla antes de enchufar el micro-USB** de esa
-Pico (para cargarle el firmware, o para el puerto serie), o sus 5 V llegarían
+Pico (para cargarle el firmware), o sus 5 V llegarían
 a tu ordenador.
 
 ## El enlace entre las dos Pico
@@ -256,10 +256,12 @@ luego un PCF8563, y usa el que encuentre.
    pulsador del modo y el LED, y prueba los modos.
 2. **Las dos Pico.** Cablea el enlace, carga `zxv_cpu.uf2` en la Pico CPU y
    `zxv_ula_link.uf2` en la Pico ULA. En la pantalla debería salir el BASIC.
-   Abre el puerto serie de la Pico CPU (su micro-USB) con un terminal: cada
-   5 segundos escribe un informe. (Las dos Pico juntas funcionan en la placa,
-   pero este cableado en una protoboard no se ha probado: si falla, empieza
-   por el informe del puerto serie.)
+   Cada 5 segundos la Pico CPU escribe un informe por la carga remota (GP12 y GP13): con
+   un adaptador USB-serie de 3,3 V y `zxv-link log` ([El
+   firmware](firmware.md#el-informe)). Sin adaptador, lo principal sale en la
+   página de diagnóstico (Ctrl+Alt+F12). (Las dos Pico juntas funcionan en la
+   placa, pero este cableado en una protoboard no se ha probado: si falla,
+   empieza por el informe.)
 3. **La tarjeta SD, el USB-A y el reloj**, de uno en uno, mirando cada uno en
    el informe (`tarjeta`, `USB`, `reloj`) y desde el BASIC: `CAT` para la
    tarjeta, escribir algo para el teclado, y `CLOCK 2026,10,20,18,30` y luego

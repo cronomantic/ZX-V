@@ -76,7 +76,7 @@ things are drawn; `PAGE n` chooses the page you see. So:
 `s` is the hidden page. Each turn draws the whole picture there (a blue
 background and the sprite), shows it with `PAGE s`, and swaps: `LET s=1-s`
 turns 1 into 0 and 0 into 1, so the next picture is drawn on the other page.
-`WAIT 1` keeps the speed steady at 50 pictures a second. At the end, line
+`WAIT 1` keeps the speed steady at 60 pictures a second. At the end, line
 130 leaves everything on page 0, the normal one.
 
 ## Sprites from a drawing, and collisions

@@ -428,7 +428,16 @@ void road_draw(int32_t z, int px, int32_t cam_y, int theme, int bg_x, void (*pla
             int sy = n->sy + (f->sy - n->sy) * p / 256;
             int32_t sw = n->sw + (f->sw - n->sw) * p / 256;
             sx += (int)((int64_t)c->x * sw / (X1 * 16));
-            draw_thing(&car_art[c->type], sx, sy, sw, car_world_w[c->type], clip, 0, car_colours[c->colour]);
+            /* Girado como el del jugador: hacia el carril al que va y hacia
+             * donde tuerce la carretera; a la izquierda, en espejo. Los
+             * girados son más anchos (se ve el costado): a la misma escala. */
+            int curve = seg_curve(seg);
+            int pose = (c->target > c->x) - (c->target < c->x) + (curve > 40) - (curve < -40);
+            const sprite_t *s = &car_art[c->type][pose < 0 ? -pose : pose];
+            if (!s->spr)
+                s = &car_art[c->type][0];
+            int ww = car_art[c->type][0].w ? car_world_w[c->type] * s->w / car_art[c->type][0].w : 0;
+            draw_thing(s, sx, sy, sw, ww, clip, pose < 0 ? ZXV_FLIP_H : 0, car_colours[c->colour]);
         }
     }
     if (!drawn)

@@ -10,9 +10,11 @@ software for both Picos comes ready to copy onto them.
 > **Status.** **The first board works**, with the two Picos together: it
 > starts into BASIC on an HDMI screen, and the `boardtest` program passes the
 > picture and palettes, the sound, the USB keyboard, the gamepads, the mouse,
-> the MODO button and the clock, and the microSD card reads, saves and
-> updates the firmware. **Still to be tried on it:** the clock's coin cell.
-> Nobody has built the machine on a protoboard yet.
+> the MODO button and the clock (with its coin cell, it keeps the time while
+> off), and the microSD card reads, saves and updates the firmware. Through
+> the J5 header, loading programs from the PC, the `EXT:` drive and updating
+> the firmware with no card work too. Nobody has built the machine on a
+> protoboard yet.
 > If you build one now, you will be among the first: read
 > [The board](board.md) carefully.
 
@@ -46,7 +48,7 @@ software for both Picos comes ready to copy onto them.
 | What it is | A 100 × 100 mm board with everything on it | The two Picos and modules wired by hand |
 | Soldering | Only the two Picos, two buttons, a switch, two LEDs, the coin cell and, optionally, the J5 header for remote loading: all through-hole | Many wires; HDMI and the link between the Picos need short, tidy wiring |
 | Connectors | HDMI, USB-A, microSD, audio jack, USB-C for power, real-time clock | Breakout boards and modules |
-| Status | **Works**: the first board passes `boardtest` and uses the microSD card (the coin cell is still to be tried) | Each Pico tested on its own; the wiring of the two together on a protoboard, **not yet** (together they work on the board) |
+| Status | **Works**: the first board passes `boardtest`, uses the microSD card, keeps the time with the coin cell and loads and updates through J5 | Each Pico tested on its own; the wiring of the two together on a protoboard, **not yet** (together they work on the board) |
 | Guide | [The board](board.md) | [On a protoboard](protoboard.md) |
 
 Both run the same firmware and behave the same.

@@ -18,7 +18,7 @@ second, so there are slightly fewer of them on screen.
 
 ## Building it
 
-You need the `zxv` branch of the ZX Basic fork (`cronomantic/zxbasic`) and
+You need the ZX Basic fork (`cronomantic/zxbasic`) and
 the RISC-V C compiler, the same one the SDK uses:
 
 ```

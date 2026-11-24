@@ -10,9 +10,9 @@ superficial (SMD) ya soldadas**. Cuando llega, solo te quedan por soldar las
 dos Pico y unas pocas piezas grandes de agujero pasante.
 
 > **Las primeras placas ya están hechas y una se ha probado:** con las dos
-> Pico juntas pasa `boardtest` y usa la tarjeta microSD; falta por probar la
-> pila del reloj. Si la pides, comprueba todo lo que dice esta
-> página. El diseño está en [`pcb/`](../../../pcb/) (KiCad), como hardware
+> Pico juntas pasa `boardtest`, usa la tarjeta microSD, guarda la hora con la
+> pila del reloj y carga y se actualiza por J5. Si la pides, comprueba todo lo
+> que dice esta página. El diseño está en [`pcb/`](../../../pcb/) (KiCad), como hardware
 > abierto: licencia CERN-OHL-W v2.
 
 ![La cara de arriba de la placa, sin las Pico. El frontal, con los mandos,
@@ -271,7 +271,7 @@ enlace. Si algo no funciona, mira [Qué mirar](firmware.md#si-no-hay-imagen-o-no
 | `HDMI` | Detrás, tras la ULA | J7 | La pantalla: la imagen, y el sonido en el modo HDMI |
 | `AUDIO` | Detrás, tras la CPU | J8, jack de 3,5 mm | El sonido estéreo, a nivel de línea, siempre |
 | `OFF` `ON` | Delante, en la esquina izquierda | SW3 | El encendido: con la palanca a la derecha, encendida; a la izquierda, apagada |
-| `MODO` | Delante, a la izquierda | SW2 | Una pulsación corta cambia el modo de vídeo; una larga (de 1 a 5 s) enseña o quita la página de diagnóstico; apretado al encender, el modo seguro |
+| `MODO` | Delante, a la izquierda | SW2 | Una pulsación corta cambia el modo de vídeo; apretado un segundo, enseña o quita la página de diagnóstico; apretado al encender, el modo seguro |
 | `USB` | Delante, en el centro | J4, USB-A | Teclado, ratón y mandos (varios, con un hub). Con un fusible de 500 mA |
 | `RESET` | Delante, a la derecha | SW1 | Reinicia las dos Pico, como apagar y encender |
 | `SD` | Delante, a la derecha | LED1, verde | Encendido mientras la máquina usa la tarjeta o el reloj |

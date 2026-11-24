@@ -20,8 +20,12 @@ Uso: png2gfx.py SALIDA.gfx ORDEN...
                                   celda (como en MAP POKE), una fila por línea
   --texture N IMAGEN [C]          la textura N (cuadrada, de lado potencia de
                                   2, de 2 a 256); se repite o, con C, fuera
-                                  es del color C
+                                  es del color C. Lo transparente del PNG
+                                  queda negro
   --wrap M                        el mapa M se repite
+  --transparent N                 lo transparente del PNG de la textura N
+                                  no se dibuja (el color 8; con C = 8,
+                                  tampoco lo de fuera)
   --screen N IMAGEN [B]           la pantalla N: de 256 x 192 (modo 0) o
                                   512 x 384 (modo 1); o el cuadro entero,
                                   de 320 x 240 o 640 x 480, con el borde del
@@ -94,8 +98,12 @@ Commands (applied in this order; the numbers are the BASIC's):
                                   cell (as in MAP POKE), one row per line
   --texture N IMAGE [C]           texture N (square, its side a power of 2
                                   from 2 to 256); it repeats or, with C,
-                                  outside it is colour C
+                                  outside it is colour C. What is transparent
+                                  in the PNG turns black
   --wrap M                        map M repeats
+  --transparent N                 what is transparent in the PNG of texture
+                                  N is not drawn (colour 8; with C = 8, nor
+                                  what is outside)
   --screen N IMAGE [B]            screen N: 256 x 192 (mode 0) or 512 x 384
                                   (mode 1); or the whole frame, 320 x 240 or
                                   640 x 480, with the border in the colour of
@@ -469,7 +477,7 @@ class Store:
         self.sprites = {}           # n -> (an, al, filas)
         self.tiles = {8: {}, 16: {}}  # lado -> {n: tile (tupla de filas)}
         self.maps = {}              # m -> [an, al, lado, repite, celdas]
-        self.textures = {}          # n -> (log2, repite, fuera, texels)
+        self.textures = {}          # n -> (log2, repite, fuera, texels[, marcas: 1, el 8 transparente])
         self.screens = {}           # n -> los datos del objeto pantalla
 
     def tile_count(self, s):
@@ -490,8 +498,8 @@ class Store:
             w, h, s, wrap, cells = self.maps[m]
             recs.append((3, m, struct.pack("<HHBBH", w, h, s, wrap, 0) + struct.pack("<%dH" % len(cells), *cells)))
         for n in sorted(self.textures):
-            l2, wrap, out, texels = self.textures[n]
-            recs.append((4, n, bytes([l2, wrap, out, 0]) + bytes(texels)))
+            l2, wrap, out, texels, *flags = self.textures[n]
+            recs.append((4, n, bytes([l2, wrap, out, flags[0] if flags else 0]) + bytes(texels)))
         for n in sorted(self.screens):
             recs.append((5, n, self.screens[n]))
         out = b"ZXVG" + struct.pack("<BBH", 1, 0, len(recs))
@@ -632,6 +640,8 @@ def list_gfx(path):
             side = 1 << d[0]
             how = (tr("wraps", "se repite") if d[1]
                    else tr("outside, colour %d", "fuera, el color %d") % d[2])
+            if d[3] & 1:
+                how += tr(", 8 transparent", ", el 8 transparente")
             print(tr("texture %d: %d x %d, %s", "textura %d: %d x %d, %s") % (num, side, side, how))
         elif kind == 5:
             print(tr("screen %d: mode %d, border %d", "pantalla %d: modo %d, borde %d") % (num, d[0], d[1]) +
@@ -648,7 +658,7 @@ def list_gfx(path):
 # --- Órdenes ---------------------------------------------------------------------------
 
 ARGS = {"--sprite": (2, 3), "--sprites": (3, 3), "--tiles": (3, 4), "--level": (3, 3),
-        "--map": (3, 3), "--texture": (2, 3), "--wrap": (1, 1), "--screen": (2, 3)}
+        "--map": (3, 3), "--texture": (2, 3), "--wrap": (1, 1), "--transparent": (1, 1), "--screen": (2, 3)}
 
 
 def main(argv):
@@ -697,7 +707,7 @@ def main(argv):
             images[path] = Image(path, key)
         return images[path]
 
-    wraps = []
+    wraps, clear, transparents = [], {}, []
     for cmd, a in orders:
         if cmd == "--sprite":
             n = number(a[0], 0, 255, "sprite")
@@ -743,9 +753,12 @@ def main(argv):
                        "%s: una textura es un cuadrado de lado potencia de 2, de 2 a 256") % img.path)
             out_c = number(a[2], 0, 15, tr("colour", "color")) if len(a) > 2 else None
             texels = [0 if c == TRANSPARENT else c for row in img.pix for c in row]
+            clear[n] = [i for i, c in enumerate(c for row in img.pix for c in row) if c == TRANSPARENT]
             st.textures[n] = (img.w.bit_length() - 1, 1 if out_c is None else 0, out_c or 0, texels)
         elif cmd == "--wrap":
             wraps.append(number(a[0], 0, 15, tr("map", "mapa")))
+        elif cmd == "--transparent":
+            transparents.append(number(a[0], 0, 3, tr("texture", "textura")))
         elif cmd == "--screen":
             n = number(a[0], 0, 255, tr("screen", "pantalla"))
             border = number(a[2], 0, 15, tr("border", "borde")) if len(a) > 2 else None
@@ -754,6 +767,14 @@ def main(argv):
         if m not in st.maps:
             die(tr("--wrap %d: there is no map %d", "--wrap %d: no hay mapa %d") % (m, m))
         st.maps[m][3] = 1
+    for n in transparents:
+        if n not in st.textures:
+            die(tr("--transparent %d: there is no texture %d", "--transparent %d: no hay textura %d") % (n, n))
+        l2, wrap, out_c, texels = st.textures[n][:4]
+        texels = list(texels)
+        for i in clear.get(n, []):
+            texels[i] = TRANSPARENT
+        st.textures[n] = (l2, wrap, out_c, texels, 1)
     for m, (w, h, s, _, cells) in sorted(st.maps.items()):
         if not (1 <= w <= 32767 and 1 <= h <= 32767):
             die(tr("map %d: sides from 1 to 32767 cells", "mapa %d: de 1 a 32767 celdas de lado") % m)

@@ -166,6 +166,129 @@ QIcon icon(Ic kind)
             p.drawLine(QPointF(12, 9), QPointF(12, 14));
             p.drawPoint(QPointF(12, 17.2));
         });
+    case Ic::Update:
+        return drawn([](QPainter &p) {
+            p.setPen(pen(ink(), 1.4));
+            for (qreal y : { 8.5, 12.0, 15.5 }) {  /* las patas del chip */
+                p.drawLine(QPointF(3, y), QPointF(6, y));
+                p.drawLine(QPointF(18, y), QPointF(21, y));
+            }
+            p.setBrush(CYAN);
+            p.drawRoundedRect(QRectF(6, 4.5, 12, 15), 2, 2);
+            p.setPen(pen(BLUE, 2.2));
+            p.drawLine(QPointF(12, 16.5), QPointF(12, 8.5));
+            p.drawPolyline(QPolygonF({ QPointF(8.8, 11.5), QPointF(12, 8.3), QPointF(15.2, 11.5) }));
+        });
+    case Ic::Upload:
+    case Ic::Download:
+        return drawn([kind](QPainter &p) {
+            p.setPen(pen(ink(), 1.6));
+            p.drawPolyline(QPolygonF({ QPointF(3.5, 15), QPointF(3.5, 20.5), QPointF(20.5, 20.5), QPointF(20.5, 15) }));
+            p.setPen(pen(kind == Ic::Upload ? CYAN_DARK : GREEN_DARK, 2.6));
+            p.drawLine(QPointF(12, 3.5), QPointF(12, 16));
+            if (kind == Ic::Upload)
+                p.drawPolyline(QPolygonF({ QPointF(7, 8.5), QPointF(12, 3.5), QPointF(17, 8.5) }));
+            else
+                p.drawPolyline(QPolygonF({ QPointF(7, 11), QPointF(12, 16), QPointF(17, 11) }));
+        });
+    case Ic::NewFolder:
+        return drawn([](QPainter &p) {
+            QPainterPath path;
+            path.moveTo(2.5, 5.5);
+            path.lineTo(9, 5.5);
+            path.lineTo(11, 8);
+            path.lineTo(21.5, 8);
+            path.lineTo(21.5, 19.5);
+            path.lineTo(2.5, 19.5);
+            path.closeSubpath();
+            p.setPen(pen(ink(), 1.4));
+            p.setBrush(YELLOW);
+            p.drawPath(path);
+            p.setPen(pen(GREEN_DARK, 2.4));
+            p.drawLine(QPointF(12, 10.5), QPointF(12, 17.5));
+            p.drawLine(QPointF(8.5, 14), QPointF(15.5, 14));
+        });
+    case Ic::Rename:
+        return drawn([](QPainter &p) {
+            p.translate(12, 12);
+            p.rotate(-45);
+            p.setPen(pen(ink(), 1.4));
+            p.setBrush(YELLOW);
+            p.drawRect(QRectF(-7, -2.5, 12, 5));
+            p.setBrush(RED);
+            p.drawRect(QRectF(5, -2.5, 3, 5));
+            p.setBrush(ink());
+            p.drawPolygon(QPolygonF({ QPointF(-7, -2.5), QPointF(-10.5, 0), QPointF(-7, 2.5) }));
+        });
+    case Ic::Delete:
+        return drawn([](QPainter &p) {
+            p.setPen(pen(ink(), 1.4));
+            p.drawLine(QPointF(4, 6.5), QPointF(20, 6.5));
+            p.drawLine(QPointF(9.5, 6.5), QPointF(10, 3.5));
+            p.drawLine(QPointF(10, 3.5), QPointF(14, 3.5));
+            p.drawLine(QPointF(14, 3.5), QPointF(14.5, 6.5));
+            p.setBrush(paper());
+            p.drawPolygon(QPolygonF({ QPointF(6, 6.5), QPointF(18, 6.5), QPointF(16.8, 21), QPointF(7.2, 21) }));
+            p.setPen(pen(RED, 1.4));
+            for (qreal x : { 10.0, 14.0 })
+                p.drawLine(QPointF(x, 10), QPointF(x, 18));
+        });
+    case Ic::Up:
+        return drawn([](QPainter &p) {
+            p.setPen(pen(ink(), 2.4));
+            p.drawLine(QPointF(12, 20), QPointF(12, 5));
+            p.drawPolyline(QPolygonF({ QPointF(6, 11), QPointF(12, 5), QPointF(18, 11) }));
+        });
+    case Ic::Card:
+        return drawn([](QPainter &p) {
+            QPainterPath path;
+            path.moveTo(5.5, 2.5);
+            path.lineTo(15, 2.5);
+            path.lineTo(18.5, 6);
+            path.lineTo(18.5, 21.5);
+            path.lineTo(5.5, 21.5);
+            path.closeSubpath();
+            p.setPen(pen(ink(), 1.4));
+            p.setBrush(BLUE);
+            p.drawPath(path);
+            p.setPen(pen(YELLOW, 1.4));
+            for (qreal x : { 8.5, 11.0, 13.5 })
+                p.drawLine(QPointF(x, 4.5), QPointF(x, 8));
+        });
+    case Ic::Rom:
+        return drawn([](QPainter &p) {
+            p.setPen(pen(ink(), 1.4));
+            for (qreal y : { 7.5, 12.0, 16.5 }) {
+                p.drawLine(QPointF(2.5, y), QPointF(5.5, y));
+                p.drawLine(QPointF(18.5, y), QPointF(21.5, y));
+            }
+            p.setBrush(QColor(0x40, 0x40, 0x40));
+            p.drawRoundedRect(QRectF(5.5, 3.5, 13, 17), 1.5, 1.5);
+            p.setPen(Qt::NoPen);
+            p.setBrush(CYAN);
+            p.drawEllipse(QRectF(8, 6, 3, 3));
+        });
+    case Ic::Ext:
+        return drawn([](QPainter &p) {
+            p.setPen(pen(ink(), 1.4));
+            p.setBrush(paper());
+            p.drawRoundedRect(QRectF(2.5, 3.5, 19, 12.5), 1.5, 1.5);
+            p.drawLine(QPointF(9, 20.5), QPointF(15, 20.5));
+            p.drawLine(QPointF(12, 16), QPointF(12, 20.5));
+            p.setPen(pen(CYAN_DARK, 2.2));
+            p.drawLine(QPointF(7, 10), QPointF(16, 10));
+            p.drawPolyline(QPolygonF({ QPointF(13, 7), QPointF(16.5, 10), QPointF(13, 13) }));
+        });
+    case Ic::Pair:
+        return drawn([](QPainter &p) {
+            p.setPen(pen(ink(), 2.2));
+            p.setBrush(Qt::NoBrush);
+            p.translate(12, 12);
+            p.rotate(-45);
+            p.drawRoundedRect(QRectF(-10, -3.5, 10, 7), 3.5, 3.5);
+            p.setPen(pen(CYAN_DARK, 2.2));
+            p.drawRoundedRect(QRectF(0, -3.5, 10, 7), 3.5, 3.5);
+        });
     case Ic::Clear:
         return drawn([](QPainter &p) {
             p.translate(12, 12);

@@ -407,7 +407,8 @@ int Document::load(const std::vector<uint8_t> &data)
         }
         case 4: {
             uint32_t l2 = len >= 4 ? o[0] : 0;
-            if (num >= TEXTURES || l2 < 1 || l2 > 8 || o[1] > 1 || o[2] > 15 || len != 4 + (1u << (2 * l2)))
+            if (num >= TEXTURES || l2 < 1 || l2 > 8 || o[1] > 1 || o[2] > 15 || o[3] > 1 ||
+                len != 4 + (1u << (2 * l2)))
                 return LOAD_DAMAGED;
             int side = 1 << l2;
             Texture t;
@@ -419,6 +420,7 @@ int Document::load(const std::vector<uint8_t> &data)
             }
             t.wrap = o[1];
             t.out = o[2];
+            t.transparent = o[3];
             doc.textures[num] = t;
             break;
         }
@@ -503,7 +505,7 @@ std::vector<uint8_t> Document::save() const
         o.push_back(uint8_t(l2));
         o.push_back(t.wrap ? 1 : 0);
         o.push_back(uint8_t(t.out));
-        o.push_back(0);
+        o.push_back(t.transparent ? 1 : 0);
         o.insert(o.end(), t.img.px.begin(), t.img.px.end());
     }
     for (int n = 0; n < SCREENS; n++) {

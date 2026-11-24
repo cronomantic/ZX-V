@@ -14,12 +14,14 @@ machine's specification as "spec §N": that is [dev/spec.md](../dev/spec.md)
 | `include/zxv_api.h` | The system routines (the ROM API) as `static inline` C functions |
 | `include/zxv_gfx.h` | The graphics engine for games: bitmaps, sprites, tile maps, mode 7 and vectors |
 | `include/zxv_gfxfile.h`, `gfxfile.c` | Reads `.gfx` graphics files: sprites, tiles, maps and textures |
+| `lib/`, with their headers in `include/` | Optional libraries for games: fixed-point maths, objects on the mode 7 floor, moving through tile maps, palette fades, keyboard and joysticks, saving data, gzip, fonts and simple 3D (`docs/en/sdk/libraries.md`) |
 | `include/zxv_music.h`, `music/` | Music and sound effects: ZX-V's own `.zxm` format, PT3, TurboSound, PT2, STC, ASC, PSG and VGM modules and AYFX effects |
 | `sound/` | The sound of ZX-V as the machine makes it: the two AY chips (`aysynth`), the twelve sample channels (`smpsynth`, with the ADPCM encoder) and the mix (`sndsynth`). The emulator and `zxv-tracker` sound with the same code |
 | `zxvlib.c` | `memcpy`, `memset`, `memmove` and `memcmp`, for programs without a C library |
 | `zxvc.c`, `include/sys/dirent.h` | The standard C library (picolibc) on top of the system routines: files, folders, console, heap and time |
 | `zxv.ld`, `crt0.S` | The linker script and the entry point |
 | `tools/elf2zxv.py` | Turns the ELF into a `.zxv` |
+| `tools/fontconv.py`, `tools/obj2c.py` | Bitmap fonts (Spectrum, PSF, BDF, `.hex`, raw dumps) and `.obj` models into C for `zxv_font.h` and `zxv_3d.h` |
 | `tools/gfx/` | `zxv-gfx`, the graphics editor for the PC (Qt 6): `cmake -S sdk/tools/gfx -B build-gfx` |
 | `tools/tracker/` | `zxv-tracker`, the tracker for the PC (Qt 6 and SDL2): `cmake -S sdk/tools/tracker -B build-tracker` |
 | `tools/music/` | `zxv-music`, which converts PT3, TurboSound, MOD, S3M and XM to `.zxm` (no Qt): `cmake -S sdk/tools/music -B build-music` |

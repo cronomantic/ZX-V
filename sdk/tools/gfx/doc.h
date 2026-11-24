@@ -97,9 +97,13 @@ struct Texture {
     Image img;                          /* cuadrada, de lado potencia de 2 (2-256) */
     bool wrap = true;
     int out = 0;                        /* el color de fuera, si no se repite */
+    bool transparent = false;           /* el 8 (también el de fuera) no se dibuja (D110) */
 
     bool empty() const { return img.empty(); }
-    bool operator==(const Texture &o) const { return img == o.img && wrap == o.wrap && out == o.out; }
+    bool operator==(const Texture &o) const
+    {
+        return img == o.img && wrap == o.wrap && out == o.out && transparent == o.transparent;
+    }
 };
 
 /* Una pantalla: la página entera de la VRAM, en modo 0 (256 x 192) o en

@@ -45,16 +45,18 @@ extern uint8_t keep_gfx[], keep_gfx_end[];
 
 static zxv_gfxfile gfx;
 
-/* Los sprites preparados para el motor, uno detrás de otro. */
-static uint32_t pool[32 * 1024 / 4];
+/* Los sprites preparados para el motor, uno detrás de otro. Como los tiles,
+ * en la VRAM oculta de la página 0 (D108): el juego va en modo 0 con VSIZE
+ * 0 (video.c) y así no gasta RAM de usuario. */
+ZXV_VRAM0_DATA static uint32_t pool[32 * 1024 / 4];
 static uint32_t pool_used;
-static uint32_t scratch[8 * 1024 / 4];  /* un sprite del fichero, alineado, para prepararlo */
+ZXV_VRAM0_DATA static uint32_t scratch[8 * 1024 / 4];   /* un sprite del fichero, alineado, para prepararlo */
 
 #define GLYPHS      64
 static const void *glyphs[GLYPHS];
 
 /* Los tiles de 16 x 16, hasta 128. */
-static uint32_t tiles[128 * 128 / 4];
+ZXV_VRAM0_DATA static uint32_t tiles[128 * 128 / 4];
 static int ntiles;
 
 static void *pool_take(uint32_t bytes)

@@ -29,14 +29,14 @@ un programa.
   "ULA" (el vídeo y el sonido).
 
 > **Estado:** el emulador y la ROM con el BASIC funcionan, y también la
-> primera placa, con las dos Pico juntas (faltan por probar en ella la tarjeta
-> microSD y la pila del reloj).
+> primera placa, con las dos Pico juntas: la imagen, el sonido, los USB, la
+> tarjeta microSD, el reloj con su pila y la carga desde el PC por J5.
 
 ## Pruébalo
 
-**En el navegador:** [cronomantic.github.io/ZX-V/emulator](https://cronomantic.github.io/ZX-V/emulator/),
+**En el navegador:** [zx-v.org/emulator](https://zx-v.org/emulator/),
 sin instalar nada. La web del proyecto, con sus juegos para jugar ahí mismo,
-es [cronomantic.github.io/ZX-V](https://cronomantic.github.io/ZX-V/es/).
+es [zx-v.org](https://zx-v.org/es/).
 
 **En tu ordenador:** descarga la última versión de
 [**Releases**](https://github.com/cronomantic/ZX-V/releases):
@@ -73,7 +73,7 @@ por la [guía de primeros pasos](docs/es/getting-started.md).
 | [Construir el hardware](docs/es/hardware/README.md) | La placa, el montaje y el firmware |
 
 Todo está también en inglés: [docs/en](docs/en/README.md). Y en la
-web, con un índice para moverse: [cronomantic.github.io/ZX-V/docs](https://cronomantic.github.io/ZX-V/docs/es/).
+web, con un índice para moverse: [zx-v.org/docs](https://zx-v.org/docs/es/).
 
 ## Cómo está hecha
 

@@ -89,13 +89,13 @@ for a keyboard and a mouse; with a powered hub, better.
 - The supply feeds **VSYS (pin 39) of each Pico through a Schottky diode**
   (the anode to the supply, the cathode, the end with the stripe, to VSYS).
   This way you can plug in a Pico's micro-USB at the same time (to update it,
-  or for the serial port) without its 5 V going back into the supply.
+  or for the ULA's serial port) without its 5 V going back into the supply.
 - The supply also feeds the **USB-A's 5 V (VBUS) through the 500 mA
   resettable fuse**.
 
 If you feed the supply into the CPU Pico's **VBUS (pin 40)** instead, without
 diodes, you **must disconnect the supply before plugging in that Pico's
-micro-USB** (to flash it, or for the serial port), or its 5 V would reach your
+micro-USB** (to flash it), or its 5 V would reach your
 computer.
 
 ## The link between the two Picos
@@ -256,10 +256,12 @@ PCF8563, and uses the one it finds.
    button and the LED, and try the modes.
 2. **The two Picos.** Wire the link, flash `zxv_cpu.uf2` on the CPU Pico and
    `zxv_ula_link.uf2` on the ULA Pico. The BASIC should appear on the screen.
-   Open the CPU Pico's serial port (its micro-USB) with a terminal: every 5
-   seconds it writes a report. (The two Picos work together on the PCB, but
-   this wiring on a protoboard has not been tested: if it fails, the report on
-   the serial port is the place to start.)
+   Every 5 seconds the CPU Pico writes a report through the remote loading pins (GP12 and GP13):
+   use a 3.3 V USB-serial adapter and `zxv-link log` ([The
+   firmware](firmware.md#the-report)). Without an adapter, the main points are
+   on the diagnostic page (Ctrl+Alt+F12). (The two Picos work together on the
+   PCB, but this wiring on a protoboard has not been tested: if it fails, the
+   report is the place to start.)
 3. **The SD card, the USB-A and the clock**, one at a time, checking each in
    the report (`card`, `USB`, `clock`) and from the BASIC: `CAT` for the
    card, typing for the keyboard, and `CLOCK 2026,10,20,18,30` then

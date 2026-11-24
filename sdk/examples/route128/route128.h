@@ -84,7 +84,8 @@ typedef struct {
 } object_art_t;
 
 extern object_art_t obj_art[OBJ_COUNT];
-extern sprite_t car_art[CAR_TYPES], player_art[5];  /* el coche: recto, izquierda y derecha, y más */
+extern sprite_t car_art[CAR_TYPES][3];  /* los rivales: rectos, un poco y más girados a la derecha */
+extern sprite_t player_art[5];          /* el coche: recto, izquierda y derecha, y más */
 extern const uint8_t car_colours[6][16];
 extern zxv_bitmap bg_far, bg_near, bg_clouds;   /* el paisaje de la etapa (art_background) */
 

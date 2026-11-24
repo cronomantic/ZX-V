@@ -137,7 +137,7 @@ uint32_t zxv_gfxf_texture(const zxv_gfxfile *f, int num, zxv_m7tex *t, void *buf
     if (!d)
         return 0;
     uint32_t bytes = 1u << (2 * d[0]);
-    *t = (zxv_m7tex){ buf, d[0], d[1], d[2], 0 };
+    *t = (zxv_m7tex){ buf, d[0], d[1], d[2], (uint8_t)(d[3] & ZXV_M7_TRANSPARENT) };
     if (buf && room >= bytes)
         copy(buf, d + 4, bytes);
     return bytes;

@@ -86,7 +86,7 @@ private:
     QStackedWidget *pages_;
     QSpinBox *spriteW_, *spriteH_, *tilesN_, *mapW_, *mapH_;
     QComboBox *mapTile_, *texSide_, *texOut_, *scrMode_, *scrBorder_;
-    QCheckBox *mapWrap_, *texWrap_;
+    QCheckBox *mapWrap_, *texWrap_, *texTransp_;
     QLabel *scrPalette_;
     QToolButton *scrColor_[16];
     QPushButton *scrStandard_;

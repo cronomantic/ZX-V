@@ -2,12 +2,13 @@
  * main.cpp - zxv-link-gui, la carga remota de ZX-V con ventana (D101): el
  * mismo proyecto que zxv-link (la consola), con la misma conversación
  * (linkcore.c). Por la tira J5 de la placa, con un adaptador USB-serie de
- * 3,3 V: ejecutar un programa en la placa (con los ficheros de su carpeta),
- * mandar ficheros a la tarjeta, los recientes y el informe de la máquina.
+ * 3,3 V, o por Wi-Fi con una Pico 2 W: ejecutar un fichero del PC directo a
+ * la memoria, la tarjeta, la ROM y EXT: como un explorador (D112) y el
+ * informe de la máquina.
  *
  *   zxv-link-gui [PROGRAMA]
- *         (con un programa, lo pone en la ventana, listo para ejecutarlo;
- *         se conecta por el último puerto)
+ *         (con un programa, lo pone en la ventana, listo para ejecutarlo
+ *         del PC; se conecta con la última máquina)
  *   zxv-link-gui --screenshot CAPTURA.png [PROGRAMA]
  *         (para las pruebas: guarda la ventana en la captura y acaba, sin
  *         conectar)

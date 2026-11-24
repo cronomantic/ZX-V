@@ -29,7 +29,11 @@ programarlo en BASIC o en C y cómo construir la máquina real.
 - **[Programas nativos (SDK)](sdk/README.md)**: las herramientas, tu primer
   programa, gráficos, sonido, entrada y ficheros.
 - **[Gráficos](sdk/graphics.md)**: el motor gráfico a fondo: la memoria de
-  vídeo, sprites, mapas de tiles, scroll, el modo 7 y convertir imágenes.
+  vídeo, sprites, mapas de tiles, scroll, figuras con trama, el modo 7 y
+  convertir imágenes.
+- **[Las bibliotecas del SDK](sdk/libraries.md)**: lo que casi todos los
+  juegos necesitan, en C y opcional: cuentas en coma fija, mover por un
+  mapa, teclado y mando, guardar, fuentes de letra, fundidos y 3D.
 - **[Referencia de la API](sdk/reference.md)**: cada función del SDK.
 
 ## Herramientas para el PC
@@ -46,9 +50,11 @@ Vienen con el emulador, para Windows y Linux:
 - **[El conversor de música, `zxv-music`](sdk/README.md#el-formato-propio-zxm-y-zxv-music)**:
   convierte PT3, TurboSound, MOD, S3M y XM al formato propio, `.zxm`.
 - **[La carga remota, `zxv-link` y `zxv-link-gui`](hardware/firmware.md#cargar-programas-desde-el-pc-j5)**:
-  mandan programas del PC a la placa por la tira J5 y los ejecutan, y sirven
-  una carpeta del PC como la [unidad `EXT:`](hardware/firmware.md#la-unidad-ext)
-  de la máquina.
+  mandan programas del PC a la placa por la tira J5 (o [por
+  Wi-Fi](hardware/firmware.md#cargar-programas-por-wi-fi-pico-2-w), con una
+  Pico 2 W) y los ejecutan, enseñan su tarjeta y su ROM como un explorador
+  (mandar, traer, carpetas, borrar) y sirven una carpeta del PC como la
+  [unidad `EXT:`](hardware/firmware.md#la-unidad-ext) de la máquina.
 - **[Publicar tu juego en la web](sdk/web.md)**: `mkweb.py` (en el SDK) hace
   una página con tu juego solo, en C o en BASIC, para itch.io o tu web, con
   controles táctiles para los móviles.
@@ -113,6 +119,11 @@ Vienen con el emulador, para Windows y Linux:
 - [Petit Soccer, fútbol en ZX Basic](../../examples/zxbasic/petitsoccer/README.es.md):
   un campo más grande que la pantalla con scroll, equipos pintados con los
   mismos sprites, música y efectos, contra la máquina o entre dos jugadores.
+- [Fases, en ZX Basic](../../examples/zxbasic/fases/README.es.md): dos fases
+  de un juego, cada una con su código en un banco que se carga al llegar a
+  ella.
+- [Nave 3D, en ZX Basic](../../examples/zxbasic/nave3d/README.es.md): una
+  nave de caras planas hecha en un `.obj`, que gira con luz entre estrellas.
 
 ---
 

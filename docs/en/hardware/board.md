@@ -10,9 +10,9 @@ parts already soldered**. When it arrives you only solder the two Picos and a
 few large through-hole parts.
 
 > **The first boards have been made and one has been tested:** with the two
-> Picos together it passes `boardtest` and uses the microSD card; the
-> clock's coin cell is still to be tried. If you order it, check
-> everything this page asks you to check.
+> Picos together it passes `boardtest`, uses the microSD card, keeps the time
+> with the clock's coin cell and loads and updates through J5. If you order
+> it, check everything this page asks you to check.
 > The design files are in [`pcb/`](../../../pcb/) (KiCad), as open hardware:
 > CERN-OHL-W v2 licence.
 
@@ -275,7 +275,7 @@ The labels printed on the board are in Spanish.
 | `HDMI` | Back, behind the ULA | J7 | The screen: picture, and sound in the HDMI mode |
 | `AUDIO` | Back, behind the CPU | J8, 3.5 mm jack | Stereo line-level sound, always on |
 | `OFF` `ON` | Front, far left | SW3 | Power switch: lever to the right is on, to the left is off |
-| `MODO` | Front, left | SW2 | **Mode**: a short press switches video mode; a long press (1 to 5 s) shows or hides the diagnostic page; held at power-on, the safe mode |
+| `MODO` | Front, left | SW2 | **Mode**: a short press switches video mode; held for a second, it shows or hides the diagnostic page; held at power-on, the safe mode |
 | `USB` | Front, centre | J4, USB-A | Keyboard, mouse, gamepads (several through a hub). Protected by a 500 mA fuse |
 | `RESET` | Front, right | SW1 | Restarts both Picos, like switching off and on |
 | `SD` | Front, right | LED1, green | Lit while the machine uses the SD card or the clock |

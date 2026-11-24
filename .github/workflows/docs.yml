@@ -1,4 +1,4 @@
-# La documentación en HTML, en GitHub Pages: https://cronomantic.github.io/ZX-V/docs/
+# La documentación en HTML, en GitHub Pages: https://zx-v.org/docs/
 #
 # Cada vez que cambia docs/ en main, se genera con dev/docs/docs_html.py (el
 # mismo generador que la de los paquetes) y sustituye a docs/ en la rama
@@ -27,12 +27,12 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           ref: gh-pages
           path: pages
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       # La versión de Python-Markdown de Ubuntu 24.04, la de los paquetes.

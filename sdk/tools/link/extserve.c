@@ -189,10 +189,34 @@ static int list_dir(const char *host, ext_entry_t **out)
  * si existe y es carpeta. La última parte puede no existir (para crear); las
  * de antes, sí. 0 o un error.
  */
+/* Si zpath es el fichero extra (EXT_EXTRA_DIR/extra_name). */
+static bool is_extra(const ext_server_t *x, const char *zpath)
+{
+    size_t dl = strlen(EXT_EXTRA_DIR), nl = strlen(x->extra_name);
+    return x->extra[0] && strlen(zpath) == dl + 1 + nl && same_ci(zpath, EXT_EXTRA_DIR, dl) && zpath[dl] == '/' &&
+           same_ci(zpath + dl + 1, x->extra_name, nl);
+}
+
 static int host_path(const ext_server_t *x, const char *zpath, char *out, bool *exists, bool *dir)
 {
     if (zpath[0] != '/' || strlen(zpath) > 255)
         return E_NAME;
+    if (is_extra(x, zpath)) {
+        snprintf(out, EXT_HOST_PATH, "%s", x->extra);
+        *exists = true;
+        *dir = false;
+        return 0;
+    }
+    if (x->only[0]) {                   /* un solo fichero: la raíz y él */
+        const char *p = zpath;
+        while (*p == '/')
+            p++;
+        size_t n = strlen(p);
+        snprintf(out, EXT_HOST_PATH, "%s", *p ? x->only : x->root);
+        *dir = !*p;
+        *exists = !*p || (n == strlen(x->only_name) && same_ci(p, x->only_name, n));
+        return *exists ? 0 : E_NOENT;
+    }
     size_t o = (size_t)snprintf(out, EXT_HOST_PATH, "%s", x->root);
     *exists = true;
     *dir = true;
@@ -328,10 +352,38 @@ int ext_server_start(ext_server_t *x, const char *folder)
     if (!host_stat(folder, &dir, NULL) || !dir)
         return -1;
     ext_server_close_all(x);
+    x->only[0] = 0;
     snprintf(x->root, sizeof x->root, "%s", folder);
     size_t n = strlen(x->root);
     while (n > 1 && (x->root[n - 1] == '/' || x->root[n - 1] == '\\'))
         x->root[--n] = 0;
+    x->has_last = false;
+    return 0;
+}
+
+int ext_server_set_extra(ext_server_t *x, const char *file, const char *name)
+{
+    if (!file) {
+        x->extra[0] = x->extra_name[0] = 0;
+        return 0;
+    }
+    bool dir;
+    if (!host_stat(file, &dir, NULL) || dir || !valid_name(name, strlen(name)))
+        return -1;
+    snprintf(x->extra, sizeof x->extra, "%s", file);
+    snprintf(x->extra_name, sizeof x->extra_name, "%s", name);
+    return 0;
+}
+
+int ext_server_start_file(ext_server_t *x, const char *file, const char *name)
+{
+    bool dir;
+    if (!host_stat(file, &dir, NULL) || dir || strlen(name) >= sizeof x->only_name)
+        return -1;
+    ext_server_close_all(x);
+    snprintf(x->only, sizeof x->only, "%s", file);
+    snprintf(x->only_name, sizeof x->only_name, "%s", name);
+    snprintf(x->root, sizeof x->root, "%s", ".");   /* no se usa: la raíz no se lista */
     x->has_last = false;
     return 0;
 }
@@ -420,6 +472,8 @@ static int32_t op_open(ext_server_t *x, int slot, uint32_t mode, const char *zpa
     if (r)
         return r;
     bool w = mode & O_WRITE;
+    if ((x->only[0] || is_extra(x, zpath)) && w)
+        return E_ACCESS;                /* un solo fichero, o el extra: solo para leer */
     if (exists && dir)
         return E_ISDIR;
     if (!exists && !(w && (mode & O_CREATE)))
@@ -463,6 +517,11 @@ static unsigned handle(ext_server_t *x, const zl_msg_t *m, uint8_t *out)
     int slot = n ? d[0] : -1;
     bool file_ok = slot >= 0 && slot < 8 && x->files[slot].f;
 
+    if (x->only[0] && (m->type == ZLX_WRITE || m->type == ZLX_REMOVE || m->type == ZLX_MKDIR ||
+                       m->type == ZLX_RENAME || m->type == ZLX_OPENDIR)) {
+        zl_put32(out, (uint32_t)E_ACCESS);  /* un solo fichero: solo leerlo */
+        return 4;
+    }
     switch (m->type) {
     case ZLX_OPEN:
         if (n >= 5 && n - 5 < sizeof zpath) {
@@ -530,6 +589,10 @@ static unsigned handle(ext_server_t *x, const zl_msg_t *m, uint8_t *out)
         bool exists, dir;
         if ((st = host_path(x, zpath, host, &exists, &dir)) != 0)
             break;
+        if (m->type != ZLX_STAT && is_extra(x, zpath)) {
+            st = E_ACCESS;              /* el fichero extra: solo para leer */
+            break;
+        }
         if (m->type == ZLX_MKDIR) {
             st = exists ? E_EXIST : mkdir_(host) == 0 ? 0 : from_errno();
             if (!st)
@@ -572,7 +635,9 @@ static unsigned handle(ext_server_t *x, const zl_msg_t *m, uint8_t *out)
         bool ae, ad, be, bd;
         if ((st = host_path(x, zpath, a, &ae, &ad)) != 0 || (st = host_path(x, zto, b, &be, &bd)) != 0)
             break;
-        if (!ae)
+        if (is_extra(x, zpath) || is_extra(x, zto))
+            st = E_ACCESS;
+        else if (!ae)
             st = E_NOENT;
         else if (be)
             st = E_EXIST;
@@ -650,6 +715,7 @@ static unsigned handle(ext_server_t *x, const zl_msg_t *m, uint8_t *out)
 
 unsigned ext_server_handle(ext_server_t *x, const zl_msg_t *m, uint8_t *out)
 {
+    x->requests++;
     /* La misma otra vez (se perdió la respuesta): la misma respuesta. */
     if (x->has_last && m->type == x->last_type && m->seq == x->last_seq) {
         memcpy(out, x->last, x->last_len);

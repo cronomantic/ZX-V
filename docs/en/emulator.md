@@ -17,8 +17,8 @@ other way round. It comes in several forms:
 | **`zxv-check`** | Checks BASIC listings without the machine (see [below](#zxv-check-checking-listings)) |
 | **`zxv-tracker`** | The tracker: music for the two AY chips and the sample channels (`.zxm` songs and PT3 modules) and AYFX effects, the ones the SDK music library plays (see the [SDK guide](sdk/README.md#the-tracker-for-the-pc-zxv-tracker)) |
 | **`zxv-music`** | Converts PT3, TurboSound, MOD, S3M and XM to the own music format, `.zxm` (see the [SDK guide](sdk/README.md#the-own-format-zxm-and-zxv-music)) |
-| **`zxv-link`** | Sends programs from the PC to the real machine and runs them, through the board's J5 header with a USB-serial adapter, and serves a folder as its `EXT:` drive (see [The firmware](hardware/firmware.md#loading-programs-from-the-pc-j5)) |
-| **`zxv-link-gui`** | The same as `zxv-link`, with a window, in steps: the board, the program, where the board loads it from (the `EXT:` drive or the card), run or only copy, and the result; with the recent programs and the machine's report |
+| **`zxv-link`** | Sends programs from the PC to the real machine and runs them, through the board's J5 header with a USB-serial adapter (or over Wi-Fi, with a Pico 2 W), and serves a folder as its `EXT:` drive (see [The firmware](hardware/firmware.md#loading-programs-from-the-pc-j5)) |
+| **`zxv-link-gui`** | The same as `zxv-link`, with a window: the machine (by cable or Wi-Fi, and pairing it), running a file from the PC straight into memory, and the card, the ROM and `EXT:` like an explorer (run, send, fetch, folders, rename, delete); with the machine's report |
 
 The Windows and Linux packages contain `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-check`, `zxv-gfx`, `zxv-tracker`, `zxv-music`, `zxv-link` and `zxv-link-gui`,
 plus the examples (the `ejemplos` folder) and the `ROM:` drive
@@ -188,6 +188,9 @@ A folder card behaves like a real card: names are not case sensitive
 (`GAME.ZVB` and `game.zvb` are the same file) and programs cannot see anything
 outside the folder. File names can use only unaccented letters, digits and
 some symbols, up to 63 characters; files with other names do not show up.
+And, as on the card, a file the machine has open cannot be opened for
+writing, removed or renamed (`ZXV_E_ACCESS`). The `EXT:` drive does allow it,
+as the `zxv-link` server does.
 
 **`sdimg`** creates and fills card images from the command line:
 
@@ -358,10 +361,10 @@ lists them all). These are the ones you are most likely to use:
 | `--shots PREFIX` | Save the screen of every frame, `PREFIX00001.bmp`, `PREFIX00002.bmp`... (`zxv-cli`): the frames of an animation. With `--shots-every N`, only one of every N frames; with `--shots-from N`, from frame N on |
 | `--wav F.wav` | Record the sound to a WAV file |
 | `--strict` | Strict mode: warn about anything the real machine would not allow |
-| `--version` | Print the ZX-V version (`ZX-V 0.10.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
+| `--version` | Print the ZX-V version (`ZX-V 0.11.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
 
 The rest (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
-`--profile`, `--panel`, `--test`, `--fail-on-warning`) are for programmers:
+`--profile`, `--symbols`, `--panel`, `--test`, `--fail-on-warning`) are for programmers:
 `zxv-cli --help` explains them, and the [SDK guide](sdk/README.md#debugging)
 tells how to debug.
 

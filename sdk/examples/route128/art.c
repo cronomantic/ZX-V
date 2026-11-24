@@ -8,8 +8,10 @@
  *    0-9    lo que hay junto a la carretera, en el orden de OBJ_PALM a OBJ_BOARD
  *   10-12   la salida, los controles y la meta, en español
  *   13-15   los mismos, en inglés
- *   16-18   los rivales: el cupé, la furgoneta y el camión
+ *   16-18   los rivales: el cupé, la furgoneta y el camión, rectos
  *   20-24   el coche, del más girado a la izquierda al más girado a la derecha
+ *   40-42   los rivales, un poco girados a la derecha
+ *   43-45   los rivales, más girados a la derecha (a la izquierda, en espejo)
  *   30-38   el paisaje de cada etapa (costa, desierto, bosque): de cada una,
  *           las montañas, lo de cerca y las nubes; de 256 píxeles de ancho
  *           o más, y se repiten
@@ -26,7 +28,7 @@
 #include "route128.h"
 
 object_art_t obj_art[OBJ_COUNT];
-sprite_t car_art[CAR_TYPES], player_art[5];
+sprite_t car_art[CAR_TYPES][3], player_art[5];
 zxv_bitmap bg_far, bg_near, bg_clouds;
 
 const uint8_t car_colours[6][16] = {
@@ -35,11 +37,11 @@ const uint8_t car_colours[6][16] = {
 #undef CC
 };
 
-enum { SPR_GATES = 10, SPR_CARS = 16, SPR_PLAYER = 20, SPR_BACKGROUND = 30 };
+enum { SPR_GATES = 10, SPR_CARS = 16, SPR_PLAYER = 20, SPR_BACKGROUND = 30, SPR_CARS_TURNED = 40 };
 
-/* El fichero, dentro del programa, con 16 KB más detrás para que quepa uno
+/* El fichero, dentro del programa, con 10 KB más detrás para que quepa uno
  * de la tarjeta algo más grande (con más dibujo o sprites mayores). */
-#define GFX_SLACK   16384
+#define GFX_SLACK   10240
 #define STR_(x)     #x
 #define STR(x)      STR_(x)
 __asm__(".section .data.route128_gfx, \"aw\"\n"
@@ -53,21 +55,18 @@ extern uint8_t route128_gfx[], route128_gfx_end[];
 
 static zxv_gfxfile gfx;
 
-/* Los sprites preparados, uno detrás de otro: primero en la página 0 y
- * luego en la 1, hasta las músicas (route128.h). */
-static uint8_t *pool_at, *pool_end;
+/* Los sprites preparados, uno detrás de otro: en la página 0 mientras quepan
+ * y, los que no, en la 1, hasta las músicas (route128.h). */
+static uint8_t *pool0, *pool1;
 
 static void *pool_take(uint32_t bytes)
 {
     bytes = (bytes + 3) & ~3u;
-    if (pool_at < SPARE1 && pool_at + bytes > SPARE0 + SPARE_SIZE) {   /* a la página 1 */
-        pool_at = SPARE1;
-        pool_end = MUSIC_MEM;
-    }
-    if (pool_at + bytes > pool_end)
+    uint8_t **at = pool0 + bytes <= SPARE0 + SPARE_SIZE ? &pool0 : pool1 + bytes <= MUSIC_MEM ? &pool1 : 0;
+    if (!at)
         return 0;
-    void *p = pool_at;
-    pool_at += bytes;
+    void *p = *at;
+    *at += bytes;
     return p;
 }
 
@@ -130,8 +129,8 @@ void art_init(void)
         [OBJ_BOARD] = { 1900, 1, 0 }, [OBJ_START] = { 3100, 0, 0 }, [OBJ_GATE] = { 3100, 0, 0 },
         [OBJ_GOAL] = { 3100, 0, 0 },
     };
-    pool_at = SPARE0;
-    pool_end = SPARE0 + SPARE_SIZE;
+    pool0 = SPARE0;
+    pool1 = SPARE1;
     for (int i = 0; i < OBJ_COUNT; i++) {
         int num = i < OBJ_START ? i : SPR_GATES + lang * 3 + i - OBJ_START;
         obj_art[i].s = load_sprite(num);
@@ -140,9 +139,12 @@ void art_init(void)
         obj_art[i].mirror = info[i].mirror;
     }
     for (int i = 0; i < CAR_TYPES; i++)
-        car_art[i] = load_sprite(SPR_CARS + i);
+        car_art[i][0] = load_sprite(SPR_CARS + i);
     for (int i = 0; i < 5; i++)
         player_art[i] = load_sprite(SPR_PLAYER + i);
+    for (int i = 0; i < CAR_TYPES; i++)     /* los últimos: sin ellos, los rivales van rectos */
+        for (int t = 1; t < 3; t++)
+            car_art[i][t] = load_sprite(SPR_CARS_TURNED + (t - 1) * CAR_TYPES + i);
     shown_theme = -1;
     art_background(THEME_COAST);
 }

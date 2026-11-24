@@ -40,8 +40,9 @@ static struct {
     [SONG_OVER] = { "keep-over.pt3", over_pt3, over_pt3_end, 0 },
 };
 
-/* Lo que se carga de la tarjeta, uno detrás de otro. */
-static uint32_t card[48 * 1024 / 4];
+/* Lo que se carga de la tarjeta, uno detrás de otro: en la VRAM oculta de la
+ * página 1 (D108), sin gastar RAM de usuario. */
+ZXV_VRAM1_DATA static uint32_t card[48 * 1024 / 4];
 
 static int music_on = 1, muted, song_now;
 

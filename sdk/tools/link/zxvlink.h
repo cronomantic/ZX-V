@@ -23,7 +23,7 @@
  *   ZL_HELLO   -                 estado, versión del protocolo (u16), si el
  *                                BASIC espera una orden (u8), la versión de
  *                                la spec (u32, ZXV_SV_VERSION) y la de
- *                                ZX-V (texto: "ZX-V 0.10.0")
+ *                                ZX-V (texto: "ZX-V 0.11.0")
  *   ZL_OPEN    tamaño (u32), ruta   estado (lo que llega va a SD:/zxv-link.tmp;
  *                                la ruta, con SD: o desde la raíz; el que
  *                                hubiera con ese nombre sigue igual)
@@ -57,6 +57,39 @@
  *                                reiniciado y el servidor cierra lo suyo).
  *                                Cada ZL_SERVE_EVERY_MS mientras se sirve.
  *
+ * Desde la versión 5, actualizar el firmware desde el PC (D105):
+ *
+ *   ZL_UPDATE  -                 estado (0: la máquina se reinicia en el modo
+ *                                de actualización, que lee EXT:/zxv-update.bin:
+ *                                el servidor tiene que seguir sirviéndolo hasta
+ *                                el final, con dos reinicios por medio;
+ *                                ZXV_E_OFFLINE sin servidor de EXT:;
+ *                                ZXV_E_ACCESS con un programa en marcha, sin
+ *                                particiones o ya actualizando)
+ *
+ *   Mientras se actualiza, ZL_HELLO dice 2 en lugar de «el BASIC espera una
+ *   orden», el informe cuenta cómo va y las demás peticiones, salvo ZL_SERVE,
+ *   contestan ZXV_E_ACCESS.
+ *
+ * Desde la versión 6, la tarjeta y la ROM desde el PC, como un explorador
+ * (D112). Las rutas, con SD: o ROM: delante (sin unidad, SD:; EXT: no: es
+ * la carpeta del propio PC); en ROM: solo se lee:
+ *
+ *   ZL_LIST    desde (u16), ruta   estado = cuántas entradas van (desde la
+ *                                número «desde» de la carpeta), si hay más
+ *                                (u8) y cada una: tamaño (u32), atributos
+ *                                (u8, ZXV_ATTR_DIR), largo del nombre (u8)
+ *                                y el nombre. Las que quepan en una trama:
+ *                                se pide otra vez desde la siguiente.
+ *   ZL_GET     posición (u32), ruta   estado = bytes (hasta ZL_GET_CHUNK), el
+ *                                tamaño del fichero (u32) y esos bytes. El
+ *                                fichero se queda abierto mientras se pide
+ *                                seguido (otra petición lo cierra).
+ *   ZL_REMOVE  ruta              estado (un fichero o una carpeta vacía)
+ *   ZL_RENAME  ruta, 0, ruta     estado (dentro de la misma unidad; si el
+ *                                nuevo nombre existe, ZXV_E_EXIST)
+ *   ZL_MKDIR   ruta              estado
+ *
  *   Y en el canal ZL_CH_EXT pide la máquina (ZLX_*, abajo; una petición
  *   pendiente como mucho, ZL_EXT_TRIES veces de ZL_EXT_WAIT_MS cada una; si
  *   llega otra vez la misma, el servidor repite la respuesta sin volver a
@@ -88,7 +121,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ZL_VERSION      4
+#define ZL_VERSION      6
 
 /* Desde la versión 3: había un programa en marcha y la máquina se reinicia
  * entera, como con Ctrl+Alt+Supr (lo que se pidió no se hace). Vuelve a
@@ -99,12 +132,14 @@
 #define ZL_DBG_SIZE     0x300           /* el buzón del depurador (ZXV_DBG_BOX) */
 #define ZL_CHUNK        512             /* los bytes de un fichero en cada ZL_DATA */
 #define ZL_MAX_DATA     (4 + ZL_CHUNK)  /* datos de una trama, como mucho */
+#define ZL_GET_CHUNK    (ZL_MAX_DATA - 8)       /* los bytes de cada respuesta de ZL_GET */
 #define ZL_RAW_MAX      (3 + ZL_MAX_DATA + 4)
 #define ZL_FRAME_MAX    (ZL_RAW_MAX + ZL_RAW_MAX / 254 + 3)     /* en COBS, con sus dos ceros */
 
 enum { ZL_CH_CTRL = 0, ZL_CH_LOG = 1, ZL_CH_EXT = 2 };
 enum { ZL_HELLO = 1, ZL_OPEN = 2, ZL_DATA = 3, ZL_CLOSE = 4, ZL_RUN = 5, ZL_STAT = 6, ZL_READY = 7, ZL_DBG_READ = 8,
-       ZL_DBG_WRITE = 9, ZL_SERVE = 10, ZL_LOG = 0x40 };
+       ZL_DBG_WRITE = 9, ZL_SERVE = 10, ZL_UPDATE = 11, ZL_LIST = 12, ZL_GET = 13, ZL_REMOVE = 14,
+       ZL_RENAME = 15, ZL_MKDIR = 16, ZL_LOG = 0x40 };
 enum { ZLX_OPEN = 1, ZLX_READ = 2, ZLX_WRITE = 3, ZLX_CLOSE = 4, ZLX_SEEK = 5, ZLX_STAT = 6, ZLX_REMOVE = 7,
        ZLX_RENAME = 8, ZLX_MKDIR = 9, ZLX_OPENDIR = 10, ZLX_READDIR = 11, ZLX_CLOSEDIR = 12 };
 

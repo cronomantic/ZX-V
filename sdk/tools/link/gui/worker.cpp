@@ -4,7 +4,10 @@
 #include "worker.h"
 
 #include <QDir>
+#include <QElapsedTimer>
+#include <QVariantMap>
 #include <QFileInfo>
+#include <QThread>
 #include <QTimer>
 
 #include <vector>
@@ -42,7 +45,9 @@ QString Worker::describe(const lc_info_t &info) const
     return tr("%1 · protocolo %2 · %3")
         .arg(QString::fromUtf8(info.firmware))
         .arg(info.protocol)
-        .arg(info.waiting ? tr("el BASIC espera una orden") : tr("con un programa en marcha"));
+        .arg(info.updating  ? tr("actualizando el firmware")
+             : info.waiting ? tr("el BASIC espera una orden")
+                            : tr("con un programa en marcha"));
 }
 
 void Worker::open(const QString &port, bool spanish)
@@ -56,6 +61,11 @@ void Worker::open(const QString &port, bool spanish)
     }
     if (lc_open(&l, port.toUtf8().constData(), nullptr) < 0) {
         emit opened(false, QString::fromUtf8(l.error));
+        return;
+    }
+    if (l.unpaired) {                   /* de la red, sin emparejar: solo se puede emparejar */
+        on = true;
+        emit needPair(QString::fromUtf8(netpc_name(l.net)));
         return;
     }
     lc_info_t info;
@@ -158,6 +168,94 @@ void Worker::runExt(const QString &folder, const QString &file, bool stop)
     emit finished(true, QString::fromUtf8(cmd));
 }
 
+void Worker::update(const QString &file)
+{
+    if (!on) {
+        emit finished(false, tr("La placa no está conectada."));
+        return;
+    }
+    QByteArray path = QFileInfo(file).absoluteFilePath().toLocal8Bit();
+    char version[17];
+    int r = lc_update_version(&l, path.constData(), version);
+    if (r >= 0)
+        r = lc_update(&l, path.constData());
+    if (r < 0) {
+        failed(r);
+        if (on) {
+            lc_info_t info;
+            l.cancel = 0;
+            if (lc_hello(&l, &info) == 0)
+                emit opened(true, describe(info));
+        }
+        return;
+    }
+    lc_info_t info;
+    if (lc_hello(&l, &info) == 0)
+        emit opened(true, describe(info));     /* la versión nueva; vuelve a servir EXT: */
+    emit finished(true, tr("Firmware actualizado: ZX-V %1").arg(QString::fromUtf8(version)));
+}
+
+void Worker::listNet()
+{
+    char cfg[1024];
+    if (!lc_config_file("zxv-link-net.txt", cfg, sizeof cfg))
+        return;
+    netpc_found_t found[16];
+    int n = netpc_find(cfg, found, 16, 1500);
+    QString lines, other;
+    for (int i = 0; i < n; i++) {
+        QString port = QStringLiteral("%1 (%2)").arg(QString::fromUtf8(found[i].name), QString::fromUtf8(found[i].addr));
+        char why[256];
+        if (lc_net_compatible(found[i].version, why, sizeof why))
+            lines += port + QLatin1Char('\n');
+        else
+            other += port + QLatin1Char('\t') + QString::fromUtf8(found[i].firmware) + QStringLiteral(": ") +
+                     QString::fromUtf8(why) + QLatin1Char('\n');
+    }
+    emit netPorts(lines, other);
+}
+
+void Worker::pair(const QString &pcName)
+{
+    if (!on || !l.net) {
+        emit pairDone(false, tr("La placa no está conectada."));
+        return;
+    }
+    uint32_t code;
+    QByteArray name = pcName.left(23).toUtf8();
+    if (lc_pair_begin(&l, name.constData(), &code) < 0) {
+        emit pairDone(false, QString::fromUtf8(l.error));
+        return;
+    }
+    emit pairCode(code, QString::fromUtf8(netpc_name(l.net)));
+    QElapsedTimer t;
+    t.start();
+    while (t.elapsed() < 120000) {
+        if (l.cancel) {
+            emit pairDone(false, tr("No se ha emparejado."));
+            return;
+        }
+        int st = lc_pair_poll(&l);
+        if (st == ZLN_PAIR_OK) {
+            lc_info_t info;
+            if (lc_hello(&l, &info) < 0) {
+                emit pairDone(false, QString::fromUtf8(l.error));
+                return;
+            }
+            emit pairDone(true, QString());
+            timer->start(0);
+            emit opened(true, describe(info));
+            return;
+        }
+        if (st == ZLN_PAIR_NO) {
+            emit pairDone(false, tr("La máquina ha dicho que no (o se cerró su cuadro)."));
+            return;
+        }
+        QThread::msleep(400);
+    }
+    emit pairDone(false, tr("Nadie ha aceptado en la máquina en dos minutos."));
+}
+
 void Worker::check(const QStringList &files)
 {
     int stop = 0;                       /* sin respuesta o sin tarjeta: no se pregunta por cada uno */
@@ -228,4 +326,180 @@ void Worker::send(const QStringList &files, bool overwrite)
         return;
     }
     emit finished(true, tr("%n fichero(s) en la tarjeta", nullptr, int(files.size())));
+}
+
+/* --- La máquina como un explorador (D112) ------------------------------- */
+
+bool Worker::ready()
+{
+    if (on && !l.unpaired)
+        return true;
+    emit finished(false, tr("La placa no está conectada."));
+    return false;
+}
+
+void Worker::list(const QString &path)
+{
+    if (!on || l.unpaired) {
+        emit listFailed(path, tr("La placa no está conectada."));
+        return;
+    }
+    lc_entry_t *e;
+    QByteArray p = path.toUtf8();
+    int n = lc_list(&l, p.constData(), &e);
+    if (n < 0) {
+        emit listFailed(path, QString::fromUtf8(l.error));
+        lost(n);
+        return;
+    }
+    QVariantList out;
+    for (int i = 0; i < n; i++) {
+        QVariantMap m;
+        m.insert(QStringLiteral("name"), QString::fromUtf8(e[i].name));
+        m.insert(QStringLiteral("size"), qint64(e[i].size));
+        m.insert(QStringLiteral("dir"), e[i].dir);
+        out << m;
+    }
+    free(e);
+    emit listed(path, out);
+}
+
+void Worker::put(const QStringList &files, const QString &dir)
+{
+    if (!ready())
+        return;
+    QString base = dir.endsWith(QLatin1Char('/')) ? dir : dir + QLatin1Char('/');
+    l.overwrite = true;                 /* la ventana ya ha preguntado */
+    for (const QString &f : files) {
+        QByteArray src = QFileInfo(f).absoluteFilePath().toLocal8Bit();
+        QByteArray dest = (base + QFileInfo(f).fileName()).toUtf8();
+        int r = lc_send(&l, src.constData(), dest.constData());
+        if (r < 0) {
+            l.overwrite = false;
+            failed(r);
+            return;
+        }
+    }
+    l.overwrite = false;
+    emit finished(true, tr("%n fichero(s) mandado(s) a %1", nullptr, int(files.size())).arg(dir));
+}
+
+void Worker::get(const QStringList &paths, const QString &local)
+{
+    if (!ready())
+        return;
+    for (const QString &p : paths) {
+        QByteArray src = p.toUtf8();
+        QByteArray dest = QDir(local).filePath(p.section(QLatin1Char('/'), -1)).toLocal8Bit();
+        int r = lc_get(&l, src.constData(), dest.constData());
+        if (r < 0) {
+            failed(r);
+            return;
+        }
+    }
+    emit finished(true, tr("%n fichero(s) traído(s) a %1", nullptr, int(paths.size())).arg(QDir::toNativeSeparators(local)));
+}
+
+/* Una carpeta, con lo que tenga dentro (no más hondo de 16). */
+int Worker::removeTree(const QByteArray &path, int depth)
+{
+    int r = lc_remove(&l, path.constData());
+    if (r != ZXV_E_NOTEMPTY || depth >= 16)
+        return r;
+    lc_entry_t *e;
+    int n = lc_list(&l, path.constData(), &e);
+    if (n < 0)
+        return n;
+    for (int i = 0; i < n && r != LC_E_CANCEL; i++) {
+        QByteArray child = path + (path.endsWith('/') ? "" : "/") + QByteArray(e[i].name);
+        r = e[i].dir ? removeTree(child, depth + 1) : lc_remove(&l, child.constData());
+        if (r < 0) {
+            free(e);
+            return r;
+        }
+    }
+    free(e);
+    return lc_remove(&l, path.constData());
+}
+
+void Worker::remove(const QStringList &paths)
+{
+    if (!ready())
+        return;
+    for (const QString &p : paths) {
+        int r = removeTree(p.toUtf8(), 0);
+        if (r < 0) {
+            failed(r);
+            return;
+        }
+    }
+    emit finished(true, tr("%n borrado(s)", nullptr, int(paths.size())));
+}
+
+void Worker::rename(const QString &from, const QString &to)
+{
+    if (!ready())
+        return;
+    int r = lc_rename(&l, from.toUtf8().constData(), to.toUtf8().constData());
+    if (r < 0) {
+        failed(r);
+        return;
+    }
+    emit finished(true, tr("Renombrado: %1").arg(to.section(QLatin1Char('/'), -1)));
+}
+
+void Worker::mkdir(const QString &path)
+{
+    if (!ready())
+        return;
+    int r = lc_mkdir(&l, path.toUtf8().constData());
+    if (r < 0) {
+        failed(r);
+        return;
+    }
+    emit finished(true, tr("Carpeta creada: %1").arg(path.section(QLatin1Char('/'), -1)));
+}
+
+void Worker::runPath(const QString &path, bool stop)
+{
+    if (!ready())
+        return;
+    QByteArray p = path.toUtf8();
+    l.allow_stop = stop;
+    int r = lc_run_path(&l, p.constData());
+    l.allow_stop = false;
+    if (r == LC_E_RUNNING) {
+        emit ask(AskStop, QString::fromUtf8(l.error));
+        return;
+    }
+    if (r < 0) {
+        failed(r);
+        return;
+    }
+    char cmd[400];
+    lc_drive_command(p.constData(), cmd, sizeof cmd);
+    emit finished(true, QString::fromUtf8(cmd));
+}
+
+void Worker::runPc(const QString &file, bool stop)
+{
+    if (!ready())
+        return;
+    QByteArray p = QFileInfo(file).absoluteFilePath().toLocal8Bit();
+    l.allow_stop = stop;
+    int r = lc_run_pc(&l, p.constData());
+    l.allow_stop = false;
+    if (r == LC_E_RUNNING) {
+        emit ask(AskStop, QString::fromUtf8(l.error));
+        return;
+    }
+    if (r < 0) {
+        failed(r);
+        return;
+    }
+    if (l.ext) {
+        l.ext->ctx = this;
+        l.ext->on_event = onExtEvent;
+    }
+    emit finished(true, QFileInfo(file).fileName());
 }

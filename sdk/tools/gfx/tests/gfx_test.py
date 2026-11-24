@@ -2,7 +2,7 @@
 """
 El fichero .gfx de zxv-gfx (sdk/tools/gfx/doc.cpp): ficheros al
 azar hechos con png2gfx.Store (sprites de ancho par e impar, los dos juegos
-de tiles, mapas y texturas) y pantallas de los dos modos, con paleta o sin
+de tiles, mapas y texturas, con el 8 transparente o sin él) y pantallas de los dos modos, con paleta o sin
 ella (tipo 5, detrás de lo demás, como las graba png2gfx.py) se cargan y se
 vuelven a grabar con doc.cpp, y tienen que salir iguales byte a byte;
 también una pantalla sola, como la de SAVE "x" SCREEN$. Y un fichero dañado
@@ -40,7 +40,8 @@ def store(seed):
         st.maps[m] = [w, h, r.choice((8, 16)), r.randrange(2), [r.randrange(65536) for _ in range(w * h)]]
     for t in r.sample(range(4), r.randrange(0, 3)):
         l2 = r.randrange(1, 7)
-        st.textures[t] = (l2, r.randrange(2), r.randrange(16), [r.randrange(16) for _ in range(1 << 2 * l2)])
+        st.textures[t] = (l2, r.randrange(2), r.randrange(16), [r.randrange(16) for _ in range(1 << 2 * l2)],
+                          r.randrange(2))      # el 8 transparente (D110)
     return with_screens(st.serialize(), r)
 
 

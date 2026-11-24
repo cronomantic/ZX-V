@@ -42,10 +42,11 @@ void Mode7View::paintEvent(QPaintEvent *)
                 tu &= side - 1;
                 tv &= side - 1;
             } else if (tu < 0 || tv < 0 || tu >= side || tv >= side) {
-                line[x] = out;
+                line[x] = t.transparent && t.out == 8 ? sky : out;
                 continue;
             }
-            line[x] = 0xFF000000 | gfx::paletteRgb(t.img.at(tu, tv));
+            int c = t.img.at(tu, tv);
+            line[x] = t.transparent && c == 8 ? sky : 0xFF000000 | gfx::paletteRgb(c);
         }
     }
     QPainter p(this);

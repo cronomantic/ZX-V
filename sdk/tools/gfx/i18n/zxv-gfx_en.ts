@@ -728,6 +728,10 @@
         <translation>Wraps</translation>
     </message>
     <message>
+        <source>El 8 es transparente</source>
+        <translation>Colour 8 is transparent</translation>
+    </message>
+    <message>
         <source>Lado</source>
         <translation>Side</translation>
     </message>

@@ -96,6 +96,7 @@ static void units()
     doc.textures[1].img = pattern(4, 4);
     doc.textures[1].wrap = false;
     doc.textures[1].out = 9;
+    doc.textures[1].transparent = true;
     doc.screens[0] = newScreen(0, 5);
     doc.screens[0].img.set(0, 0, 1);
     doc.screens[0].img.set(1, 0, 8);

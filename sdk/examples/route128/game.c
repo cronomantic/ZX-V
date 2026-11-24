@@ -201,7 +201,14 @@ static void cars_update(void)
 }
 
 /* El piloto automático de la demostración: busca un carril libre y frena
- * antes de las curvas cerradas. */
+ * antes de las curvas cerradas. Gira como una persona: una vez que empieza,
+ * sigue hasta llegar al carril, y no cambia de idea antes de AP_HOLD (con
+ * el volante) o AP_REST (sin él); si no, en las curvas pulsaba una imagen
+ * de cada dos o tres y el coche temblaba (la postura sigue al giro). */
+#define AP_HOLD (ZXV_FRAME_HZ / 8)
+#define AP_REST (ZXV_FRAME_HZ / 15)
+static int ap_steer, ap_hold;
+
 static int autopilot(void)
 {
     int in = IN_GAS;
@@ -226,9 +233,18 @@ static int autopilot(void)
     int sp = pl.speed * 256 / SPEED_MAX;
     int drift = 44 * sp / 256 * sp / 256 * seg_curve(ps + 2) * 22 / 1600;
     int x = pl.x - drift * 10;
-    if (x < target - 50)
+    int want = x < target - 50 ? 1 : x > target + 50 ? -1 : 0;
+    if (!want && ap_steer && (ap_steer > 0 ? x < target : x > target))
+        want = ap_steer;                /* sigue hasta llegar */
+    if (ap_hold > 0)
+        ap_hold--;
+    else if (want != ap_steer) {
+        ap_steer = want;
+        ap_hold = want ? AP_HOLD : AP_REST;
+    }
+    if (ap_steer > 0)
         in |= IN_RIGHT;
-    else if (x > target + 50)
+    else if (ap_steer < 0)
         in |= IN_LEFT;
     int limit = abs_i(curve) >= 90 ? 66 : abs_i(curve) >= 60 ? 80 : 101;
     if (pl.speed > SPEED_MAX * limit / 100 || abs_i(pl.x) > X1)
@@ -700,6 +716,7 @@ int main(void)
             break;
         demo = r;
         frame = 0;
+        ap_steer = ap_hold = 0;
         rng_state = demo ? 4242 : (rng_state ^ *(volatile uint32_t *)(uintptr_t)ZXV_SV_FRAMES);
         if (race() && !demo)
             continue;                   /* Esc en la carrera: al título */

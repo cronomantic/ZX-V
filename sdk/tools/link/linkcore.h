@@ -18,6 +18,7 @@
 #include <stdint.h>
 
 #include "extserve.h"
+#include "netpc.h"
 #include "serial.h"
 #include "zxvlink.h"
 
@@ -29,8 +30,11 @@ extern "C" {
  * que no se incluye: es de los programas de la máquina). */
 #ifndef ZXV_E_NOENT
 #define ZXV_E_NOENT     (-1)
+#define ZXV_E_EXIST     (-2)
 #define ZXV_E_NAME      (-3)
+#define ZXV_E_NOTDIR    (-4)
 #define ZXV_E_ISDIR     (-5)
+#define ZXV_E_NOTEMPTY  (-6)
 #define ZXV_E_BADF      (-7)
 #define ZXV_E_MFILE     (-8)
 #define ZXV_E_ACCESS    (-9)
@@ -38,6 +42,9 @@ extern "C" {
 #define ZXV_E_NOCARD    (-12)
 #define ZXV_E_NOSPC     (-13)
 #define ZXV_E_INVAL     (-17)
+#endif
+#ifndef ZXV_E_OFFLINE
+#define ZXV_E_OFFLINE   (-18)
 #endif
 
 /* Errores de este lado (los de la máquina son ZXV_E_*, de -1 a -20). */
@@ -50,6 +57,8 @@ extern "C" {
 #define LC_E_CANCEL     (-106)          /* parado desde fuera (cancel) */
 #define LC_E_EXISTS     (-107)          /* sustituiría en la tarjeta lo que no puso zxv-link */
 #define LC_E_RUNNING    (-108)          /* habría que parar un programa en marcha */
+#define LC_E_UPDATE     (-109)          /* la actualización no ha acabado bien */
+#define LC_E_UNPAIRED   (-110)          /* por la red, sin emparejar con este PC */
 
 /* Lo que hay en la tarjeta con el nombre de un fichero del PC. */
 enum {
@@ -63,6 +72,8 @@ extern bool lc_spanish;
 
 typedef struct {
     serial_t *s;
+    netpc_t *net;                       /* o, por la red (D106), esto */
+    bool unpaired;                      /* por la red: aún sin emparejar con este PC */
     zl_rx_t rx;
     uint8_t seq;
     unsigned version;                   /* la del protocolo de la máquina (tras hello), o 0 */
@@ -81,11 +92,12 @@ typedef struct {
     bool overwrite, allow_stop;
     /* Lo leído del puerto que venía detrás de una respuesta (para la vez
      * siguiente). */
-    uint8_t pend[256];
+    uint8_t pend[ZL_FRAME_MAX];         /* por la red llega una trama entera de golpe */
     int pend_n, pend_at;
     /* La unidad EXT: que sirve (lc_serve), o NULL. */
     ext_server_t *ext;
     unsigned long ext_next;             /* el próximo ZL_SERVE */
+    unsigned long net_quiet;            /* por la red: cuándo toca saludar si no se ha dicho nada (ZLN_KEEPALIVE_MS) */
     bool ext_busy;
 } lc_link_t;
 
@@ -93,13 +105,40 @@ typedef struct {
     unsigned protocol;
     uint32_t spec;                      /* ZXV_SV_VERSION */
     bool waiting;                       /* el BASIC espera una orden */
-    char firmware[64];                  /* "ZX-V 0.10.0" */
+    bool updating;                      /* está actualizando el firmware (versión 5) */
+    char firmware[64];                  /* "ZX-V 0.11.0" */
 } lc_info_t;
 
 /* Abrir el puerto (con serial_open: el porqué de LC_E_PORT, en *why_kind,
- * SERIAL_E_*) y cerrarlo. */
+ * SERIAL_E_*) y cerrarlo. port puede ser también una máquina de la red
+ * (netpc_is_target: "192.168.0.24", "ZX-V-1A2B" o "ZX-V-1A2B (192.168.0.24)");
+ * si no está emparejada con este PC, se abre igual (l->unpaired) pero solo
+ * se puede emparejar (lc_pair_*): lo demás da LC_E_UNPAIRED. */
 int lc_open(lc_link_t *l, const char *port, int *why_kind);
 void lc_close(lc_link_t *l);
+
+/* Los puertos serie y las máquinas de la red que contestan (en ms) y con las
+ * que se puede hablar, uno por línea en out (n bytes), como los acepta
+ * lc_open: cuántos. Las que hablan otra versión del protocolo de la red
+ * van aparte, en other (on bytes), una por línea: "ZX-V-1A2B (IP): " y qué
+ * hacer (lc_net_compatible). */
+int lc_list_ports(char *out, size_t n, char *other, size_t on, unsigned ms);
+
+/* Las k máquinas de list, repartidas como en lc_list_ports (detrás de lo
+ * que ya haya en out y other): cuántas van a out. */
+int lc_list_found(const netpc_found_t *list, int k, char *out, size_t n, char *other, size_t on);
+
+/* Si se puede hablar con una máquina de la red que contesta con la versión
+ * version del protocolo de la red (netpc_found_t.version); si no, en why
+ * (n bytes) por qué y qué actualizar: ella (más antigua) o zxv-link. */
+bool lc_net_compatible(unsigned version, char *why, size_t n);
+
+/* Emparejar con la máquina de la red abierta (con EDIT > Wi-Fi > Emparejar un PC
+ * abierto en ella): el código de 6 cifras que enseñan los dos y, luego,
+ * cada poco, cómo va (ZLN_PAIR_WAIT, ZLN_PAIR_OK, ZLN_PAIR_NO). 0, o un
+ * error con su porqué en l->error. */
+int lc_pair_begin(lc_link_t *l, const char *pc_name, uint32_t *code);
+int lc_pair_poll(lc_link_t *l);
 
 /* Una petición y su respuesta: el estado de la máquina (o LC_E_*), y lo
  * que viene detrás en more (*more_len bytes). */
@@ -119,8 +158,25 @@ int lc_hello(lc_link_t *l, lc_info_t *info);
  * (LC_E_FILE si la carpeta no existe; LC_E_OLD con un firmware anterior). */
 int lc_serve(lc_link_t *l, const char *folder, bool overwrite);
 
+/* Lo mismo con un solo fichero del PC, file, que la máquina ve como
+ * EXT:/name y solo puede leer. */
+int lc_serve_file(lc_link_t *l, const char *file, const char *name);
+
 /* Dejar de servirla (se lo dice a la máquina). */
 void lc_unserve(lc_link_t *l);
+
+/* La versión de ZX-V de un fichero de actualización (zxv-update.bin, de
+ * pico/tools/mkimages.py) en version (17 bytes): 0, o LC_E_FILE si no se
+ * puede leer o no es uno (con el porqué en l->error). */
+int lc_update_version(lc_link_t *l, const char *file, char version[17]);
+
+/* Actualizar el firmware de la máquina con file (versión 5, D105): la
+ * máquina lo lee como EXT:/zxv-update.bin. Si hay un programa en marcha, se
+ * para antes (como lc_ready). Sigue a la máquina hasta que acaba, con sus
+ * dos reinicios (unos minutos; lo que cuenta va a on_log), y comprueba que
+ * vuelve con la versión del fichero: 0, o un error (LC_E_UPDATE si no
+ * acaba bien: lo dice su pantalla). */
+int lc_update(lc_link_t *l, const char *file);
 
 /* Un fichero del PC a la tarjeta, con el nombre dest. Si ya está igual, no
  * se manda; si hay otro que no puso zxv-link, sin overwrite, LC_E_EXISTS.
@@ -181,6 +237,48 @@ const char *lc_base_name(const char *path);
  * está, para las pruebas; si no, %APPDATA%\ZX-V o ~/.config/ZX-V, que se
  * crea): false si no hay dónde. */
 bool lc_config_file(const char *name, char *out, size_t n);
+
+/* --- La tarjeta y la ROM, como un explorador (versión 6, D112) ------------
+ * Las rutas, con SD: o ROM: delante ("SD:/juegos/a.zxv"; sin unidad, SD:).
+ * En ROM: solo se lee. Con un firmware anterior, LC_E_OLD. */
+
+typedef struct {
+    char name[64];
+    uint32_t size;
+    bool dir;
+} lc_entry_t;
+
+/* Lo que hay en la carpeta path: cuántas entradas (en *out, con malloc;
+ * free al acabar), o un error. */
+int lc_list(lc_link_t *l, const char *path, lc_entry_t **out);
+
+/* Traer el fichero path de la máquina al PC, como local (se escribe aparte
+ * y, entero, pasa a su nombre; si ya hay uno, lo sustituye: quien llama
+ * pregunta antes). on_progress, como al mandar. */
+int lc_get(lc_link_t *l, const char *path, const char *local);
+
+/* Borrar un fichero o una carpeta vacía, renombrar (o mover dentro de la
+ * misma unidad; si el nombre nuevo existe, ZXV_E_EXIST) y crear una
+ * carpeta. */
+int lc_remove(lc_link_t *l, const char *path);
+int lc_rename(lc_link_t *l, const char *from, const char *to);
+int lc_mkdir(lc_link_t *l, const char *path);
+
+/* La orden que ejecuta path de la tarjeta, la ROM o EXT: entrando antes en
+ * su carpeta (así encuentra sus ficheros): CD "SD:/juegos": LOAD "a.zxv". */
+void lc_drive_command(const char *path, char *cmd, size_t n);
+
+/* Ejecutar path (SD:, ROM: o EXT:): si hay un programa en marcha, como
+ * lc_run. */
+int lc_run_path(lc_link_t *l, const char *path);
+
+/* Ejecutar un fichero del PC directo a la memoria (D112): la máquina lo lee
+ * de EXT: (si se sirve una carpeta, como EXT:/.pc/nombre; si no, se sirve
+ * solo él) y no se copia a la tarjeta. Lo que cargue después es cosa del
+ * programa. Hay que seguir sirviendo (lc_pump) mientras lo lee:
+ * lc_ext_busy dice si tiene algo abierto. */
+int lc_run_pc(lc_link_t *l, const char *file);
+bool lc_ext_busy(const lc_link_t *l);
 
 /* El buzón del depurador del BASIC (versión 2). */
 int lc_dbg_read(lc_link_t *l, unsigned off, unsigned n, uint8_t *out);

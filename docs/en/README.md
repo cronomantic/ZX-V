@@ -29,7 +29,11 @@ BASIC or in C, and how to build the real machine.
 - **[Native programs (SDK)](sdk/README.md)** — the toolchain, your first
   program, graphics, sound, input and files.
 - **[Graphics](sdk/graphics.md)** — the graphics engine in depth: video
-  memory, sprites, tile maps, scrolling, mode 7 and converting images.
+  memory, sprites, tile maps, scrolling, patterned shapes, mode 7 and
+  converting images.
+- **[The SDK libraries](sdk/libraries.md)** — what nearly every game
+  needs, in C and optional: fixed-point maths, moving through a map,
+  keyboard and gamepad, saving, fonts, fades and 3D.
 - **[API reference](sdk/reference.md)** — every function of the SDK.
 
 ## Tools for the PC
@@ -46,9 +50,11 @@ They come with the emulator, for Windows and Linux:
 - **[The music converter, `zxv-music`](sdk/README.md#the-own-format-zxm-and-zxv-music)** —
   converts PT3, TurboSound, MOD, S3M and XM to the own format, `.zxm`.
 - **[Remote loading, `zxv-link` and `zxv-link-gui`](hardware/firmware.md#loading-programs-from-the-pc-j5)** —
-  they send programs from the PC to the board through the J5 header and run
-  them, and serve a folder on the PC as the machine's [`EXT:`
-  drive](hardware/firmware.md#the-ext-drive).
+  they send programs from the PC to the board through the J5 header (or [over
+  Wi-Fi](hardware/firmware.md#loading-programs-over-wi-fi-pico-2-w), with a
+  Pico 2 W) and run them, show its card and ROM like an explorer (send,
+  fetch, folders, delete) and serve a folder on the PC as the machine's
+  [`EXT:` drive](hardware/firmware.md#the-ext-drive).
 - **[Publishing your game on the web](sdk/web.md)** — `mkweb.py` (in the
   SDK) makes a page with only your game, in C or in BASIC, for itch.io or
   your website, with touch controls for phones.
@@ -107,6 +113,10 @@ They come with the emulator, for Windows and Linux:
 - [Petit Soccer, football in ZX Basic](../../examples/zxbasic/petitsoccer) — a
   pitch bigger than the screen with scroll, teams painted from one set of
   sprites, music and effects, against the machine or for two players.
+- [Fases, in ZX Basic](../../examples/zxbasic/fases) — two stages of a game,
+  each with its code in a bank that is loaded when the game gets there.
+- [Nave 3D, in ZX Basic](../../examples/zxbasic/nave3d) — a ship of flat
+  faces made as an `.obj`, turning with light among stars.
 
 ---
 

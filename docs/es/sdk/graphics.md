@@ -4,8 +4,8 @@
 
 ZX-V no tiene hardware de sprites ni de tiles. En su lugar, la ROM trae un
 **motor gráfico**: rutinas que funcionan en el procesador principal y
-dibujan sprites, mapas de tiles, figuras y suelos con textura en la memoria
-de vídeo, muy deprisa. El hardware de vídeo pone lo que el software no
+dibujan sprites, mapas de tiles, figuras (lisas o con trama) y planos con
+textura (suelos y fondos que giran) en la memoria de vídeo, muy deprisa. El hardware de vídeo pone lo que el software no
 puede hacer bien: dos páginas de pantalla, scroll por hardware, efectos por
 línea y remapeo de colores.
 
@@ -23,6 +23,7 @@ Para empezar con C en ZX-V, lee antes la [guía del SDK](README.md).
 - [Mapas de tiles](#mapas-de-tiles)
 - [Scroll por hardware](#scroll-por-hardware)
 - [Efectos por línea y remapeo de colores](#efectos-por-línea-y-remapeo-de-colores)
+- [Figuras con trama](#figuras-con-trama)
 - [Modo 7](#modo-7)
 - [Imágenes desde ficheros PNG: `png2gfx.py`](#imágenes-desde-ficheros-png-png2gfxpy)
 - [El editor de gráficos para el PC: `zxv-gfx`](#el-editor-de-gráficos-para-el-pc-zxv-gfx)
@@ -539,17 +540,72 @@ El ejemplo [`scroll`](../../../sdk/examples/scroll/scroll.c) usa el campo
 de scroll de la tabla por línea para el parallax: las montañas de arriba
 van a la mitad de velocidad que el suelo.
 
+## Figuras con trama
+
+Las líneas, los rectángulos, los triángulos, los polígonos y los círculos
+pueden dibujarse con una **trama** de dos colores en vez de un color liso,
+como en los ordenadores de 8 y 16 bits: un patrón de 8 × 8 píxeles, un
+byte por fila, con el bit 7 para el píxel de la izquierda. Después de
+`zxv_gfx_pattern(trama, papel)`, las figuras pintan su color donde la trama
+tiene un 1 y el `papel` donde tiene un 0. Con `ZXV_CLEAR` como papel, lo
+que hay debajo se queda donde la trama tiene un 0: así salen sombras y
+cristales «a medias» con solo 16 colores. `zxv_gfx_pattern(0, 0)` vuelve
+al color liso.
+
+La trama va **anclada al destino**, no a la figura: dos figuras que se
+tocan casan, y una figura que se mueve deja la trama quieta (como una
+ventana sobre ella). Rellenar con trama va igual de rápido que con un
+color, porque una fila de la trama es justo una palabra de 8 píxeles.
+
+```c
+#include "zxv_gfx.h"
+
+static const uint8_t bricks[8] = { 0xFF, 0x80, 0x80, 0x80, 0xFF, 0x08, 0x08, 0x08 };
+static const uint8_t half[8] = { 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55 };
+
+int main(void)
+{
+    zxv_gfx_rect(0, 0, 256, 192, 5);            /* el cielo */
+    zxv_gfx_pattern(bricks, 2);                 /* argamasa blanca, ladrillos rojos */
+    zxv_gfx_rect(32, 96, 192, 96, 15);
+    zxv_gfx_pattern(half, ZXV_CLEAR);           /* la sombra: medio negro, medio lo de debajo */
+    int16_t shadow[8] = { 32, 96, 224, 96, 224, 112, 64, 140 };
+    zxv_gfx_poly(shadow, 4, 0);
+    zxv_gfx_pattern(0, 0);                      /* otra vez liso */
+    zxv_gfx_circle(200, 40, 16, 14, 1);         /* el sol */
+    while (zxv_key_get() < 0)
+        zxv_wait_vblank();
+    return 0;
+}
+```
+
+En las líneas y los contornos de los círculos la trama también vale, pero
+se ve según dónde cae cada píxel: con el ajedrez, una línea horizontal
+sale punteada y una diagonal a 45° de un solo color. El BASIC tiene 11
+tramas ya hechas ([`PATTERN`](../basic/reference.md#pattern)); por ejemplo,
+la de ladrillos es la `bricks` de arriba y el ajedrez, la `half`.
+
 ## Modo 7
 
 El **modo 7** (se llama así por el modo de la SNES que lo hizo famoso)
-dibuja una **textura** en cada línea con su propia posición y su paso:
-girada, ampliada o en perspectiva, como un suelo visto desde arriba.
+dibuja un **plano**, una textura o un mapa de tiles, en cada línea con su
+propia posición y su paso: girado, ampliado o en perspectiva, como un suelo
+visto desde arriba.
 
 - La textura (`zxv_m7tex`) es un cuadrado de 2^`log2size` texels de lado,
   de 2 × 2 (`log2size` 1) a 1024 × 1024 (10), con **un byte por texel**
-  (0–15). Como un programa tiene 248 KB de RAM de usuario, en la práctica
+  (0–15). Como un programa tiene 244 KB de RAM de usuario, en la práctica
   una textura en la RAM llega hasta 256 × 256 (`log2size` 8, 64 KB). Con
   `wrap` = 1 se repite sin fin; con 0, fuera de ella se ve el color `out`.
+  Con `ZXV_M7_TRANSPARENT` en `flags`, el color 8 no se dibuja (ni lo de
+  fuera si `out` es el 8): se ve lo que había debajo.
+- Un **mapa de tiles** también sirve de plano, con `zxv_m7_draw_map`: es
+  lo que hacía la SNES (un mapa de 128 × 128 tiles de 8 × 8). Un circuito
+  de 1024 × 1024 píxeles es un mapa de 128 × 128 celdas (32 KB) con sus
+  tiles, en vez del megabyte que sería como textura. Cada celda lleva sus
+  espejos y su 8 transparente, como en `zxv_map_draw`; un mapa que se
+  repite se repite también aquí, y lo de fuera de uno que no se repite es
+  del color que se dé, o no se dibuja con `ZXV_CLEAR`.
 - Cada línea (`zxv_m7line`) lleva la posición en la textura (u, v) de su
   primer píxel y el paso (du, dv) por píxel, en **coma fija** 16.16
   (65536 = un texel).
@@ -557,8 +613,14 @@ girada, ampliada o en perspectiva, como un suelo visto desde arriba.
   desde una cámara: posición, altura, ángulo (0x10000 es una vuelta
   entera), distancia focal y la línea de la pantalla donde está el
   horizonte. Las líneas por encima del horizonte quedan vacías.
+- `zxv_m7_affine(líneas, n, &plano)` calcula las líneas de un plano
+  **girado y ampliado**, como la matriz de la SNES: el punto (x, y) del
+  plano se ve en (cx, cy) de la pantalla, girado en el sentido del reloj y
+  ampliado (0x10000 es su tamaño; 0x20000, el doble) en cada eje. Sirve
+  para fondos que giran, jefes enormes o un mapa que se acerca.
 - `zxv_m7_draw(&textura, líneas, y, n)` dibuja `n` líneas en el destino a
-  partir de la línea `y`.
+  partir de la línea `y`; `zxv_m7_draw_map(&mapa, líneas, y, n, fuera)`, lo
+  mismo con un mapa.
 
 ```c
 #include "zxv_gfx.h"
@@ -597,11 +659,28 @@ int main(void)
 }
 ```
 
-El modo 7 cuesta unas 15 instrucciones por píxel: la pantalla entera en el
-modo 0 es un cuarto del frame, y en el modo 1 no cabe en un frame, así que
-dibuja solo el suelo. El ejemplo [`graphics`](../../../sdk/examples/graphics/graphics.c)
-pone objetos sobre el suelo con sprites escalados, proyectados con la
-misma cámara.
+Para el mismo suelo con un mapa, cambia la textura por el mapa y
+`zxv_m7_draw` por `zxv_m7_draw_map(&mapa, rows + 72, 72, 120, ZXV_CLEAR)`.
+Y para girar un fondo alrededor del centro de la pantalla:
+
+```c
+zxv_m7aff a = { .x = 32 << 16, .y = 32 << 16,  /* el centro de la textura de 64x64 */
+                .angle = frame * 256, .zoom_x = 0x20000, .zoom_y = 0x20000,
+                .cx = 128, .cy = 96 };
+zxv_m7_affine(rows, 192, &a);
+zxv_m7_draw(&tex, rows, 0, 192);
+```
+
+El modo 7 con una textura cuesta unas 15 instrucciones por píxel: la
+pantalla entera en el modo 0 es un cuarto del frame, y en el modo 1 no
+cabe en un frame, así que dibuja solo el suelo. Con un mapa cuesta más,
+unos 33 ciclos por píxel en la placa (algo menos con tiles de 16 × 16, que
+cambian menos de celda): un suelo de 120 líneas en el modo 0 se lleva unos
+dos quintos del frame, y la pantalla entera girando (algo más cara que el
+suelo), unas tres cuartas partes: cabe a 60 frames por segundo si el resto
+del juego es ligero. El ejemplo
+[`graphics`](../../../sdk/examples/graphics/graphics.c) pone objetos sobre
+el suelo con sprites escalados, proyectados con la misma cámara.
 
 ## Imágenes desde ficheros PNG: `png2gfx.py`
 
@@ -632,6 +711,7 @@ sistema está en español, y si no, en inglés.
 | `--map M S FICHERO.csv` | El mapa M a partir de un CSV con el valor de cada celda |
 | `--texture N IMAGEN [C]` | La textura N (un cuadrado de lado potencia de 2, de 2 a 256); se repite o, con C, fuera es del color C |
 | `--wrap M` | El mapa M se repite |
+| `--transparent N` | Lo transparente del PNG de la textura N no se dibuja (el color 8; si su color de fuera es el 8, tampoco lo de fuera). Sin esto, lo transparente de una textura queda negro |
 | `--screen N IMAGEN [B]` | La pantalla N (como las de `SAVE "x" SCREEN$` y las pantallas de carga): de 256 × 192 (modo 0) o 512 × 384 (modo 1), o el cuadro entero (320 × 240 o 640 × 480) con el borde del color de su esquina; B, el color del borde. Con colores que no son los de siempre (16 como mucho), lleva su paleta |
 | `--flip` | `--level` aprovecha también los tiles espejados |
 | `--key RRGGBB` | Ese color es transparente (además de los píxeles con alfa menor que 128) |
@@ -654,7 +734,7 @@ cabecera de 8 bytes (tipo, 0, número en 16 bits y longitud de sus datos en
 | 1 | Sprite | ancho y alto (16 bits cada uno), y sus píxeles: ⌈ancho / 2⌉ bytes por línea |
 | 2 | Tiles de S × S (S es el número del objeto) | cuántos (16 bits), 0 (16 bits) y los tiles (32 o 128 bytes cada uno) |
 | 3 | Mapa | ancho y alto (16 bits cada uno), lado del tile y repetición (bytes), 0 (16 bits) y las celdas (16 bits cada una) |
-| 4 | Textura | log2 del lado, repetición, color de fuera, 0 (bytes) y los texels (un byte cada uno) |
+| 4 | Textura | log2 del lado, repetición, color de fuera, marcas (bit 0: el 8 es transparente) (bytes) y los texels (un byte cada uno) |
 | 5 | Pantalla | modo (0 o 1), color del borde, marcas (bit 0: lleva paleta) y 0 (bytes); si lleva paleta, sus 16 colores RGB565 (32 bytes); y los píxeles de la página, como en la VRAM (24.576 bytes en modo 0, 98.304 en modo 1) |
 
 Todos los números van con el byte bajo primero. Para leerlos, el SDK trae
@@ -750,7 +830,7 @@ el del sistema (o el que se le pida: `zxv-gfx --lang en`).
 - **Una pestaña por clase de objeto** (sprites, tiles de 8 y de 16, mapas,
   texturas y pantallas) y, a la izquierda, sus miniaturas; doble clic en un hueco vacío
   lo crea. A la derecha, la paleta, las propiedades (el tamaño, la
-  repetición, el color de fuera…) y una vista previa: los sprites animados
+  repetición, el color de fuera, si el 8 de una textura es transparente…) y una vista previa: los sprites animados
   con los siguientes, los tiles repetidos 3 × 3 para ver si casan, y las
   texturas también como suelo del modo 7 (Ver > La textura en el modo 7).
 - **Para dibujar:** lápiz, línea, caja, elipse (vacías o llenas), rellenar,
@@ -788,7 +868,7 @@ el ratón. Arriba hay una pestaña por cada clase de gráfico:
 | Sprites | Los 256 sprites, de 1 × 1 a 1024 × 1024 píxeles (el color 8 es el transparente) |
 | Tiles 8, Tiles 16 | Los dos juegos de tiles: el tile ampliado, el mismo repetido 3 × 3 para ver si casa con sus vecinos y debajo todo el juego, para elegir |
 | Mapas | Los 16 mapas: se pintan con el tile elegido y sus atributos (los dos espejos, el 8 transparente y delante), como con `MAP POKE` |
-| Texturas | Las 4 texturas del modo 7: su lado, si se repiten y el color de fuera |
+| Texturas | Las 4 texturas del modo 7: su lado, si se repiten y el color de fuera (si el 8 es transparente se cambia en `zxv-gfx`; aquí se conserva) |
 
 Las pantallas (las de `SAVE "x" SCREEN$` y las pantallas de carga) no se
 editan aquí, sino en `zxv-gfx`: al cargar un fichero se las salta, y al
@@ -814,7 +894,7 @@ escribe los `.gfx` y tu programa puede usarlo tal cual.
 ## ¿Cuánto cuesta?
 
 A 60 frames por segundo el procesador tiene unos **2,4 millones de ciclos
-por frame**. Estas cifras se midieron en la máquina real:
+por frame**. Estas cifras se midieron en la máquina real (`pico/bench`):
 
 | Operación | Modo 0 (256 × 192) | Modo 1 (512 × 384) |
 |---|---|---|
@@ -826,6 +906,7 @@ por frame**. Estas cifras se midieron en la máquina real:
 | 100 sprites de 16 × 16 escalados a 32 × 32 | 63 % | 62 % |
 | 100 sprites de 16 × 16 escalados a 12 × 12 | 28 % | 27 % |
 | Modo 7, pantalla entera | 31 % | 121 % |
+| Modo 7 con un mapa de tiles de 8 × 8, pantalla entera | 68 % | 256 % |
 | 100 triángulos de unos 470 píxeles | 29 % | 28 % |
 | 100 líneas al azar | 14 % | 25 % |
 

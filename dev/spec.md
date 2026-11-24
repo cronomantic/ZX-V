@@ -93,19 +93,22 @@ Hazard3 ni en las de PMP. Esas pertenecen a la ROM.
 | `0x2000_0000` | `0x2000_3FFF` | 16 KB | **Área de sistema**: tabla API, registros y colas | Según cada registro |
 | `0x2000_4000` | `0x2001_BFFF` | 96 KB | **VRAM, página 0** | Lectura y escritura |
 | `0x2001_C000` | `0x2003_3FFF` | 96 KB | **VRAM, página 1** | Lectura y escritura |
-| `0x2003_4000` | `0x2007_1FFF` | 248 KB | **RAM de usuario** (programas y datos del BASIC) | Lectura, escritura y ejecución |
-| `0x2007_2000` | `0x2008_1FFF` | 64 KB | Reservada para el sistema (núcleo 1, USB, audio, ficheros) | **Prohibido** (protegida por PMP) |
+| `0x2003_4000` | `0x2007_0FFF` | 244 KB | **RAM de usuario** (programas y datos del BASIC) | Lectura, escritura y ejecución |
+| `0x2007_1000` | `0x2008_1FFF` | 68 KB | Reservada para el sistema (núcleo 1, USB, audio, ficheros) | **Prohibido** (protegida por PMP) |
 
-Los tamaños son definitivos. El firmware de la Pico CPU usa de los 64 KB
-reservados unos 53 KB para sus datos (USB, tarjeta, disco ROM, sonido, enlace)
-y 0,5 KB de montón, deja unos 3 KB libres, y los dos bancos de 4 KB del final
-son las pilas de sus dos núcleos y algo de código que tiene que ir rápido.
+Los tamaños son definitivos desde D107, que le dio 4 KB más al firmware para
+el Wi-Fi (antes la RAM de usuario llegaba a `0x2007_1FFF`, 248 KB). El firmware
+de la Pico CPU usa de los 60 KB reservados de `0x2007_1000` unos 54 KB para sus
+datos (USB, tarjeta, disco ROM, sonido, enlace y red), deja unos 5,7 KB libres,
+y los dos bancos de 4 KB del final son las pilas de sus dos núcleos y algo de
+código que tiene que ir rápido.
 
 - La flash es de **solo lectura en tiempo de ejecución**. Escribir en ella detiene
   ambos núcleos del RP2350, así que los ficheros se guardan siempre en la tarjeta SD.
 - En **modo 0** cada página de VRAM solo muestra sus primeros 24 KB. Los 72 KB
   restantes de cada página no se envían a la pantalla y el programa puede usarlos
-  como RAM, salvo si usa el campo de juego virtual (4.9).
+  como RAM, salvo si usa el campo de juego virtual (4.9). El SDK los da como
+  dos zonas de su `zxv.ld` (D108): `0x2000_A000` y `0x2002_2000`, de 72 KB.
 - La pila del núcleo 0 empieza en `RAMTOP` (variable del sistema) y crece hacia
   abajo, como en el Spectrum.
 
@@ -623,11 +626,11 @@ reconocer interrupciones) lo hace la capa de plataforma a través de la interfaz
 interna (`0x2000_1240`): en la Pico la implementa el firmware y en el emulador el
 propio emulador.
 
-La plataforma rellena la interfaz antes de saltar a la ROM. Versión 6:
+La plataforma rellena la interfaz antes de saltar a la ROM. Versión 7:
 
 | Desp. | Contenido |
 |---|---|
-| `+0x00` | Versión de la interfaz (6) |
+| `+0x00` | Versión de la interfaz (7) |
 | `+0x04` | `void irq_ack(void)`: reconoce la interrupción de VBLANK; la ROM la llama al principio del manejador |
 | `+0x08` | `u32 time_us(void)`: contador de microsegundos |
 | `+0x0C`…`+0x40` | Sistema de ficheros de la tarjeta (desde la versión 2), en este orden: `fs_open`, `fs_read`, `fs_write`, `fs_close`, `fs_seek`, `fs_stat`, `fs_remove`, `fs_rename`, `fs_mkdir`, `fs_chdir`, `fs_getcwd`, `fs_opendir`, `fs_readdir`, `fs_closedir`. Mismas firmas que las funciones 14–17 y 21–30 de la API (§7.3) |
@@ -635,6 +638,7 @@ La plataforma rellena la interfaz antes de saltar a la ROM. Versión 6:
 | `+0x4C`, `+0x50` | El idioma (desde la versión 4): `u32 lang_get(void)` y `int lang_set(u32 idioma)` (§7.10) |
 | `+0x54`, `+0x58` | Las preferencias (desde la versión 5): `u32 prefs_get(void)` y `void prefs_set(u32 prefs)` (§7.11) |
 | `+0x5C`, `+0x60` | Actualizar el firmware (desde la versión 6, solo la Pico): `int update_info(void *info)` y `int update_start(void)` (§7.12) |
+| `+0x64` | El Wi-Fi (desde la versión 7, solo la Pico): `int wifi(int op, void *buf)` (§7.13) |
 
 En la Pico, el sistema de ficheros es FatFs en el núcleo de servicios: la
 función de la plataforma deja la petición en un buzón y espera la respuesta. La
@@ -683,7 +687,7 @@ interceptar una rutina del sistema, igual que se hacía con los ganchos del Spec
 | 17 | `int file_close(int f)` | Cierra un fichero |
 | 18 | `int file_load(const char *nombre, void *dir, u32 max)` | Carga un fichero entero en `dir` si cabe en `max` bytes (si no, `ZXV_E_RANGE` y no carga nada); devuelve su tamaño |
 | 19 | `void exit_to_basic(int código)` | Vuelve al BASIC: con 0, el informe `0 OK`; con otro código, `W` con ese número (§9.2) |
-| 20 | `void report_error(int código, const char *msg)` | Vuelve al BASIC con el informe `W` y el texto `msg` (UTF-8, hasta 47 bytes, que se copian), más ` (código)` si no es 0 (§9.2) |
+| 20 | `void report_error(int código, const char *msg)` | Vuelve al BASIC con el informe `W` y el texto `msg` (UTF-8, hasta 79 bytes, que se copian; 47 antes de la versión 0.2), más ` (código)` si no es 0 (§9.2) |
 | 21 | `int file_seek(int f, i32 desp, int desde)` | Mueve la posición (`desde`: 0 inicio, 1 actual, 2 final); devuelve la nueva |
 | 22 | `int file_stat(const char *nombre, dirent *e)` | Nombre, tamaño y atributos |
 | 23 | `int file_remove(const char *nombre)` | Borra un fichero o una carpeta vacía |
@@ -787,11 +791,11 @@ en la unidad remota. Si no hay disco ROM, lo que va a `ROM:` da
   remota (`docs/es/hardware/protocol.md`): un PC, una Raspberry Pi, un móvil,
   otra ZX-V... A ese equipo se le llama **el servidor**. Sirve una carpeta y
   nada fuera de ella: `..` en su raíz se queda en la raíz, como en la tarjeta.
-- **Por dónde.** Hoy, la tira J5 de la placa (la UART de la Pico CPU, la de
-  la carga remota). Más adelante puede haber otros enlaces (el Wi-Fi de una
-  Pico 2 W). Es **una sola unidad** sea cual sea el enlace: un programa que
-  usa `EXT:datos.dat` funciona igual por cable que por Wi-Fi. Si hubiera un
-  servidor en cada enlace a la vez, se usa el del cable.
+- **Por dónde.** La tira J5 de la placa (la UART de la Pico CPU, la de la
+  carga remota) o, con una Pico 2 W, la red (§7.13). Es **una sola unidad**
+  sea cual sea el enlace: un programa que usa `EXT:datos.dat` funciona igual
+  por cable que por Wi-Fi. Si hay un servidor en cada enlace a la vez, se usa
+  el del cable.
 - **Sin servidor**, todo lo que va a `EXT:` da `ZXV_E_OFFLINE`. Si el servidor
   se va con ficheros o carpetas abiertos en `EXT:`, siguen ocupando su número
   hasta cerrarlos, y lo que se haga con ellos da `ZXV_E_OFFLINE`. Cuando la
@@ -844,9 +848,11 @@ números de los ficheros del disco ROM son el 8 y siguientes, y los de sus
 carpetas, el 4 y siguientes; los de la unidad `EXT:`, el 16 y siguientes, y
 los de sus carpetas, el 8 y siguientes.
 
+No se puede borrar ni renombrar un fichero abierto, ni abrir para escribir uno que
+ya está abierto (`ZXV_E_ACCESS`): en la tarjeta y también en el emulador, con una
+carpeta como tarjeta.
+
 **En una tarjeta de verdad** (y con `--sd-image`):
-- No se puede borrar ni renombrar un fichero abierto, ni abrir para escribir uno que
-  ya está abierto (`ZXV_E_ACCESS`).
 - No salen en los listados los ficheros y carpetas ocultos o de sistema (los que deja
   Windows o macOS), aunque se pueden abrir por su nombre.
 - Tampoco salen los nombres que no cumplen las reglas de arriba (por ejemplo, con
@@ -934,9 +940,17 @@ typedef struct {            // Textura del modo 7
                             // RAM de usuario caben hasta 256 × 256, 64 KB)
     u8   wrap;              // 1: se repite; 0: fuera se ve el color 'out'
     u8   out;
+    u8   flags;             // bit 0: el 8 no se dibuja (desde 0.2; antes, 0)
 } m7tex;
 
 typedef struct { i32 u, v, du, dv; } m7line;   // coma fija 16.16
+
+typedef struct {            // Plano girado y ampliado, para m7_affine (16.16)
+    i32  x, y;              // el punto del plano que va en el centro
+    i32  angle;             // 0x10000 = una vuelta, en el sentido del reloj
+    i32  zoom_x, zoom_y;    // aumento en cada eje del plano: 0x10000 = 1
+    i16  cx, cy;            // el centro, en el destino (enteros)
+} m7aff;
 
 typedef struct {            // Cámara para m7_camera (coma fija 16.16)
     i32  x, y;              // posición sobre la textura
@@ -965,7 +979,26 @@ typedef struct {            // Cámara para m7_camera (coma fija 16.16)
   `(u + x·du, v + x·dv)`, con la parte entera de cada coordenada (aritmética
   de 32 bits sin signo: lo negativo cae fuera). Cambiando los parámetros línea
   a línea salen la rotación, el zoom y la perspectiva, como con el HDMA de la
-  SNES. Los texels valen 0–15.
+  SNES. Los texels valen 0–15. Con el bit 0 de `flags`, los del 8 (y lo de
+  fuera, si `out` es el 8) no se dibujan.
+- **Modo 7 con un mapa** (`m7_draw_map`): el plano es un mapa de tiles,
+  como en la SNES. El píxel `x` muestra el píxel `(px, py)` del mapa, con
+  `px = (u + x·du) >> 16` y `py = (v + x·dv) >> 16` en aritmética de 32 bits
+  **con signo**, tal como lo dibujaría `map_draw` (espejos y transparencia
+  de cada celda). Si el mapa se repite (`flags` bit 0), se repite en las dos
+  direcciones; si no, lo de fuera es del color `out` (0–15), o no se dibuja
+  con otro valor (`-1`).
+- **Plano girado** (`m7_affine`): rellena `l[i]` para la línea `i` del
+  destino (desde la 0) de forma que el píxel `(X, Y)` muestra
+  `(x, y) + Z⁻¹·R(−angle)·(X − cx, Y − cy)`, con `Z = diag(zoom_x, zoom_y)`
+  y `R` la rotación (la imagen se ve girada en el sentido del reloj, con la
+  y hacia abajo). Usa el mismo seno que `m7_camera`. Con un aumento de 0 o
+  menos no escribe nada.
+- **Trama** (`gfx_pattern`): con una trama, línea, rectángulo, triángulo,
+  polígono y círculo pintan el píxel `(x, y)` del destino con su color si
+  el bit `7 − (x mod 8)` de `pat[y mod 8]` es 1, y si es 0, con el color
+  `paper` (0–15) o nada (otro valor, `-1`). Sin trama (`NULL`), color
+  liso. Cada programa empieza sin trama; el resto del motor no la usa.
 - **Cámara:** `m7_camera` rellena `l[i]` para la línea `i` del destino (desde
   la 0): a la distancia `height·focal / (i − horizon)`, mirando en la
   dirección `angle` (0 = hacia `u` creciente), con el centro del destino en
@@ -998,6 +1031,9 @@ Los números 32–63 de la tabla de vectores quedan reservados para los gráfico
 | 45 | `void gfx_tri(const i16 *p, int c)` | Triángulo relleno (3 pares x, y) |
 | 46 | `void gfx_poly(const i16 *p, int n, int c)` | Polígono relleno de 3 a 64 vértices (regla par-impar) |
 | 47 | `void gfx_circle(int x, int y, int r, int c, int relleno)` | Círculo o disco |
+| 56 | `void gfx_pattern(const u8 *pat, int papel)` | Trama de 8 × 8 para las figuras (43–47); `NULL`, color liso. Desde la versión 0.2 |
+| 57 | `void m7_draw_map(const tilemap *m, const m7line *l, int y, int n, int fuera)` | Como `m7_draw`, con un mapa de tiles como plano; `fuera`: el color de lo de fuera de un mapa que no se repite, o `-1`. Desde la versión 0.2 |
+| 58 | `void m7_affine(m7line *l, int n, const m7aff *a)` | Calcula las líneas de un plano girado y ampliado alrededor de un punto. Desde la versión 0.2 |
 | 52 | `void spr_draw_scaled(const void *spr, int x, int y, int w, int h, int flags, const u8 *colores)` | Dibuja un sprite estirado o encogido a `w × h` (de 1 a 4096; si no, nada), con `flags` y `colores` como `spr_draw`: para lo que se acerca o se aleja |
 
 Reglas comunes:
@@ -1043,6 +1079,7 @@ flash basta.
 | 100 sprites de 16×16 escalados a 32×32 | 1,50 M (63 %) | 1,48 M (62 %) |
 | 100 sprites de 16×16 escalados a 12×12 | 668.000 (28 %) | 653.000 (27 %) |
 | Modo 7 a pantalla completa (~15 ciclos por píxel) | 738.000 (31 %) | 2,90 M (121 %) |
+| Modo 7 con un mapa de tiles de 8 × 8, pantalla completa (~36 por píxel; en el emulador, falta la Pico) | ~1,77 M (72 %) | ~7 M (290 %) |
 | 100 triángulos de unos 470 píxeles | 688.000 (29 %) | 675.000 (28 %) |
 | 100 líneas al azar | 333.000 (14 %) | 610.000 (25 %) |
 
@@ -1172,6 +1209,57 @@ interfaz), y el cuadro lo dice.
   actualización; si vuelve, con el error. Lo que pasa después, con su propia
   pantalla, lo cuenta dev/hardware-pico.md §8.
 
+Sin tarjeta, también desde un PC por J5 (D105): `zxv-link update` sirve el
+fichero como `EXT:/zxv-update.bin` y se lo pide a la máquina (la petición
+`UPDATE` del protocolo de la carga remota, docs/es/hardware/protocol.md).
+Los programas no lo ven: no cambia esta interfaz.
+
+### 7.13 Wi-Fi
+
+Con una **Pico 2 W** como Pico CPU (D106), la carga remota y la unidad
+`EXT:` van también por la red: las tramas de J5, cada una en un paquete UDP
+firmado (puerto 5612), con un emparejamiento por comparación de números con
+cada PC (docs/es/hardware/protocol.md). Los paquetes de la red llevan la
+dirección firmada (del PC a la máquina o al revés) y el protocolo de la red
+tiene su propia versión (la 2), aparte de la de las tramas: con otra,
+`zxv-link` no habla con la máquina y dice cuál hay que actualizar. El firmware es el mismo para la Pico 2
+y la Pico 2 W: ve si hay radio al arrancar. El cuadro **Wi-Fi** del menú EDIT
+lo maneja con una sola función de la interfaz; los programas no la tienen.
+
+**`int wifi(int op, void *buf)`** (`ZXV_PIF_WIFI`), según `op`:
+
+| `op` | Qué hace |
+|---|---|
+| `ZXV_WIFI_INFO` (0) | Deja el estado en `buf` (`ZXV_WIFI_INFO_SIZE`, 96 bytes, abajo) |
+| `ZXV_WIFI_SCAN` (1) | Empieza a buscar redes; tarda unos segundos (INFO dice cuándo acaba) |
+| `ZXV_WIFI_LIST` (2) | Las redes encontradas en `buf` (`ZXV_WIFI_LIST_SIZE`): hasta 10 de 36 bytes, el nombre (32 y su 0), la señal (i8, dBm), si pide contraseña (u8) y el canal (u8); da cuántas |
+| `ZXV_WIFI_JOIN` (3) | `buf`: la red y la contraseña, cada una con su 0 (la contraseña, vacía o de 8 a 63 letras): la guarda y se conecta |
+| `ZXV_WIFI_OFF` (4) | Olvida la red y se desconecta |
+| `ZXV_WIFI_PAIR` (5) | `buf[0]`: `ZXV_WP_OPEN` o `ZXV_WP_CLOSE` (abrir o cerrar el emparejamiento), `ZXV_WP_ACCEPT` o `ZXV_WP_REJECT` (lo que contesta el usuario al código); da el estado |
+| `ZXV_WIFI_FORGET` (6) | Olvida todos los PC emparejados |
+
+**INFO:** el estado (`+0`, u8: `ZXV_WS_NONE` sin radio, `OFF` sin red
+elegida, `JOINING`, `UP` conectada, `BADAUTH` contraseña incorrecta, `NONET`
+no encuentra la red, `FAIL` otro fallo), si está buscando (`+1`), la señal
+(`+2`, i8), el emparejamiento (`+3`: `ZXV_WP_CLOSE`, `OPEN` espera a un PC,
+`CODE` enseña el código, `DONE` aceptado, `FAILED`), cuántos PC hay
+emparejados (`+4`), el código (`+8`, u32, seis cifras), la red (`+12`), la
+IP (`+45`, texto), el nombre de la máquina en la red (`+61`: `ZX-V-1A2B`, de
+su MAC) y el del PC que se empareja (`+78`).
+
+Sin radio (una Pico 2), INFO da `ZXV_WS_NONE` y lo demás `ZXV_E_ACCESS`. Con
+una interfaz anterior a la 7 (el emulador), la ROM no la llama y el cuadro
+dice que no hay Wi-Fi.
+
+**Dónde se guarda.** La red, la contraseña y las claves de los PC (hasta 8)
+van en un sector de la flash de la CPU (`FLASHMAP_CPU_WIFI`, `0x3FE000`),
+fuera de las particiones. Lo escribe el núcleo de servicios mientras el
+núcleo 0 espera en la RAM (dentro de la llamada), y la PMP lo cierra al
+núcleo 0: un programa no puede leer la contraseña ni las claves.
+
+**Lo que no va por la red:** actualizar el firmware (§7.12): el modo de
+actualización solo escucha a J5.
+
 ---
 
 ## 8. Variables del sistema
@@ -1181,7 +1269,7 @@ interfaz), y el cuadro lo dice.
 | Desp. | Nombre | Tipo | Descripción |
 |---|---|---|---|
 | `+0x00` | `FRAMES` | u32 | Contador de frames (60 Hz). No es el `FRAMES` del Spectrum (23672 en el BASIC), que cuenta cincuentavos de segundo |
-| `+0x04` | `VERSION` | u32 | Versión de la especificación (`mayor << 16 \| menor`) |
+| `+0x04` | `VERSION` | u32 | Versión de la especificación (`mayor << 16 \| menor`): 0.2 desde D109 (`PROG_FILE` y `PROG_CRC`) |
 | `+0x08` | `FRAME_HOOK` | u32 | Gancho de frame actual (cámbialo con `set_frame_hook`) |
 | `+0x0C` | `RAMTOP` | u32 | Tope de la RAM usable; la pila del núcleo 0 empieza aquí |
 | `+0x10` | `URAM_START` | u32 | Inicio de la RAM de usuario |
@@ -1191,6 +1279,8 @@ interfaz), y el cuadro lo dice.
 | `+0x20` | `LANG` | u32 | El idioma de la máquina (§7.10). Solo lectura: se cambia con `lang_set` |
 | `+0x24` | `EDITOR` | u32 | 1 mientras el BASIC espera una orden (en el editor o con un informe en la pantalla); 0 mientras ejecuta algo, también un programa nativo. La escribe la ROM; la página de los juegos para la web (D85) la mira para empezarlos y volver a empezarlos |
 | `+0x28` | `PREFS` | u32 | Las preferencias de la máquina (§7.11). Solo lectura: las cambia la ROM |
+| `+0x2C` | `PROG_FILE` | u32 | El fichero del programa `.ZXV` en marcha, abierto si lleva bancos (§9.2): su número + 1; 0 si no. Desde la versión 0.2 |
+| `+0x30` | `PROG_CRC` | u32 | El CRC de la imagen del programa en marcha; 0 sin programa. Desde la versión 0.2 |
 
 ### 8.2 Buzón del depurador del BASIC (`0x2000_2700`)
 
@@ -1310,10 +1400,18 @@ pantalla de carga, si la hay, y de la imagen que se copia en `load_addr`:
     la imagen;
   - que la imagen y el BSS quepan en la RAM de usuario, por debajo de la pila
     actual de la ROM con 4 KB de margen;
+  - la cabecera de la pantalla de carga, si la hay;
   - el CRC.
 
-  Después borra el BSS, ejecuta `fence.i` y pone el modo de vídeo de la
-  cabecera.
+  Todo eso lo comprueba antes de tocar nada, leyendo la imagen a trozos: si
+  algo no vale, da el error y lo que había en la memoria (el programa BASIC)
+  sigue ahí. Luego vuelve a leer el fichero, pone la pantalla de carga y
+  copia la imagen; si entonces la imagen ya no es la misma (el fichero ha
+  cambiado), da `ZXV_E_CHANGED`, y el BASIC empieza de nuevo, como al volver
+  un programa. Después borra el BSS, ejecuta `fence.i` y pone el modo de
+  vídeo de la cabecera, con `VSIZE` a 0 (el tamaño de la pantalla, §4.9). El
+  programa empieza justo después de enviarse un cuadro, con el enlace libre
+  (`LINK_BUSY` a 0).
 - **Pila.** Con tope 0, el programa sigue en la pila actual, por debajo de la de
   la ROM (que empieza en `RAMTOP`), como hacía `USR` en el Spectrum. Con otro
   tope (alineado a 16, por encima del BSS), usa el suyo, y la ROM recupera la
@@ -1328,7 +1426,8 @@ pantalla de carga, si la hay, y de la imagen que se copia en `load_addr`:
     (`W Native code error (código)` en inglés);
   - `report_error(código, msg)`: `W` y el texto del programa, con
     ` (código)` si no es 0; por ejemplo, `W Fichero dañado (5), 0:1`. El
-    texto (UTF-8, hasta 47 bytes) se copia antes de reiniciar la memoria.
+    texto (UTF-8, hasta 79 bytes; 47 antes de la versión 0.2) se copia
+    antes de reiniciar la memoria.
     Con `msg` vacío, el texto de siempre;
   - una excepción (§7.5): `W Error en el código nativo, 0:1`.
 
@@ -1339,6 +1438,13 @@ pantalla de carga, si la hay, y de la imagen que se copia en `load_addr`:
   (`LOAD`) y el monitor lanzan programas.
 - También se pueden cargar binarios en bruto con `LOAD "x" CODE dirección` y
   ejecutarlos con `RANDOMIZE USR dirección` (ver [basic.md](basic.md)).
+- **Los bancos** (D109): datos y código que van detrás de la imagen (el
+  cargador no los mira), con un índice y un cierre de 16 bytes al final (`ZXVBANK1`). Si el
+  fichero acaba en ese cierre, el cargador lo deja abierto mientras va el
+  programa y lo dice en `PROG_FILE`, con la huella en `PROG_CRC` (§8.1); lo
+  cierra al volver el programa, al lanzar otro y tras una excepción. El
+  formato, en la referencia del SDK; el SDK los lee con `zxv_bank_load` y
+  carga los de código desde sus puentes (`tools/zxvbanks.py`).
 
 ### 9.3 SDK
 

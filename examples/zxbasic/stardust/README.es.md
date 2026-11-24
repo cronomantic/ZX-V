@@ -18,7 +18,7 @@ siguen saliendo igual por segundo, así que hay algunas menos en la pantalla.
 
 ## Compilarlo
 
-Hace falta la rama `zxv` del fork de ZX Basic (`cronomantic/zxbasic`) y el
+Hace falta el fork de ZX Basic (`cronomantic/zxbasic`) y el
 compilador de C de RISC-V, el mismo que usa el SDK:
 
 ```

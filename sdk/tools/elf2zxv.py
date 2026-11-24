@@ -6,9 +6,15 @@ imagen contigua.
 
 Uso: elf2zxv.py ENTRADA.elf SALIDA.zxv [--name NOMBRE] [--mode 0|1]
                 [--stack DIRECCIÓN] [--screen PANTALLA]
+                [--bank NOMBRE=FICHERO ...] [--pack]
 
 La pantalla de carga es un PNG (de 256 x 192, 512 x 384 o el cuadro con el
 borde) o la primera pantalla de un .gfx (png2gfx.py --screen, zxv-gfx).
+
+Los bancos (D109, zxv_bank.h) van detrás de la imagen, con su índice y el
+cierre ZXVBANK1 al final: cualquier fichero, que el programa carga con
+zxv_bank_load(NOMBRE, ...). Con --pack, cada uno va comprimido (deflate) si
+así ocupa menos.
 
 Los mensajes van en español si el idioma del sistema lo es y, si no, en
 inglés.
@@ -19,10 +25,23 @@ import struct
 import sys
 import zlib
 
-URAM_BASE, URAM_END = 0x20034000, 0x20072000
+URAM_BASE, URAM_END = 0x20034000, 0x20071000
+# La VRAM oculta de cada página en modo 0 (zxv.ld, D108): lo que el programa
+# pone ahí empieza a cero (crt0.S) y no va en el fichero.
+VRAM_HIDDEN = ((0x2000A000, 0x2001C000), (0x20022000, 0x20034000))
 MAGIC = b"ZXV1"
 HDR_SIZE = 72
 PROFILE = 1
+# Los bancos (zxv.h, ZXV_BANK_*).
+BANK_MAGIC = b"ZXVBANK1"
+BANK_NAME_MAX = 15
+BANK_MAX = 4096
+BANK_DATA, BANK_STORED, BANK_DEFLATE = 0, 0, 1
+BANK_CODE = 1
+# Los bancos de código (tools/zxvbanks.py): en el ELF, las secciones
+# .zxvbank.ZONA.NOMBRE, enlazadas en su zona y «cargadas» desde aquí arriba
+# (no van en la imagen).
+BANK_LMA = 0x80000000
 
 
 def system_spanish():
@@ -70,6 +89,29 @@ if SPANISH:
     argparse._ = lambda s: ARGPARSE_ES.get(s, s)
 
 
+def code_banks(data):
+    """Los bancos de código del ELF: (nombre, zona, dirección, contenido)."""
+    shoff = struct.unpack_from("<I", data, 32)[0]
+    shentsize, shnum, shstrndx = struct.unpack_from("<HHH", data, 46)
+    if not shoff or not shnum:
+        return []
+    def sh(i):
+        return struct.unpack_from("<IIIIIIIIII", data, shoff + i * shentsize)
+    names = sh(shstrndx)
+    out = []
+    for i in range(shnum):
+        name_off, typ, flags, addr, off, size = sh(i)[:6]
+        n = data[names[4] + name_off:data.index(b"\0", names[4] + name_off)].decode("ascii", "replace")
+        if not n.startswith(".zxvbank."):
+            continue
+        region, _, bank = n[len(".zxvbank."):].partition(".")
+        if not region.isdigit() or not bank:
+            raise SystemExit(tr("section {}: not a code bank", "sección {}: no es un banco de código").format(n))
+        body = data[off:off + size] if typ != 8 else bytes(size)          # SHT_NOBITS: a cero
+        out.append((bank, int(region), addr, body))
+    return out
+
+
 def load_segments(data):
     if data[:4] != b"\x7fELF" or data[4] != 1 or data[5] != 1:
         raise SystemExit(tr("not a little-endian ELF32", "no es un ELF32 little-endian"))
@@ -109,10 +151,29 @@ def main():
     ap.add_argument("--screen", metavar=tr("SCREEN", "PANTALLA"),
                     help=tr("its loading screen: a PNG or a .gfx with a screen",
                             "su pantalla de carga: un PNG o un .gfx con una pantalla"))
+    ap.add_argument("--bank", action="append", default=[], metavar=tr("NAME=FILE", "NOMBRE=FICHERO"),
+                    help=tr("a data bank: FILE, loaded with zxv_bank_load(NAME, ...) (repeatable)",
+                            "un banco de datos: FICHERO, que se carga con zxv_bank_load(NOMBRE, ...) "
+                            "(se puede repetir)"))
+    ap.add_argument("--pack", action="store_true",
+                    help=tr("compress each bank (deflate) when it gets smaller",
+                            "comprime cada banco (deflate) si así ocupa menos"))
     a = ap.parse_args()
 
     with open(a.elf, "rb") as f:
-        entry, segs = load_segments(f.read())
+        elf = f.read()
+    entry, segs = load_segments(elf)
+    code = code_banks(elf)
+    segs = [s for s in segs if s[0] < BANK_LMA]                 # los bancos de código, aparte
+    hidden = [s for s in segs if any(lo <= s[0] and s[0] + s[2] <= hi for lo, hi in VRAM_HIDDEN)]
+    for addr, content, memsz in hidden:
+        if content:
+            raise SystemExit(tr("data with an initial value in the hidden VRAM ({:#x}): it is not loaded",
+                                "datos con valor inicial en la VRAM oculta ({:#x}): no se cargan").format(addr))
+    segs = [s for s in segs if s not in hidden]
+    if hidden and a.mode == 1:
+        raise SystemExit(tr("the program uses the hidden VRAM (ZXV_VRAMn_DATA), which mode 1 does not have",
+                            "el programa usa la VRAM oculta (ZXV_VRAMn_DATA), que en el modo 1 no hay"))
     if not segs:
         raise SystemExit(tr("the ELF has no loadable segments", "el ELF no tiene segmentos cargables"))
 
@@ -126,6 +187,10 @@ def main():
             image += b"\0" * (addr - (load + len(image)))
             image += content
         mem_end = max(mem_end, addr + memsz)
+    # Las zonas de los bancos de código, detrás del BSS: cuentan en lo que
+    # ocupa el programa (el cargador comprueba que cabe y las borra).
+    for _, _, addr, body in code:
+        mem_end = max(mem_end, addr + len(body))
     bss = mem_end - (load + len(image))
 
     if load < URAM_BASE or mem_end > URAM_END:
@@ -135,7 +200,7 @@ def main():
         raise SystemExit(tr("invalid load address or entry point",
                             "dirección de carga o punto de entrada no válidos"))
 
-    name = (a.name or a.zxv.rsplit("/", 1)[-1].rsplit(".", 1)[0]).encode("ascii", "replace")[:27]
+    name = (a.name or os.path.splitext(os.path.basename(a.zxv))[0]).encode("ascii", "replace")[:27]
     flags = 0                                       # reservado
     screen = b""
     if a.screen:
@@ -149,12 +214,64 @@ def main():
                       bss, a.stack, a.mode, flags, 0, zlib.crc32(image) & 0xFFFFFFFF, name,
                       len(screen), 0)
     assert len(hdr) == HDR_SIZE
+    out = hdr + screen + bytes(image)
+    out += banks(a.bank, a.pack, len(out), zlib.crc32(image) & 0xFFFFFFFF, len(image), code)
     with open(a.zxv, "wb") as f:
-        f.write(hdr + screen + bytes(image))
+        f.write(out)
     print(tr("{}: load {:#010x}, entry {:#010x}, image {} B, BSS {} B",
              "{}: carga {:#010x}, entrada {:#010x}, imagen {} B, BSS {} B").format(
         a.zxv, load, entry, len(image), bss))
     return 0
+
+
+def banks(specs, pack, at, prog_crc, image_size, code=()):
+    """Los bancos (los de código del ELF y los de datos de --bank), su índice y
+    el cierre, para poner detrás de la imagen (que acaba en at); b"" sin
+    bancos."""
+    if not specs and not code:
+        return b""
+    if len(specs) + len(code) > BANK_MAX:
+        raise SystemExit(tr("too many banks (at most {})", "demasiados bancos (como mucho {})").format(BANK_MAX))
+    data, entries, seen = b"", b"", set()
+    items = [(name, BANK_CODE, region, addr, body) for name, region, addr, body in code]
+    for spec in specs:
+        name, sep, path = spec.partition("=")
+        if not sep or not path:
+            raise SystemExit(tr("--bank {}: it must be NAME=FILE", "--bank {}: tiene que ser NOMBRE=FICHERO").format(spec))
+        items.append((name, BANK_DATA, 0, 0, path))
+    for name, kind, region, addr, what in items:
+        if not (0 < len(name) <= BANK_NAME_MAX) or not all(33 <= ord(c) < 127 for c in name):
+            raise SystemExit(tr("bank {!r}: the name must have 1 to {} ASCII characters, with no spaces",
+                                "banco {!r}: el nombre ha de tener de 1 a {} caracteres ASCII, sin espacios")
+                             .format(name, BANK_NAME_MAX))
+        if name in seen:
+            raise SystemExit(tr("bank {!r} is repeated", "el banco {!r} está repetido").format(name))
+        seen.add(name)
+        if kind == BANK_CODE:
+            raw = what
+        else:
+            try:
+                with open(what, "rb") as f:
+                    raw = f.read()
+            except OSError as e:
+                raise SystemExit(tr("bank {!r}: {}", "banco {!r}: {}").format(name, e.strerror or e))
+        stored, method = raw, BANK_STORED
+        if pack:
+            c = zlib.compressobj(9, zlib.DEFLATED, -15)
+            z = c.compress(raw) + c.flush()
+            if len(z) < len(raw):
+                stored, method = z, BANK_DEFLATE
+        entries += struct.pack("<16sBBBBIIIIIII", name.encode("ascii"), kind, method, region, 0,
+                               at + len(data), len(stored), len(raw), zlib.crc32(raw) & 0xFFFFFFFF, addr, 0, 0)
+        data += stored
+        print(tr("  bank {}: {} B{}{}", "  banco {}: {} B{}{}").format(
+            name, len(raw), tr(" ({} B packed)", " ({} B comprimido)").format(len(stored))
+            if method == BANK_DEFLATE else "",
+            tr(", code in region {} at {:#010x}", ", de código en la zona {}, en {:#010x}").format(region, addr)
+            if kind == BANK_CODE else ""))
+    index = struct.pack("<IIII", len(items), prog_crc, image_size, zlib.crc32(entries) & 0xFFFFFFFF) + entries
+    tail = BANK_MAGIC + struct.pack("<II", at + len(data), len(index))
+    return data + index + tail
 
 
 if __name__ == "__main__":

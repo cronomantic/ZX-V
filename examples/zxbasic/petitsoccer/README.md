@@ -36,8 +36,7 @@ It comes up in the machine's language, English or Spanish.
 
 ## Building it
 
-You need the `zxv` branch of the ZX Basic fork (`cronomantic/zxbasic`),
-v1.19.0-zxv.6 or later, and the RISC-V C compiler, the same one the SDK uses:
+You need the ZX Basic fork (`cronomantic/zxbasic`), v1.19.0-zxv.6 or later, and the RISC-V C compiler, the same one the SDK uses:
 
 ```
 python build.py path/to/zxbc

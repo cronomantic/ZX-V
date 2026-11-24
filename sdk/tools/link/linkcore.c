@@ -48,6 +48,9 @@ static const char *machine_error(int32_t e)
 {
     switch (e) {
     case ZXV_E_NOENT: return TR("it does not exist", "no existe");
+    case ZXV_E_EXIST: return TR("there is already one with that name", "ya hay uno con ese nombre");
+    case ZXV_E_NOTDIR: return TR("it is not a folder", "no es una carpeta");
+    case ZXV_E_NOTEMPTY: return TR("the folder is not empty", "la carpeta no está vacía");
     case ZXV_E_NAME: return TR("the name is not valid on the card", "el nombre no vale en la tarjeta");
     case ZXV_E_ISDIR: return TR("there is a folder with that name", "hay una carpeta con ese nombre");
     case ZXV_E_BADF: return TR("the file is no longer open on the board (has it restarted?)",
@@ -62,13 +65,39 @@ static const char *machine_error(int32_t e)
     }
 }
 
+/* El fichero de lo que recuerda este PC de la red (su id y las claves). */
+static bool net_cfg(char *out, size_t n)
+{
+    return lc_config_file("zxv-link-net.txt", out, n);
+}
+
 int lc_open(lc_link_t *l, const char *port, int *why_kind)
 {
-    char why[128] = "";
+    char why[160] = "";
     int kind = 0;
     zl_rx_init(&l->rx);
     l->pend_n = l->pend_at = 0;
     l->version = 0;
+    l->unpaired = false;
+    if (netpc_is_target(port)) {
+        char cfg[1024];
+        bool paired = false;
+        if (why_kind)
+            *why_kind = SERIAL_E_NONE;
+        if (!net_cfg(cfg, sizeof cfg))
+            return fail(l, LC_E_PORT, "%s", TR("no folder for zxv-link's settings", "no hay carpeta para la configuración de zxv-link"));
+        unsigned version = 0;
+        l->net = netpc_open(cfg, port, &paired, why, &version);
+        char mismatch[256];
+        if (!l->net && version && !lc_net_compatible(version, mismatch, sizeof mismatch))
+            return fail(l, LC_E_PORT, "%s: %s", port, mismatch);
+        if (!l->net)
+            return fail(l, LC_E_PORT, "%s: %s", port,
+                        TR("no ZX-V answers there: is it on, with Wi-Fi, on the same network?",
+                           "no contesta ninguna ZX-V: ¿está encendida, con el Wi-Fi, en la misma red?"));
+        l->unpaired = !paired;
+        return 0;
+    }
     l->s = serial_open(port, ZL_BAUD, &kind, why);
     if (why_kind)
         *why_kind = kind;
@@ -88,9 +117,34 @@ void lc_close(lc_link_t *l)
 {
     if (l->ext)
         lc_unserve(l);
-    serial_close(l->s);
+    if (l->net)
+        netpc_close(l->net);
+    else
+        serial_close(l->s);
+    l->net = NULL;
     l->s = NULL;
     l->pend_n = l->pend_at = 0;
+}
+
+/* Una trama, por el puerto o por la red. */
+static int io_write(lc_link_t *l, const uint8_t *f, size_t n)
+{
+    if (!l->net)
+        return serial_write(l->s, f, n);
+    l->net_quiet = now_ms() + ZLN_KEEPALIVE_MS;
+    return netpc_write(l->net, f, n);
+}
+
+/* Por la red, el informe va a los programas que han hablado hace poco: si
+ * este solo escucha, saluda de vez en cuando (la respuesta se tira). */
+static void net_keepalive(lc_link_t *l)
+{
+    if (!l->net || l->unpaired || (long)(now_ms() - l->net_quiet) < 0)
+        return;
+    uint8_t f[ZL_FRAME_MAX];
+    size_t fn = zl_pack(ZL_CH_CTRL, ZL_HELLO, ++l->seq, NULL, 0, f);
+    if (fn)
+        io_write(l, f, fn);
 }
 
 /* Lo que pide la máquina a la unidad EXT: (si se sirve), contestado ya. */
@@ -102,7 +156,7 @@ static void serve_ext(lc_link_t *l, const zl_msg_t *m)
     unsigned n = ext_server_handle(l->ext, m, out);
     size_t fn = zl_pack(ZL_CH_EXT, (uint8_t)(m->type | ZL_REPLY), m->seq, out, n, f);
     if (fn)
-        serial_write(l->s, f, fn);
+        io_write(l, f, fn);
 }
 
 /* Lo que llega hasta deadline (ms): el informe, a on_log; una respuesta a
@@ -118,7 +172,8 @@ static int wait_reply(lc_link_t *l, uint8_t type, uint8_t seq, unsigned long dea
             if ((long)(deadline - t) <= 0)
                 return 0;
             unsigned slice = deadline - t > 100 ? 100 : (unsigned)(deadline - t);
-            int n = serial_read(l->s, l->pend, sizeof l->pend, slice);
+            int n = l->net ? netpc_read(l->net, l->pend, sizeof l->pend, slice)
+                           : serial_read(l->s, l->pend, sizeof l->pend, slice);
             if (n < 0)
                 return -1;
             l->pend_n = n;
@@ -146,7 +201,7 @@ static int wait_reply(lc_link_t *l, uint8_t type, uint8_t seq, unsigned long dea
  * contesta su número de arranque; si cambia, lo abierto de antes, fuera. */
 static void ext_announce(lc_link_t *l)
 {
-    if (!l->ext || l->ext_busy || !l->s || (long)(now_ms() - l->ext_next) < 0)
+    if (!l->ext || l->ext_busy || (!l->s && !l->net) || l->unpaired || (long)(now_ms() - l->ext_next) < 0)
         return;
     l->ext_busy = true;
     uint8_t on = 1, more[16];
@@ -165,6 +220,7 @@ int lc_pump(lc_link_t *l, unsigned ms)
 {
     zl_msg_t m;
     ext_announce(l);
+    net_keepalive(l);
     if (wait_reply(l, 0xFF, 0, now_ms() + ms, &m) == -1)
         return fail(l, LC_E_SERIAL, "%s", TR("the serial port has failed", "el puerto serie ha fallado"));
     return 0;
@@ -173,11 +229,17 @@ int lc_pump(lc_link_t *l, unsigned ms)
 int32_t lc_request(lc_link_t *l, uint8_t type, const void *data, unsigned len, unsigned timeout_ms, int tries,
                    uint8_t *more, unsigned *more_len)
 {
+    if (l->net && l->unpaired)
+        return fail(l, LC_E_UNPAIRED, "%s",
+                    TR("this machine is not paired with this PC: pair it first (zxv-link pair, with EDIT > Wi-Fi > "
+                       "Pair a PC open on the machine)",
+                       "esta máquina no está emparejada con este PC: emparéjala antes (zxv-link pair, con EDIT > "
+                       "Wi-Fi > Emparejar un PC abierto en la máquina)"));
     ext_announce(l);                    /* si toca, antes */
     uint8_t seq = ++l->seq, f[ZL_FRAME_MAX];
     size_t fn = zl_pack(ZL_CH_CTRL, type, seq, data, len, f);
     for (int i = 0; i < tries; i++) {
-        if (!fn || serial_write(l->s, f, fn) < 0)
+        if (!fn || io_write(l, f, fn) < 0)
             return fail(l, LC_E_SERIAL, "%s", TR("cannot write to the serial port", "no se puede escribir en el puerto serie"));
         zl_msg_t m;
         int r = wait_reply(l, type, seq, now_ms() + timeout_ms, &m);
@@ -216,7 +278,8 @@ int lc_hello(lc_link_t *l, lc_info_t *info)
     if (info) {
         more[n] = 0;
         info->protocol = l->version;
-        info->waiting = more[2] != 0;
+        info->waiting = more[2] == 1;
+        info->updating = more[2] == 2;
         info->spec = zl_get32(more + 3);
         snprintf(info->firmware, sizeof info->firmware, "%.63s", (const char *)more + 7);
     }
@@ -247,6 +310,30 @@ int lc_serve(lc_link_t *l, const char *folder, bool overwrite)
     return 0;
 }
 
+int lc_serve_file(lc_link_t *l, const char *file, const char *name)
+{
+    int r;
+    if (!l->version && (r = lc_hello(l, NULL)) < 0)
+        return r;
+    if (l->version < 4)
+        return fail(l, LC_E_OLD, "%s", TR("the machine's firmware is too old for the EXT: drive: update it",
+                                          "el firmware de la máquina es demasiado antiguo para la unidad EXT: "
+                                          "actualízalo"));
+    ext_server_t *x = l->ext ? l->ext : calloc(1, sizeof *x);
+    if (!x)
+        return fail(l, LC_E_FILE, "%s", TR("out of memory", "sin memoria"));
+    if (ext_server_start_file(x, file, name) < 0) {
+        if (!l->ext)
+            free(x);
+        return fail(l, LC_E_FILE, "%s: %s", file, TR("cannot be read", "no se puede leer"));
+    }
+    x->overwrite = false;
+    l->ext = x;
+    l->ext_next = 0;
+    ext_announce(l);                    /* ya */
+    return 0;
+}
+
 void lc_unserve(lc_link_t *l)
 {
     if (!l->ext)
@@ -254,7 +341,7 @@ void lc_unserve(lc_link_t *l)
     ext_server_t *x = l->ext;
     uint8_t off = 0;
     l->ext_busy = true;                 /* sin anunciarse más */
-    if (l->s)
+    if (l->s || (l->net && !l->unpaired))
         lc_request(l, ZL_SERVE, &off, 1, 500, 1, NULL, NULL);
     l->ext_busy = false;
     l->ext = NULL;
@@ -624,8 +711,16 @@ static int wait_back(lc_link_t *l)
         int r = lc_hello(l, &info);
         if (r == LC_E_SERIAL || r == LC_E_CANCEL)
             return r;
-        if (r == 0 && info.waiting)
+        if (r == 0 && info.waiting) {
+            /* Reiniciada, ha olvidado quién sirve EXT:: se le dice ya, antes
+             * de teclear nada que la use (si no, a veces el LOAD llegaba
+             * antes del anuncio de cada segundo y no había servidor). */
+            if (l->ext) {
+                l->ext_next = 0;
+                ext_announce(l);
+            }
             return 0;
+        }
         if (r == 0 && lc_pump(l, 300) < 0)  /* contesta, pero aún sin el BASIC */
             return LC_E_SERIAL;
     }
@@ -817,6 +912,240 @@ int lc_folder_files(const char *program, char **out, int max)
     return count;
 }
 
+/* --- La tarjeta y la ROM, como un explorador (versión 6, D112) ------------ */
+
+static int need6(lc_link_t *l)
+{
+    int r;
+    if (!l->version && (r = lc_hello(l, NULL)) < 0)
+        return r;
+    if (l->version < 6)
+        return fail(l, LC_E_OLD, "%s", TR("the machine's firmware is too old to browse the card: update it",
+                                          "el firmware de la máquina es demasiado antiguo para ver la tarjeta: "
+                                          "actualízalo"));
+    return 0;
+}
+
+/* Una petición con una ruta (y antes, head): el estado, con el error en
+ * texto si falla. */
+static int32_t path_request(lc_link_t *l, uint8_t type, const void *head, unsigned hn, const char *path,
+                            unsigned timeout, uint8_t *more, unsigned *mn)
+{
+    size_t pn = strlen(path);
+    if (pn > 255 || hn + pn > ZL_MAX_DATA)
+        return fail(l, LC_E_FILE, "%s: %s", path, TR("name too long", "nombre demasiado largo"));
+    uint8_t d[ZL_MAX_DATA];
+    if (hn)
+        memcpy(d, head, hn);
+    memcpy(d + hn, path, pn);
+    int32_t st = lc_request(l, type, d, (unsigned)(hn + pn), timeout, 3, more, mn);
+    return st < 0 ? on_file(l, st, path) : st;
+}
+
+int lc_list(lc_link_t *l, const char *path, lc_entry_t **out)
+{
+    int r;
+    *out = NULL;
+    if ((r = need6(l)) < 0)
+        return r;
+    lc_entry_t *e = NULL;
+    unsigned n = 0, cap = 0;
+    for (;;) {
+        uint8_t head[2] = { (uint8_t)n, (uint8_t)(n >> 8) }, more[ZL_MAX_DATA];
+        unsigned mn = 0;
+        int32_t st = path_request(l, ZL_LIST, head, 2, path, 3000, more, &mn);
+        if (st < 0) {
+            free(e);
+            return st;
+        }
+        if (mn < 1) {
+            free(e);
+            return fail(l, LC_E_REPLY, "%s", TR("a reply that is too short", "una respuesta demasiado corta"));
+        }
+        unsigned o = 1;
+        for (int32_t i = 0; i < st; i++) {
+            if (o + 6 > mn || o + 6 + more[o + 5] > mn) {
+                free(e);
+                return fail(l, LC_E_REPLY, "%s", TR("a reply that is too short", "una respuesta demasiado corta"));
+            }
+            if (n == cap) {
+                cap = cap ? cap * 2 : 32;
+                lc_entry_t *g = realloc(e, cap * sizeof *e);
+                if (!g) {
+                    free(e);
+                    return fail(l, LC_E_FILE, "%s", TR("out of memory", "sin memoria"));
+                }
+                e = g;
+            }
+            unsigned nl = more[o + 5] < 63 ? more[o + 5] : 63;
+            e[n].size = zl_get32(more + o);
+            e[n].dir = (more[o + 4] & 1) != 0;
+            memcpy(e[n].name, more + o + 6, nl);
+            e[n].name[nl] = 0;
+            n++;
+            o += 6 + more[o + 5];
+        }
+        if (!more[0] || st == 0)
+            break;
+    }
+    *out = e;
+    return (int)n;
+}
+
+int lc_get(lc_link_t *l, const char *path, const char *local)
+{
+    int r;
+    if ((r = need6(l)) < 0)
+        return r;
+    char tmp[1100];
+    snprintf(tmp, sizeof tmp, "%s.zxv-link-part", local);
+    FILE *f = fopen(tmp, "wb");
+    if (!f)
+        return fail(l, LC_E_FILE, "%s: %s", local, TR("cannot write it", "no se puede escribir"));
+    const char *name = lc_base_name(path);
+    uint32_t at = 0, size = 0;
+    for (;;) {
+        uint8_t head[4], more[ZL_MAX_DATA];
+        unsigned mn = 0;
+        zl_put32(head, at);
+        int32_t st = path_request(l, ZL_GET, head, 4, path, 3000, more, &mn);
+        if (st >= 0 && (mn < 4 || (unsigned)st > mn - 4))
+            st = fail(l, LC_E_REPLY, "%s", TR("a reply that is too short", "una respuesta demasiado corta"));
+        if (st < 0) {
+            fclose(f);
+            remove(tmp);
+            return st;
+        }
+        size = zl_get32(more);
+        if (st && fwrite(more + 4, 1, (size_t)st, f) != (size_t)st) {
+            fclose(f);
+            remove(tmp);
+            return fail(l, LC_E_FILE, "%s: %s", local, TR("cannot write it", "no se puede escribir"));
+        }
+        at += (uint32_t)st;
+        if (l->on_progress)
+            l->on_progress(l->ctx, name, at, size, false);
+        if (st == 0 || at >= size)
+            break;
+    }
+    if (fclose(f) != 0 || at != size) {
+        remove(tmp);
+        return fail(l, LC_E_FILE, "%s: %s", local, TR("cannot write it", "no se puede escribir"));
+    }
+    remove(local);
+    if (rename(tmp, local) != 0) {
+        remove(tmp);
+        return fail(l, LC_E_FILE, "%s: %s", local, TR("cannot write it", "no se puede escribir"));
+    }
+    return 0;
+}
+
+int lc_remove(lc_link_t *l, const char *path)
+{
+    int r;
+    if ((r = need6(l)) < 0)
+        return r;
+    int32_t st = path_request(l, ZL_REMOVE, NULL, 0, path, 3000, NULL, NULL);
+    return st < 0 ? st : 0;
+}
+
+int lc_mkdir(lc_link_t *l, const char *path)
+{
+    int r;
+    if ((r = need6(l)) < 0)
+        return r;
+    int32_t st = path_request(l, ZL_MKDIR, NULL, 0, path, 3000, NULL, NULL);
+    return st < 0 ? st : 0;
+}
+
+int lc_rename(lc_link_t *l, const char *from, const char *to)
+{
+    int r;
+    if ((r = need6(l)) < 0)
+        return r;
+    size_t fn = strlen(from);
+    if (fn > 255)
+        return fail(l, LC_E_FILE, "%s: %s", from, TR("name too long", "nombre demasiado largo"));
+    uint8_t head[256 + 1];
+    memcpy(head, from, fn);
+    head[fn] = 0;
+    int32_t st = path_request(l, ZL_RENAME, head, (unsigned)fn + 1, to, 3000, NULL, NULL);
+    return st < 0 ? st : 0;
+}
+
+void lc_drive_command(const char *path, char *cmd, size_t n)
+{
+    const char *base = lc_base_name(path), *colon = strchr(path, ':');
+    if (colon && base <= colon)
+        base = colon + 1;               /* "SD:a.zxv": la raíz */
+    char dir[300];
+    size_t dl = 0;
+    if (!colon) {                       /* sin unidad: la tarjeta */
+        memcpy(dir, "SD:", 3);
+        dl = 3;
+    }
+    size_t pl = (size_t)(base - path);
+    if (pl > sizeof dir - dl - 2)
+        pl = sizeof dir - dl - 2;
+    memcpy(dir + dl, path, pl);
+    dl += pl;
+    while (dl > 1 && dir[dl - 1] == '/' && dir[dl - 2] != ':')
+        dl--;                           /* "SD:/juegos/" -> "SD:/juegos"; "SD:/" se queda */
+    if (dir[dl - 1] == ':')
+        dir[dl++] = '/';                /* "SD:" -> "SD:/" */
+    dir[dl] = 0;
+    snprintf(cmd, n, "CD \"%s\": LOAD \"%s\"%s", dir, base, load_tail(path));
+}
+
+/* Que el BASIC espere una orden (si hay un programa en marcha, sin
+ * allow_stop, LC_E_RUNNING) y teclear cmd. */
+static int run_typed(lc_link_t *l, const char *cmd)
+{
+    lc_info_t info;
+    int r;
+    if ((r = lc_hello(l, &info)) < 0)
+        return r;
+    if (!info.waiting && !l->allow_stop)
+        return fail(l, LC_E_RUNNING, "%s", TR("a program is running on the board", "hay un programa en marcha en la placa"));
+    if ((r = lc_ready(l)) < 0)
+        return r;
+    return lc_type(l, cmd);
+}
+
+int lc_run_path(lc_link_t *l, const char *path)
+{
+    char cmd[400];
+    lc_drive_command(path, cmd, sizeof cmd);
+    return run_typed(l, cmd);
+}
+
+int lc_run_pc(lc_link_t *l, const char *file)
+{
+    const char *name = lc_base_name(file);
+    char cmd[400];
+    int r;
+    if (l->ext && !l->ext->only[0]) {   /* ya se sirve una carpeta: además, él */
+        if (ext_server_set_extra(l->ext, file, name) < 0)
+            return fail(l, LC_E_FILE, "%s: %s", file, TR("cannot be read", "no se puede leer"));
+        snprintf(cmd, sizeof cmd, "LOAD \"EXT:%s/%s\"%s", EXT_EXTRA_DIR, name, load_tail(file));
+    } else {
+        if ((r = lc_serve_file(l, file, name)) < 0)
+            return r;
+        snprintf(cmd, sizeof cmd, "LOAD \"EXT:/%s\"%s", name, load_tail(file));
+    }
+    return run_typed(l, cmd);
+}
+
+bool lc_ext_busy(const lc_link_t *l)
+{
+    if (!l->ext)
+        return false;
+    for (int i = 0; i < 8; i++)
+        if (l->ext->files[i].f)
+            return true;
+    return false;
+}
+
 int lc_dbg_read(lc_link_t *l, unsigned off, unsigned n, uint8_t *out)
 {
     while (n) {
@@ -846,4 +1175,269 @@ int lc_dbg_write(lc_link_t *l, unsigned off, const uint8_t *p, unsigned n)
     memcpy(d + 2, p, n);
     int32_t st = lc_request(l, ZL_DBG_WRITE, d, 2 + n, 2000, 3, NULL, NULL);
     return st < 0 ? st : 0;
+}
+
+/* --- Actualizar el firmware (versión 5, D105) ----------------------------------------- */
+
+#define UPD_NAME        "zxv-update.bin"        /* ZXV_UPDATE_FILE en la máquina */
+#define UPD_HEADER_MIN  48                      /* la cabecera de zxvupd.h, sin las partes */
+#define UPD_START_MS    30000u                  /* lo que tarda en decir que actualiza */
+#define UPD_SILENT_MS   60000u                  /* sin contestar más tiempo: algo va mal */
+#define UPD_TOTAL_MS    900000u                 /* todo, como mucho (15 minutos) */
+
+int lc_update_version(lc_link_t *l, const char *file, char version[17])
+{
+    uint8_t h[256];
+    FILE *f = fopen(file, "rb");
+    size_t n = f ? fread(h, 1, sizeof h, f) : 0;
+    if (f)
+        fclose(f);
+    if (!f)
+        return fail(l, LC_E_FILE, "%s: %s", file, TR("cannot be read", "no se puede leer"));
+    uint32_t hs = n >= 12 ? zl_get32(h + 8) : 0;
+    if (n < UPD_HEADER_MIN || memcmp(h, "ZXVUPD01", 8) || hs < UPD_HEADER_MIN || hs > n ||
+        zl_crc32(0, h, hs - 4) != zl_get32(h + hs - 4))
+        return fail(l, LC_E_FILE, "%s: %s", file,
+                    TR("not a ZX-V update file (zxv-update.bin)",
+                       "no es un fichero de actualización de ZX-V (zxv-update.bin)"));
+    memcpy(version, h + 16, 16);
+    version[16] = 0;
+    return 0;
+}
+
+/* Un hola que puede no tener respuesta (la máquina se reinicia): el error,
+ * sin tocar el que hubiera. */
+static int quiet_hello(lc_link_t *l, lc_info_t *i)
+{
+    char keep[sizeof l->error];
+    memcpy(keep, l->error, sizeof keep);
+    int r = lc_hello(l, i);
+    memcpy(l->error, keep, sizeof keep);
+    return r;
+}
+
+/* Lo que cuenta la máquina mientras actualiza: va a quien lo enseña, y si
+ * un paso dice «error» (en los dos idiomas), se apunta. */
+static struct {
+    void (*on_log)(void *ctx, const char *text, unsigned n);
+    bool failed;
+} upd_watch;
+
+static void update_log(void *ctx, const char *text, unsigned n)
+{
+    for (unsigned k = 0; k + 7 <= n; k++)
+        if (!memcmp(text + k, ": error", 7))
+            upd_watch.failed = true;
+    if (upd_watch.on_log)
+        upd_watch.on_log(ctx, text, n);
+}
+
+static int update_follow(lc_link_t *l, const char *version);
+
+int lc_update(lc_link_t *l, const char *file)
+{
+    /* Tras reiniciarse, el modo de actualización solo escucha a J5 (sin la
+     * radio): por la red esperaría al PC y fallaría. */
+    if (l->net)
+        return fail(l, LC_E_UPDATE, "%s",
+                    TR("the firmware is updated over J5 (with the USB-serial adapter) or from the card, "
+                       "not over the network",
+                       "el firmware se actualiza por J5 (con el adaptador USB-serie) o desde la tarjeta, "
+                       "no por la red"));
+    char version[17];
+    int r = lc_update_version(l, file, version);
+    if (r < 0)
+        return r;
+    lc_info_t i;
+    if ((r = lc_hello(l, &i)) < 0)
+        return r;
+    if (l->version < 5)
+        return fail(l, LC_E_OLD, "%s",
+                    TR("the machine's firmware is too old to be updated over J5: update it once from the card "
+                       "(EDIT menu) or over USB",
+                       "el firmware de la máquina es demasiado antiguo para actualizarlo por J5: actualízalo una "
+                       "vez desde la tarjeta (menú EDIT) o por USB"));
+    if (i.updating)
+        return fail(l, LC_E_UPDATE, "%s", TR("the machine is already updating its firmware",
+                                             "la máquina ya está actualizando el firmware"));
+    if ((r = lc_ready(l)) < 0)          /* con un programa en marcha, la máquina se reinicia */
+        return r;
+    if ((r = lc_serve_file(l, file, UPD_NAME)) < 0)
+        return r;
+    int32_t st = lc_request(l, ZL_UPDATE, NULL, 0, 2000, 3, NULL, NULL);
+    if (st < 0) {
+        lc_unserve(l);
+        if (st == ZXV_E_OFFLINE)
+            return fail(l, st, "%s", TR("the machine does not see this PC as the EXT: drive",
+                                        "la máquina no ve este PC como la unidad EXT:"));
+        if (st == ZXV_E_ACCESS)
+            return fail(l, st, "%s",
+                        TR("the machine cannot update over J5 (no partitions: load its firmware once over USB)",
+                           "la máquina no puede actualizarse por J5 (sin particiones: grábale el firmware una "
+                           "vez por USB)"));
+        return st <= LC_E_PORT ? st : fail(l, st, "%s", machine_error(st));
+    }
+
+    upd_watch.on_log = l->on_log;
+    upd_watch.failed = false;
+    l->on_log = update_log;
+    r = update_follow(l, version);
+    l->on_log = upd_watch.on_log;
+    lc_unserve(l);
+    return r;
+}
+
+/* La máquina se reinicia en el modo de actualización (lee el fichero de
+ * aquí), otra vez tras escribir su firmware, y al final vuelve al BASIC:
+ * cada pocos segundos, cómo está. */
+static int update_follow(lc_link_t *l, const char *version)
+{
+    lc_info_t i;
+    int r;
+    unsigned long t0 = now_ms(), heard = t0, next = t0 + 2000;
+    bool seen = false;
+    for (;;) {
+        if ((r = lc_pump(l, 200)) < 0)
+            break;
+        if (l->cancel) {
+            r = fail(l, LC_E_CANCEL, "%s", TR("stopped (the machine goes on: look at its screen)",
+                                              "parado (la máquina sigue: mira su pantalla)"));
+            break;
+        }
+        if (upd_watch.failed) {         /* la máquina se reinicia sola al cabo de 30 s */
+            r = fail(l, LC_E_UPDATE, "%s", TR("the update failed: look at the machine's screen",
+                                              "la actualización ha fallado: mira la pantalla de la máquina"));
+            break;
+        }
+        unsigned long now = now_ms();
+        if ((long)(now - next) < 0)
+            continue;
+        next = now + 2000;
+        if (quiet_hello(l, &i) == 0) {
+            heard = now;
+            if (i.updating) {
+                seen = true;
+            } else if (seen && i.waiting) {
+                char want[64];
+                snprintf(want, sizeof want, "ZX-V %s", version);
+                r = strcmp(i.firmware, want) ? fail(l, LC_E_UPDATE, TR("the machine came back with %s, not %s: "
+                                                                       "look at its screen",
+                                                                       "la máquina ha vuelto con %s, no con %s: "
+                                                                       "mira su pantalla"),
+                                                     i.firmware, want)
+                                             : 0;
+                break;
+            }
+        }
+        if (!seen && now - t0 > UPD_START_MS) {
+            r = fail(l, LC_E_UPDATE, "%s", TR("the machine did not start updating: look at its screen",
+                                              "la máquina no ha empezado a actualizar: mira su pantalla"));
+            break;
+        }
+        if (now - heard > UPD_SILENT_MS || now - t0 > UPD_TOTAL_MS) {
+            r = fail(l, LC_E_UPDATE, "%s", TR("the machine stopped answering: look at its screen",
+                                              "la máquina ha dejado de contestar: mira su pantalla"));
+            break;
+        }
+    }
+    return r;
+}
+
+/* --- La red (D106) ------------------------------------------------------------------------- */
+
+bool lc_net_compatible(unsigned version, char *why, size_t n)
+{
+    if (version == ZLN_VERSION)
+        return true;
+    if (version < ZLN_VERSION)
+        snprintf(why, n,
+                 TR("the machine's firmware speaks an older version of the network protocol (%u; this zxv-link, %u): "
+                    "they are not compatible. Update the machine (zxv-link update over J5, or from the SD card)",
+                    "el firmware de la máquina habla una versión anterior del protocolo de la red (la %u; este "
+                    "zxv-link, la %u): no son compatibles. Actualiza la máquina (zxv-link update por J5, o desde la "
+                    "tarjeta)"),
+                 version, (unsigned)ZLN_VERSION);
+    else
+        snprintf(why, n,
+                 TR("the machine speaks a newer version of the network protocol (%u; this zxv-link, %u): they are not "
+                    "compatible. Update zxv-link",
+                    "la máquina habla una versión más nueva del protocolo de la red (la %u; este zxv-link, la %u): no "
+                    "son compatibles. Actualiza zxv-link"),
+                 version, (unsigned)ZLN_VERSION);
+    return false;
+}
+
+/* Una línea más detrás de lo que hay en out (n bytes), si cabe entera. */
+static bool add_line(char *out, size_t n, const char *fmt, ...)
+{
+    size_t used = strlen(out);
+    va_list ap;
+    va_start(ap, fmt);
+    int w = vsnprintf(out + used, n - used, fmt, ap);
+    va_end(ap);
+    if (w < 0 || (size_t)w >= n - used) {
+        out[used] = 0;
+        return false;
+    }
+    return true;
+}
+
+int lc_list_found(const netpc_found_t *list, int k, char *out, size_t n, char *other, size_t on)
+{
+    int count = 0;
+    for (int i = 0; i < k; i++) {
+        char why[256];
+        if (lc_net_compatible(list[i].version, why, sizeof why))
+            count += add_line(out, n, "%s (%s)\n", list[i].name, list[i].addr);
+        else if (other && on)
+            add_line(other, on, "%s (%s): %s: %s\n", list[i].name, list[i].addr, list[i].firmware, why);
+    }
+    return count;
+}
+
+int lc_list_ports(char *out, size_t n, char *other, size_t on, unsigned ms)
+{
+    int count = serial_list(out, n);
+    if (other && on)
+        other[0] = 0;
+    char cfg[1024];
+    if (!net_cfg(cfg, sizeof cfg))
+        return count;
+    netpc_found_t list[16];
+    int k = netpc_find(cfg, list, 16, ms);
+    return count + lc_list_found(list, k, out, n, other, on);
+}
+
+int lc_pair_begin(lc_link_t *l, const char *pc_name, uint32_t *code)
+{
+    if (!l->net)
+        return fail(l, LC_E_PORT, "%s", TR("pairing is only for machines on the network",
+                                          "emparejar es solo para las máquinas de la red"));
+    char why[160] = "";
+    int r = netpc_pair_begin(l->net, pc_name, code, why);
+    if (r == 0)
+        return 0;
+    if (r == -100)
+        return fail(l, LC_E_NOANSWER, "%s", TR("the machine does not answer", "la máquina no contesta"));
+    if (r == -ZLN_PAIR_CLOSED)
+        return fail(l, LC_E_UNPAIRED, "%s", TR("the machine is not pairing: open EDIT > Wi-Fi > Pair a PC on it",
+                                               "la máquina no está emparejando: abre en ella EDIT > Wi-Fi > Emparejar un PC"));
+    if (r == -ZLN_PAIR_BUSY)
+        return fail(l, LC_E_UNPAIRED, "%s", TR("the machine is pairing with another PC", "la máquina está emparejando con otro PC"));
+    return fail(l, LC_E_UNPAIRED, "%s",
+                !strcmp(why, "commit") ? TR("the machine's answers do not add up: someone may be in the middle; "
+                                            "pairing stopped",
+                                            "las respuestas de la máquina no cuadran: puede haber alguien en medio; "
+                                            "no se empareja")
+                                       : TR("the machine said no", "la máquina ha dicho que no"));
+}
+
+int lc_pair_poll(lc_link_t *l)
+{
+    if (!l->net)
+        return ZLN_PAIR_NO;
+    int r = netpc_pair_poll(l->net);
+    if (r == ZLN_PAIR_OK)
+        l->unpaired = false;
+    return r;
 }

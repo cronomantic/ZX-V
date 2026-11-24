@@ -17,8 +17,8 @@ hardware, y al revés. Viene en varias formas:
 | **`zxv-check`** | Comprueba listados BASIC sin la máquina (ver [abajo](#zxv-check-comprobar-listados)) |
 | **`zxv-tracker`** | El tracker: música para los dos AY y los canales de muestras (canciones `.zxm` y módulos PT3) y efectos AYFX, los que toca la biblioteca de música del SDK (ver la [guía del SDK](sdk/README.md#el-tracker-para-el-pc-zxv-tracker)) |
 | **`zxv-music`** | Convierte PT3, TurboSound, MOD, S3M y XM al formato de música propio, `.zxm` (ver la [guía del SDK](sdk/README.md#el-formato-propio-zxm-y-zxv-music)) |
-| **`zxv-link`** | Manda programas a la máquina de verdad desde el PC y los ejecuta, por la tira J5 de la placa con un adaptador USB-serie, y sirve una carpeta como su unidad `EXT:` (ver [El firmware](hardware/firmware.md#cargar-programas-desde-el-pc-j5)) |
-| **`zxv-link-gui`** | Lo mismo que `zxv-link`, con ventana, en pasos: la placa, el programa, desde dónde lo carga (la unidad `EXT:` o la tarjeta), ejecutar o solo copiar, y el resultado; con los recientes y el informe de la máquina |
+| **`zxv-link`** | Manda programas a la máquina de verdad desde el PC y los ejecuta, por la tira J5 de la placa con un adaptador USB-serie (o por Wi-Fi, con una Pico 2 W), y sirve una carpeta como su unidad `EXT:` (ver [El firmware](hardware/firmware.md#cargar-programas-desde-el-pc-j5)) |
+| **`zxv-link-gui`** | Lo mismo que `zxv-link`, con ventana: la máquina (por cable o por Wi-Fi, y emparejarla), ejecutar un fichero del PC directo a la memoria, y la tarjeta, la ROM y `EXT:` como un explorador (ejecutar, mandar, traer, carpetas, renombrar, borrar); con el informe de la máquina |
 
 Los paquetes de Windows y Linux traen `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-check`, `zxv-gfx`, `zxv-tracker`, `zxv-music`, `zxv-link` y `zxv-link-gui`,
 además de los ejemplos (la carpeta `ejemplos`) y la unidad `ROM:`
@@ -188,7 +188,9 @@ Una carpeta se comporta como una tarjeta de verdad: no se distinguen las
 mayúsculas de las minúsculas (`JUEGO.ZVB` y `juego.zvb` son el mismo fichero) y
 los programas no ven nada fuera de la carpeta. Los nombres solo pueden llevar
 letras sin tildes, cifras y algunos signos, hasta 63 caracteres; los ficheros
-con otros nombres no aparecen.
+con otros nombres no aparecen. Y, como en la tarjeta, un fichero que la
+máquina tiene abierto no se puede abrir para escribir, borrar ni renombrar
+(`ZXV_E_ACCESS`). La unidad `EXT:` sí lo deja, como el servidor de `zxv-link`.
 
 **`sdimg`** crea y llena imágenes de tarjeta desde la línea de órdenes:
 
@@ -362,10 +364,10 @@ lista todas). Estas son las que más vas a usar:
 | `--shots PREFIJO` | Guarda la pantalla de cada frame, `PREFIJO00001.bmp`, `PREFIJO00002.bmp`... (`zxv-cli`): los fotogramas de una animación. Con `--shots-every N`, solo uno de cada N frames; con `--shots-from N`, a partir del frame N |
 | `--wav F.wav` | Graba el sonido en un fichero WAV |
 | `--strict` | Modo estricto: avisa de lo que la máquina real no permitiría |
-| `--version` | Escribe la versión de ZX-V (`ZX-V 0.10.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
+| `--version` | Escribe la versión de ZX-V (`ZX-V 0.11.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
 
 Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
-`--profile`, `--panel`, `--test`, `--fail-on-warning`) son para programadores:
+`--profile`, `--symbols`, `--panel`, `--test`, `--fail-on-warning`) son para programadores:
 `zxv-cli --help` las explica, y la [guía del SDK](sdk/README.md#depurar)
 cuenta cómo depurar.
 

@@ -3,39 +3,41 @@
  */
 #include "window.h"
 
+#include <QAction>
+#include <algorithm>
 #include <QApplication>
 #include <QButtonGroup>
-#include <QCheckBox>
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QDir>
+#include <QDirIterator>
 #include <QDragEnterEvent>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFontDatabase>
 #include <QFrame>
-#include <QGridLayout>
+#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QInputDialog>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
-#include <QListWidget>
+#include <QMenu>
+#include <QMenuBar>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QPlainTextEdit>
 #include <QProgressBar>
 #include <QPushButton>
-#include <QRadioButton>
-#include <QSignalBlocker>
-#include <QSplitter>
+#include <QStandardItemModel>
 #include <QStandardPaths>
-#include <QStatusBar>
+#include <QSysInfo>
 #include <QTimer>
+#include <QToolBar>
 #include <QToolButton>
 #include <QTreeWidget>
 #include <QVBoxLayout>
-
-#include <cstdlib>
 
 #include "linkcore.h"
 #include "serial.h"
@@ -43,19 +45,9 @@
 #include "zxv_version.h"
 
 #define RECENT_MAX      10
-#define FOLDER_MAX      64
 
-/* Las columnas del paso 3. */
-enum { COL_NAME, COL_SIZE, COL_CARD };
-
-static QLabel *title(const QString &text)
-{
-    auto *l = new QLabel(text);
-    QFont f = l->font();
-    f.setBold(true);
-    l->setFont(f);
-    return l;
-}
+enum { COL_NAME, COL_SIZE };
+enum { ROLE_NAME = Qt::UserRole, ROLE_DIR, ROLE_UP };
 
 static QLabel *hint(const QString &text)
 {
@@ -79,8 +71,10 @@ Window::Window(bool spanish)
     : spanish(spanish), locale(spanish ? QLocale::Spanish : QLocale::English),
       settings(QStringLiteral("ZX-V"), QStringLiteral("zxv-link-gui"))
 {
-    setWindowTitle(tr("ZX-V: la placa"));
+    setWindowTitle(tr("ZX-V: carga remota"));
     setAcceptDrops(true);
+    for (QString &p : paths)
+        p = QStringLiteral("/");
 
     /* La cabecera: el logo y para qué es. */
     auto *head = new QHBoxLayout;
@@ -93,231 +87,224 @@ Window::Window(bool spanish)
     big.setBold(true);
     name->setFont(big);
     headText->addWidget(name);
-    auto *what = hint(tr("Programas del PC a la placa, por la tira J5"));
+    auto *what = hint(tr("Programas y ficheros entre el PC y la máquina, por J5 o Wi-Fi"));
     what->setWordWrap(false);
     headText->addWidget(what);
     head->addLayout(headText);
     head->addStretch(1);
     auto *version = hint(QStringLiteral("zxv-link-gui " ZXV_VERSION));
+    version->setWordWrap(false);
     head->addWidget(version, 0, Qt::AlignBottom);
 
-    /* 1. La placa. */
+    /* La máquina. */
     ports = new QComboBox;
-    ports->setMinimumContentsLength(12);
-    ports->setToolTip(tr("El puerto serie del adaptador USB-serie en la tira J5 de la placa: al elegirlo, se conecta"));
+    ports->setMinimumContentsLength(28);
+    ports->setToolTip(tr("El adaptador USB-serie en la tira J5, o una ZX-V de la red: al elegirla, se conecta"));
     refreshButton = new QToolButton;
     refreshButton->setIcon(icon(Ic::Refresh));
-    refreshButton->setToolTip(tr("Vuelve a mirar qué puertos serie hay (al enchufar el adaptador)"));
+    refreshButton->setToolTip(tr("Vuelve a buscar los puertos serie y las ZX-V de la red"));
     dotLabel = new QLabel;
     state = new QLabel;
     state->setTextInteractionFlags(Qt::TextSelectableByMouse);
     state->setWordWrap(true);
+    pairButton = new QPushButton(icon(Ic::Pair), tr("Emparejar..."));
+    pairButton->setToolTip(tr("Empareja este PC con la ZX-V de la red elegida (con EDIT > Wi-Fi > Emparejar un PC "
+                              "abierto en ella): hasta entonces, no acepta nada de él"));
     plugButton = new QToolButton;
     plugButton->setIcon(icon(Ic::Plug));
     plugButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    auto *board = new QHBoxLayout;
-    board->addWidget(ports);
-    board->addWidget(refreshButton);
-    board->addSpacing(10);
-    board->addWidget(dotLabel);
-    board->addSpacing(2);
-    board->addWidget(state, 1);
-    board->addWidget(plugButton);
-
-    /* 2. El programa. */
-    program = new QLineEdit;
-    program->setClearButtonEnabled(true);
-    program->setPlaceholderText(tr("Elige un programa (.zxv, .bas, .zvb, .tap) o arrástralo a la ventana"));
-    chooseButton = new QPushButton(icon(Ic::Folder), tr("Elegir..."));
-    auto *progRow = new QHBoxLayout;
-    progRow->addWidget(program, 1);
-    progRow->addWidget(chooseButton);
-    auto *progBox = new QVBoxLayout;
-    progBox->addLayout(progRow);
-    progBox->addWidget(hint(tr("También puedes arrastrarlo a la ventana o pulsar uno de los recientes. "
-                               "Solo lo pone aquí: nada se manda hasta pulsar un botón del paso 4.")));
-
-    /* 3. Desde dónde lo carga la placa: la unidad EXT: (una carpeta elegida a
-     * propósito, que se sirve mientras la placa está conectada) o la
-     * tarjeta (con lo que va con él). */
-    fromExt = new QRadioButton(tr("EXT:"));
-    fromCard = new QRadioButton(tr("La tarjeta"));
-    auto *fromGroup = new QButtonGroup(this);
-    fromGroup->addButton(fromExt);
-    fromGroup->addButton(fromCard);
-    auto *extRow = new QHBoxLayout;
-    extRow->addWidget(fromExt);
-    extRow->addWidget(hint(tr("la carpeta compartida, sin copiar nada a la tarjeta")), 1);
-    auto *cardRow = new QHBoxLayout;
-    cardRow->addWidget(fromCard);
-    cardRow->addWidget(hint(tr("copia antes el programa y sus ficheros")), 1);
-
-    extPath = new QLineEdit;
-    extPath->setReadOnly(true);
-    extPath->setToolTip(tr("La carpeta que es la unidad EXT: de la máquina mientras la placa está conectada: la "
-                           "máquina puede leer y escribir en ella"));
-    extChoose = new QPushButton(icon(Ic::Folder), tr("Elegir..."));
-    auto *extPathRow = new QHBoxLayout;
-    extPathRow->addWidget(new QLabel(tr("EXT: es")));
-    extPathRow->addWidget(extPath, 1);
-    extPathRow->addWidget(extChoose);
-    extState = hint(QString());
-    extWarn = new QLabel;
-    extWarn->setWordWrap(true);
-    extCopy = new QPushButton(icon(Ic::Copy), tr("Copiarlo a esa carpeta"));
-    extUseCard = new QPushButton(tr("Ejecutar desde la tarjeta"));
-    auto *extWarnRow = new QHBoxLayout;
-    extWarnRow->addWidget(extCopy);
-    extWarnRow->addWidget(extUseCard);
-    extWarnRow->addStretch(1);
-    extWarnBox = new QWidget;
-    auto *extWarnLayout = new QVBoxLayout(extWarnBox);
-    extWarnLayout->setContentsMargins(0, 0, 0, 0);
-    auto *warnRow = new QHBoxLayout;
-    auto *warnIcon = new QLabel;
-    warnIcon->setPixmap(icon(Ic::Warning).pixmap(18, 18));
-    warnRow->addWidget(warnIcon, 0, Qt::AlignTop);
-    warnRow->addWidget(extWarn, 1);
-    extWarnLayout->addLayout(warnRow);
-    extWarnLayout->addLayout(extWarnRow);
-    extOverwrite = new QCheckBox(tr("Dejar que la máquina sustituya o borre ficheros que no escribió ella"));
-    extBox = new QFrame;
-    static_cast<QFrame *>(extBox)->setFrameShape(QFrame::StyledPanel);
-    auto *extLayout = new QVBoxLayout(extBox);
-    extLayout->addLayout(extPathRow);
-    extLayout->addWidget(extState);
-    extLayout->addWidget(extWarnBox);
-    extLayout->addWidget(extOverwrite);
-
-    files = new QTreeWidget;
-    files->setColumnCount(3);
-    files->setHeaderLabels({ tr("Fichero"), tr("Tamaño"), tr("En la tarjeta") });
-    files->setRootIsDecorated(false);
-    files->setUniformRowHeights(true);
-    files->setMinimumHeight(110);
-    files->header()->setSectionResizeMode(COL_NAME, QHeaderView::Stretch);
-    files->header()->setSectionResizeMode(COL_SIZE, QHeaderView::ResizeToContents);
-    files->header()->setSectionResizeMode(COL_CARD, QHeaderView::ResizeToContents);
-    files->header()->setStretchLastSection(false);
-    files->setToolTip(tr("Los ficheros de la carpeta del programa que puede cargar (gráficos, música, sonidos, "
-                         "datos...) y los que añadas: los marcados van a la raíz de la tarjeta"));
-    addButton = new QPushButton(icon(Ic::Add), tr("Añadir ficheros..."));
-    auto *filesRow = new QHBoxLayout;
-    filesRow->addWidget(addButton);
-    filesRow->addStretch(1);
-    cardBox = new QWidget;
-    auto *filesBox = new QVBoxLayout(cardBox);
-    filesBox->setContentsMargins(0, 0, 0, 0);
-    filesBox->addWidget(files, 1);
-    filesBox->addLayout(filesRow);
-    auto *sourceBox = new QVBoxLayout;
-    sourceBox->addLayout(extRow);
-    sourceBox->addLayout(cardRow);
-    sourceBox->addWidget(extBox);
-    sourceBox->addWidget(cardBox, 1);
-
-    /* 4. Los dos botones que mandan. */
-    runButton = new QPushButton(icon(Ic::Play), tr("Ejecutar en la placa"));
-    runButton->setToolTip(tr("Manda el programa y los ficheros marcados (lo que ya está igual, no) y lo ejecuta"));
-    copyButton = new QPushButton(icon(Ic::Copy), tr("Solo copiar a la tarjeta"));
-    copyButton->setToolTip(tr("Manda el programa (si hay) y los ficheros marcados, sin ejecutar nada"));
-    QFont bold = runButton->font();
+    auto *machineRow = new QHBoxLayout;
+    auto *machineLabel = new QLabel(tr("Máquina"));
+    QFont bold = machineLabel->font();
     bold.setBold(true);
-    runButton->setFont(bold);
-    runButton->setDefault(true);
-    for (QPushButton *b : { runButton, copyButton }) {
-        b->setIconSize(QSize(24, 24));
-        b->setMinimumHeight(40);
-        b->setMinimumWidth(220);
-    }
-    /* Mientras manda: parar (lo que se esté esperando acaba enseguida). */
-    stopButton = new QPushButton(icon(Ic::Error), tr("Parar"));
-    stopButton->setToolTip(tr("Deja de mandar (lo que ya está en la tarjeta se queda)"));
-    stopButton->setIconSize(QSize(24, 24));
-    stopButton->setMinimumHeight(40);
-    stopButton->hide();
-    auto *goRow = new QHBoxLayout;
-    goRow->addWidget(runButton);
-    goRow->addWidget(copyButton);
-    goRow->addWidget(stopButton);
-    goRow->addStretch(1);
+    machineLabel->setFont(bold);
+    machineRow->addWidget(machineLabel);
+    machineRow->addWidget(ports, 1);
+    machineRow->addWidget(refreshButton);
+    machineRow->addWidget(pairButton);
+    machineRow->addWidget(plugButton);
+    auto *stateRow = new QHBoxLayout;
+    stateRow->addSpacing(machineLabel->sizeHint().width() + 6);
+    stateRow->addWidget(dotLabel);
+    stateRow->addWidget(state, 1);
 
-    /* 5. El resultado. */
-    results = new QTreeWidget;
-    results->setColumnCount(1);
-    results->setHeaderHidden(true);
-    results->setRootIsDecorated(false);
-    results->setUniformRowHeights(true);
-    results->setMinimumHeight(80);
-    results->setSelectionMode(QAbstractItemView::NoSelection);
+    /* Ejecutar un fichero del PC, directo a la memoria. */
+    pcProgram = new QComboBox;
+    pcProgram->setEditable(true);
+    pcProgram->setInsertPolicy(QComboBox::NoInsert);
+    pcProgram->lineEdit()->setPlaceholderText(tr("Un programa del PC (.zxv, .bas, .zvb, .tap): elígelo, arrástralo o "
+                                                 "toma uno reciente"));
+    pcProgram->lineEdit()->setClearButtonEnabled(true);
+    pcChoose = new QPushButton(icon(Ic::Folder), tr("Elegir..."));
+    pcRun = new QPushButton(icon(Ic::Play), tr("Ejecutar"));
+    pcRun->setFont(bold);
+    pcRun->setIconSize(QSize(22, 22));
+    pcRun->setMinimumHeight(34);
+    pcRun->setDefault(true);
+    pcRun->setToolTip(tr("La máquina lo carga de este PC y lo ejecuta: no se copia a la tarjeta"));
+    auto *pcRow = new QHBoxLayout;
+    pcRow->addWidget(pcProgram, 1);
+    pcRow->addWidget(pcChoose);
+    pcRow->addWidget(pcRun);
+    auto *pcBox = new QGroupBox(tr("Ejecutar un fichero del PC, directo a la memoria"));
+    auto *pcLayout = new QVBoxLayout(pcBox);
+    pcLayout->addLayout(pcRow);
+    pcLayout->addWidget(hint(tr("No se copia a la tarjeta. Si el programa carga otros ficheros, tienen que estar en "
+                                "la máquina.")));
+
+    /* La máquina como un explorador. */
+    const Ic driveIcons[DRIVES] = { Ic::Card, Ic::Rom, Ic::Ext };
+    const QString driveNames[DRIVES] = { tr("Tarjeta"), tr("ROM (solo leer)"), tr("EXT: (carpeta del PC)") };
+    const QString driveTips[DRIVES] = {
+        tr("La tarjeta SD de la máquina"),
+        tr("El disco ROM de la máquina: se puede ejecutar y traer, no cambiar"),
+        tr("La carpeta de este PC que la máquina ve como EXT: mientras está conectada: puede leer y escribir en ella")
+    };
+    auto *driveGroup = new QButtonGroup(this);
+    auto *driveRow = new QHBoxLayout;
+    for (int d = 0; d < DRIVES; d++) {
+        driveButtons[d] = new QToolButton;
+        driveButtons[d]->setIcon(icon(driveIcons[d]));
+        driveButtons[d]->setText(driveNames[d]);
+        driveButtons[d]->setToolTip(driveTips[d]);
+        driveButtons[d]->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        driveButtons[d]->setCheckable(true);
+        driveButtons[d]->setAutoRaise(true);
+        driveGroup->addButton(driveButtons[d], d);
+        driveRow->addWidget(driveButtons[d]);
+    }
+    driveRow->addStretch(1);
+    pathLabel = new QLabel;
+    pathLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    extChoose = new QPushButton(icon(Ic::Folder), tr("Carpeta..."));
+    extChoose->setToolTip(tr("Elige la carpeta del PC que es la unidad EXT: (una a propósito: la máquina puede "
+                             "escribir en ella)"));
+    driveRow->addWidget(extChoose);
+
+    auto *tools = new QToolBar;
+    tools->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    tools->setIconSize(QSize(18, 18));
+    actRun = tools->addAction(icon(Ic::Play), tr("Ejecutar"));
+    actRun->setToolTip(tr("Ejecuta el programa elegido en la máquina (entrando antes en su carpeta)"));
+    tools->addSeparator();
+    actPut = tools->addAction(icon(Ic::Upload), tr("Mandar..."));
+    actPut->setToolTip(tr("Manda ficheros del PC a esta carpeta (también se pueden arrastrar a la lista)"));
+    actGet = tools->addAction(icon(Ic::Download), tr("Traer..."));
+    actGet->setToolTip(tr("Copia lo elegido a una carpeta del PC"));
+    tools->addSeparator();
+    actMkdir = tools->addAction(icon(Ic::NewFolder), tr("Carpeta nueva..."));
+    actRename = tools->addAction(icon(Ic::Rename), tr("Renombrar..."));
+    actRename->setShortcut(Qt::Key_F2);
+    actDelete = tools->addAction(icon(Ic::Delete), tr("Borrar"));
+    actDelete->setShortcut(QKeySequence::Delete);
+    actUp = new QAction(icon(Ic::Up), tr("Arriba"), this);
+    actUp->setToolTip(tr("La carpeta de arriba"));
+    actUp->setShortcut(Qt::Key_Backspace);
+    actRefresh = new QAction(icon(Ic::Refresh), tr("Volver a leer"), this);
+    actRefresh->setToolTip(tr("Vuelve a leer la carpeta"));
+    actRefresh->setShortcut(QKeySequence::Refresh);
+    auto *upButton = new QToolButton;
+    upButton->setDefaultAction(actUp);
+    upButton->setAutoRaise(true);
+    auto *rereadButton = new QToolButton;
+    rereadButton->setDefaultAction(actRefresh);
+    rereadButton->setAutoRaise(true);
+    auto *pathRow = new QHBoxLayout;
+    pathRow->addWidget(upButton);
+    pathRow->addWidget(pathLabel, 1);
+    pathRow->addWidget(rereadButton);
+    for (QAction *a : { actRename, actDelete, actUp, actRefresh })
+        a->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+
+    list = new QTreeWidget;
+    list->setColumnCount(2);
+    list->setHeaderLabels({ tr("Nombre"), tr("Tamaño") });
+    list->setRootIsDecorated(false);
+    list->setUniformRowHeights(true);
+    list->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    list->setMinimumHeight(220);
+    list->header()->setSectionResizeMode(COL_NAME, QHeaderView::Stretch);
+    list->header()->setSectionResizeMode(COL_SIZE, QHeaderView::ResizeToContents);
+    list->header()->setStretchLastSection(false);
+    list->setContextMenuPolicy(Qt::ActionsContextMenu);
+    list->addActions({ actRun, actGet, actRename, actDelete });
+    list->addActions({ actUp, actRefresh });
+    list->installEventFilter(this);
+    list->viewport()->installEventFilter(this);
+    auto *explorer = new QGroupBox(tr("En la máquina"));
+    auto *explorerLayout = new QVBoxLayout(explorer);
+    explorerLayout->addLayout(driveRow);
+    explorerLayout->addWidget(tools);
+    explorerLayout->addLayout(pathRow);
+    explorerLayout->addWidget(list, 1);
+    explorerLayout->addWidget(hint(tr("Arrastra ficheros del PC a la lista para mandarlos a esta carpeta. Borrar y "
+                                      "sustituir preguntan antes.")));
+
+    /* Abajo: cómo va, y el informe de la máquina (plegado). */
+    statusIcon = new QLabel;
+    status = new QLabel;
+    status->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    status->setWordWrap(true);
+    stopButton = new QPushButton(icon(Ic::Error), tr("Parar"));
+    stopButton->setToolTip(tr("Deja lo que se está haciendo (lo que ya se ha mandado se queda)"));
+    stopButton->hide();
     bar = new QProgressBar;
     bar->setRange(0, 100);
-    bar->setValue(0);
     bar->setTextVisible(false);
-    bar->setMaximumHeight(8);
-    auto *resultBox = new QVBoxLayout;
-    resultBox->addWidget(results, 1);
-    resultBox->addWidget(bar);
+    bar->setMaximumHeight(6);
+    bar->hide();
+    auto *statusRow = new QHBoxLayout;
+    statusRow->addWidget(statusIcon);
+    statusRow->addWidget(status, 1);
+    statusRow->addWidget(stopButton);
 
-    auto *top = new QWidget;
-    topLayout = new QVBoxLayout(top);
-    topLayout->addLayout(head);
-    topLayout->addWidget(line());
-    topLayout->addWidget(step(1, tr("Placa"), board));
-    topLayout->addWidget(line());
-    topLayout->addWidget(step(2, tr("Programa"), progBox));
-    topLayout->addWidget(line());
-    step3 = step(3, tr("Desde dónde lo carga la placa"), sourceBox);
-    topLayout->addWidget(step3, 2);
-    topLayout->addWidget(line());
-    topLayout->addWidget(step(4, QString(), goRow));
-    topLayout->addWidget(line());
-    topLayout->addWidget(step(5, tr("Resultado"), resultBox), 1);
-
-    /* Debajo: los recientes y el informe. */
-    recents = new QListWidget;
-    recents->setToolTip(tr("Un clic: lo pone en el paso 2"));
-    recents->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    recents->setTextElideMode(Qt::ElideMiddle);
-    auto *recentBox = new QWidget;
-    auto *recentLayout = new QVBoxLayout(recentBox);
-    recentLayout->setContentsMargins(0, 0, 0, 0);
-    recentLayout->addWidget(title(tr("Recientes")));
-    recentLayout->addWidget(recents, 1);
-
+    logToggle = new QToolButton;
+    logToggle->setText(tr("Informe de la máquina"));
+    logToggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    logToggle->setArrowType(Qt::RightArrow);
+    logToggle->setCheckable(true);
+    logToggle->setAutoRaise(true);
+    logToggle->setToolTip(tr("Lo que cuenta la máquina cada 5 segundos: el enlace, el sonido, la tarjeta, el USB, el "
+                             "reloj y la Wi-Fi"));
     logView = new QPlainTextEdit;
     logView->setReadOnly(true);
     logView->setMaximumBlockCount(5000);
     logView->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
-    logView->setToolTip(tr("Lo que cuenta la máquina cada 5 segundos: el enlace, el sonido, la tarjeta, el USB y el "
-                           "reloj"));
-    clearButton = new QPushButton(icon(Ic::Clear), tr("Limpiar"));
-    auto *logHead = new QHBoxLayout;
-    logHead->addWidget(title(tr("Informe de la máquina")));
-    logHead->addStretch(1);
-    logHead->addWidget(clearButton);
-    auto *logBox = new QWidget;
+    logView->setMinimumHeight(140);
+    auto *clearButton = new QPushButton(icon(Ic::Clear), tr("Limpiar"));
+    logBox = new QWidget;
     auto *logLayout = new QVBoxLayout(logBox);
     logLayout->setContentsMargins(0, 0, 0, 0);
-    logLayout->addLayout(logHead);
     logLayout->addWidget(logView, 1);
+    auto *logButtons = new QHBoxLayout;
+    logButtons->addStretch(1);
+    logButtons->addWidget(clearButton);
+    logLayout->addLayout(logButtons);
+    logBox->hide();
 
-    auto *bottom = new QSplitter;
-    bottom->addWidget(recentBox);
-    bottom->addWidget(logBox);
-    bottom->setStretchFactor(0, 2);
-    bottom->setStretchFactor(1, 3);
-    bottom->setContentsMargins(9, 0, 9, 9);
+    auto *central = new QWidget;
+    auto *layout = new QVBoxLayout(central);
+    layout->addLayout(head);
+    layout->addWidget(line());
+    layout->addLayout(machineRow);
+    layout->addLayout(stateRow);
+    layout->addWidget(pcBox);
+    layout->addWidget(explorer, 3);
+    layout->addLayout(statusRow);
+    layout->addWidget(bar);
+    layout->addWidget(logToggle, 0, Qt::AlignLeft);
+    layout->addWidget(logBox, 2);
+    setCentralWidget(central);
+    resize(900, 820);
 
-    auto *split = new QSplitter(Qt::Vertical);
-    split->addWidget(top);
-    split->addWidget(bottom);
-    split->setStretchFactor(0, 3);
-    split->setStretchFactor(1, 1);
-    split->setChildrenCollapsible(false);
-    setCentralWidget(split);
-    resize(920, 940);
-    split->setSizes({ 660, 240 });
+    /* El menú: lo que se usa poco. */
+    QMenu *machineMenu = menuBar()->addMenu(tr("&Máquina"));
+    menuSearch = machineMenu->addAction(icon(Ic::Refresh), tr("Buscar otra vez"));
+    menuPair = machineMenu->addAction(icon(Ic::Pair), tr("Emparejar..."));
+    machineMenu->addSeparator();
+    menuUpdate = machineMenu->addAction(icon(Ic::Update), tr("Actualizar firmware..."));
+    machineMenu->addSeparator();
+    machineMenu->addAction(tr("Salir"), this, &QWidget::close);
 
     /* El hilo que habla con la máquina. */
     worker = new Worker;
@@ -325,262 +312,207 @@ Window::Window(bool spanish)
     connect(&thread, &QThread::finished, worker, &QObject::deleteLater);
     connect(this, &Window::wantOpen, worker, &Worker::open);
     connect(this, &Window::wantClose, worker, &Worker::close);
-    connect(this, &Window::wantCheck, worker, &Worker::check);
-    connect(this, &Window::wantRun, worker, &Worker::run);
-    connect(this, &Window::wantSend, worker, &Worker::send);
     connect(this, &Window::wantServe, worker, &Worker::serve);
-    connect(this, &Window::wantRunExt, worker, &Worker::runExt);
+    connect(this, &Window::wantUpdate, worker, &Worker::update);
+    connect(this, &Window::wantNetPorts, worker, &Worker::listNet);
+    connect(this, &Window::wantPair, worker, &Worker::pair);
+    connect(this, &Window::wantList, worker, &Worker::list);
+    connect(this, &Window::wantPut, worker, &Worker::put);
+    connect(this, &Window::wantGet, worker, &Worker::get);
+    connect(this, &Window::wantRemove, worker, &Worker::remove);
+    connect(this, &Window::wantRename, worker, &Worker::rename);
+    connect(this, &Window::wantMkdir, worker, &Worker::mkdir);
+    connect(this, &Window::wantRunPath, worker, &Worker::runPath);
+    connect(this, &Window::wantRunPc, worker, &Worker::runPc);
+    connect(worker, &Worker::netPorts, this, [this](const QString &lines, const QString &other) {
+        /* Las de otra versión del protocolo de la red, a la vista pero sin
+         * poder elegirlas, con el porqué (qué actualizar) al pasar por encima;
+         * si se actualizan, la próxima vez ya se pueden. */
+        auto *model = qobject_cast<QStandardItemModel *>(ports->model());
+        auto put = [this, model](const QString &port, const QString &why) {
+            int open = port.indexOf(QLatin1Char('('));
+            QString label = open > 0 ? tr("%1 · Wi-Fi %2").arg(port.left(open).trimmed(), port.mid(open))
+                                     : tr("%1 · Wi-Fi").arg(port);
+            if (!why.isEmpty())
+                label = tr("%1 · no compatible").arg(label);
+            int i = ports->findData(port, Qt::UserRole, Qt::MatchFixedString);
+            if (i < 0) {
+                ports->addItem(icon(Ic::Pair), label, port);
+                i = ports->count() - 1;
+            }
+            ports->setItemText(i, label);
+            ports->setItemData(i, why.isEmpty() ? QVariant() : QVariant(why), Qt::ToolTipRole);
+            if (model && model->item(i))
+                model->item(i)->setEnabled(why.isEmpty());
+        };
+        for (const QString &p : lines.split(QLatin1Char('\n'), Qt::SkipEmptyParts)) {
+            QString port = p.trimmed();
+            netPorts.insert(port.toUpper());
+            put(port, QString());
+        }
+        for (const QString &p : other.split(QLatin1Char('\n'), Qt::SkipEmptyParts)) {
+            QString port = p.section(QLatin1Char('\t'), 0, 0).trimmed();
+            netPorts.remove(port.toUpper());
+            put(port, p.section(QLatin1Char('\t'), 1));
+        }
+        QString keep = settings.value(QStringLiteral("port")).toString();
+        if (link == Link::Off && !keep.isEmpty() && currentPort() != keep) {
+            int i = ports->findData(keep, Qt::UserRole, Qt::MatchFixedString);
+            if (i >= 0 && (!model || !model->item(i) || model->item(i)->isEnabled()))
+                ports->setCurrentIndex(i);
+        }
+        updateButtons();
+    });
+    connect(worker, &Worker::needPair, this, [this](const QString &m) {
+        setLink(Link::Unpaired, tr("%1: sin emparejar con este PC").arg(m));
+        if (pairWanted)
+            startPair();
+        else
+            askPair(m);
+    });
+    connect(worker, &Worker::pairCode, this, &Window::showPairCode);
+    connect(worker, &Worker::pairDone, this, [this](bool ok, const QString &text) {
+        if (pairBox) {
+            pairBox->hide();
+            pairBox->deleteLater();
+            pairBox = nullptr;
+        }
+        worker->arm();
+        pairWanted = false;
+        if (ok) {
+            say(Ic::Done, tr("Emparejada: este PC ya puede usarla"));
+        } else {
+            say(Ic::Error, text, true);
+            if (link == Link::Unpaired)
+                emit wantClose();
+        }
+    });
     connect(worker, &Worker::served, this, [this](bool ok, const QString &text) {
-        extState->setText(ok ? tr("Se sirve como EXT: mientras la placa está conectada.")
-                             : text.isEmpty() ? tr("Se servirá como EXT: al conectar la placa.")
-                                              : tr("No se puede servir: %1").arg(text));
+        if (!ok && !text.isEmpty())
+            say(Ic::Warning, tr("La carpeta de EXT: no se puede servir: %1").arg(text), true);
     });
     connect(worker, &Worker::extEvent, this, [this](const QString &what, const QString &zpath) {
-        QString verb = what == "read" ? tr("ha leído") : what == "write" ? tr("ha escrito")
-                     : what == "remove" ? tr("ha borrado") : what == "rename" ? tr("ha renombrado a")
-                     : tr("ha creado la carpeta");
-        resultLine(QStringLiteral("ext:") + what + zpath, what == "read" ? Ic::File : Ic::Done,
-                   tr("EXT: %1 %2").arg(verb, zpath));
+        if (what != QLatin1String("read") && drive == EXT)
+            refreshList();              /* la máquina ha cambiado algo en EXT: */
+        Q_UNUSED(zpath);
     });
     connect(worker, &Worker::opened, this, [this](bool ok, const QString &text) {
         if (!ok) {
             setLink(Link::Error, text);
             return;
         }
+        machine = text;
         setLink(Link::On, tr("Conectada: %1").arg(text));
-        settings.setValue(QStringLiteral("port"), ports->currentText());
-        checkFiles();
+        settings.setValue(QStringLiteral("port"), currentPort());
         serveExt();
+        refreshList();
+        if (pairWanted)
+            startPair();
     });
     connect(worker, &Worker::closed, this, [this](const QString &why) {
         if (why.isEmpty())
             setLink(Link::Off, tr("Sin conectar"));
         else
             setLink(Link::Error, why);
+        refreshList();
     });
-    connect(worker, &Worker::checked, this, &Window::setChecked);
     connect(worker, &Worker::ask, this, &Window::askUser);
     connect(worker, &Worker::log, this, [this](const QString &text) {
+        if (busy && op == Op::Update)
+            updateLog(text);
         logView->moveCursor(QTextCursor::End);
         logView->insertPlainText(text);
         logView->moveCursor(QTextCursor::End);
     });
     connect(worker, &Worker::progress, this, [this](const QString &name, qint64 done, qint64 total, bool skipped) {
-        if (skipped)
-            resultLine(name, Ic::Same, tr("%1: ya estaba igual en la tarjeta, no se manda").arg(name));
-        else if (done < total)
-            resultLine(name, Ic::Sending, tr("%1: mandando, %2 de %3 bytes").arg(name, bytes(done), bytes(total)));
-        else
-            resultLine(name, Ic::Done, tr("%1: mandado (%2 bytes)").arg(name, bytes(total)));
+        if (skipped) {
+            say(Ic::Same, tr("%1: ya estaba igual, no se manda").arg(name));
+            return;
+        }
+        QString verb = op == Op::Get ? tr("trayendo") : tr("mandando");
+        say(Ic::Sending, tr("%1: %2, %3 de %4 bytes").arg(name, verb, bytes(done), bytes(total)));
         bar->setValue(total ? int(done * 100 / total) : 100);
-        /* Ya está en la tarjeta: en el paso 3, también. */
-        if (skipped || done == total)
-            for (int i = 0; i < files->topLevelItemCount(); i++) {
-                QString f = files->topLevelItem(i)->data(COL_NAME, Qt::UserRole).toString();
-                if (!f.isEmpty() && QFileInfo(f).fileName() == name)
-                    setChecked(f, 1);
-            }
+    });
+    connect(worker, &Worker::listed, this, [this](const QString &path, const QVariantList &e) {
+        if (path != machinePath() || drive == EXT)
+            return;                     /* de otra carpeta: ya no se ve */
+        listing = false;
+        showEntries(e);
+    });
+    connect(worker, &Worker::listFailed, this, [this](const QString &path, const QString &why) {
+        if (path != machinePath() || drive == EXT)
+            return;
+        listing = false;
+        entries.clear();
+        placeholder(why);
     });
     connect(worker, &Worker::finished, this, [this](bool ok, const QString &text) {
+        Op was = op;
         busy = false;
+        op = Op::None;
         worker->arm();                  /* tras Parar: el informe sigue llegando */
-        if (!ok) {
-            for (auto it = resultItems.begin(); it != resultItems.end(); ++it)
-                if (it.value()->data(0, Qt::UserRole).toBool())
-                    resultLine(it.key(), Ic::Error, tr("%1: no se ha mandado").arg(it.key()));
-            resultLine(QStringLiteral("\x01"), Ic::Error, tr("Error: %1").arg(text));
-            results->topLevelItem(results->topLevelItemCount() - 1)->setForeground(0, QColor(0xD7, 0, 0));
-        } else if (mode == Mode::Run) {
-            resultLine(QStringLiteral("\x01"), Ic::Play, tr("%1: en marcha").arg(text));
-        } else {
-            resultLine(QStringLiteral("\x01"), Ic::Done, text);
-        }
-        bar->setValue(ok ? 100 : 0);
-        statusBar()->showMessage(ok ? (mode == Mode::Run ? tr("En marcha en la placa") : text) : text,
-                                 ok ? 6000 : 15000);
+        bar->hide();
+        if (!ok)
+            say(Ic::Error, text, true);
+        else if (was == Op::RunPc)
+            say(Ic::Play, tr("%1: en marcha en la máquina (cargado desde este PC)").arg(text));
+        else if (was == Op::RunPath)
+            say(Ic::Play, tr("En marcha: %1").arg(text));
+        else
+            say(Ic::Done, text);
+        if (was == Op::Put || was == Op::Remove || was == Op::Rename || was == Op::Mkdir)
+            refreshList();
         updateButtons();
     });
     thread.start();
 
-    typing = new QTimer(this);
-    typing->setSingleShot(true);
-    typing->setInterval(400);
-    connect(typing, &QTimer::timeout, this, &Window::rebuildFiles);
-    connect(program, &QLineEdit::textChanged, typing, qOverload<>(&QTimer::start));
-    connect(ports, &QComboBox::activated, this, [this] { connectTo(ports->currentText()); });
+    connect(ports, &QComboBox::activated, this, [this] { connectTo(currentPort()); });
     connect(refreshButton, &QToolButton::clicked, this, &Window::refreshPorts);
+    connect(menuSearch, &QAction::triggered, this, &Window::refreshPorts);
     connect(plugButton, &QToolButton::clicked, this, &Window::toggleConnection);
-    connect(chooseButton, &QPushButton::clicked, this, &Window::chooseProgram);
-    connect(addButton, &QPushButton::clicked, this, &Window::addFiles);
-    connect(files, &QTreeWidget::itemChanged, this, [this](QTreeWidgetItem *it) {
-        QString f = it->data(COL_NAME, Qt::UserRole).toString();
-        if (f.isEmpty())
-            return;
-        if (it->checkState(COL_NAME) == Qt::Checked)
-            unchecked.remove(f);
-        else
-            unchecked.insert(f);
-        updateButtons();
-    });
-    connect(runButton, &QPushButton::clicked, this, [this] { go(Mode::Run); });
-    connect(copyButton, &QPushButton::clicked, this, [this] { go(Mode::Copy); });
+    connect(pairButton, &QPushButton::clicked, this, &Window::pairClicked);
+    connect(menuPair, &QAction::triggered, this, &Window::pairClicked);
+    connect(menuUpdate, &QAction::triggered, this, &Window::updateFirmware);
+    connect(pcChoose, &QPushButton::clicked, this, &Window::chooseProgram);
+    connect(pcRun, &QPushButton::clicked, this, &Window::runPc);
+    connect(pcProgram, &QComboBox::currentTextChanged, this, [this] { updateButtons(); });
+    connect(driveGroup, &QButtonGroup::idClicked, this, &Window::setDrive);
+    connect(extChoose, &QPushButton::clicked, this, &Window::chooseExtFolder);
+    connect(actRun, &QAction::triggered, this, &Window::runSelected);
+    connect(actPut, &QAction::triggered, this, &Window::choosePut);
+    connect(actGet, &QAction::triggered, this, &Window::getSelected);
+    connect(actMkdir, &QAction::triggered, this, &Window::newFolder);
+    connect(actRename, &QAction::triggered, this, &Window::renameSelected);
+    connect(actDelete, &QAction::triggered, this, &Window::deleteSelected);
+    connect(actUp, &QAction::triggered, this, &Window::goUp);
+    connect(actRefresh, &QAction::triggered, this, &Window::refreshList);
+    connect(list, &QTreeWidget::itemActivated, this, [this](QTreeWidgetItem *it) { openItem(it); });
+    connect(list, &QTreeWidget::itemSelectionChanged, this, &Window::updateButtons);
     connect(stopButton, &QPushButton::clicked, this, [this] {
         stopButton->setEnabled(false);
         stopButton->setText(tr("Parando..."));
         worker->cancel();
     });
     connect(clearButton, &QPushButton::clicked, logView, &QPlainTextEdit::clear);
-    connect(recents, &QListWidget::itemClicked, this, [this](QListWidgetItem *it) {
-        QString f = it->data(Qt::UserRole).toString();
-        if (QFileInfo(f).isFile())
-            setProgram(f);
-        else
-            statusBar()->showMessage(tr("%1 ya no existe").arg(QDir::toNativeSeparators(f)), 8000);
+    connect(logToggle, &QToolButton::toggled, this, [this](bool on) {
+        logToggle->setArrowType(on ? Qt::DownArrow : Qt::RightArrow);
+        logBox->setVisible(on);
+        settings.setValue(QStringLiteral("log"), on);
     });
 
-    connect(extChoose, &QPushButton::clicked, this, &Window::chooseExtFolder);
-    connect(extCopy, &QPushButton::clicked, this, &Window::copyToExt);
-    connect(extUseCard, &QPushButton::clicked, this, [this] { fromCard->setChecked(true); });
-    connect(fromExt, &QRadioButton::toggled, this, [this](bool on) {
-        settings.setValue(QStringLiteral("from"), on ? QStringLiteral("ext") : QStringLiteral("card"));
-        updateExt();
-    });
-    connect(extOverwrite, &QCheckBox::toggled, this, [this](bool on) {
-        settings.setValue(QStringLiteral("extOverwrite"), on);
-        serveExt();
-    });
-
-    extPath->setText(QDir::toNativeSeparators(extFolder()));
-    {
-        QSignalBlocker b1(fromExt), b2(extOverwrite);
-        extOverwrite->setChecked(settings.value(QStringLiteral("extOverwrite"), false).toBool());
-        (settings.value(QStringLiteral("from"), QStringLiteral("ext")).toString() == "card" ? fromCard : fromExt)
-            ->setChecked(true);
-    }
-    extState->setText(tr("Se servirá como EXT: al conectar la placa."));
-    setLink(Link::Off, tr("Sin conectar"));
-    refreshPorts();
     refreshRecents();
-    rebuildFiles();
-}
-
-bool Window::fromExtDrive() const
-{
-    return fromExt->isChecked();
-}
-
-/* La carpeta de EXT:: la elegida, o Documentos/ZX-V-EXT (no dentro de
- * Documentos/ZX-V, que es la tarjeta del emulador). Nunca la del programa:
- * la máquina puede crear ficheros en ella. */
-QString Window::extFolder() const
-{
-    QString f = settings.value(QStringLiteral("extFolder")).toString();
-    if (f.isEmpty())
-        f = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QStringLiteral("/ZX-V-EXT");
-    return QFileInfo(f).absoluteFilePath();
-}
-
-bool Window::insideExt(const QString &file) const
-{
-    char cmd[400];
-    return !file.isEmpty() && lc_ext_command(extFolder().toLocal8Bit().constData(),
-                                             QFileInfo(file).absoluteFilePath().toLocal8Bit().constData(), cmd,
-                                             sizeof cmd) == 0;
-}
-
-void Window::serveExt()
-{
-    if (link == Link::On)
-        emit wantServe(extFolder(), extOverwrite->isChecked());
-}
-
-void Window::chooseExtFolder()
-{
-    QString f = QFileDialog::getExistingDirectory(this, tr("La carpeta de la unidad EXT:"), extFolder());
-    if (f.isEmpty())
-        return;
-    settings.setValue(QStringLiteral("extFolder"), QFileInfo(f).absoluteFilePath());
-    extPath->setText(QDir::toNativeSeparators(extFolder()));
-    serveExt();
-    updateExt();
-}
-
-/* Lo del paso 3 que depende de desde dónde, del programa y de la carpeta. */
-void Window::updateExt()
-{
-    bool ext = fromExtDrive();
-    cardBox->setVisible(!ext);
-    topLayout->setStretchFactor(step3, ext ? 0 : 2);    /* sin la lista, el alto para el resultado */
-    QString prog = programFile();
-    bool outside = ext && !prog.isEmpty() && !insideExt(prog);
-    extWarnBox->setVisible(outside);
-    if (outside)
-        extWarn->setText(tr("El programa no está dentro de %1: para ejecutarlo desde EXT:, cópialo a esa carpeta "
-                            "(o elige otra que lo contenga); o ejecútalo desde la tarjeta.")
-                             .arg(QDir::toNativeSeparators(extFolder())));
-    updateButtons();
-}
-
-/* El programa y los ficheros que carga, a la raíz de la carpeta de EXT:
- * (preguntando antes de sustituir algo), y desde ahí el programa. */
-void Window::copyToExt()
-{
-    QString prog = programFile(), dest = extFolder();
-    if (prog.isEmpty())
-        return;
-    QDir().mkpath(dest);
-    QStringList list { prog };
-    list += chosenFiles();
-    QStringList clash;
-    for (const QString &f : list) {
-        QFileInfo to(dest + QLatin1Char('/') + QFileInfo(f).fileName());
-        if (to.exists())
-            clash << to.fileName();
-    }
-    if (!clash.isEmpty() &&
-        QMessageBox::question(this, tr("Copiar a la carpeta de EXT:"),
-                              tr("En %1 ya hay: %2.\n\n¿Sustituirlos?")
-                                  .arg(QDir::toNativeSeparators(dest), clash.join(QStringLiteral(", "))),
-                              QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
-        return;
-    for (const QString &f : list) {
-        QString to = dest + QLatin1Char('/') + QFileInfo(f).fileName();
-        QFile::remove(to);
-        if (!QFile::copy(f, to)) {
-            statusBar()->showMessage(tr("No se puede copiar %1").arg(QDir::toNativeSeparators(f)), 8000);
-            return;
-        }
-    }
-    setProgram(dest + QLatin1Char('/') + QFileInfo(prog).fileName());
-    statusBar()->showMessage(tr("Copiado a %1: ahora el programa es esa copia").arg(QDir::toNativeSeparators(dest)),
-                             8000);
+    refreshPorts();
+    setLink(Link::Off, tr("Sin conectar"));
+    logToggle->setChecked(settings.value(QStringLiteral("log"), false).toBool());
+    int d = settings.value(QStringLiteral("drive"), int(SD)).toInt();
+    setDrive(d >= 0 && d < DRIVES ? d : int(SD));
+    say(Ic::File, tr("Elige la máquina arriba: al elegirla, se conecta."));
 }
 
 Window::~Window()
 {
     thread.quit();
     thread.wait();
-}
-
-/* Un paso: su número, su título y lo suyo. */
-QWidget *Window::step(int n, const QString &text, QLayout *content)
-{
-    auto *w = new QWidget;
-    auto *g = new QGridLayout(w);
-    g->setContentsMargins(0, 2, 0, 2);
-    g->setHorizontalSpacing(12);
-    auto *badge = new QLabel;
-    badge->setPixmap(stepBadge(n));
-    g->addWidget(badge, 0, 0, 2, 1, Qt::AlignTop);
-    if (text.isEmpty()) {
-        g->addLayout(content, 0, 1, 2, 1);
-    } else {
-        g->addWidget(title(text), 0, 1);
-        g->addLayout(content, 1, 1);
-        g->setRowStretch(1, 1);
-    }
-    g->setColumnStretch(1, 1);
-    return w;
 }
 
 bool Window::isProgram(const QString &file)
@@ -594,46 +526,43 @@ QString Window::bytes(qint64 n) const
     return locale.toString(n);
 }
 
-/* El del paso 2, si es un programa que existe. */
-QString Window::programFile() const
+/* --- La máquina ------------------------------------------------------------- */
+
+QString Window::currentPort() const
 {
-    QFileInfo fi(program->text().trimmed());
-    return fi.isFile() && isProgram(fi.filePath()) ? fi.absoluteFilePath() : QString();
+    return ports->currentData().toString();
 }
 
-void Window::setProgram(const QString &file)
+bool Window::isNet(const QString &port) const
 {
-    {
-        QSignalBlocker block(program);
-        program->setText(QDir::toNativeSeparators(QFileInfo(file).absoluteFilePath()));
-    }
-    typing->stop();
-    settings.setValue(QStringLiteral("dir"), QFileInfo(file).absolutePath());
-    rebuildFiles();
-    statusBar()->showMessage(tr("Puesto: nada se manda hasta pulsar un botón del paso 4"), 6000);
+    return netPorts.contains(port.trimmed().toUpper());
 }
 
 void Window::autoConnect()
 {
     QString port = settings.value(QStringLiteral("port")).toString();
-    if (!port.isEmpty() && ports->findText(port, Qt::MatchFixedString) >= 0)
-        connectTo(ports->itemText(ports->findText(port, Qt::MatchFixedString)));
+    int i = port.isEmpty() ? -1 : ports->findData(port, Qt::UserRole, Qt::MatchFixedString);
+    if (i >= 0) {
+        ports->setCurrentIndex(i);
+        connectTo(port);
+    }
 }
 
 void Window::refreshPorts()
 {
-    char list[4096];
-    serial_list(list, sizeof list);
-    QString keep = ports->currentText().isEmpty() ? settings.value(QStringLiteral("port")).toString()
-                                                  : ports->currentText();
+    char buf[4096];
+    serial_list(buf, sizeof buf);
+    emit wantNetPorts();                /* las ZX-V de la red, en el hilo: tardan un segundo y medio */
+    QString keep = currentPort().isEmpty() ? settings.value(QStringLiteral("port")).toString() : currentPort();
     ports->clear();
-    for (const QString &p : QString::fromLocal8Bit(list).split(QLatin1Char('\n'), Qt::SkipEmptyParts))
-        ports->addItem(p.trimmed());
-    int i = ports->findText(keep, Qt::MatchFixedString);
+    netPorts.clear();
+    for (const QString &p : QString::fromLocal8Bit(buf).split(QLatin1Char('\n'), Qt::SkipEmptyParts))
+        ports->addItem(icon(Ic::Plug), tr("%1 · cable (J5)").arg(p.trimmed()), p.trimmed());
+    int i = ports->findData(keep, Qt::UserRole, Qt::MatchFixedString);
     ports->setCurrentIndex(i >= 0 ? i : ports->count() ? 0 : -1);
-    if (!ports->count() && link != Link::On)
-        setLink(Link::Off, tr("No hay puertos serie: enchufa el adaptador USB-serie de J5 y pulsa el botón de "
-                              "buscar"));
+    if (!ports->count() && link == Link::Off)
+        say(Ic::Warning, tr("Buscando... Si no aparece ninguna: enchufa el adaptador USB-serie de J5, o enciende la "
+                            "Wi-Fi de la máquina, y pulsa buscar."));
     updateButtons();
 }
 
@@ -649,32 +578,166 @@ void Window::toggleConnection()
 {
     if (busy)
         return;
-    if (link == Link::On || link == Link::Connecting)
+    if (link == Link::On || link == Link::Connecting || link == Link::Unpaired)
         emit wantClose();
     else
-        connectTo(ports->currentText());
+        connectTo(currentPort());
 }
 
 void Window::setLink(Link l, const QString &text)
 {
     link = l;
-    dotLabel->setPixmap(dot(l == Link::On ? Dot::On : l == Link::Connecting ? Dot::Busy
-                            : l == Link::Error                         ? Dot::Error
-                                                                       : Dot::Off));
+    dotLabel->setPixmap(dot(l == Link::On ? Dot::On : l == Link::Connecting || l == Link::Unpaired ? Dot::Busy
+                            : l == Link::Error                                                     ? Dot::Error
+                                                                                                   : Dot::Off));
     state->setText(text);
-    bool on = l == Link::On || l == Link::Connecting;
+    bool on = l != Link::Off && l != Link::Error;
     plugButton->setText(on ? tr("Desconectar") : tr("Conectar"));
-    plugButton->setToolTip(on ? tr("Suelta el puerto (para usarlo con otro programa, como la extensión de VS Code)")
-                              : tr("Conecta por el puerto elegido"));
-    if (l != Link::On)
-        for (int i = 0; i < files->topLevelItemCount(); i++) {
-            QTreeWidgetItem *it = files->topLevelItem(i);
-            if (!it->data(COL_NAME, Qt::UserRole).toString().isEmpty()) {
-                it->setIcon(COL_CARD, QIcon());
-                it->setText(COL_CARD, tr("se mira al conectar"));
-            }
-        }
+    plugButton->setToolTip(on ? tr("Suelta la máquina (el puerto, para usarlo con otro programa)")
+                              : tr("Conecta con la máquina elegida"));
+    if (l != Link::On) {
+        entries.clear();
+        listing = false;
+    }
     updateButtons();
+}
+
+/* Emparejar: si la máquina no está abierta, antes se abre (y luego, al
+ * abrirse, se empieza). */
+void Window::pairClicked()
+{
+    if (busy || !isNet(currentPort()))
+        return;
+    pairWanted = true;
+    if (link == Link::On || link == Link::Unpaired)
+        startPair();
+    else
+        connectTo(currentPort());
+}
+
+void Window::startPair()
+{
+    pairWanted = false;
+    auto yes = QMessageBox::information(this, tr("Emparejar"),
+                                        tr("En la máquina, abre EDIT > Wi-Fi > Emparejar un PC y, cuando espere a un "
+                                           "PC, pulsa aquí Aceptar. Los dos enseñarán el mismo código de seis cifras."),
+                                        QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok);
+    if (yes != QMessageBox::Ok) {
+        if (link == Link::Unpaired)
+            emit wantClose();
+        return;
+    }
+    worker->arm();
+    QString name = QSysInfo::machineHostName();
+    emit wantPair(name.isEmpty() ? QStringLiteral("PC") : name);
+}
+
+/* Una ZX-V de la red sin emparejar, abierta sin pulsar Emparejar. */
+void Window::askPair(const QString &m)
+{
+    auto yes = QMessageBox::question(this, tr("Emparejar"),
+                                     tr("%1 no está emparejada con este PC: hasta que lo esté, no acepta nada de él."
+                                        "\n\n¿Emparejarla ahora?")
+                                         .arg(m),
+                                     QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+    if (yes == QMessageBox::Yes)
+        startPair();
+    else
+        emit wantClose();
+}
+
+/* El código: el usuario mira que la máquina enseña el mismo y acepta allí. */
+void Window::showPairCode(quint32 code, const QString &m)
+{
+    pairBox = new QMessageBox(QMessageBox::Information, tr("Emparejar"),
+                              tr("Código: %1 %2\n\nComprueba que %3 enseña el mismo código y acepta allí (Enter). "
+                                 "Si no coincide, recházalo en la máquina: alguien podría estar en medio.")
+                                  .arg(code / 1000, 3, 10, QLatin1Char('0'))
+                                  .arg(code % 1000, 3, 10, QLatin1Char('0'))
+                                  .arg(m),
+                              QMessageBox::Cancel, this);
+    QFont f = pairBox->font();
+    f.setPointSizeF(f.pointSizeF() * 1.2);
+    pairBox->setFont(f);
+    connect(pairBox, &QMessageBox::rejected, this, [this] { worker->cancel(); });
+    pairBox->show();
+}
+
+/* Actualizar el firmware (D105): el fichero, las versiones, la pregunta y,
+ * mientras tanto, los pasos que cuenta la máquina. */
+void Window::updateFirmware()
+{
+    if (busy || link != Link::On)
+        return;
+    if (isNet(currentPort())) {
+        QMessageBox::information(this, tr("Actualizar firmware"),
+                                 tr("Por la red no se puede: al reiniciarse para actualizar, la máquina solo escucha "
+                                    "a J5. Hazlo con el adaptador USB-serie en J5, o desde la tarjeta (EDIT > "
+                                    "Actualizar firmware)."));
+        return;
+    }
+    QString dir = settings.value(QStringLiteral("updateDir"),
+                                 QStandardPaths::writableLocation(QStandardPaths::DownloadLocation)).toString();
+    QString f = QFileDialog::getOpenFileName(this, tr("El fichero de actualización"), dir,
+                                             tr("Actualización de ZX-V (zxv-update.bin *.bin)"));
+    if (f.isEmpty())
+        return;
+    settings.setValue(QStringLiteral("updateDir"), QFileInfo(f).path());
+    lc_link_t probe {};
+    char version[17];
+    QByteArray path = QFileInfo(f).absoluteFilePath().toLocal8Bit();
+    lc_spanish = spanish;
+    if (lc_update_version(&probe, path.constData(), version) < 0) {
+        QMessageBox::warning(this, tr("Actualizar firmware"), QString::fromUtf8(probe.error));
+        return;
+    }
+    QString question = tr("La máquina: %1\nEl fichero: ZX-V %2\n\n¿Actualizar el firmware de las dos Pico? La "
+                          "máquina se reinicia (lo que haya en su memoria sin guardar se pierde) y tarda dos o tres "
+                          "minutos. No la apagues ni desenchufes el adaptador mientras tanto.")
+                           .arg(machine, QString::fromUtf8(version));
+    if (QMessageBox::question(this, tr("Actualizar firmware"), question, QMessageBox::Yes | QMessageBox::No,
+                              QMessageBox::No) != QMessageBox::Yes)
+        return;
+    updateLine.clear();
+    begin(Op::Update, tr("Actualizando con %1 (ZX-V %2)...").arg(QFileInfo(f).fileName(), QString::fromUtf8(version)));
+    emit wantUpdate(f);
+}
+
+/* Lo que cuenta la máquina mientras actualiza: el paso, a la línea de
+ * estado; el porcentaje, a la barra. */
+void Window::updateLog(const QString &text)
+{
+    updateLine += text;
+    int nl;
+    while ((nl = updateLine.indexOf(QLatin1Char('\n'))) >= 0) {
+        QString l = updateLine.left(nl).trimmed();
+        updateLine.remove(0, nl + 1);
+        int colon = l.indexOf(QStringLiteral(": "));
+        QString head = colon > 0 ? l.left(colon) : QString();
+        if (head != QStringLiteral("Actualizar") && head != QStringLiteral("Update"))
+            continue;
+        QString rest = l.mid(colon + 2);
+        if (rest.endsWith(QStringLiteral(" %"))) {
+            bar->setValue(rest.chopped(2).toInt());
+            continue;
+        }
+        say(rest.endsWith(QStringLiteral(": error")) ? Ic::Error : Ic::Sending, rest);
+    }
+}
+
+/* --- Ejecutar del PC ------------------------------------------------------- */
+
+void Window::setProgram(const QString &file)
+{
+    pcProgram->setEditText(QDir::toNativeSeparators(QFileInfo(file).absoluteFilePath()));
+    settings.setValue(QStringLiteral("dir"), QFileInfo(file).absolutePath());
+    updateButtons();
+}
+
+QString Window::pcFile() const
+{
+    QFileInfo fi(pcProgram->currentText().trimmed());
+    return fi.isFile() ? fi.absoluteFilePath() : QString();
 }
 
 void Window::chooseProgram()
@@ -686,287 +749,557 @@ void Window::chooseProgram()
         setProgram(f);
 }
 
-void Window::addFiles()
+void Window::runPc()
 {
-    QString dir = settings.value(QStringLiteral("dir")).toString();
-    QStringList f = QFileDialog::getOpenFileNames(this, tr("Ficheros que van a la tarjeta"), dir);
-    if (f.isEmpty())
+    QString f = pcFile();
+    if (busy || f.isEmpty())
         return;
-    settings.setValue(QStringLiteral("dir"), QFileInfo(f.first()).absolutePath());
-    addExtras(f);
-}
-
-void Window::addExtras(const QStringList &list)
-{
-    for (const QString &f : list) {
-        QString abs = QFileInfo(f).absoluteFilePath();
-        if (!extras.contains(abs) && abs != programFile())
-            extras << abs;
-        unchecked.remove(abs);
-    }
-    rebuildFiles();
-}
-
-/* El paso 3: los ficheros de la carpeta del programa que puede cargar, y
- * los añadidos. Con otro programa, se empieza de nuevo. */
-void Window::rebuildFiles()
-{
-    QString prog = programFile();
-    if (prog != shown) {
-        if (!shown.isEmpty()) {         /* los añadidos sin programa se quedan */
-            extras.clear();
-            unchecked.clear();
-        }
-        shown = prog;
-    }
-    QStringList list;
-    if (!prog.isEmpty()) {
-        QByteArray p = prog.toLocal8Bit();
-        char *found[FOLDER_MAX];
-        int n = lc_folder_files(p.constData(), found, FOLDER_MAX);
-        for (int i = 0; i < n; i++) {
-            list << QFileInfo(QString::fromLocal8Bit(found[i])).absoluteFilePath();
-            std::free(found[i]);
-        }
-    }
-    for (const QString &f : extras)
-        if (!list.contains(f))
-            list << f;
-
-    QSignalBlocker block(files);
-    files->clear();
-    for (const QString &f : list) {
-        QFileInfo fi(f);
-        auto *it = new QTreeWidgetItem(files);
-        it->setIcon(COL_NAME, icon(Ic::File));
-        it->setText(COL_NAME, fi.fileName());
-        it->setToolTip(COL_NAME, QDir::toNativeSeparators(f));
-        it->setData(COL_NAME, Qt::UserRole, f);
-        it->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable);
-        it->setCheckState(COL_NAME, unchecked.contains(f) ? Qt::Unchecked : Qt::Checked);
-        it->setText(COL_SIZE, bytes(fi.size()));
-        it->setTextAlignment(COL_SIZE, Qt::AlignRight | Qt::AlignVCenter);
-        it->setText(COL_CARD, link == Link::On ? tr("mirando...") : tr("se mira al conectar"));
-    }
-    if (list.isEmpty()) {
-        auto *it = new QTreeWidgetItem(files);
-        it->setText(COL_NAME, prog.isEmpty() ? tr("Elige un programa en el paso 2, o añade ficheros sueltos")
-                                             : tr("Ninguno: en su carpeta no hay nada que pueda cargar"));
-        it->setFlags(Qt::NoItemFlags);
-        it->setFirstColumnSpanned(true);
-    }
-    checkFiles();
-    updateExt();
-}
-
-/* Qué hay ya en la tarjeta (con la placa conectada). */
-void Window::checkFiles()
-{
-    if (link != Link::On || busy)
-        return;
-    QStringList list;
-    for (int i = 0; i < files->topLevelItemCount(); i++) {
-        QString f = files->topLevelItem(i)->data(COL_NAME, Qt::UserRole).toString();
-        if (!f.isEmpty())
-            list << f;
-    }
-    if (!list.isEmpty())
-        emit wantCheck(list);
-}
-
-/* Lo que hay en la tarjeta con su nombre (LC_CARD_*, -1 no se sabe, -2 no
- * hay tarjeta). */
-void Window::setChecked(const QString &file, int state)
-{
-    for (int i = 0; i < files->topLevelItemCount(); i++) {
-        QTreeWidgetItem *it = files->topLevelItem(i);
-        if (it->data(COL_NAME, Qt::UserRole).toString() != file)
-            continue;
-        QSignalBlocker block(files);
-        switch (state) {
-        case LC_CARD_SAME:
-            it->setIcon(COL_CARD, icon(Ic::Same));
-            it->setText(COL_CARD, tr("ya está igual: no se manda"));
-            break;
-        case LC_CARD_ABSENT:
-            it->setIcon(COL_CARD, icon(Ic::Sending));
-            it->setText(COL_CARD, tr("no está: se manda"));
-            break;
-        case LC_CARD_OURS:
-            it->setIcon(COL_CARD, icon(Ic::Sending));
-            it->setText(COL_CARD, tr("ha cambiado: se manda"));
-            break;
-        case LC_CARD_OTHER:
-            it->setIcon(COL_CARD, icon(Ic::Warning));
-            it->setText(COL_CARD, tr("hay otro distinto, que no puso zxv-link: se preguntará"));
-            break;
-        case -2:
-            it->setIcon(COL_CARD, icon(Ic::Error));
-            it->setText(COL_CARD, tr("no hay tarjeta SD en la placa"));
-            break;
-        default:
-            it->setIcon(COL_CARD, QIcon());
-            it->setText(COL_CARD, tr("no se sabe"));
-            break;
-        }
-    }
-}
-
-QStringList Window::chosenFiles() const
-{
-    QStringList list;
-    for (int i = 0; i < files->topLevelItemCount(); i++) {
-        QTreeWidgetItem *it = files->topLevelItem(i);
-        QString f = it->data(COL_NAME, Qt::UserRole).toString();
-        if (!f.isEmpty() && it->checkState(COL_NAME) == Qt::Checked)
-            list << f;
-    }
-    return list;
-}
-
-/* Los botones del paso 4. Si no está conectada, antes se conecta (las
- * peticiones van al hilo en orden). */
-void Window::go(Mode m)
-{
-    if (busy)
-        return;
-    QString prog = programFile();
-    QStringList list = chosenFiles();
-    if (!prog.isEmpty())
-        list.prepend(prog);
-    if (list.isEmpty() || (m == Mode::Run && prog.isEmpty()))
-        return;
-    bool ext = m == Mode::Run && fromExtDrive();
-    if (ext && !insideExt(prog)) {
-        updateExt();
-        statusBar()->showMessage(tr("El programa no está dentro de la carpeta de EXT:"), 8000);
-        return;
-    }
     if (link != Link::On) {
-        if (ports->currentText().isEmpty()) {
-            statusBar()->showMessage(tr("No hay puerto: enchufa el adaptador USB-serie de J5"), 8000);
-            return;
-        }
-        connectTo(ports->currentText());
-    }
-    mode = m;
-    busy = true;
-    results->clear();
-    resultItems.clear();
-    if (ext) {
-        QString n = QFileInfo(prog).fileName();
-        resultLine(n, Ic::File, tr("%1: se carga desde EXT:").arg(n));
-    } else {
-        for (const QString &f : list) {
-            QString n = QFileInfo(f).fileName();
-            resultLine(n, Ic::File, tr("%1: espera").arg(n));
-            resultItems.value(n)->setData(0, Qt::UserRole, true);     /* aún sin mandar */
-        }
-    }
-    bar->setValue(0);
-    if (!prog.isEmpty())
-        addRecent(prog);
-    updateButtons();
-    pending = list;
-    allowOverwrite = allowStop = false;
-    launch();
-}
-
-/* Al hilo, con lo que se ha permitido hasta ahora. */
-void Window::launch()
-{
-    worker->arm();
-    if (mode == Mode::Run && fromExtDrive())
-        emit wantRunExt(extFolder(), pending.first(), allowStop);
-    else if (mode == Mode::Run)
-        emit wantRun(pending, allowOverwrite, allowStop);
-    else
-        emit wantSend(pending, allowOverwrite);
-}
-
-/* No se ha tocado nada: hace falta permiso para sustituir lo que no puso
- * zxv-link o para parar el programa en marcha. Con él, otra vez; sin él,
- * nada. */
-void Window::askUser(int what, const QString &text)
-{
-    QString question = what == Worker::AskOverwrite
-                           ? tr("%1.\n\nSi lo sustituyes, lo que había en la tarjeta se pierde. ¿Sustituirlo?").arg(text)
-                           : tr("Hay un programa en marcha en la placa. Para ejecutar el nuevo, la máquina se reinicia "
-                                "entera, como con Ctrl+Alt+Supr: lo que haya en su memoria sin guardar se pierde.\n\n"
-                                "¿Reiniciarla?");
-    auto yes = QMessageBox::question(this, what == Worker::AskOverwrite ? tr("Sustituir en la tarjeta")
-                                                                         : tr("Parar el programa en marcha"),
-                                     question, QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-    if (yes == QMessageBox::Yes) {
-        if (what == Worker::AskOverwrite)
-            allowOverwrite = true;
-        else
-            allowStop = true;
-        launch();
+        say(Ic::Warning, tr("Antes, conecta con la máquina (arriba)."), true);
         return;
     }
-    busy = false;
-    for (auto it = resultItems.begin(); it != resultItems.end(); ++it)
-        if (it.value()->data(0, Qt::UserRole).toBool())
-            resultLine(it.key(), Ic::Same, tr("%1: no se ha mandado").arg(it.key()));
-    resultLine(QStringLiteral("\x01"), Ic::Same, tr("No se ha tocado nada"));
-    updateButtons();
-}
-
-/* Una línea del paso 5 (la de ese fichero, si ya está). */
-void Window::resultLine(const QString &key, Ic ic, const QString &text)
-{
-    QTreeWidgetItem *it = resultItems.value(key);
-    if (!it) {
-        it = new QTreeWidgetItem(results);
-        resultItems.insert(key, it);
-    }
-    it->setIcon(0, icon(ic));
-    it->setText(0, text);
-    it->setData(0, Qt::UserRole, false);
-    results->scrollToItem(it);
+    addRecent(f);
+    runTarget = f;
+    begin(Op::RunPc, tr("%1: cargándolo desde este PC...").arg(QFileInfo(f).fileName()));
+    emit wantRunPc(f, false);
 }
 
 void Window::addRecent(const QString &file)
 {
     QString abs = QFileInfo(file).absoluteFilePath();
-    QStringList list = settings.value(QStringLiteral("recent")).toStringList();
-    list.removeAll(abs);
-    list.prepend(abs);
-    while (list.size() > RECENT_MAX)
-        list.removeLast();
-    settings.setValue(QStringLiteral("recent"), list);
+    QStringList l = settings.value(QStringLiteral("recent")).toStringList();
+    l.removeAll(abs);
+    l.prepend(abs);
+    while (l.size() > RECENT_MAX)
+        l.removeLast();
+    settings.setValue(QStringLiteral("recent"), l);
     refreshRecents();
 }
 
 void Window::refreshRecents()
 {
-    recents->clear();
-    for (const QString &f : settings.value(QStringLiteral("recent")).toStringList()) {
-        auto *it = new QListWidgetItem(icon(Ic::Program), QFileInfo(f).fileName() + QStringLiteral("   ") +
-                                                              QDir::toNativeSeparators(QFileInfo(f).path()));
-        it->setData(Qt::UserRole, f);
-        it->setToolTip(QDir::toNativeSeparators(f));
-        recents->addItem(it);
+    QString keep = pcProgram->currentText();
+    pcProgram->clear();
+    for (const QString &f : settings.value(QStringLiteral("recent")).toStringList())
+        pcProgram->addItem(icon(Ic::Program), QDir::toNativeSeparators(f));
+    pcProgram->setEditText(keep);
+}
+
+/* --- El explorador ----------------------------------------------------------- */
+
+QString Window::drivePrefix(int d) const
+{
+    return d == SD ? QStringLiteral("SD:") : d == ROM ? QStringLiteral("ROM:") : QStringLiteral("EXT:");
+}
+
+/* La ruta en la máquina de la carpeta que se ve (o de name, dentro). */
+QString Window::machinePath(const QString &name) const
+{
+    QString p = paths[drive];
+    if (!name.isEmpty())
+        p = (p.endsWith(QLatin1Char('/')) ? p : p + QLatin1Char('/')) + name;
+    return drivePrefix(drive) + p;
+}
+
+/* La carpeta de EXT:: la elegida, o Documentos/ZX-V-EXT (no dentro de
+ * Documentos/ZX-V, que es la tarjeta del emulador). Nunca la del programa:
+ * la máquina puede crear ficheros en ella. */
+QString Window::extFolder() const
+{
+    QString f = settings.value(QStringLiteral("extFolder")).toString();
+    if (f.isEmpty())
+        f = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + QStringLiteral("/ZX-V-EXT");
+    return QFileInfo(f).absoluteFilePath();
+}
+
+/* En el PC, la carpeta de EXT: que se ve (o name, dentro). */
+QString Window::extLocal(const QString &name) const
+{
+    QString p = extFolder() + paths[EXT];
+    return name.isEmpty() ? QDir::cleanPath(p) : QDir::cleanPath(p + QLatin1Char('/') + name);
+}
+
+void Window::serveExt()
+{
+    if (link == Link::On)
+        emit wantServe(extFolder(), false);
+}
+
+void Window::chooseExtFolder()
+{
+    QString f = QFileDialog::getExistingDirectory(this, tr("La carpeta de la unidad EXT:"), extFolder());
+    if (f.isEmpty())
+        return;
+    settings.setValue(QStringLiteral("extFolder"), QFileInfo(f).absoluteFilePath());
+    paths[EXT] = QStringLiteral("/");
+    serveExt();
+    refreshList();
+}
+
+void Window::setDrive(int d)
+{
+    drive = d;
+    driveButtons[d]->setChecked(true);
+    settings.setValue(QStringLiteral("drive"), d);
+    extChoose->setVisible(d == EXT);
+    refreshList();
+}
+
+void Window::placeholder(const QString &text)
+{
+    list->clear();
+    auto *it = new QTreeWidgetItem(list);
+    it->setText(COL_NAME, text);
+    it->setFlags(Qt::NoItemFlags);
+    it->setFirstColumnSpanned(true);
+    updateButtons();
+}
+
+void Window::refreshList()
+{
+    pathLabel->setText(drive == EXT ? tr("%1  (en el PC: %2)").arg(machinePath(), QDir::toNativeSeparators(extLocal()))
+                                    : machinePath());
+    if (drive == EXT) {
+        QDir dir(extLocal());
+        if (!dir.exists()) {
+            if (paths[EXT] != QLatin1String("/")) {
+                paths[EXT] = QStringLiteral("/");
+                refreshList();
+                return;
+            }
+            entries.clear();
+            placeholder(tr("La carpeta %1 aún no existe: se crea al conectar con la máquina.")
+                            .arg(QDir::toNativeSeparators(extFolder())));
+            return;
+        }
+        QVariantList e;
+        const QFileInfoList infos = dir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot,
+                                                      QDir::DirsFirst | QDir::Name | QDir::IgnoreCase);
+        for (const QFileInfo &fi : infos) {
+            if (fi.fileName().startsWith(QLatin1Char('.')))
+                continue;
+            QVariantMap m;
+            m.insert(QStringLiteral("name"), fi.fileName());
+            m.insert(QStringLiteral("size"), fi.size());
+            m.insert(QStringLiteral("dir"), fi.isDir());
+            e << m;
+        }
+        showEntries(e);
+        return;
     }
+    if (link != Link::On) {
+        entries.clear();
+        placeholder(drive == SD ? tr("Conecta con la máquina para ver su tarjeta.")
+                                : tr("Conecta con la máquina para ver su disco ROM."));
+        return;
+    }
+    listing = true;
+    placeholder(tr("Leyendo..."));
+    emit wantList(machinePath());
+}
+
+void Window::showEntries(const QVariantList &e)
+{
+    entries = e;
+    std::sort(entries.begin(), entries.end(), [](const QVariant &a, const QVariant &b) {
+        QVariantMap x = a.toMap(), y = b.toMap();
+        if (x.value("dir").toBool() != y.value("dir").toBool())
+            return x.value("dir").toBool();
+        return x.value("name").toString().compare(y.value("name").toString(), Qt::CaseInsensitive) < 0;
+    });
+    list->clear();
+    if (paths[drive] != QLatin1String("/")) {
+        auto *up = new QTreeWidgetItem(list);
+        up->setIcon(COL_NAME, icon(Ic::Up));
+        up->setText(COL_NAME, QStringLiteral(".."));
+        up->setData(COL_NAME, ROLE_UP, true);
+        up->setToolTip(COL_NAME, tr("La carpeta de arriba"));
+    }
+    for (const QVariant &v : entries) {
+        QVariantMap m = v.toMap();
+        QString name = m.value("name").toString();
+        bool dir = m.value("dir").toBool();
+        auto *it = new QTreeWidgetItem(list);
+        it->setIcon(COL_NAME, icon(dir ? Ic::Folder : isProgram(name) ? Ic::Program : Ic::File));
+        it->setText(COL_NAME, name);
+        it->setData(COL_NAME, ROLE_NAME, name);
+        it->setData(COL_NAME, ROLE_DIR, dir);
+        if (!dir) {
+            it->setText(COL_SIZE, bytes(m.value("size").toLongLong()));
+            it->setTextAlignment(COL_SIZE, Qt::AlignRight | Qt::AlignVCenter);
+        }
+    }
+    if (entries.isEmpty() && paths[drive] == QLatin1String("/")) {
+        auto *it = new QTreeWidgetItem(list);
+        it->setText(COL_NAME, drive == EXT ? tr("Vacía: arrastra aquí ficheros del PC.") : tr("Vacía."));
+        it->setFlags(Qt::NoItemFlags);
+        it->setFirstColumnSpanned(true);
+    }
+    updateButtons();
+}
+
+/* Los nombres elegidos (sin ".."); dirs: si alguno es una carpeta. */
+QStringList Window::selectedNames(bool *dirs) const
+{
+    QStringList out;
+    if (dirs)
+        *dirs = false;
+    for (QTreeWidgetItem *it : list->selectedItems()) {
+        QString n = it->data(COL_NAME, ROLE_NAME).toString();
+        if (n.isEmpty())
+            continue;
+        out << n;
+        if (dirs && it->data(COL_NAME, ROLE_DIR).toBool())
+            *dirs = true;
+    }
+    return out;
+}
+
+bool Window::existsHere(const QString &name) const
+{
+    if (drive == EXT)
+        return QFileInfo::exists(extLocal(name));
+    for (const QVariant &v : entries)
+        if (v.toMap().value("name").toString().compare(name, Qt::CaseInsensitive) == 0)
+            return true;            /* FAT no distingue mayúsculas */
+    return false;
+}
+
+void Window::openItem(QTreeWidgetItem *it)
+{
+    if (!it || busy)
+        return;
+    if (it->data(COL_NAME, ROLE_UP).toBool()) {
+        goUp();
+        return;
+    }
+    QString n = it->data(COL_NAME, ROLE_NAME).toString();
+    if (n.isEmpty())
+        return;
+    if (it->data(COL_NAME, ROLE_DIR).toBool()) {
+        QString p = paths[drive];
+        paths[drive] = (p.endsWith(QLatin1Char('/')) ? p : p + QLatin1Char('/')) + n;
+        refreshList();
+        return;
+    }
+    if (isProgram(n)) {
+        list->setCurrentItem(it);
+        runSelected();
+    }
+}
+
+void Window::goUp()
+{
+    QString p = paths[drive];
+    if (p == QLatin1String("/"))
+        return;
+    int slash = p.lastIndexOf(QLatin1Char('/'));
+    paths[drive] = slash <= 0 ? QStringLiteral("/") : p.left(slash);
+    refreshList();
+}
+
+void Window::runSelected()
+{
+    bool dirs;
+    QStringList n = selectedNames(&dirs);
+    if (busy || n.size() != 1 || dirs)
+        return;
+    if (link != Link::On) {
+        say(Ic::Warning, tr("Antes, conecta con la máquina (arriba)."), true);
+        return;
+    }
+    runTarget = machinePath(n.first());
+    begin(Op::RunPath, tr("Ejecutando %1...").arg(runTarget));
+    emit wantRunPath(runTarget, false);
+}
+
+bool Window::validName(const QString &name)
+{
+    static const QString bad = QStringLiteral("\\/:*?\"<>|");
+    bool ok = !name.trimmed().isEmpty() && name.size() <= 63 && !name.endsWith(QLatin1Char('.')) &&
+              !name.endsWith(QLatin1Char(' ')) && name != QLatin1String("..");
+    for (QChar c : name)
+        if (bad.contains(c) || c.unicode() < 0x20 || c.unicode() > 0x7E)
+            ok = false;
+    if (!ok)
+        QMessageBox::warning(this, tr("Nombre"),
+                             tr("«%1» no vale como nombre en la máquina: de 1 a 63 letras sin acentos, sin \\ / : * ? "
+                                "\" < > | y sin acabar en punto o espacio.")
+                                 .arg(name));
+    return ok;
+}
+
+/* Mandar ficheros del PC a la carpeta que se ve, preguntando antes de
+ * sustituir lo que haya con su nombre. */
+void Window::putFiles(const QStringList &files)
+{
+    if (busy || files.isEmpty())
+        return;
+    if (drive == ROM) {
+        say(Ic::Warning, tr("En la ROM no se puede escribir."), true);
+        return;
+    }
+    if (drive != EXT && link != Link::On) {
+        say(Ic::Warning, tr("Antes, conecta con la máquina (arriba)."), true);
+        return;
+    }
+    QStringList clash, ok;
+    for (const QString &f : files) {
+        QFileInfo fi(f);
+        if (!fi.isFile())
+            continue;
+        if (drive != EXT && !validName(fi.fileName()))
+            return;
+        ok << fi.absoluteFilePath();
+        if (existsHere(fi.fileName()))
+            clash << fi.fileName();
+    }
+    if (ok.isEmpty())
+        return;
+    if (!clash.isEmpty() &&
+        QMessageBox::question(this, tr("Sustituir"),
+                              tr("En %1 ya hay: %2.\n\nSi los sustituyes, lo que había se pierde. ¿Sustituirlos?")
+                                  .arg(machinePath(), clash.join(QStringLiteral(", "))),
+                              QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+        return;
+    settings.setValue(QStringLiteral("dir"), QFileInfo(ok.first()).absolutePath());
+    if (drive == EXT) {
+        QDir().mkpath(extLocal());
+        for (const QString &f : ok) {
+            QString to = extLocal(QFileInfo(f).fileName());
+            QFile::remove(to);
+            if (!QFile::copy(f, to)) {
+                say(Ic::Error, tr("No se puede copiar %1").arg(QDir::toNativeSeparators(f)), true);
+                refreshList();
+                return;
+            }
+        }
+        say(Ic::Done, tr("%n fichero(s) copiado(s) a %1", nullptr, int(ok.size())).arg(machinePath()));
+        refreshList();
+        return;
+    }
+    begin(Op::Put, tr("Mandando %n fichero(s) a %1...", nullptr, int(ok.size())).arg(machinePath()));
+    emit wantPut(ok, machinePath());
+}
+
+void Window::choosePut()
+{
+    QString dir = settings.value(QStringLiteral("dir")).toString();
+    QStringList f = QFileDialog::getOpenFileNames(this, tr("Ficheros que se mandan a %1").arg(machinePath()), dir);
+    putFiles(f);
+}
+
+/* Traer lo elegido a una carpeta del PC, preguntando antes de sustituir. */
+void Window::getSelected()
+{
+    bool dirs;
+    QStringList n = selectedNames(&dirs);
+    if (busy || n.isEmpty())
+        return;
+    if (dirs) {
+        say(Ic::Warning, tr("Las carpetas no se traen: entra en ella y elige sus ficheros."), true);
+        return;
+    }
+    QString dir = QFileDialog::getExistingDirectory(this, tr("La carpeta del PC adonde se traen"),
+                                                    settings.value(QStringLiteral("getDir"),
+                                                                   settings.value(QStringLiteral("dir"))).toString());
+    if (dir.isEmpty())
+        return;
+    settings.setValue(QStringLiteral("getDir"), dir);
+    QStringList clash;
+    for (const QString &name : n)
+        if (QFileInfo::exists(QDir(dir).filePath(name)))
+            clash << name;
+    if (!clash.isEmpty() &&
+        QMessageBox::question(this, tr("Sustituir"),
+                              tr("En %1 ya hay: %2.\n\nSi los sustituyes, lo que había se pierde. ¿Sustituirlos?")
+                                  .arg(QDir::toNativeSeparators(dir), clash.join(QStringLiteral(", "))),
+                              QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
+        return;
+    if (drive == EXT) {
+        for (const QString &name : n) {
+            QString to = QDir(dir).filePath(name);
+            QFile::remove(to);
+            if (!QFile::copy(extLocal(name), to)) {
+                say(Ic::Error, tr("No se puede copiar %1").arg(name), true);
+                return;
+            }
+        }
+        say(Ic::Done, tr("%n fichero(s) copiado(s) a %1", nullptr, int(n.size())).arg(QDir::toNativeSeparators(dir)));
+        return;
+    }
+    QStringList full;
+    for (const QString &name : n)
+        full << machinePath(name);
+    begin(Op::Get, tr("Trayendo %n fichero(s)...", nullptr, int(n.size())));
+    emit wantGet(full, dir);
+}
+
+void Window::newFolder()
+{
+    if (busy || drive == ROM || (drive != EXT && link != Link::On))
+        return;
+    QString name = QInputDialog::getText(this, tr("Carpeta nueva"), tr("Nombre de la carpeta nueva en %1:").arg(machinePath()));
+    if (name.isEmpty() || !validName(name))
+        return;
+    if (existsHere(name)) {
+        say(Ic::Warning, tr("Ya hay algo con ese nombre."), true);
+        return;
+    }
+    if (drive == EXT) {
+        if (QDir().mkpath(extLocal(name)))
+            say(Ic::Done, tr("Carpeta creada: %1").arg(name));
+        else
+            say(Ic::Error, tr("No se puede crear %1").arg(name), true);
+        refreshList();
+        return;
+    }
+    begin(Op::Mkdir, tr("Creando %1...").arg(name));
+    emit wantMkdir(machinePath(name));
+}
+
+void Window::renameSelected()
+{
+    QStringList n = selectedNames();
+    if (busy || n.size() != 1 || drive == ROM || (drive != EXT && link != Link::On))
+        return;
+    bool ok;
+    QString to = QInputDialog::getText(this, tr("Renombrar"), tr("Nombre nuevo de %1:").arg(n.first()),
+                                       QLineEdit::Normal, n.first(), &ok);
+    if (!ok || to.isEmpty() || to == n.first() || !validName(to))
+        return;
+    if (existsHere(to) && to.compare(n.first(), Qt::CaseInsensitive) != 0) {
+        say(Ic::Warning, tr("Ya hay algo con ese nombre."), true);
+        return;
+    }
+    if (drive == EXT) {
+        if (QDir(extLocal()).rename(n.first(), to))
+            say(Ic::Done, tr("Renombrado: %1").arg(to));
+        else
+            say(Ic::Error, tr("No se puede renombrar %1").arg(n.first()), true);
+        refreshList();
+        return;
+    }
+    begin(Op::Rename, tr("Renombrando %1...").arg(n.first()));
+    emit wantRename(machinePath(n.first()), machinePath(to));
+}
+
+void Window::deleteSelected()
+{
+    bool dirs;
+    QStringList n = selectedNames(&dirs);
+    if (busy || n.isEmpty() || drive == ROM || (drive != EXT && link != Link::On))
+        return;
+    QString what = n.size() == 1 ? QStringLiteral("«%1»").arg(n.first()) : tr("%n elemento(s)", nullptr, int(n.size()));
+    QString text = drive == EXT
+                       ? tr("¿Borrar %1 de la carpeta de EXT:? Va a la papelera del PC.").arg(what)
+                       : tr("¿Borrar %1 de %2? No se puede deshacer: en la tarjeta no hay papelera.")
+                             .arg(what, drivePrefix(drive));
+    if (dirs)
+        text += QStringLiteral("\n\n") + tr("Las carpetas se borran con todo lo que tienen dentro.");
+    if (QMessageBox::question(this, tr("Borrar"), text, QMessageBox::Yes | QMessageBox::No, QMessageBox::No) !=
+        QMessageBox::Yes)
+        return;
+    if (drive == EXT) {
+        for (const QString &name : n)
+            if (!QFile::moveToTrash(extLocal(name))) {
+                say(Ic::Error, tr("No se puede borrar %1").arg(name), true);
+                refreshList();
+                return;
+            }
+        say(Ic::Done, tr("A la papelera: %1").arg(what));
+        refreshList();
+        return;
+    }
+    QStringList full;
+    for (const QString &name : n)
+        full << machinePath(name);
+    begin(Op::Remove, tr("Borrando %1...").arg(what));
+    emit wantRemove(full);
+}
+
+/* --- Lo que se hace y cómo va ------------------------------------------------ */
+
+void Window::begin(Op o, const QString &text)
+{
+    op = o;
+    busy = true;
+    worker->arm();
+    bar->setValue(0);
+    bar->setVisible(o == Op::Put || o == Op::Get || o == Op::Update);
+    say(Ic::Sending, text);
+    updateButtons();
+}
+
+void Window::say(Ic ic, const QString &text, bool error)
+{
+    statusIcon->setPixmap(icon(ic).pixmap(18, 18));
+    status->setText(text);
+    QPalette pal = status->palette();
+    pal.setColor(QPalette::WindowText, error ? QColor(0xD7, 0, 0) : palette().color(QPalette::WindowText));
+    status->setPalette(pal);
+}
+
+/* Con un programa en marcha: preguntar y, con permiso, otra vez. */
+void Window::askUser(int what, const QString &text)
+{
+    Q_UNUSED(what);
+    Q_UNUSED(text);
+    auto yes = QMessageBox::question(this, tr("Parar el programa en marcha"),
+                                     tr("Hay un programa en marcha en la máquina. Para ejecutar este, la máquina se "
+                                        "reinicia entera, como con Ctrl+Alt+Supr: lo que haya en su memoria sin "
+                                        "guardar se pierde.\n\n¿Reiniciarla?"),
+                                     QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+    if (yes != QMessageBox::Yes) {
+        busy = false;
+        op = Op::None;
+        say(Ic::Same, tr("No se ha hecho nada"));
+        updateButtons();
+        return;
+    }
+    worker->arm();
+    if (op == Op::RunPc)
+        emit wantRunPc(runTarget, true);
+    else
+        emit wantRunPath(runTarget, true);
 }
 
 void Window::updateButtons()
 {
-    bool prog = !programFile().isEmpty();
-    runButton->setEnabled(!busy && prog && (!fromExtDrive() || insideExt(programFile())));
-    copyButton->setEnabled(!busy && (prog || !chosenFiles().isEmpty()));
+    bool on = link == Link::On;
+    bool canWrite = !busy && drive != ROM && (drive == EXT || on);
+    bool dirs;
+    QStringList sel = selectedNames(&dirs);
+    bool canSee = drive == EXT || on;
+    pcRun->setEnabled(!busy && on && !pcFile().isEmpty());
+    pcChoose->setEnabled(!busy);
+    actRun->setEnabled(!busy && on && sel.size() == 1 && !dirs && isProgram(sel.first()));
+    actPut->setEnabled(canWrite);
+    actGet->setEnabled(!busy && canSee && !sel.isEmpty() && !dirs);
+    actMkdir->setEnabled(canWrite);
+    actRename->setEnabled(canWrite && sel.size() == 1);
+    actDelete->setEnabled(canWrite && !sel.isEmpty());
+    actUp->setEnabled(!busy && paths[drive] != QLatin1String("/"));
+    actRefresh->setEnabled(!busy && canSee);
+    for (QToolButton *b : driveButtons)
+        b->setEnabled(!busy);
+    extChoose->setEnabled(!busy);
+    bool net = isNet(currentPort());
+    pairButton->setVisible(net);
+    pairButton->setEnabled(!busy);
+    menuPair->setEnabled(!busy && net);
+    menuUpdate->setEnabled(!busy && on);
+    for (QWidget *w : std::initializer_list<QWidget *> { ports, refreshButton, plugButton })
+        w->setEnabled(!busy && ports->count() > 0);
+    refreshButton->setEnabled(!busy);
     stopButton->setVisible(busy);
     if (!busy) {
         stopButton->setEnabled(true);
         stopButton->setText(tr("Parar"));
     }
-    for (QWidget *w : std::initializer_list<QWidget *> { ports, refreshButton, plugButton, program, chooseButton,
-                                                         addButton, files, recents })
-        w->setEnabled(!busy);
-    if (!ports->count())
-        plugButton->setEnabled(false);
 }
+
+/* --- Arrastrar ----------------------------------------------------------------- */
 
 void Window::dragEnterEvent(QDragEnterEvent *e)
 {
@@ -974,28 +1307,57 @@ void Window::dragEnterEvent(QDragEnterEvent *e)
         e->acceptProposedAction();
 }
 
-/* Arrastrar solo pone: el primer programa en el paso 2 y lo demás en el 3. */
+/* A la lista: se mandan a esa carpeta. A otro sitio: un programa, para
+ * ejecutarlo del PC. */
 void Window::dropEvent(QDropEvent *e)
 {
-    QString prog;
-    QStringList rest;
-    for (const QUrl &u : e->mimeData()->urls()) {
-        if (!u.isLocalFile() || !QFileInfo(u.toLocalFile()).isFile())
-            continue;
-        if (prog.isEmpty() && isProgram(u.toLocalFile()))
-            prog = u.toLocalFile();
-        else
-            rest << u.toLocalFile();
-    }
-    if (!prog.isEmpty())
-        setProgram(prog);
-    if (!rest.isEmpty())
-        addExtras(rest);
+    QStringList files;
+    for (const QUrl &u : e->mimeData()->urls())
+        if (u.isLocalFile() && QFileInfo(u.toLocalFile()).isFile())
+            files << u.toLocalFile();
     e->acceptProposedAction();
+    if (files.isEmpty())
+        return;
+    QPoint at = list->mapFrom(this, e->position().toPoint());
+    if (list->rect().contains(at)) {
+        putFiles(files);
+        return;
+    }
+    for (const QString &f : files)
+        if (isProgram(f)) {
+            setProgram(f);
+            return;
+        }
+    say(Ic::Warning, tr("Para mandarlos a la máquina, arrástralos a la lista de abajo."), true);
+}
+
+bool Window::eventFilter(QObject *o, QEvent *e)
+{
+    if ((o == list || o == list->viewport()) && e->type() == QEvent::KeyPress) {
+        auto *k = static_cast<QKeyEvent *>(e);
+        if (k->key() == Qt::Key_Return || k->key() == Qt::Key_Enter) {
+            openItem(list->currentItem());
+            return true;
+        }
+    }
+    return QMainWindow::eventFilter(o, e);
 }
 
 void Window::closeEvent(QCloseEvent *e)
 {
+    /* Actualizando, cerrar corta la actualización: la máquina deja de recibir
+     * el fichero (como si fallara la tarjeta). */
+    if (busy && op == Op::Update &&
+        QMessageBox::question(this, tr("Actualizar firmware"),
+                              tr("La máquina se está actualizando y lee el fichero de este PC. Si cierras, la "
+                                 "actualización se corta, la máquina lo dice en su pantalla y habrá que repetirla."
+                                 "\n\n¿Cerrar de todos modos?"),
+                              QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) {
+        e->ignore();
+        return;
+    }
+    if (busy)
+        worker->cancel();               /* lo que esté haciendo acaba enseguida: si no, el hilo no termina */
     emit wantClose();
     e->accept();
 }

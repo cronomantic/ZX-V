@@ -23,7 +23,18 @@ enum class Ic {
     Sending,        /* mandándose */
     Error,          /* falló */
     Clear,          /* limpiar */
-    Warning         /* cuidado: se preguntará */
+    Update,         /* actualizar el firmware */
+    Warning,        /* cuidado: se preguntará */
+    Upload,         /* mandar del PC a la máquina */
+    Download,       /* traer de la máquina al PC */
+    NewFolder,      /* carpeta nueva */
+    Rename,         /* renombrar */
+    Delete,         /* borrar */
+    Up,             /* la carpeta de arriba */
+    Card,           /* la tarjeta SD */
+    Rom,            /* el disco ROM */
+    Ext,            /* EXT:, la carpeta del PC */
+    Pair            /* emparejar */
 };
 QIcon icon(Ic kind);
 

@@ -13,7 +13,7 @@ Cada página lleva a un lado el índice, el del README.md del idioma (sus
 secciones y sus enlaces), y debajo de una página las de más adentro a las que
 lleva, cuando se está en ella (las lecciones del curso). Una página que no
 sale en el índice también es un error. Es lo que se lee en los paquetes y en
-https://cronomantic.github.io/ZX-V/docs/ (GitHub Pages). El estilo está en
+https://zx-v.org/docs/ (GitHub Pages). El estilo está en
 docs.css, junto a este script, y va como style.css; el icono es el de zxv
 (favicon.png junto al script en el repositorio público, que lo regenera en
 GitHub Pages con cada cambio de docs/: dev/public/.github/workflows/docs.yml).
@@ -34,7 +34,7 @@ import markdown
 import markdown.extensions.toc as toc
 
 REPO = 'https://github.com/cronomantic/ZX-V'
-WEB = 'https://cronomantic.github.io/ZX-V/'
+WEB = 'https://zx-v.org/'
 SITE = {'en': WEB, 'es': WEB + 'es/'}     # la web del proyecto, en cada idioma
 EMULATOR = WEB + 'emulator/'             # la versión web (Pruébalo en el navegador)
 HERE = os.path.dirname(os.path.abspath(__file__))

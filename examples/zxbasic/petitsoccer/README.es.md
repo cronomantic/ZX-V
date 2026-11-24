@@ -37,8 +37,8 @@ Sale en el idioma de la máquina, en español o en inglés.
 
 ## Compilarlo
 
-Hace falta la rama `zxv` del fork de ZX Basic (`cronomantic/zxbasic`),
-v1.19.0-zxv.6 o posterior, y el compilador de C de RISC-V, el mismo que usa el
+Hace falta el fork de ZX Basic (`cronomantic/zxbasic`), v1.19.0-zxv.6 o
+posterior, y el compilador de C de RISC-V, el mismo que usa el
 SDK:
 
 ```

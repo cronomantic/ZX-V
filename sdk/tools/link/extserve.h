@@ -15,6 +15,9 @@
  *     overwrite: apunta en el PC lo que escribe ella (nombre, tamaño, CRC).
  *   - Si llega otra vez la misma petición, la misma respuesta, sin hacerla
  *     otra vez.
+ *   - O un solo fichero, con otro nombre y solo para leer
+ *     (ext_server_start_file): zxv-link update sirve así zxv-update.bin
+ *     (D105).
  *
  * MIT, como el resto del SDK.
  */
@@ -32,6 +35,7 @@ extern "C" {
 #endif
 
 #define EXT_HOST_PATH   1024
+#define EXT_EXTRA_DIR   "/.pc"          /* donde se ve el fichero extra (ext_server_set_extra) */
 
 typedef struct {
     char name[64];
@@ -40,6 +44,10 @@ typedef struct {
 
 typedef struct {
     char root[EXT_HOST_PATH];           /* la carpeta que se sirve */
+    char only[EXT_HOST_PATH];           /* o solo este fichero ("" si no)... */
+    char only_name[64];                 /* ... en la raíz, con este nombre */
+    char extra[EXT_HOST_PATH];          /* y, además de la carpeta, este fichero ("" si no)... */
+    char extra_name[64];                /* ... como EXT_EXTRA_DIR/extra_name, solo para leer */
     bool overwrite;                     /* puede sustituir lo que no escribió la máquina */
     uint32_t boot_id;                   /* el de la máquina (ZL_SERVE), 0 si aún no */
     struct {
@@ -59,6 +67,7 @@ typedef struct {
     uint8_t last_type, last_seq;
     unsigned last_len;
     uint8_t last[ZL_MAX_DATA];
+    unsigned long requests;             /* las peticiones atendidas (si la máquina sigue leyendo) */
     /* Lo que ha hecho (para quien lo enseña): nombre y qué. */
     void *ctx;
     void (*on_event)(void *ctx, const char *what, const char *zpath);
@@ -66,6 +75,15 @@ typedef struct {
 
 /* Empieza a servir folder (que exista): 0, o -1. */
 int ext_server_start(ext_server_t *x, const char *folder);
+
+/* Además de lo que se sirve, el fichero file del PC como
+ * EXT_EXTRA_DIR/name, solo para leer (para ejecutar un programa del PC
+ * directo a la memoria, D112); file NULL lo quita. 0, o -1 si no existe. */
+int ext_server_set_extra(ext_server_t *x, const char *file, const char *name);
+
+/* Empieza a servir solo file (que exista), como /name y solo para leer: 0,
+ * o -1. */
+int ext_server_start_file(ext_server_t *x, const char *file, const char *name);
 
 /* Cierra lo abierto (lo que se escribía, sin acabar, se tira): la máquina
  * se ha reiniciado o se deja de servir. */

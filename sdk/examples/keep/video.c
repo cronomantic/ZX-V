@@ -42,6 +42,10 @@ static void border_done(void)
 void video_init(void)
 {
     border_init();
+    /* Páginas de 24 KB a la vista: lo de detrás es la VRAM oculta, donde
+     * están los sprites, los tiles y la música de la tarjeta (art.c,
+     * sound.c). */
+    *(volatile uint8_t *)(uintptr_t)ZXV_V_VSIZE = ZXV_VSIZE_SCREEN;
     zxv_set_mode(0);
     visible = 0;
     zxv_set_page(0);

@@ -27,14 +27,15 @@ original — switch it on and you are in BASIC, ready to type a program.
   the other the "ULA" (video and sound).
 
 > **Status:** the emulator and the ROM with BASIC work, and so does the first
-> printed circuit board, with the two Picos together (the microSD card and the
-> clock's coin cell are still to be tried on it).
+> printed circuit board, with the two Picos together: the picture, the sound,
+> the USB ports, the microSD card, the clock with its coin cell and loading
+> from the PC through J5.
 
 ## Try it
 
-**In your browser:** [cronomantic.github.io/ZX-V/emulator](https://cronomantic.github.io/ZX-V/emulator/),
+**In your browser:** [zx-v.org/emulator](https://zx-v.org/emulator/),
 nothing to install. The project's website, with its games to play right
-there, is [cronomantic.github.io/ZX-V](https://cronomantic.github.io/ZX-V/).
+there, is [zx-v.org](https://zx-v.org/).
 
 **On your computer:** download the latest version from
 [**Releases**](https://github.com/cronomantic/ZX-V/releases):
@@ -71,7 +72,7 @@ the [getting started guide](docs/en/getting-started.md).
 | [Build the hardware](docs/en/hardware/README.md) | The board, assembly and firmware |
 
 All of it is also in Spanish: [docs/es](docs/es/README.md). And on the
-web, with an index to move around: [cronomantic.github.io/ZX-V/docs](https://cronomantic.github.io/ZX-V/docs/en/).
+web, with an index to move around: [zx-v.org/docs](https://zx-v.org/docs/en/).
 
 ## How it is made
 

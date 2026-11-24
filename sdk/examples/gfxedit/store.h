@@ -42,9 +42,10 @@ typedef struct {
     uint32_t off, len;                  /* en la zona; len 0: no existe */
     uint16_t w, h;                      /* sprite y textura: píxeles; tiles: lado y
                                          * tiles; mapa: celdas */
-    uint8_t a, b, c;                    /* mapa: lado del tile y si se repite;
-                                         * textura: log2 del lado, si se repite y
-                                         * el color de fuera */
+    uint8_t a, b, c, d;                 /* mapa: lado del tile y si se repite;
+                                         * textura: log2 del lado, si se repite,
+                                         * el color de fuera y sus marcas (el 8
+                                         * transparente, D110: se conservan) */
 } obj_t;
 
 extern obj_t objs[N_SLOTS];

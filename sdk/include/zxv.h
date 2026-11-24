@@ -1,5 +1,5 @@
 /*
- * zxv.h - Direcciones y constantes de la máquina ZX-V (spec v0.1).
+ * zxv.h - Direcciones y constantes de la máquina ZX-V (spec v0.2).
  *
  * Única fuente de verdad compartida por la ROM, el SDK y el emulador.
  * Solo contiene #define, así que sirve tanto en C (anfitrión y RISC-V) como
@@ -8,7 +8,7 @@
 #ifndef ZXV_H
 #define ZXV_H
 
-#define ZXV_SPEC_VERSION        0x00000001u     /* 0.1 */
+#define ZXV_SPEC_VERSION        0x00000002u     /* 0.2: PROG_FILE y PROG_CRC (D109) */
 
 /* --- Mapa de memoria (spec §3) ------------------------------------------ */
 #define ZXV_FLASH_BASE          0x10000000u
@@ -27,9 +27,22 @@
 #define ZXV_VRAM0_BASE          0x20004000u
 #define ZXV_VRAM1_BASE          0x2001C000u
 #define ZXV_VRAM_PAGE_SIZE      0x00018000u     /* 96 KB */
+/* La VRAM oculta (D108): en modo 0 y con VSIZE 0, cada página enseña solo sus
+ * primeros 24 KB y los 72 KB de detrás son RAM del programa. Para tablas y
+ * bancos grandes, sin gastar RAM de usuario:
+ *
+ *   ZXV_VRAM0_DATA static uint8_t alturas[18 * 1024];
+ *
+ * Empiezan a cero (crt0.S) y no pueden tener otro valor inicial (no van en
+ * el fichero: GCC lo rechaza). Se pierden si el programa pasa al modo 1 o
+ * usa el campo de juego virtual, que ocupan la página entera. */
+#define ZXV_VRAM_HIDDEN         0x00006000u     /* desde aquí, en cada página */
+#define ZXV_VRAM_HIDDEN_SIZE    0x00012000u     /* 72 KB */
+#define ZXV_VRAM0_DATA          __attribute__((section(".bss.zxv_vram0")))
+#define ZXV_VRAM1_DATA          __attribute__((section(".bss.zxv_vram1")))
 #define ZXV_URAM_BASE           0x20034000u     /* RAM de usuario */
-#define ZXV_URAM_END            0x20072000u     /* exclusivo */
-#define ZXV_RESERVED_BASE       0x20072000u     /* reservada (PMP) */
+#define ZXV_URAM_END            0x20071000u     /* exclusivo */
+#define ZXV_RESERVED_BASE       0x20071000u     /* reservada (PMP) */
 #define ZXV_RESERVED_END        0x20082000u
 
 /* --- Área de sistema (spec §3.2) ---------------------------------------- */
@@ -266,6 +279,11 @@
 #define ZXV_SV_LANG             (ZXV_SYSVARS + 0x20u)   /* u32: ZXV_LANG('e','s') */
 #define ZXV_SV_EDITOR           (ZXV_SYSVARS + 0x24u)   /* u32: 1 = el BASIC espera una orden */
 #define ZXV_SV_PREFS            (ZXV_SYSVARS + 0x28u)   /* u32: las preferencias (ZXV_PREF_...) */
+/* El programa .ZXV en marcha (D109): su fichero, abierto mientras va si lleva
+ * bancos (el número del fichero + 1; 0 si no), y el CRC de su imagen (el de
+ * su cabecera; 0 sin programa). Solo lectura: las escribe el cargador. */
+#define ZXV_SV_PROG_FILE        (ZXV_SYSVARS + 0x2Cu)
+#define ZXV_SV_PROG_CRC         (ZXV_SYSVARS + 0x30u)
 
 /* Las preferencias de la máquina, que guarda la plataforma (spec §7.11). */
 #define ZXV_PREF_NO_CLICK       0x01u   /* las teclas del editor, sin clic */
@@ -331,6 +349,50 @@
 #define ZXV_UI_FILE             0       /* la versión del fichero */
 #define ZXV_UI_CPU              16      /* la de la Pico CPU */
 #define ZXV_UI_ULA              32      /* la de la Pico ULA */
+/* Versión 7: el Wi-Fi de una Pico 2 W como CPU (D106), para el cuadro Wi-Fi
+ * del menú EDIT. Una sola función, int wifi(int op, void *buf): ZXV_WIFI_*.
+ * Sin radio (una Pico 2), INFO dice ZXV_WS_NONE y lo demás da
+ * ZXV_E_ACCESS. */
+#define ZXV_PIF_WIFI            (ZXV_PLATFORM_IF + 0x64u)
+#define ZXV_PIF_VERSION_WIFI    7u
+#define ZXV_WIFI_INFO           0       /* buf: ZXV_WIFI_INFO_SIZE bytes, abajo */
+#define ZXV_WIFI_SCAN           1       /* empieza a buscar redes (unos segundos: INFO dice cuándo acaba) */
+#define ZXV_WIFI_LIST           2       /* buf: ZXV_WIFI_LIST_SIZE; da cuántas redes */
+#define ZXV_WIFI_JOIN           3       /* buf: la red y la contraseña, cada una con su 0: se guarda y se conecta */
+#define ZXV_WIFI_OFF            4       /* olvida la red y se desconecta */
+#define ZXV_WIFI_PAIR           5       /* buf[0]: ZXV_WP_CLOSE, OPEN, ACCEPT o REJECT; da el estado (ZXV_WP_*) */
+#define ZXV_WIFI_FORGET         6       /* olvida todos los PC emparejados */
+/* INFO: */
+#define ZXV_WIFI_INFO_SIZE      96
+#define ZXV_WI_STATE            0       /* u8: ZXV_WS_* */
+#define ZXV_WI_SCANNING         1       /* u8: 1 mientras busca */
+#define ZXV_WI_RSSI             2       /* i8: la señal, en dBm (0 sin conectar) */
+#define ZXV_WI_PAIR             3       /* u8: ZXV_WP_* */
+#define ZXV_WI_PAIRED           4       /* u8: cuántos PC emparejados */
+#define ZXV_WI_CODE             8       /* u32: el código al emparejar (6 cifras) */
+#define ZXV_WI_SSID             12      /* la red (hasta 32 bytes y su 0) */
+#define ZXV_WI_IP               45      /* "192.168.0.24" (16) */
+#define ZXV_WI_NAME             61      /* el nombre de la máquina en la red: "ZX-V-1A2B" (17) */
+#define ZXV_WI_PC               78      /* el PC que se empareja (18, recortado) */
+#define ZXV_WS_NONE             0       /* sin radio */
+#define ZXV_WS_OFF              1       /* sin red elegida */
+#define ZXV_WS_JOINING          2       /* conectando */
+#define ZXV_WS_UP               3       /* conectada, con dirección */
+#define ZXV_WS_BADAUTH          4       /* la contraseña no vale */
+#define ZXV_WS_NONET            5       /* no encuentra la red */
+#define ZXV_WS_FAIL             6       /* otro fallo */
+#define ZXV_WP_CLOSE            0       /* (pedir) cerrado; (estado) cerrado */
+#define ZXV_WP_OPEN             1       /* abierto: espera a un PC */
+#define ZXV_WP_CODE             2       /* (estado) un PC: el código, para compararlo */
+#define ZXV_WP_DONE             3       /* (estado) aceptado y guardado */
+#define ZXV_WP_FAILED           4       /* (estado) el PC se fue, o se rechazó */
+#define ZXV_WP_ACCEPT           2       /* (pedir) el usuario acepta */
+#define ZXV_WP_REJECT           3       /* (pedir) el usuario rechaza */
+/* LIST: hasta 10 redes, cada una en 36 bytes: el nombre (32 y su 0), la
+ * señal (i8, dBm), si tiene contraseña (u8) y el canal (u8). */
+#define ZXV_WIFI_LIST_MAX       10
+#define ZXV_WIFI_LIST_ENTRY     36
+#define ZXV_WIFI_LIST_SIZE      (ZXV_WIFI_LIST_MAX * ZXV_WIFI_LIST_ENTRY)
 
 /* --- Números de la API (spec §7.3) -------------------------------------- */
 #define ZXV_API_VERSION         0
@@ -391,6 +453,9 @@
 #define ZXV_API_TEXT_COLORS     53
 #define ZXV_API_TEXT_AT         54
 #define ZXV_API_BEEPER_EVENT_AT 55
+#define ZXV_API_GFX_PATTERN     56      /* desde la versión 0.2 */
+#define ZXV_API_M7_DRAW_MAP     57      /* desde la versión 0.2 */
+#define ZXV_API_M7_AFFINE       58      /* desde la versión 0.2 */
 
 /* --- Reloj (spec §7.9) --------------------------------------------------- */
 #define ZXV_CLOCK_SIZE          8
@@ -445,6 +510,7 @@
 #define ZXV_E_NOCLOCK           (-16)   /* el reloj no está en hora */
 #define ZXV_E_INVAL             (-17)   /* valor no válido (una fecha que no existe) */
 #define ZXV_E_OFFLINE           (-18)   /* la unidad EXT: no tiene servidor */
+#define ZXV_E_CHANGED           (-19)   /* el fichero del programa ha cambiado (sus bancos, D109) */
 
 /* --- Ejecutables .ZXV (spec §9.2) ---------------------------------------- */
 #define ZXV_HDR_SIZE            72
@@ -463,6 +529,35 @@
 #define ZXV_H_CRC               0x20
 #define ZXV_H_NAME              0x24    /* char[28] */
 #define ZXV_H_SCREEN            0x40    /* u32: la pantalla de carga, detrás de la cabecera */
+
+/* --- Los bancos de un .ZXV (D109): detrás de la imagen, que el cargador no
+ * mira. Al final del fichero, el cierre: "ZXVBANK1", dónde empieza el índice
+ * y cuánto ocupa (u32 cada uno). El índice: una cabecera y una entrada por
+ * banco. Todo en little endian. ---------------------------------------- */
+#define ZXV_BANK_MAGIC          "ZXVBANK1"
+#define ZXV_BANK_TAIL           16
+#define ZXV_BANK_T_INDEX        8       /* u32: dónde empieza el índice */
+#define ZXV_BANK_T_INDEX_LEN    12      /* u32: lo que ocupa */
+#define ZXV_BANK_HEAD           16
+#define ZXV_BANK_I_COUNT        0       /* u32: cuántos bancos */
+#define ZXV_BANK_I_PROG_CRC     4       /* u32: el CRC de la imagen del programa (su huella) */
+#define ZXV_BANK_I_IMAGE_SIZE   8       /* u32: el tamaño de la imagen */
+#define ZXV_BANK_I_CRC          12      /* u32: el CRC de las entradas */
+#define ZXV_BANK_ENTRY          48
+#define ZXV_BANK_NAME_MAX       15      /* caracteres por nombre */
+#define ZXV_BANK_E_NAME         0       /* char[16], con su 0 */
+#define ZXV_BANK_E_KIND         16      /* u8: ZXV_BANK_DATA o ZXV_BANK_CODE */
+#define ZXV_BANK_E_METHOD       17      /* u8: ZXV_BANK_STORED o ZXV_BANK_DEFLATE */
+#define ZXV_BANK_E_REGION       18      /* u8: la zona de los de código */
+#define ZXV_BANK_E_OFFSET       20      /* u32: dónde empieza, desde el principio del fichero */
+#define ZXV_BANK_E_STORED       24      /* u32: lo que ocupa en el fichero */
+#define ZXV_BANK_E_SIZE         28      /* u32: lo que ocupa de verdad */
+#define ZXV_BANK_E_CRC          32      /* u32: el CRC de lo de verdad */
+#define ZXV_BANK_E_ADDR         36      /* u32: los de código, dónde van */
+#define ZXV_BANK_DATA           0
+#define ZXV_BANK_CODE           1
+#define ZXV_BANK_STORED         0
+#define ZXV_BANK_DEFLATE        1       /* deflate sin envoltorio (RFC 1951) */
 
 /* --- Pantallas (D89): el objeto pantalla de un .gfx y la pantalla de carga
  * de un .zxv o un .zvb. Modo (u8), color del borde (u8), marcas (u8), 0 (u8),

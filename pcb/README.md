@@ -3,7 +3,7 @@
 > **Using ZX-V?** See the board guide: [English](../docs/en/hardware/board.md) · [Español](../docs/es/hardware/board.md). This page is developer documentation, in Spanish.  
 > **¿Usas ZX-V?** Mira la guía de la placa: [English](../docs/en/hardware/board.md) · [Español](../docs/es/hardware/board.md). Esta página es documentación de desarrollo.
 
-**Estado: revisión 1 (v0.1), fabricada y probada:** con las dos Pico pasa `boardtest` y usa la tarjeta microSD; falta probar la pila del reloj. Licencia CERN-OHL-W v2 (§8). El esquema (82 piezas en
+**Estado: revisión 1 (v0.1), fabricada y probada:** con las dos Pico pasa `boardtest`, usa la tarjeta microSD y, con la pila, el reloj guarda la hora. Licencia CERN-OHL-W v2 (§8). El esquema (82 piezas en
 tres hojas: alimentación, Pico CPU y Pico ULA) lo dibuja `tools/schematic.py`,
 con ERC sin errores y cada pieza con su número LCSC. Las huellas que no traía
 KiCad están en `zxv.pretty`, comprobadas con los planos. La placa la ponen al
@@ -411,7 +411,8 @@ python pcb/tools/fabricate.py
    `tools/fabricate.py` (§6.3); la guía de montaje, en `docs/*/hardware/board.md`.
 6. ~~Probarla~~: las placas llegaron el 16 de noviembre de 2026, montadas por
    JLCPCB; con las dos Pico pasa `boardtest` (vídeo, sonido, teclado, mandos,
-   ratón, MODO, paletas) y usa la tarjeta. Falta la pila del reloj.
+   ratón, MODO, paletas) y usa la tarjeta; con la pila (desde el 22 de
+   noviembre), el reloj guarda la hora.
 
 ## 8. Licencia
 

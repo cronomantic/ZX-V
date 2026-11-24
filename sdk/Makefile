@@ -28,7 +28,7 @@ LIBC_EXAMPLES := $(if $(filter /% %:/%,$(subst \,/,$(shell $(CC) -print-file-nam
 ifeq ($(LIBC_EXAMPLES),)
 $(info Sin picolibc: no se compila files)
 endif
-ZXV      := $(EXAMPLES:%=build/%.zxv) $(LIBC_EXAMPLES:%=build/%.zxv)
+ZXV      := $(EXAMPLES:%=build/%.zxv) $(LIBC_EXAMPLES:%=build/%.zxv) build/fases.zxv
 # El emulador compilado aquí al lado o, si no, el zxv del PATH (los paquetes,
 # que llevan la ROM dentro: entonces no hace falta --rom).
 EMU      ?= $(firstword $(wildcard ../emulator/build/zxv ../emulator/build/zxv-sdl) zxv)
@@ -74,17 +74,29 @@ build/gonesilent.elf: examples/gonesilent/gonesilent.h examples/gonesilent/gones
 # Sus sprites, comprimidos (los de gonesilent.gfx, de los que solo se dibuja
 # lo que no es transparente).
 build/gonesilent.spr: examples/gonesilent/gonesilent.gfx examples/gonesilent/mkspr.py | build
-	$(PYTHON) examples/gonesilent/mkspr.py $< $@
+	"$(PYTHON)" examples/gonesilent/mkspr.py $< $@
 build/gfxedit.elf: examples/gfxedit/gfxedit.h examples/gfxedit/store.h
 
 # Las piezas y el puntero del ajedrez se dibujan en PNG: chess.gfx se hace con ellos.
 build/chess.elf: examples/chess/chess.h build/chess.gfx gfxfile.c include/zxv_gfxfile.h
 build/chess.gfx: examples/chess/art/pieces.png examples/chess/art/pointer.png tools/png2gfx.py | build
-	$(PYTHON) tools/png2gfx.py $@ --sprites 0 examples/chess/art/pieces.png 24,24 \
+	"$(PYTHON)" tools/png2gfx.py $@ --sprites 0 examples/chess/art/pieces.png 24,24 \
 	          --sprite 12 examples/chess/art/pointer.png
 
 build/%.zxv: build/%.elf tools/elf2zxv.py
-	$(PYTHON) tools/elf2zxv.py $< $@
+	"$(PYTHON)" tools/elf2zxv.py $< $@
+
+# fases: el ejemplo de los bancos (D109). Lo residente (main.c), dos bancos
+# de código que comparten una zona (valle.c, espacio.c) y dos de datos (los
+# fondos de mkfondos.py), todo en un .zxv con tools/zxvbanks.py.
+build/fondo1.bin build/fondo2.bin &: examples/fases/mkfondos.py | build
+	"$(PYTHON)" examples/fases/mkfondos.py build/fondo1.bin build/fondo2.bin
+build/fases.zxv build/fases.elf &: examples/fases/main.c examples/fases/valle.c examples/fases/espacio.c examples/fases/fases.h \
+                 build/fondo1.bin build/fondo2.bin crt0.S zxvlib.c zxvbank.c zxvbankcode.c zxv.ld include/*.h \
+                 tools/zxvbanks.py tools/elf2zxv.py | build
+	"$(PYTHON)" tools/zxvbanks.py -o build/fases.zxv --cc $(CC) --cflags "$(CFLAGS)" --sdk . --pack \
+	    --code valle=examples/fases/valle.c --code espacio=examples/fases/espacio.c \
+	    --bank fondo1=build/fondo1.bin --bank fondo2=build/fondo2.bin examples/fases/main.c
 
 run: $(ZXV)
 	mkdir -p $(SD)

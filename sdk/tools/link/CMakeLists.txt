@@ -16,18 +16,28 @@ else()
     enable_language(CXX)                # zxv-link-gui
 endif()
 
-add_library(zxvlinkproto STATIC zxvlink.c)
+add_library(zxvlinkproto STATIC zxvlink.c zlcrypto.c zlnet.c)
 target_include_directories(zxvlinkproto PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # La conversación con la máquina (el puerto serie incluido), para los dos
 # programas.
-add_library(zxvlinkcore STATIC linkcore.c serial.c extserve.c)
+add_library(zxvlinkcore STATIC linkcore.c serial.c extserve.c netpc.c)
 target_link_libraries(zxvlinkcore PUBLIC zxvlinkproto)
+if(WIN32)
+    target_link_libraries(zxvlinkcore PUBLIC ws2_32 iphlpapi bcrypt)   # la red (netpc.c)
+endif()
 
 add_executable(zxv-link main.c tcp.c)
 target_link_libraries(zxv-link PRIVATE zxvlinkcore)
 if(WIN32)
     target_link_libraries(zxv-link PRIVATE ws2_32)
+    # UTF-8 como página de códigos, como zxv-link-gui: las rutas con letras de
+    # fuera de la página del sistema (ł, č...) llegan bien en argv y a fopen.
+    if(MSVC)
+        target_sources(zxv-link PRIVATE zxv-link.manifest)
+    else()
+        target_sources(zxv-link PRIVATE zxv-link_mingw.rc)
+    endif()
 endif()
 # Junto a los demás programas del emulador, donde lo cogen los paquetes.
 set_target_properties(zxv-link PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})

@@ -607,7 +607,7 @@ sentencias.
 | `MAP DIM m, an, al[, s[, r]]` | El mapa `m` (0–15) tiene `an` × `al` celdas a 0, con tiles de `s` × `s` (8 por defecto). Con `r` = 1, se repite en las dos direcciones |
 | `MAP POKE m, x, y, v` | La celda `(x, y)` del mapa vale `v`: el número de tile más 4096 (espejo horizontal), 8192 (espejo vertical), 16384 (el color 8 deja ver lo de debajo) y 32768 (prioridad) |
 | `MAP POKE m, x, y, a$` | Las celdas desde `(x, y)` hacia la derecha toman el código de cada carácter: `"  ##.."` usa los tiles 32, 35 y 46 |
-| `TEXTURE n, x, y, s[, c]` | La textura `n` (0–3) para el modo 7 es el cuadrado de `s` × `s` (potencia de 2, de 2 a 256) de la página en `(x, y)`. Se repite sin fin; con `c`, fuera de ella todo es del color `c` |
+| `TEXTURE n, x, y, s[, c[, t]]` | La textura `n` (0–3) para el modo 7 es el cuadrado de `s` × `s` (potencia de 2, de 2 a 256) de la página en `(x, y)`. Se repite sin fin; con `c`, fuera de ella todo es del color `c` (con -1, se repite). Con `t`, ese color es transparente (el 8 que hubiera pasa a 0), y si `c` = `t` lo de fuera tampoco se dibuja (D110) |
 
 Los juegos de tiles crecen al definir un tile más alto (los nuevos empiezan
 negros). Un mapa solo se puede dibujar si existen todos los tiles que usa.
@@ -618,10 +618,12 @@ negros). Un mapa solo se puede dibujar si existen todos los tiles que usa.
 |---|---|
 | `SPRITE n, x, y[, f[, c$[, w, h]]]` | Dibuja el sprite `n` con su esquina en `(x, y)`. `f`: 1 espejo horizontal, 2 vertical, 3 los dos. `c$` cambia los colores: el color `i` se dibuja como el carácter `i` de la cadena (`"0123456789abcdef"` los deja igual; un carácter que no es una cifra hexadecimal deja ese color como está; `""`, ninguno). Con `w` y `h` (de 1 a 4096) se dibuja estirado o encogido a ese tamaño, como los objetos que se acercan: `SPRITE 0,x,y,0,"",32,32` |
 | `MAP m[, mx, my[, x, y, an, al[, f]]]` | Dibuja el mapa a partir de su píxel `(mx, my)`, en toda la página o en el rectángulo `(x, y, an, al)`. `f`: 0 todas las celdas, 1 las que no tienen prioridad y 2 solo las que la tienen |
-| `FLOOR n, x, y, h, a, hz[, d]` | Suelo en perspectiva (modo 7) con la textura `n`, visto desde el punto `(x, y)` de la textura a la altura `h`, mirando en la dirección `a` (en radianes; 0 es hacia `x` creciente), con el horizonte en la línea `hz` de la página y la distancia focal `d` (por defecto, media página). Ocupa de la línea `hz + 1` al final de la página |
+| `FLOOR [MAP] n, x, y, h, a, hz[, d]` | Suelo en perspectiva (modo 7) con la textura `n` o, con `MAP`, el mapa `n` (con sus espejos y su transparencia; lo de fuera de un mapa que no se repite no se dibuja; D110), visto desde el punto `(x, y)` de la textura a la altura `h`, mirando en la dirección `a` (en radianes; 0 es hacia `x` creciente), con el horizonte en la línea `hz` de la página y la distancia focal `d` (por defecto, media página). Ocupa de la línea `hz + 1` al final de la página |
+| `ROTATE [MAP] n, x, y[, a[, z[, cx, cy]]]` | La textura o el mapa `n` girado `a` radianes en el sentido del reloj (0 por defecto) y ampliado `z` veces (1), con su punto `(x, y)` en `(cx, cy)` de la página (su centro), en toda la página o el `CLIP` (D110) |
 | `POLY c, x1, y1[, x2, y2…]` | Un punto, una línea o, con 3 o más vértices (hasta 64), un polígono relleno del color `c` (regla par-impar) |
 | `BOX c, x, y, an, al` | Rectángulo relleno |
 | `DISC c, x, y, r` | Círculo relleno |
+| `PATTERN [n \| b1, …, b8][, p]` | La trama de `POLY`, `BOX` y `DISC`: las 11 ya hechas (`n`) o 8 bytes, uno por fila con el bit 7 a la izquierda. Los 1 son del color de la figura y los 0 del papel `p`, o no se dibujan sin `p`. `PATTERN` o `PATTERN 0`: color liso (también `RUN` y `CLEAR`; D110) |
 | `CLIP x, y, an, al` | Las órdenes de esta sección solo dibujan dentro de ese rectángulo. `CLIP` solo lo quita (también `MODE`, `RUN` y `CLEAR`) |
 | `WAIT [n]` | Espera al siguiente VBLANK y hasta que hayan pasado `n` frames (1 por defecto) desde el `WAIT` anterior: el juego va a un ritmo fijo aunque cada vuelta tarde distinto |
 | `HIT(a, ax, ay, b, bx, by)` | 1 si algún píxel opaco del sprite `a` en `(ax, ay)` coincide con uno del sprite `b` en `(bx, by)` |
@@ -662,7 +664,7 @@ es el transparente):
 | Sprite (tipo 1) | Ancho y alto (2 bytes cada uno) y las filas, de (ancho + 1) / 2 bytes |
 | Tiles (tipo 2) | El número es el lado (8 o 16). Cuántos (2 bytes), 0 (2 bytes) y los tiles seguidos (lado × lado / 2 bytes cada uno) |
 | Mapa (tipo 3) | Ancho y alto (2 bytes), lado del tile y repetición (1 byte cada uno), 0 (2 bytes) y las celdas (2 bytes), fila a fila |
-| Textura (tipo 4) | log₂ del lado, repetición, color de fuera y 0 (1 byte cada uno) y los texels, uno por byte |
+| Textura (tipo 4) | log₂ del lado, repetición, color de fuera y marcas (bit 0: el 8 es transparente, D110) (1 byte cada uno) y los texels, uno por byte |
 | Pantalla (tipo 5) | Modo (1 byte, 0 o 1), color del borde (1 byte, 0–15), marcas (1 byte: bit 0, lleva paleta; los demás, 0), 0 (1 byte), la paleta si la lleva (16 colores RGB565, 32 bytes: los de cada índice como se veían, D90) y los píxeles de la página como en la VRAM: 192 líneas de 128 bytes en modo 0 (24.576) o 384 de 256 en modo 1 (98.304). `SAVE "x" SCREEN$` graba la pantalla del programa (la página 0) como el objeto 0 (D89); `LOAD GRAPHICS` se salta las pantallas |
 
 `examples/basic/platformer` es un juego completo hecho así: gráficos
@@ -722,10 +724,10 @@ Diferencias conocidas:
 - `USR` con una dirección menor que 65536 da el error `S Z80 code not
   supported`; con una dirección real ejecuta código RISC-V.
 - Las excepciones del código nativo vuelven al BASIC con `W Native code error`.
-- Una expresión puede anidar unos 150 paréntesis, funciones o signos, y unas
-  25 llamadas a `FN` dentro de otras (también una `FN` que se llama a sí
-  misma); más, `4 Out of memory`. La pila de la ROM es de 32 KB y no crece con
-  la memoria libre, como en el 48K.
+- Una expresión puede anidar unos 170 paréntesis, funciones o signos, y unas
+  24 llamadas a `FN` dentro de otras (también una `FN` que se llama a sí
+  misma); más, `4 Out of memory`. La pila de la ROM es de 28 KB (D107) y no
+  crece con la memoria libre, como en el 48K.
 
 Rendimiento: unas 33.000 vueltas por segundo de
 `FOR i=1 TO 10000: LET a=i*2+1: NEXT i` (unas 200 veces el 48K).

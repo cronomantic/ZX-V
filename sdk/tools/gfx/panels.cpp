@@ -330,6 +330,7 @@ PropertiesPanel::PropertiesPanel(Editor *ed, QWidget *parent) : QWidget(parent),
     fx->addRow(tr("Lado"), texSide_);
     fx->addRow(QString(), texWrap_ = new QCheckBox(tr("Se repite")));
     fx->addRow(tr("Color de fuera"), texOut_ = colors());
+    fx->addRow(QString(), texTransp_ = new QCheckBox(tr("El 8 es transparente")));
     /* Sin objeto. */
     page();
     /* Pantallas: el modo, el de la nueva (después no cambia). */
@@ -377,7 +378,7 @@ PropertiesPanel::PropertiesPanel(Editor *ed, QWidget *parent) : QWidget(parent),
         connect(s, &QSpinBox::valueChanged, this, &PropertiesPanel::applySize);
     for (QComboBox *c : { mapTile_, texSide_, texOut_, scrBorder_ })
         connect(c, &QComboBox::currentIndexChanged, this, &PropertiesPanel::applySize);
-    for (QCheckBox *c : { mapWrap_, texWrap_ })
+    for (QCheckBox *c : { mapWrap_, texWrap_, texTransp_ })
         connect(c, &QCheckBox::toggled, this, &PropertiesPanel::applySize);
     connect(create_, &QPushButton::clicked, this, &PropertiesPanel::createObject);
     connect(delete_, &QPushButton::clicked, this, &PropertiesPanel::deleteObject);
@@ -439,6 +440,7 @@ void PropertiesPanel::refresh()
             texWrap_->setChecked(t.wrap);
             texOut_->setCurrentIndex(t.out);
             texOut_->setEnabled(!t.wrap);
+            texTransp_->setChecked(t.transparent);
         }
         pages_->setCurrentIndex(exists ? 3 : 4);
         create_->setText(tr("Crear"));
@@ -515,6 +517,7 @@ void PropertiesPanel::applySize()
             t.img = gfx::resized(t.img, side, side, 0);
             t.wrap = texWrap_->isChecked();
             t.out = texOut_->currentData().toInt();
+            t.transparent = texTransp_->isChecked();
         }
         break;
     case Section::Screens:

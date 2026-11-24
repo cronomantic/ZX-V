@@ -68,6 +68,25 @@ card), and on the CPU Pico the `ROM:` drive.
    that screen: when it is done, it restarts by itself after five seconds with
    the new version. You can then delete `zxv-update.bin` from the card.
 
+**From the PC through J5**, with no card: with the USB-serial adapter of
+[Loading programs from the PC](#loading-programs-from-the-pc-j5) and
+`zxv-link`:
+
+```
+zxv-link --port COM5 update zxv-update.bin
+```
+
+`zxv-link` shows the machine's version and the file's, and asks first (with
+`--yes`, it does not). The machine restarts into the same update screen, but
+reads the file from the PC through J5: no card is needed, nor does the one in
+it have to work. Meanwhile, `zxv-link` tells how it is going. The machine
+restarts twice: after writing its firmware and at the end. It takes two or
+three minutes (J5 is slower than the card). **Do not switch it off or unplug the
+adapter**; if it is cut off, it is as if the card failed (see below). If a
+program was running, it is stopped first. The first time, the machine must
+already have a firmware that knows how to do it: if it is older, `zxv-link`
+says so; update it once from the card or over USB.
+
 Each Pico keeps **two copies** of its firmware: the update is written in the
 one that is not in use, and the Pico only moves to it once it has been
 written and checked. So if the power goes off half way, or the card fails,
@@ -88,32 +107,32 @@ have different versions of their link, the CPU says so in its report (see
 below), and the picture may not appear.
 
 **Without pressing BOOTSEL.** If you have `picotool` installed (it comes with
-the Raspberry Pi Pico extension of VS Code), a Pico that is already running a
-ZX-V firmware can be updated through its USB cable, without touching BOOTSEL:
+the Raspberry Pi Pico extension of VS Code), the ULA Pico, when it is already
+running the ZX-V firmware, can be updated through its USB cable, without
+touching BOOTSEL:
 
 ```sh
-picotool load -f -x zxv_cpu.uf2
+picotool load -f -x zxv_ula_link.uf2
 ```
 
 `-f` restarts the Pico in loading mode and `-x` starts the new firmware when it
 has finished. If the Pico has hung, or has never had ZX-V firmware, use
-BOOTSEL.
+BOOTSEL. This does not work with the CPU Pico: its micro-USB is no longer a
+serial port, and without it picotool cannot restart it.
+Use BOOTSEL or the SD card.
 
 ## The report
 
 **Every 5 seconds the CPU Pico writes a report**, in the machine's language
 (the one `LANGUAGE` chooses), about the link, the sound, the SD card, the USB
 devices, the clock and the ULA. It is the best place to look when something
-does not work. There are two ways to see it:
+does not work. It goes out through J5: see it with `zxv-link log` and a
+3.3 V USB-serial adapter (see [Loading programs from the
+PC](#loading-programs-from-the-pc-j5)). Without an adapter, the main points
+are on the [diagnostic page](#the-diagnostic-page), on the screen.
 
-- **Through J5**, with `zxv-link log` (see [Loading programs from the
-  PC](#loading-programs-from-the-pc-j5)).
-- **Through the CPU Pico's micro-USB**, which is also a serial port: with any
-  terminal program (the Serial Monitor of VS Code, PuTTY on Windows, or
-  `screen /dev/ttyACM0` on Linux; the speed does not matter). Plug it in with
-  the board switched on.
-
-The ULA Pico writes its own messages on its micro-USB.
+The CPU Pico's micro-USB is not a serial port: it is only for flashing the
+firmware. The ULA Pico does write its own messages on its micro-USB.
 
 ## Loading programs from the PC (J5)
 
@@ -132,60 +151,82 @@ switch: set it to 3.3 V):
   says it has no permission to open it.
 
 On the PC, **`zxv-link-gui`**, with a window, which comes with the
-emulator packages. It is used in steps, from top to bottom:
+emulator packages. From top to bottom:
 
-1. **Board:** choose the adapter's port; choosing it connects, and it tells
-   which firmware the machine has and whether BASIC is waiting for a
-   command.
-2. **Program:** choose it, drop it on the window or click one of the recent
-   ones. That only puts it there: nothing is sent yet.
-3. **Where the board loads it from:** **EXT:**, the usual (the shared
-   folder, without copying anything to the card: see [The EXT:
-   drive](#the-ext-drive)), or **The card** (copies the program and its
-   files first).
-   - With **EXT:**, the box **EXT: is** tells which folder it is, and
-     **Choose...** changes the folder. If the program is not inside it, it
-     warns and offers **Copy it to that folder** (with its files, and uses
-     that copy) or **Run from the card**.
-   - With **The card**, the files of its folder it can load (graphics,
-     music, sounds...), ticked, and the ones you add. With the board
-     connected it tells what the card has with each name: nothing, the same
-     (not sent), what `zxv-link` put there last time but has changed
-     (replaced), or a different one that `zxv-link` did not put there (it
-     asks before replacing it). It also tells when the board has no card.
-4. **Run on the board** (sends everything and runs it) or **Only copy to
-   the card** (without running anything; with no program, it only copies
-   the files of step 3). They are the only buttons that send anything. If
-   another program is running, it asks before stopping it. While sending,
-   **Stop** stops it.
-5. **Result:** how each file goes, the command typed on the machine and
-   what the machine reads and writes on `EXT:`.
+- **Machine:** choose the J5 adapter (`COM5 · cable (J5)`) or a ZX-V on the
+  network (`ZX-V-1A2B · Wi-Fi`); choosing it connects, and it tells which
+  firmware it has and whether BASIC is waiting for a command. With one on
+  the network, **Pair...** appears ([over Wi-Fi](#loading-programs-over-wi-fi-pico-2-w)).
+  **Disconnect** releases the port, to use it with another program (such as
+  the VS Code extension). In the **Machine** menu, **Update firmware...**
+  asks for a `zxv-update.bin`, shows its version and the machine's and, if
+  you accept, updates it with no card ([Updating](#updating)).
+- **Run a file from the PC, straight into memory:** choose it, drop it on
+  the window or pick a recent one, and **Run**. The machine reads it from
+  the PC and runs it: it isn't copied to the card. If the program loads
+  other files (graphics, music...), they must be on the machine: it is for
+  simple programs, such as a test `.bas`.
+- **On the machine**, an explorer with three drives: **Card** (`SD:`),
+  **ROM** (read only) and **EXT:** (the PC folder served to it: see [The
+  EXT: drive](#the-ext-drive)). Double-clicking a folder goes into it; a
+  program, runs it (going into its folder first, so it finds its files).
+  On top, **Run**, **Send...** (files from the PC to that folder; also by
+  dropping them on the list), **Fetch...** (to a PC folder), **New
+  folder...**, **Rename...** and **Delete** (folders, with what is inside).
+  **Replacing and deleting ask first**; the card has no recycle bin, and
+  what is deleted from `EXT:` goes to the PC's recycle bin.
+- **Below**, how the current task goes (with **Stop**) and the **Machine
+  report**, folded: a click opens it.
 
-Below, the recent programs and the machine's report while it is connected.
-**Disconnect** releases the port, to use it with another program (such as
-the VS Code extension).
+If a program is running, running another asks before restarting the
+machine.
 
 The same, on the command line, with `zxv-link`:
 
 ```
 zxv-link ports
 zxv-link --port COM5 run game.zxv
-zxv-link --port COM5 send graphics.gfx
+zxv-link --port COM5 run --pc test.bas
+zxv-link --port COM5 exec SD:/games/game.zxv
+zxv-link --port COM5 ls SD:/games
+zxv-link --port COM5 send graphics.gfx SD:/games/graphics.gfx
+zxv-link --port COM5 get SD:/record.txt
+zxv-link --port COM5 rm SD:/old.bas
+zxv-link --port COM5 mv SD:/a.bas SD:/games/a.bas
+zxv-link --port COM5 mkdir SD:/games
 zxv-link --port COM5 info
 zxv-link --port COM5 log
+zxv-link --port COM5 update zxv-update.bin
 ```
 
-- **`ports`** lists the serial ports: the adapter's is the one that appears
-  when you plug it in (`COM5` on Windows, `/dev/ttyUSB0` on Linux).
+- **`ports`** lists the serial ports and the ZX-V machines on the network
+  that answer: the adapter's is the one that appears when you plug it in
+  (`COM5` on Windows, `/dev/ttyUSB0` on Linux).
 - **`run`** copies the program to the root of the card and loads it (a
   `.bas`, with `RUN`). The files it loads can go after the program
   (`run game.zxv game.gfx music.zxm`). What is already on the card,
   unchanged, is not sent again. If a program is running, it first restarts
   the whole machine, like Ctrl+Alt+Del, and waits until BASIC is back.
-- **`send`** only copies it (with another name after it, somewhere else:
-  `send x.gfx SD:game/x.gfx`).
+- **`run --pc`** runs it straight into memory, without copying it to the
+  card (the machine reads it from the PC), and waits until it has read it.
+  A `.zxv` with code banks stays open while the program runs (it loads each
+  bank from it): then `zxv-link` keeps serving it, with no time limit, until
+  the program ends or Ctrl+C is pressed, and says so; for programs that use
+  it (the VS Code extension), it also writes the fixed line
+  `zxv-link: serving-ext` to standard output.
+- **`exec`** runs what is already on the machine: on the card, in the ROM
+  (`exec ROM:/sentry.bas`) or on `EXT:`.
+- **`ls`**, **`get`**, **`rm`**, **`mv`** and **`mkdir`**: the card (and,
+  for reading, the ROM) like an explorer. `rm` deletes a file or an empty
+  folder, and `mv` doesn't replace what has the new name.
+- **`send`** only copies (with another name or into a folder after it:
+  `send x.gfx SD:/game/x.gfx`).
 - **`info`**, the machine's version; **`log`**, the report until you press
   Ctrl+C.
+- **`update`** updates the firmware of both Picos with a `zxv-update.bin`,
+  with no card ([Updating](#updating)).
+- Browsing the card and running straight into memory need protocol 6
+  (`zxv-link info` tells).
 
 **What is on the card is not lost by accident:**
 
@@ -215,10 +256,10 @@ debugger over TCP just like the emulator with `--basic-debug`.
 Besides `SD:` (the card) and `ROM:` (the ROM disk, read-only), the machine
 has a third drive: **`EXT:`, the external drive**, the files of a folder
 served by **another device** (the server: a PC, a Raspberry Pi, a phone,
-another ZX-V...). Today it goes through J5, with the same adapter; later,
-perhaps through Wi-Fi. It is **one drive whatever the link**: a program that
-uses `EXT:data.dat` works the same by cable as by Wi-Fi (if there were a
-server on both, the cable wins).
+another ZX-V...). It goes through J5, with the same adapter, or through
+[Wi-Fi](#loading-programs-over-wi-fi-pico-2-w). It is **one drive whatever
+the link**: a program that uses `EXT:data.dat` works the same by cable as by
+Wi-Fi (if there is a server on both, the cable wins).
 
 Programs and BASIC use it like the others, to read **and write**:
 `LOAD "EXT:game.bas"`, `SAVE "EXT:copy"`, `CAT "EXT:"`, `CD "EXT:"`,
@@ -233,11 +274,10 @@ comes back. Nothing hangs. Through J5 it goes at about **80 KB/s** (a
 machine can create files in it, and the program's folder could be your
 home folder, Downloads or a system folder. In `zxv-link-gui` it is, by
 default, `Documents/ZX-V-EXT` (created the first time; it is not
-`Documents/ZX-V`, which is the emulator's card), and **Choose...** sets
-another. It is served while the board is connected (*Served as EXT: while
-the board is connected.*), so the machine can also use it on its own: with
-`SAVE "EXT:copy"` from BASIC you keep on the PC what you type on the
-machine.
+`Documents/ZX-V`, which is the emulator's card), and on the explorer's
+**EXT:** drive, **Folder...** sets another. It is served while the machine
+is connected, so it can also use it on its own: with `SAVE "EXT:copy"` from
+BASIC you keep on the PC what you type on the machine.
 
 On the command line:
 
@@ -261,11 +301,10 @@ window and the VS Code extension):
 - A file is written whole or not at all: it goes to a temporary one that
   only gets its name at the end.
 - **It does not replace or delete files the machine did not write** (it
-  gives it `ZXV_E_ACCESS`), unless you allow it: with `--overwrite`
-  (`zxv-link --port COM5 --overwrite serve --folder FOLDER`) or, in the
-  window, with the tick box **Let the machine replace or delete files it
-  did not write** (unticked at first). What the machine writes is noted on
-  the PC.
+  gives it `ZXV_E_ACCESS`), unless you allow it with `--overwrite`
+  (`zxv-link --port COM5 --overwrite serve --folder FOLDER`). What the
+  machine writes is noted on the PC. In the window, whatever needs changing
+  in that folder you change yourself from the explorer.
 
 **In VS Code**, **ZX-V: Run on the board** loads from `EXT:` by default (the
 setting `zxv.boardFrom`: `ext` or `card`). The folder is the workspace
@@ -279,6 +318,57 @@ from `EXT:`.
 
 To write another server (on another device, in another language), what
 travels through J5 is in [The protocol](protocol.md).
+
+## Loading programs over Wi-Fi (Pico 2 W)
+
+With a **Pico 2 W** in the CPU socket instead of the Pico 2, everything J5
+does (sending and running programs, the report, the `EXT:` drive) also goes
+over the network, with no cables. The firmware is the same: it sees for
+itself whether it has a radio. Without one, the Wi-Fi box says so and
+everything stays as before.
+
+**On the machine,** **EDIT > Wi-Fi**:
+
+- **Choose a network:** it searches for the ones around; pick one with
+  up/down and Enter and type its password (8 to 63 letters; an open network
+  does not ask). They must be **2.4 GHz** with WPA2 or WPA (the Pico 2 W's
+  radio does not see 5 GHz ones or those that only allow WPA3). The network
+  is remembered: at power-up the machine joins it again, and if it is lost,
+  it keeps trying.
+- At the top it shows the state (**Connected**, **Wrong password**,
+  **Network not found**...), the machine's name on the network
+  (`ZX-V-1A2B`) and how many PCs are paired.
+- **Pair a PC:** see below. **Forget the PCs** deletes all the keys (it asks
+  first). **Disconnect** leaves the network and forgets it.
+
+**Pairing** is needed once with each PC: until then the machine accepts
+nothing from it, so that nobody else on the network can send it programs.
+
+1. On the machine, **EDIT > Wi-Fi > Pair a PC**: it waits for a PC.
+2. On the PC, `zxv-link --port ZX-V-1A2B pair` (or in `zxv-link-gui`, choose
+   the machine and press **Pair...**; choosing one that is not paired also
+   offers it).
+3. Both show a **six-digit code**. If it is the same, press Enter on the
+   machine (Esc if not: someone could be in the middle).
+
+The machine remembers 8 PCs (one more forgets the oldest); the PC keeps its
+keys in `zxv-link-net.txt` (in `%APPDATA%\ZX-V` on Windows and
+`~/.config/ZX-V` elsewhere).
+
+**On the PC,** the same as through J5 with the machine's name (or its IP)
+instead of the port: `zxv-link ports` lists the serial ports and the ZX-Vs
+on the network that answer, and `zxv-link --port ZX-V-1A2B run game.zxv` or
+`... serve --folder FOLDER` work the same. In `zxv-link-gui`, the network
+machines appear in the step 1 list next to the ports. One with firmware of
+another version of the network protocol is shown apart ("Not compatible" in
+`zxv-link ports`; greyed out in the window's list), with what to update: the
+machine (over J5 or from the SD card) or `zxv-link`. In VS Code, put the
+name in the board port setting.
+
+**What does not go over the network:** updating the firmware (when it
+restarts to update, the machine only listens to J5): do it through J5 or
+from the card. What travels is signed, not encrypted: on your network,
+what you send can be read.
 
 ## If there is no picture or no sound
 
@@ -294,8 +384,8 @@ Look at the red **link LED** (`ENLACE` on the board) when you switch on.
   wiring.
 - **It blinks, then stays on.** Images arrive correctly: the problem is
   between the ULA and the screen. Try the safe mode (below), another HDMI
-  input, or a shorter cable without adapters. On the board, the report on the
-  serial port says whether the screen is detected (`screen: connected`): if it
+  input, or a shorter cable without adapters. On the board, the report says
+  whether the screen is detected (`screen: connected`): if it
   stays `unknown` with the screen plugged in and switched on, look at the HDMI
   cable and connector.
 - **It keeps blinking.** Images arrive, but some with errors. On a protoboard,
@@ -340,7 +430,7 @@ HDMI connector ([On a protoboard](protoboard.md#hdmi)).
 
 ### Other things
 
-- **The keyboard does nothing.** Look at the report on the serial port: the
+- **The keyboard does nothing.** Look at the report or the diagnostic page: the
   `USB:` part says how many keyboards, mice and gamepads it sees. Try without a hub, or with a powered hub.
 - **The SD card does not work.** It must be FAT, FAT32 or exFAT. The report
   says `no card` until the first access (for example `CAT`), or if the card
@@ -355,7 +445,7 @@ HDMI connector ([On a protoboard](protoboard.md#hdmi)).
 
 ### The diagnostic page
 
-**A long press of MODE** (between 1 and 5 seconds) or **Ctrl+Alt+F12** on the
+**Holding MODE for a second** (it appears without letting go) or **Ctrl+Alt+F12** on the
 keyboard shows a blue band across the middle of the screen with the state of
 both Picos, updated every second: at the top the ULA (its mode, the images per
 second, link errors, the CRC of the palettes it receives, the sound); at the

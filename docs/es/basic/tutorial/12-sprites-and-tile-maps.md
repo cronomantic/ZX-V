@@ -78,7 +78,7 @@ página en la que se dibuja; `PAGE n` elige la que se ve. Así:
 `s` es la página escondida. En cada vuelta se dibuja ahí el cuadro entero
 (un fondo azul y el sprite), se enseña con `PAGE s` y se cambia: `LET s=1-s`
 convierte el 1 en 0 y el 0 en 1, así que el siguiente cuadro se dibuja en la
-otra página. `WAIT 1` mantiene la velocidad fija, a 50 cuadros por segundo.
+otra página. `WAIT 1` mantiene la velocidad fija, a 60 cuadros por segundo.
 Al final, la línea 130 lo deja todo en la página 0, la normal.
 
 ## Sprites a partir de un dibujo, y choques

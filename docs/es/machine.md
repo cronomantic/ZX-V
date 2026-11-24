@@ -11,7 +11,7 @@ emulador y en el hardware real.
 | | ZX-V |
 |---|---|
 | Procesador | RISC-V de 32 bits a 144 MHz |
-| Memoria | 520 KB de RAM en total; unos 94 KB libres para un programa BASIC y hasta 248 KB para un programa nativo |
+| Memoria | 520 KB de RAM en total; unos 94 KB libres para un programa BASIC y hasta 244 KB para un programa nativo |
 | Pantalla | 256 × 192 o 512 × 384 píxeles, con borde |
 | Colores | 15 de serie; con paletas, 16 por línea de entre 65.536 (hasta 64 en la pantalla), cualquiera en cualquier píxel |
 | Páginas de vídeo | Dos, para dibujar en una mientras se ve la otra |
@@ -236,16 +236,16 @@ El procesador tiene 520 KB de RAM. La mayor parte se reparte así:
 | Zona | Tamaño | Contenido |
 |---|---|---|
 | Páginas de vídeo | 2 × 96 KB | Las dos pantallas |
-| Memoria de usuario | 248 KB | Tu programa y sus datos |
-| Sistema | 80 KB | Las variables y los buffers de la propia máquina |
+| Memoria de usuario | 244 KB | Tu programa y sus datos |
+| Sistema | 84 KB | Las variables y los buffers de la propia máquina |
 
 **Desde el BASIC** quedan unos 94 KB libres para tu programa, sus variables y
-sus gráficos (sprites, tiles y mapas): el editor dice la cifra exacta, 93.856
+sus gráficos (sprites, tiles y mapas): el editor dice la cifra exacta, 93.832
 bytes al arrancar. El resto de la memoria de usuario es el espacio de trabajo
 del propio BASIC.
 
 **Un programa nativo** se queda con la memoria de usuario: puede usar casi los
-248 KB. En el modo 0 cada página de vídeo solo necesita 24 KB para la
+244 KB. En el modo 0 cada página de vídeo solo necesita 24 KB para la
 pantalla, así que un programa que no use un campo virtual grande puede usar
 también los otros 72 KB de cada página.
 

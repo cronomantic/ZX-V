@@ -186,7 +186,8 @@ int obj_image(int slot, int tile, img_t *im)
  *   1 sprite   ancho, alto (u16) y las filas de (ancho + 1) / 2 bytes
  *   2 tiles    (el número es el lado) cuántos (u16), 0 (u16) y los tiles
  *   3 mapa     ancho, alto (u16), lado, repetición (u8), 0 (u16), las celdas
- *   4 textura  log2 del lado, repetición, color de fuera, 0 y los texels
+ *   4 textura  log2 del lado, repetición, color de fuera, marcas (bit 0: el
+ *              8 transparente, D110) y los texels
  *   5 pantalla modo, borde, 0 y los píxeles (D89): este editor no las edita;
  *              al cargar se las salta, como LOAD GRAPHICS (y no las graba)
  */
@@ -280,6 +281,7 @@ static int load_object(int kind, uint32_t num, uint32_t len)
             return GFX_FULL;
         objs[SLOT_TEX + num].b = h[1];
         objs[SLOT_TEX + num].c = h[2];
+        objs[SLOT_TEX + num].d = h[3] & 1;
         obj_image(SLOT_TEX + num, 0, &im);
         uint8_t row[256];
         for (int y = 0; y < side; y++) {
@@ -410,7 +412,7 @@ int gfx_save(gfx_io_t write, uint32_t *size)
         if (obj_image(SLOT_TEX + t, 0, &im))
             continue;
         put_record(4, t, 4 + (uint32_t)im.w * im.h);
-        uint8_t th[4] = { o->a, o->b, o->c, 0 };
+        uint8_t th[4] = { o->a, o->b, o->c, o->d };
         wr(th, 4);
         uint8_t row[256];
         for (int y = 0; y < im.h; y++) {
@@ -430,7 +432,7 @@ int gfx_save(gfx_io_t write, uint32_t *size)
 typedef struct {
     uint32_t at, off, len;              /* dónde está en ubuf, y qué guarda */
     uint16_t slot, w, h;
-    uint8_t a, b, c, whole;
+    uint8_t a, b, c, d, whole;
 } undo_t;
 
 static uint8_t ubuf[UNDO_SIZE];
@@ -480,6 +482,7 @@ void undo_push(int slot, uint32_t off, uint32_t len)
     u->a = o->a;
     u->b = o->b;
     u->c = o->c;
+    u->d = o->d;
     u->whole = (uint8_t)whole;
     if (len)
         memcpy(ubuf + uused, obj_data(slot) + off, len);
@@ -502,6 +505,7 @@ int undo_pop(void)
             o->a = u->a;
             o->b = u->b;
             o->c = u->c;
+            o->d = u->d;
         }
     } else if (o->len >= u->off + u->len) {
         memcpy(obj_data(u->slot) + u->off, ubuf + u->at, u->len);

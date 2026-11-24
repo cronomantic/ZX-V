@@ -10,9 +10,12 @@ nada: el software de las dos Pico viene listo para copiarlo en ellas.
 > **Estado.** **La primera placa funciona**, con las dos Pico juntas:
 > arranca en el BASIC en una pantalla HDMI, y el programa `boardtest` pasa la
 > imagen y las paletas, el sonido, el teclado USB, los mandos, el ratón, el
-> botón MODO y el reloj, y la tarjeta microSD lee, guarda y actualiza el
-> firmware. **Falta por probar en ella:** la pila del reloj. En una protoboard nadie ha montado todavía la máquina. Si la
-> montas ahora, serás de los primeros: lee con calma [La placa](board.md).
+> botón MODO y el reloj (con su pila, guarda la hora apagada), y la tarjeta
+> microSD lee, guarda y actualiza el firmware. Por la tira J5 también
+> funcionan la carga de programas desde el PC, la unidad `EXT:` y la
+> actualización del firmware sin tarjeta. En una protoboard nadie ha
+> montado todavía la máquina. Si la montas ahora, serás de los primeros: lee
+> con calma [La placa](board.md).
 
 ## Qué necesitas
 
@@ -44,7 +47,7 @@ nada: el software de las dos Pico viene listo para copiarlo en ellas.
 | Qué es | Una placa de 100 × 100 mm con todo | Las dos Pico y unos módulos, cableados a mano |
 | Qué se suelda | Solo las dos Pico, dos pulsadores, un interruptor, dos LED, la pila y, si quieres, la tira J5 para la carga remota: todo de agujero pasante | Muchos cables; el HDMI y el enlace entre las Pico piden cables cortos y ordenados |
 | Conectores | HDMI, USB-A, microSD, jack de audio, USB-C para la corriente y reloj | Placas de conexión (*breakouts*) y módulos |
-| Estado | **Funciona**: la primera placa pasa `boardtest` y usa la tarjeta microSD (falta por probar la pila) | Cada Pico probada por separado; el cableado de las dos juntas en una protoboard, **todavía no** (juntas funcionan en la placa) |
+| Estado | **Funciona**: la primera placa pasa `boardtest`, usa la tarjeta microSD, guarda la hora con la pila y carga y se actualiza por J5 | Cada Pico probada por separado; el cableado de las dos juntas en una protoboard, **todavía no** (juntas funcionan en la placa) |
 | Guía | [La placa](board.md) | [En una protoboard](protoboard.md) |
 
 Las dos llevan el mismo firmware y funcionan igual.
