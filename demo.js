@@ -108,3 +108,19 @@
   still.addEventListener('change', () => requestAnimationFrame(step));
   requestAnimationFrame(step);
 })();
+
+// The game cards: a three-second clip of the game while the pointer is over
+// it (img data-clip, an animated WebP), the still image again when it leaves.
+// Not on touch screens or with reduced motion; the clip loads on first hover.
+(() => {
+  if (!matchMedia('(hover: hover)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for (const img of document.querySelectorAll('.game img[data-clip]')) {
+    const still = img.getAttribute('src'), clip = img.dataset.clip, a = img.closest('a');
+    const on = () => { img.src = clip; };
+    const off = () => { img.src = still; };
+    a.addEventListener('mouseenter', on);
+    a.addEventListener('mouseleave', off);
+    a.addEventListener('focus', on);
+    a.addEventListener('blur', off);
+  }
+})();
