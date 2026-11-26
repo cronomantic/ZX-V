@@ -61,9 +61,34 @@
       <h1>What's new in ZX-V.</h1>
       <p>New versions and news about the project, newest first. <a class="rss" href="feed.xml">Follow it by RSS</a></p>
     </div>
-<article class="release" id="v0.11.0" style="--c: var(--red)">
+<article class="release" id="v0.12.0" style="--c: var(--red)">
   <div class="when">
-    <a class="ver" href="#v0.11.0">v0.11.0</a><span class="latest">Latest</span>
+    <a class="ver" href="#v0.12.0">v0.12.0</a><span class="latest">Latest</span>
+    <time datetime="2026-11-26">26 November 2026</time>
+  </div>
+  <div class="what">
+    <h2>Up to four gamepads, Xbox controllers, and a USB that no longer hangs</h2>
+<ul>
+<li><strong>Xbox controllers with a cable</strong>: the Xbox 360 ones (XInput, and compatibles such as 8BitDo in X mode, with the ring light showing the gamepad number) and the Xbox One and Series ones (GIP).</li>
+<li><strong>Up to four gamepads</strong>, in <code>JOY0</code> to <code>JOY3</code>: <code>JOY n</code> in BASIC and <code>zxv_joy_read</code> in the SDK take <code>n</code> from 0 to 3. A fifth one is recognised but not used. The emulator also takes up to four, on the PC and on the web.</li>
+<li><strong>Fire 4, L and R</strong> on every gamepad (the fourth face button and the two upper shoulder buttons): bits 9 to 11 of <code>JOY</code>, so a gamepad has four fire buttons, L, R, Start and Select. <code>JOY n</code> in BASIC now returns them too (0 to 4095).</li>
+<li><strong>Six USB devices at once</strong>, with up to three hubs: for example, keyboard, mouse and four gamepads behind two hubs.</li>
+<li><strong>A USB that no longer hangs</strong>: - plugging and unplugging gamepads behind a hub, which could freeze the machine, now works (TinyUSB 0.21); - a hub that the machine could not handle (one with a built-in network adapter froze it) now works, and a device that fails no longer stops the others; - when a hub resets by itself, the machine finds everything again.</li>
+<li><strong>Specification 0.3</strong>: <code>JOY2</code>, <code>JOY3</code> and the new buttons. A program that needs them checks <code>zxv_api_version() &gt;= 3</code>; on an older machine they read 0.</li>
+<li><strong>The user RAM ends 4 KB lower (240 KB)</strong>, to make room in the firmware; the BASIC keeps its 93,832 free bytes. A <code>.zxv</code> that had less than 4 KB to spare above its data does not load (<code>4 Out of memory</code>): build it again.</li>
+<li><strong>The SDK examples use the optional libraries</strong>: Estela, The Mine, The Keep, Route 128, Umbra, Street Justice and Gone Silent keep their high score or saved game with <code>zxv_save</code> (a power cut halfway keeps the previous one) and read the keyboard and gamepad with <code>zxv_input</code>. The big programs are 1 to 2 KB smaller (<code>-ffunction-sections</code>).</li>
+<li>In <strong>Route 128</strong>'s demo the driver no longer zigzags in the bends; <strong>Street Justice</strong> shows the heads that were missing (the runner's, the wardrobe's and the bosses').</li>
+<li><strong><code>boardtest</code></strong> shows the four gamepads with all twelve buttons.</li>
+<li><strong>Other things</strong>: <code>asmhello</code>, a program entirely in assembler, and <code>ZXV_CALL</code> to call the API from assembler; <code>sdimg</code> speaks the system's language; <code>LOAD ... GRAPHICS</code> skips object types it does not know; the emulator's <code>--type</code> has <code>{JOYn bits}</code> for each gamepad.</li>
+<li><strong>Fixes</strong>: after a failed <code>USR</code>, BASIC's music stops (<code>MUSIC</code> said it was playing with no sound); on Windows the card in a folder refuses names like <code>CON</code> or <code>NUL</code>; reopening the emulator's machine with the card in an image no longer leaves it without a card.</li>
+<li>Together with it, <strong>ZX Basic v1.19.0-zxv.8</strong>: four gamepads (<code>JOY(n)</code> from 0 to 3 and four players in <code>zxvinput.bas</code>), <code>JOY</code> with fire 4, L and R, and the new memory map.</li>
+</ul>
+    <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.12.0">Downloads for v0.12.0 →</a></p>
+  </div>
+</article>
+<article class="release" id="v0.11.0" style="--c: var(--yellow)">
+  <div class="when">
+    <a class="ver" href="#v0.11.0">v0.11.0</a>
     <time datetime="2026-11-24">24 November 2026</time>
   </div>
   <div class="what">
@@ -85,7 +110,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.11.0">Downloads for v0.11.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.10.0" style="--c: var(--yellow)">
+<article class="release" id="v0.10.0" style="--c: var(--green)">
   <div class="when">
     <a class="ver" href="#v0.10.0">v0.10.0</a>
     <time datetime="2026-11-22">22 November 2026</time>
@@ -108,7 +133,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.10.0">Downloads for v0.10.0 →</a></p>
   </div>
 </article>
-<article class="release" id="2026-11-19-las-placas" style="--c: var(--green)">
+<article class="release" id="2026-11-19-las-placas" style="--c: var(--cyan)">
   <div class="when">
     <a class="kind" href="#2026-11-19-las-placas">News</a>
     <time datetime="2026-11-19">19 November 2026</time>
@@ -122,7 +147,7 @@
 <p>If you want to build one, <a href="https://zx-v.org/docs/en/hardware/board.html">the board guide</a> has the files for JLCPCB, the parts list and how to fit the Picos.</p>
   </div>
 </article>
-<article class="release" id="v0.9.0" style="--c: var(--cyan)">
+<article class="release" id="v0.9.0" style="--c: var(--red)">
   <div class="when">
     <a class="ver" href="#v0.9.0">v0.9.0</a>
     <time datetime="2026-11-04">4 November 2026</time>
@@ -136,7 +161,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.9.0">Downloads for v0.9.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.8.0" style="--c: var(--red)">
+<article class="release" id="v0.8.0" style="--c: var(--yellow)">
   <div class="when">
     <a class="ver" href="#v0.8.0">v0.8.0</a>
     <time datetime="2026-11-04">4 November 2026</time>
@@ -152,7 +177,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.8.0">Downloads for v0.8.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.7.2" style="--c: var(--yellow)">
+<article class="release" id="v0.7.2" style="--c: var(--green)">
   <div class="when">
     <a class="ver" href="#v0.7.2">v0.7.2</a>
     <time datetime="2026-11-02">2 November 2026</time>
@@ -166,7 +191,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.7.2">Downloads for v0.7.2 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.7.1" style="--c: var(--green)">
+<article class="release" id="v0.7.1" style="--c: var(--cyan)">
   <div class="when">
     <a class="ver" href="#v0.7.1">v0.7.1</a>
     <time datetime="2026-11-01">1 November 2026</time>
@@ -180,7 +205,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.7.1">Downloads for v0.7.1 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.7.0" style="--c: var(--cyan)">
+<article class="release" id="v0.7.0" style="--c: var(--red)">
   <div class="when">
     <a class="ver" href="#v0.7.0">v0.7.0</a>
     <time datetime="2026-10-31">31 October 2026</time>
@@ -199,7 +224,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.7.0">Downloads for v0.7.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.6.2" style="--c: var(--red)">
+<article class="release" id="v0.6.2" style="--c: var(--yellow)">
   <div class="when">
     <a class="ver" href="#v0.6.2">v0.6.2</a>
     <time datetime="2026-10-30">30 October 2026</time>
@@ -215,7 +240,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.6.2">Downloads for v0.6.2 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.6.1" style="--c: var(--yellow)">
+<article class="release" id="v0.6.1" style="--c: var(--green)">
   <div class="when">
     <a class="ver" href="#v0.6.1">v0.6.1</a>
     <time datetime="2026-10-30">30 October 2026</time>
@@ -232,7 +257,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.6.1">Downloads for v0.6.1 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.6.0" style="--c: var(--green)">
+<article class="release" id="v0.6.0" style="--c: var(--cyan)">
   <div class="when">
     <a class="ver" href="#v0.6.0">v0.6.0</a>
     <time datetime="2026-10-30">30 October 2026</time>
@@ -250,7 +275,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.6.0">Downloads for v0.6.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.5.0" style="--c: var(--cyan)">
+<article class="release" id="v0.5.0" style="--c: var(--red)">
   <div class="when">
     <a class="ver" href="#v0.5.0">v0.5.0</a>
     <time datetime="2026-10-29">29 October 2026</time>
@@ -270,7 +295,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.5.0">Downloads for v0.5.0 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.4.1" style="--c: var(--red)">
+<article class="release" id="v0.4.1" style="--c: var(--yellow)">
   <div class="when">
     <a class="ver" href="#v0.4.1">v0.4.1</a>
     <time datetime="2026-10-28">28 October 2026</time>
@@ -283,7 +308,7 @@
     <p class="get"><a href="https://github.com/cronomantic/ZX-V/releases/tag/v0.4.1">Downloads for v0.4.1 →</a></p>
   </div>
 </article>
-<article class="release" id="v0.4.0" style="--c: var(--yellow)">
+<article class="release" id="v0.4.0" style="--c: var(--green)">
   <div class="when">
     <a class="ver" href="#v0.4.0">v0.4.0</a>
     <time datetime="2026-10-28">28 October 2026</time>

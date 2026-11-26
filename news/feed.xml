@@ -7,6 +7,27 @@
   <description>New versions of ZX-V, a 32-bit hobby computer inspired by the ZX Spectrum, and news about it.</description>
   <language>en</language>
   <item>
+    <title>ZX-V 0.12.0: Up to four gamepads, Xbox controllers, and a USB that no longer hangs</title>
+    <link>https://zx-v.org/news/#v0.12.0</link>
+    <guid isPermaLink="true">https://zx-v.org/news/#v0.12.0</guid>
+    <pubDate>Thu, 26 Nov 2026 12:00:00 +0000</pubDate>
+    <description>&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Xbox controllers with a cable&lt;/strong&gt;: the Xbox 360 ones (XInput, and compatibles such as 8BitDo in X mode, with the ring light showing the gamepad number) and the Xbox One and Series ones (GIP).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Up to four gamepads&lt;/strong&gt;, in &lt;code&gt;JOY0&lt;/code&gt; to &lt;code&gt;JOY3&lt;/code&gt;: &lt;code&gt;JOY n&lt;/code&gt; in BASIC and &lt;code&gt;zxv_joy_read&lt;/code&gt; in the SDK take &lt;code&gt;n&lt;/code&gt; from 0 to 3. A fifth one is recognised but not used. The emulator also takes up to four, on the PC and on the web.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Fire 4, L and R&lt;/strong&gt; on every gamepad (the fourth face button and the two upper shoulder buttons): bits 9 to 11 of &lt;code&gt;JOY&lt;/code&gt;, so a gamepad has four fire buttons, L, R, Start and Select. &lt;code&gt;JOY n&lt;/code&gt; in BASIC now returns them too (0 to 4095).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Six USB devices at once&lt;/strong&gt;, with up to three hubs: for example, keyboard, mouse and four gamepads behind two hubs.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;A USB that no longer hangs&lt;/strong&gt;: - plugging and unplugging gamepads behind a hub, which could freeze the machine, now works (TinyUSB 0.21); - a hub that the machine could not handle (one with a built-in network adapter froze it) now works, and a device that fails no longer stops the others; - when a hub resets by itself, the machine finds everything again.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Specification 0.3&lt;/strong&gt;: &lt;code&gt;JOY2&lt;/code&gt;, &lt;code&gt;JOY3&lt;/code&gt; and the new buttons. A program that needs them checks &lt;code&gt;zxv_api_version() &amp;gt;= 3&lt;/code&gt;; on an older machine they read 0.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;The user RAM ends 4 KB lower (240 KB)&lt;/strong&gt;, to make room in the firmware; the BASIC keeps its 93,832 free bytes. A &lt;code&gt;.zxv&lt;/code&gt; that had less than 4 KB to spare above its data does not load (&lt;code&gt;4 Out of memory&lt;/code&gt;): build it again.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;The SDK examples use the optional libraries&lt;/strong&gt;: Estela, The Mine, The Keep, Route 128, Umbra, Street Justice and Gone Silent keep their high score or saved game with &lt;code&gt;zxv_save&lt;/code&gt; (a power cut halfway keeps the previous one) and read the keyboard and gamepad with &lt;code&gt;zxv_input&lt;/code&gt;. The big programs are 1 to 2 KB smaller (&lt;code&gt;-ffunction-sections&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;In &lt;strong&gt;Route 128&lt;/strong&gt;'s demo the driver no longer zigzags in the bends; &lt;strong&gt;Street Justice&lt;/strong&gt; shows the heads that were missing (the runner's, the wardrobe's and the bosses').&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;boardtest&lt;/code&gt;&lt;/strong&gt; shows the four gamepads with all twelve buttons.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Other things&lt;/strong&gt;: &lt;code&gt;asmhello&lt;/code&gt;, a program entirely in assembler, and &lt;code&gt;ZXV_CALL&lt;/code&gt; to call the API from assembler; &lt;code&gt;sdimg&lt;/code&gt; speaks the system's language; &lt;code&gt;LOAD ... GRAPHICS&lt;/code&gt; skips object types it does not know; the emulator's &lt;code&gt;--type&lt;/code&gt; has &lt;code&gt;{JOYn bits}&lt;/code&gt; for each gamepad.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Fixes&lt;/strong&gt;: after a failed &lt;code&gt;USR&lt;/code&gt;, BASIC's music stops (&lt;code&gt;MUSIC&lt;/code&gt; said it was playing with no sound); on Windows the card in a folder refuses names like &lt;code&gt;CON&lt;/code&gt; or &lt;code&gt;NUL&lt;/code&gt;; reopening the emulator's machine with the card in an image no longer leaves it without a card.&lt;/li&gt;
+&lt;li&gt;Together with it, &lt;strong&gt;ZX Basic v1.19.0-zxv.8&lt;/strong&gt;: four gamepads (&lt;code&gt;JOY(n)&lt;/code&gt; from 0 to 3 and four players in &lt;code&gt;zxvinput.bas&lt;/code&gt;), &lt;code&gt;JOY&lt;/code&gt; with fire 4, L and R, and the new memory map.&lt;/li&gt;
+&lt;/ul&gt;</description>
+  </item>
+  <item>
     <title>ZX-V 0.11.0: Wi-Fi, bigger games and the machine's card from the PC</title>
     <link>https://zx-v.org/news/#v0.11.0</link>
     <guid isPermaLink="true">https://zx-v.org/news/#v0.11.0</guid>

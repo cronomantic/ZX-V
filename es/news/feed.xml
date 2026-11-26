@@ -7,6 +7,27 @@
   <description>Las versiones nuevas de ZX-V, un ordenador de 32 bits para aficionados inspirado en el ZX Spectrum, y sus noticias.</description>
   <language>es</language>
   <item>
+    <title>ZX-V 0.12.0: Hasta cuatro mandos, los de Xbox, y un USB que ya no se cuelga</title>
+    <link>https://zx-v.org/es/news/#v0.12.0</link>
+    <guid isPermaLink="true">https://zx-v.org/es/news/#v0.12.0</guid>
+    <pubDate>Thu, 26 Nov 2026 12:00:00 +0000</pubDate>
+    <description>&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Los mandos de Xbox con cable&lt;/strong&gt;: los de Xbox 360 (XInput, y los compatibles, como los 8BitDo en modo X, con el aro de luz diciendo el número de mando) y los de Xbox One y Series (GIP).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Hasta cuatro mandos&lt;/strong&gt;, en &lt;code&gt;JOY0&lt;/code&gt; a &lt;code&gt;JOY3&lt;/code&gt;: &lt;code&gt;JOY n&lt;/code&gt; del BASIC y &lt;code&gt;zxv_joy_read&lt;/code&gt; del SDK admiten &lt;code&gt;n&lt;/code&gt; de 0 a 3. Un quinto se reconoce, pero no se usa. El emulador también admite hasta cuatro, en el PC y en la web.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Fuego 4, L y R&lt;/strong&gt; en todos los mandos (el cuarto botón y los dos gatillos de arriba): los bits 9 a 11 de &lt;code&gt;JOY&lt;/code&gt;, así que un mando tiene cuatro fuegos, L, R, Start y Select. &lt;code&gt;JOY n&lt;/code&gt; del BASIC también los da ya (de 0 a 4095).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Seis aparatos USB a la vez&lt;/strong&gt;, con hasta tres hubs: por ejemplo, teclado, ratón y cuatro mandos detrás de dos hubs.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Un USB que ya no se cuelga&lt;/strong&gt;: - enchufar y desenchufar mandos detrás de un hub, que podía dejar la máquina congelada, ya funciona (TinyUSB 0.21); - un hub que la máquina no sabía manejar (uno con adaptador de red integrado la colgaba) ya funciona, y un aparato que falla ya no para a los demás; - cuando un hub se reinicia solo, la máquina vuelve a encontrarlo todo.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Especificación 0.3&lt;/strong&gt;: &lt;code&gt;JOY2&lt;/code&gt;, &lt;code&gt;JOY3&lt;/code&gt; y los botones nuevos. Un programa que los necesite mira &lt;code&gt;zxv_api_version() &amp;gt;= 3&lt;/code&gt;; en una máquina anterior se leen a 0.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;La RAM de usuario acaba 4 KB antes (240 KB)&lt;/strong&gt;, para hacer sitio en el firmware; el BASIC sigue con sus 93.832 bytes libres. Un &lt;code&gt;.zxv&lt;/code&gt; al que le sobraban menos de 4 KB por encima de sus datos no carga (&lt;code&gt;4 Out of memory&lt;/code&gt;): se vuelve a compilar.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Los ejemplos del SDK usan las bibliotecas opcionales&lt;/strong&gt;: Estela, The Mine, The Keep, Route 128, Umbra, Street Justice y Gone Silent guardan su récord o la partida con &lt;code&gt;zxv_save&lt;/code&gt; (si se va la luz a medias, se queda la de antes) y leen el teclado y el mando con &lt;code&gt;zxv_input&lt;/code&gt;. Los programas grandes ocupan de 1 a 2 KB menos (&lt;code&gt;-ffunction-sections&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;En la demostración de &lt;strong&gt;Route 128&lt;/strong&gt; el piloto ya no hace eses en las curvas; &lt;strong&gt;Street Justice&lt;/strong&gt; enseña las cabezas que faltaban (la del corredor, la del armario y las de los jefes).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;boardtest&lt;/code&gt;&lt;/strong&gt; enseña los cuatro mandos con sus doce botones.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Más cosas&lt;/strong&gt;: &lt;code&gt;asmhello&lt;/code&gt;, un programa entero en ensamblador, y &lt;code&gt;ZXV_CALL&lt;/code&gt; para llamar a la API desde ensamblador; &lt;code&gt;sdimg&lt;/code&gt; habla el idioma del sistema; &lt;code&gt;LOAD ... GRAPHICS&lt;/code&gt; se salta los tipos de objeto que no conoce; el &lt;code&gt;--type&lt;/code&gt; del emulador tiene &lt;code&gt;{JOYn bits}&lt;/code&gt; para cada mando.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Arreglos&lt;/strong&gt;: tras un &lt;code&gt;USR&lt;/code&gt; que falla, la música del BASIC se para (&lt;code&gt;MUSIC&lt;/code&gt; decía que sonaba sin sonar); en Windows, la tarjeta en carpeta rechaza nombres como &lt;code&gt;CON&lt;/code&gt; o &lt;code&gt;NUL&lt;/code&gt;; rehacer la máquina del emulador con la tarjeta en una imagen ya no la deja sin tarjeta.&lt;/li&gt;
+&lt;li&gt;Con ella sale &lt;strong&gt;ZX Basic v1.19.0-zxv.8&lt;/strong&gt;: cuatro mandos (&lt;code&gt;JOY(n)&lt;/code&gt; de 0 a 3 y cuatro jugadores en &lt;code&gt;zxvinput.bas&lt;/code&gt;), &lt;code&gt;JOY&lt;/code&gt; con el fuego 4, L y R, y el nuevo reparto de la memoria.&lt;/li&gt;
+&lt;/ul&gt;</description>
+  </item>
+  <item>
     <title>ZX-V 0.11.0: Wi-Fi, juegos más grandes y la tarjeta de la máquina desde el PC</title>
     <link>https://zx-v.org/es/news/#v0.11.0</link>
     <guid isPermaLink="true">https://zx-v.org/es/news/#v0.11.0</guid>

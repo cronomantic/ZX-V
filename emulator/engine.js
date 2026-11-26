@@ -55,7 +55,8 @@ const HID = (() => {
 })();
 
 /* Los mandos (bits ZXV_JOY_*, spec §6.2). */
-const JOY = { RIGHT: 1, LEFT: 2, DOWN: 4, UP: 8, FIRE1: 16, FIRE2: 32, FIRE3: 64, START: 128, SELECT: 256, CONNECTED: 0x8000 };
+const JOY = { RIGHT: 1, LEFT: 2, DOWN: 4, UP: 8, FIRE1: 16, FIRE2: 32, FIRE3: 64, START: 128, SELECT: 256,
+              FIRE4: 0x200, L: 0x400, R: 0x800, CONNECTED: 0x8000 };
 
 /* --- El cuadro en el canvas ---------------------------------------------------- */
 
@@ -558,14 +559,15 @@ function mouseButtons(e) {
 
 /* Los mandos (la disposición estándar de la Gamepad API), más lo que ponga la
  * página en extraJoy (los controles táctiles de la de un juego). */
-const lastPads = [0, 0];
-const extraJoy = [0, 0];
+const PADS = 4;                         /* JOY0 a JOY3 (D122) */
+const lastPads = [0, 0, 0, 0];
+const extraJoy = [0, 0, 0, 0];
 function pollPads() {
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-    const bits = [0, 0];
+    const bits = [0, 0, 0, 0];
     let n = 0;
     for (const p of pads) {
-        if (!p || n >= 2)
+        if (!p || n >= PADS)
             continue;
         const b = i => p.buttons[i] && p.buttons[i].pressed;
         const ax = p.axes[0] || 0, ay = p.axes[1] || 0, dead = 0.37;
@@ -577,11 +579,14 @@ function pollPads() {
         if (b(0)) v |= JOY.FIRE1;
         if (b(1)) v |= JOY.FIRE2;
         if (b(2)) v |= JOY.FIRE3;
+        if (b(3)) v |= JOY.FIRE4;
+        if (b(4)) v |= JOY.L;
+        if (b(5)) v |= JOY.R;
         if (b(9)) v |= JOY.START;
         if (b(8)) v |= JOY.SELECT;
         bits[n++] = v;
     }
-    for (n = 0; n < 2; n++) {
+    for (n = 0; n < PADS; n++) {
         const v = bits[n] | extraJoy[n];
         if (v !== lastPads[n]) {
             E.core.joy(n, v);
