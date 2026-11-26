@@ -5886,7 +5886,8 @@ de 256 a 511 que no es de ninguna tecla del teclado).</p>
 JOY n, modo
 </code></pre>
 <p>La función <code>JOY n</code> da el estado del mando <code>n</code> (0 para el primero que se
-conecta y 1 para el segundo) como un número formado por estos bits:</p>
+conecta, 1 para el segundo, y así hasta el 3) como un número formado por estos
+bits:</p>
 <table>
 <thead>
 <tr>
@@ -5941,6 +5942,21 @@ conecta y 1 para el segundo) como un número formado por estos bits:</p>
 <td>256</td>
 <td>select</td>
 </tr>
+<tr>
+<td>9</td>
+<td>512</td>
+<td>fuego 4</td>
+</tr>
+<tr>
+<td>10</td>
+<td>1024</td>
+<td>L (gatillo de arriba izquierdo)</td>
+</tr>
+<tr>
+<td>11</td>
+<td>2048</td>
+<td>R (gatillo de arriba derecho)</td>
+</tr>
 </tbody>
 </table>
 <p>Para mirar un botón, divide y quédate con el resto: por ejemplo,
@@ -5994,8 +6010,8 @@ fuego cuenta como fuego):</p>
 </tr>
 </tbody>
 </table>
-<p>Al encender la máquina, el mando 0 es Sinclair 1 y el mando 1, Sinclair 2
-(<code>NEW</code> y <code>RUN</code> no lo cambian). <code>KEY</code> no ve estas teclas.</p>
+<p>Al encender la máquina, el mando 0 es Sinclair 1, el mando 1, Sinclair 2, y
+los mandos 2 y 3 no hacen de teclas (<code>NEW</code> y <code>RUN</code> no lo cambian). <code>KEY</code> no ve estas teclas.</p>
 <p><strong>Parámetros</strong></p>
 <table>
 <thead>
@@ -6008,8 +6024,8 @@ fuego cuenta como fuego):</p>
 <tbody>
 <tr>
 <td><code>n</code></td>
-<td>0 o 1</td>
-<td>El mando.</td>
+<td>0–3</td>
+<td>El mando (hasta la 0.11, 0 o 1).</td>
 </tr>
 <tr>
 <td><code>modo</code></td>
@@ -6018,7 +6034,7 @@ fuego cuenta como fuego):</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Devuelve</strong> (la función): los botones pulsados, de 0 a 511 (la suma de los
+<p><strong>Devuelve</strong> (la función): los botones pulsados, de 0 a 4095 (la suma de los
 valores de la tabla); 0 si el mando no está conectado.</p>
 <p><strong>Errores</strong></p>
 <table>
@@ -6031,7 +6047,7 @@ valores de la tabla); 0 si el mando no está conectado.</p>
 <tbody>
 <tr>
 <td><code>B Entero fuera de rango</code></td>
-<td><code>n</code> no es 0 ni 1, o <code>modo</code> no es de 0 a 3 (también en la función).</td>
+<td><code>n</code> o <code>modo</code> no son de 0 a 3 (también en la función).</td>
 </tr>
 </tbody>
 </table>
@@ -8400,7 +8416,7 @@ todavía no se ha atrapado ninguno.</p>
 <td>11</td>
 <td>Entero fuera de rango</td>
 <td>Integer out of range</td>
-<td>Un número entero fuera de su rango: una coordenada fuera de la pantalla, <code>CHR$ 300</code>, <code>POKE</code> con 256 o en una dirección que no es de la RAM, un stream mayor que 15, <code>JOY 2</code>, <code>MOUSE 4</code>, <code>CLOCK 7</code>, <code>KEY 512</code>, una línea mayor que 9999 en <code>RENUM</code>, <code>AUTO</code> o <code>SAVE</code>; un bloque de más de 65535 bytes en un <code>.tap</code>. Un valor negativo o mayor que 255 donde se espera un byte da <code>B</code> aunque la orden luego compruebe otro rango con otro informe.</td>
+<td>Un número entero fuera de su rango: una coordenada fuera de la pantalla, <code>CHR$ 300</code>, <code>POKE</code> con 256 o en una dirección que no es de la RAM, un stream mayor que 15, <code>JOY 4</code>, <code>MOUSE 4</code>, <code>CLOCK 7</code>, <code>KEY 512</code>, una línea mayor que 9999 en <code>RENUM</code>, <code>AUTO</code> o <code>SAVE</code>; un bloque de más de 65535 bytes en un <code>.tap</code>. Un valor negativo o mayor que 255 donde se espera un byte da <code>B</code> aunque la orden luego compruebe otro rango con otro informe.</td>
 </tr>
 <tr>
 <td>C</td>
@@ -8788,7 +8804,7 @@ con <code>CHR$</code>.</p>
 </tr>
 <tr>
 <td>Paréntesis anidados en una expresión</td>
-<td>unos 170 (unas 24 <code>FN</code> una dentro de otra)</td>
+<td>unos 170 (20 <code>FN</code> una dentro de otra)</td>
 </tr>
 <tr>
 <td>Memoria para el programa y las variables</td>

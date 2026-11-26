@@ -126,7 +126,7 @@ again in a second.</p>
   million instructions per frame (60 frames per second).</li>
 <li><strong>Control.</strong> Your own data structures, fixed-point maths, your own sound
   engine, your own file formats.</li>
-<li><strong>Size.</strong> Up to almost 244 KB for code and data, with all the memory of the
+<li><strong>Size.</strong> Up to almost 240 KB for code and data, with all the memory of the
   machine at your disposal while the program runs.</li>
 </ul>
 <p>The price is that you write in C on your computer, compile, and then load
@@ -207,6 +207,10 @@ others, leaving out <code>files</code>.</p>
 <tr>
 <td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/hello/hello.c"><code>hello</code></a></td>
 <td>The first steps: text through the system routines, drawing straight into video memory and a note on the sound chip</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/asmhello/asmhello.S"><code>asmhello</code></a></td>
+<td>A program in assembly, with no C: the system routines through <code>ZXV_CALL</code>, the gamepad register and a system variable (<a href="#writing-in-assembly">Writing in assembly</a>)</td>
 </tr>
 <tr>
 <td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/graphics/graphics.c"><code>graphics</code></a></td>
@@ -323,7 +327,7 @@ int main(void)
 <pre><code class="language-sh">SDK=../ZX-V/sdk
 riscv64-unknown-elf-gcc -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 \
     -Os -g -Wall -Wextra -std=gnu11 -ffreestanding -fno-builtin \
-    -fno-tree-loop-distribute-patterns -I$SDK/include \
+    -fno-tree-loop-distribute-patterns -ffunction-sections -fdata-sections -I$SDK/include \
     -nostdlib -nostartfiles -static -T $SDK/zxv.ld -Wl,--gc-sections \
     -Wl,--no-warn-rwx-segments \
     $SDK/crt0.S $SDK/zxvlib.c hello.c -lgcc -o hello.elf
@@ -355,7 +359,7 @@ SOURCES := hello.c
 
 CFLAGS  := -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 \
            -Os -g -Wall -Wextra -std=gnu11 -ffreestanding -fno-builtin \
-           -fno-tree-loop-distribute-patterns -I$(SDK)/include
+           -fno-tree-loop-distribute-patterns -ffunction-sections -fdata-sections -I$(SDK)/include
 LDFLAGS := -nostdlib -nostartfiles -static -T $(SDK)/zxv.ld -Wl,--gc-sections \
            -Wl,--no-warn-rwx-segments
 
@@ -425,8 +429,8 @@ Only BASIC launches programs.</p>
 <tbody>
 <tr>
 <td>User RAM</td>
-<td><code>0x2003_4000</code> – <code>0x2007_0FFF</code></td>
-<td>244 KB</td>
+<td><code>0x2003_4000</code> – <code>0x2006_FFFF</code></td>
+<td>240 KB</td>
 <td>Your code, data and stack</td>
 </tr>
 <tr>
@@ -477,7 +481,7 @@ Only BASIC launches programs.</p>
   field use the whole page. And don't mix it with hand-made pointers to the
   same area, as Route 128 and Umbra do (<code>SPARE0</code>, <code>SPARE1</code>): they would
   overwrite each other.
-- The 68 KB above the user RAM belong to the system: touching them stops
+- The 72 KB above the user RAM belong to the system: touching them stops
   your program.</p>
 <h3 id="the-rules-of-the-machine">The rules of the machine<a class="ancla" href="#the-rules-of-the-machine" aria-hidden="true">#</a></h3>
 <p>The same program has to work on the emulator and on the real machine. For
@@ -549,7 +553,7 @@ and fixed point.</p>
 instead of <code>-nostdlib</code>, and with <code>zxvc.c</code> instead of <code>zxvlib.c</code>:</p>
 <pre><code class="language-sh">riscv64-unknown-elf-gcc -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 -Os \
     --specs=picolibc.specs -nostartfiles -static -T $SDK/zxv.ld -I$SDK/include \
-    -Wl,--gc-sections -Wl,--no-warn-rwx-segments \
+    -ffunction-sections -fdata-sections -Wl,--gc-sections -Wl,--no-warn-rwx-segments \
     $SDK/crt0.S $SDK/zxvc.c my_program.c -o my_program.elf
 </code></pre>
 <p>The program grows (the <code>files</code> example takes 14 KB; 6.7 KB with
@@ -1359,8 +1363,8 @@ game is still there when BASIC comes back.</p>
 matrix, eight half-rows with 0 meaning pressed, for programs that read it
 like the Spectrum's port <code>0xFE</code>.</p>
 <h3 id="joysticks">Joysticks<a class="ancla" href="#joysticks" aria-hidden="true">#</a></h3>
-<p><code>zxv_joy_read(0)</code> and <code>zxv_joy_read(1)</code> return the state of the first and
-second gamepad (the first one connected is number 0). Each bit is a button:</p>
+<p><code>zxv_joy_read(0)</code> to <code>zxv_joy_read(3)</code> return the state of the first to the
+fourth gamepad (the first one connected is number 0). Each bit is a button:</p>
 <table>
 <thead>
 <tr>
@@ -1380,6 +1384,10 @@ second gamepad (the first one connected is number 0). Each bit is a button:</p>
 <tr>
 <td>7, 8</td>
 <td><code>START</code>, <code>SELECT</code></td>
+</tr>
+<tr>
+<td>9, 10, 11</td>
+<td><code>FIRE4</code>, <code>L</code>, <code>R</code> (the upper shoulder buttons)</td>
 </tr>
 <tr>
 <td>15</td>
@@ -1575,7 +1583,7 @@ int main(void)
 <ul>
 <li><strong>Saving:</strong> write to <code>SD:</code> explicitly, as above. Your program may have
   been loaded from <code>ROM:</code>, and writing there fails with <code>ZXV_E_ACCESS</code>.
-  Estela keeps its high score in <code>SD:estela.txt</code> for that reason.</li>
+  Estela keeps its high score in <code>SD:estela.sav</code> (with <a href="libraries.html#saving-data-zxv_saveh"><code>zxv_save</code></a>) for that reason.</li>
 <li><strong>Loading a whole file:</strong> <code>zxv_file_load(name, address, max)</code> reads it
   into memory in one go and returns its size. <code>max</code> is the size of your
   buffer: if the file is bigger, nothing is loaded and you get
@@ -1879,11 +1887,10 @@ called. To measure how long a piece of code takes, you may read the
 <code>0x2000_0000</code>: entry <em>n</em> (4 bytes each) is the address of function <em>n</em>,
 which follows the standard RISC-V calling convention (arguments in
 <code>a0</code>–<code>a7</code>, result in <code>a0</code>). The numbers are the <code>ZXV_API_...</code> constants of
-<code>zxv.h</code>, a header you can include in <code>.S</code> files:</p>
+<code>zxv.h</code>, a header you can include in <code>.S</code> files. For assembly it has
+<code>ZXV_CALL(n)</code>, which calls function <em>n</em> through the table (it uses <code>t0</code>
+and, like any call, overwrites <code>ra</code> and the temporary registers):</p>
 <pre><code class="language-asm">#include &quot;zxv.h&quot;
-
-/* Call API function n: load its address from the table at 0x2000_0000. */
-#define API(n)  lui t0, %hi(ZXV_API_TABLE); lw t0, 4*(n)(t0); jalr t0
 
     .section .rodata
 msg:
@@ -1896,13 +1903,13 @@ main:
     sw ra, 12(sp)                   # we call other functions: keep ra
 
     li a0, 7
-    API(ZXV_API_CLS)                # cls(7)
+    ZXV_CALL(ZXV_API_CLS)           # cls(7)
     la a0, msg
-    API(ZXV_API_PRINT_STR)          # print_str(msg)
+    ZXV_CALL(ZXV_API_PRINT_STR)     # print_str(msg)
 
 wait:
-    API(ZXV_API_WAIT_VBLANK)
-    API(ZXV_API_KEY_GET)            # a0 = key, or -1
+    ZXV_CALL(ZXV_API_WAIT_VBLANK)
+    ZXV_CALL(ZXV_API_KEY_GET)       # a0 = key, or -1
     bltz a0, wait
 
     li a0, 0                        # main returns 0
@@ -1915,6 +1922,12 @@ build it with the same commands as a C file, putting <code>hello.S</code> in pla
 <code>hello.c</code>. As in C, keep <code>s0</code>–<code>s11</code> and the stack aligned to 16 bytes if
 you want to return to BASIC. You can of course mix C and assembly files in
 one program.</p>
+<p>In assembly, the addresses, numbers and bits of <code>zxv.h</code> work, but not the
+macros with C type casts (<code>ZXV_LANG</code>, <code>ZXV_RGB</code>...): write the value
+instead. The <a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/asmhello/asmhello.S"><code>asmhello</code></a>
+example is a whole program in assembly: it greets you in the machine's
+language (the <code>LANGUAGE</code> variable) and moves a star with the gamepad (its
+register, <code>JOY0</code>) or the cursor keys.</p>
 <p>Because the table is in RAM, a program can replace an entry with its own
 function to intercept a system routine, as people did with the Spectrum's
 hooks.</p>

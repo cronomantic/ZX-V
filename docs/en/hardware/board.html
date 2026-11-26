@@ -352,8 +352,9 @@ on the board.</p>
 only need them for remote loading (J5: sending programs from the PC,
 debugging BASIC on the board and serving the <code>EXT:</code> drive; see
 <a href="firmware.html#loading-programs-from-the-pc-j5">Loading programs from the PC</a>)
-or to connect an I2C module such as a DS3231 clock (J6). Straight 2.54 mm
-male headers.</p>
+or to watch the clock's bus with an analyser, or to connect a DS3231 clock
+module, which is used instead of the on-board one (J6; programs do not use
+I2C). Straight 2.54 mm male headers.</p>
 <h3 id="the-picos">The Picos<a class="ancla" href="#the-picos" aria-hidden="true">#</a></h3>
 <p>The footprint accepts the Picos three ways:</p>
 <ul>
@@ -534,7 +535,7 @@ link pins. If something does not work, see
 <td><code>I2C</code> <code>3V3</code> <code>GND</code> <code>SDA</code> <code>SCL</code></td>
 <td>Back, right</td>
 <td>J6 (not fitted)</td>
-<td>The clock's I2C bus, 3.3 V, for an extra module (a DS3231 clock module is used instead of the on-board one if present)</td>
+<td>The clock's I2C bus, 3.3 V: to watch it with an analyser, or for a DS3231 clock module, which is used instead of the on-board one. Programs do not use I2C</td>
 </tr>
 <tr>
 <td><code>ULA</code> <em>vídeo y sonido</em></td>

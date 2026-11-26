@@ -149,7 +149,8 @@ hardware, y al revés. Viene en varias formas:</p>
 <p>Los paquetes de Windows y Linux traen <code>zxv</code>, <code>zxv-sdl</code>, <code>zxv-cli</code>, <code>sdimg</code>, <code>zxv-check</code>, <code>zxv-gfx</code>, <code>zxv-tracker</code>, <code>zxv-music</code>, <code>zxv-link</code> y <code>zxv-link-gui</code>,
 además de los ejemplos (la carpeta <code>ejemplos</code>) y la unidad <code>ROM:</code>
 (<code>romdisk.bin</code>). Cómo descargarlos se explica en
-<a href="getting-started.html#descarga">Primeros pasos</a>.</p>
+<a href="getting-started.html#descarga">Primeros pasos</a>. No hay paquete para macOS: en un
+Mac, usa <a href="#la-versión-web">la versión web</a>.</p>
 <h2 id="la-aplicación-de-escritorio-zxv">La aplicación de escritorio (<code>zxv</code>)<a class="ancla" href="#la-aplicación-de-escritorio-zxv" aria-hidden="true">#</a></h2>
 <p><code>zxv</code> abre una ventana con la pantalla de la máquina, menús y una barra de
 estado. La imagen se escala sin deformarse al cambiar el tamaño de la ventana.
@@ -411,8 +412,8 @@ imagen, el de la máquina va al mismo sitio, y los botones y la rueda son de la
 máquina. Al salir de la imagen vuelve a ser el puntero de tu PC. Si un programa
 dibuja su propio puntero, <strong>Opciones &gt; Ocultar el puntero del PC sobre la
 imagen</strong> quita el que sobra.</p>
-<p><strong>Los mandos</strong> funcionan en cuanto los conectas; el primero es el jugador 1 y
-el segundo, el jugador 2. La cruceta o el stick izquierdo son las direcciones,
+<p><strong>Los mandos</strong> funcionan en cuanto los conectas, hasta cuatro; el primero es el
+jugador 1, el segundo, el jugador 2, y así. La cruceta o el stick izquierdo son las direcciones,
 y los botones son:</p>
 <table>
 <thead>
@@ -435,6 +436,18 @@ y los botones son:</p>
 <td>Fuego 3</td>
 </tr>
 <tr>
+<td>Y</td>
+<td>Fuego 4</td>
+</tr>
+<tr>
+<td>LB</td>
+<td>L</td>
+</tr>
+<tr>
+<td>RB</td>
+<td>R</td>
+</tr>
+<tr>
 <td>Start (Menú)</td>
 <td>Start</td>
 </tr>
@@ -444,7 +457,7 @@ y los botones son:</p>
 </tr>
 </tbody>
 </table>
-<p>En un mando de PlayStation son ✕, ○ y □. El teclado del PC no se convierte en
+<p>En un mando de PlayStation son ✕, ○, □, △, L1 y R1. El teclado del PC no se convierte en
 un mando; la mayoría de los juegos, como <em>Estela</em>, admiten las dos cosas.</p>
 <h3 id="la-tarjeta-sd">La tarjeta SD<a class="ancla" href="#la-tarjeta-sd" aria-hidden="true">#</a></h3>
 <p>La máquina guarda tus ficheros en su tarjeta SD. En <code>zxv</code> se elige en
@@ -468,7 +481,12 @@ los programas no ven nada fuera de la carpeta. Los nombres solo pueden llevar
 letras sin tildes, cifras y algunos signos, hasta 63 caracteres; los ficheros
 con otros nombres no aparecen. Y, como en la tarjeta, un fichero que la
 máquina tiene abierto no se puede abrir para escribir, borrar ni renombrar
-(<code>ZXV_E_ACCESS</code>). La unidad <code>EXT:</code> sí lo deja, como el servidor de <code>zxv-link</code>.</p>
+(<code>ZXV_E_ACCESS</code>). La unidad <code>EXT:</code> sí lo deja, como el servidor de <code>zxv-link</code>.
+En Windows, además, una carpeta no admite los nombres que Windows reserva
+para sus dispositivos: <code>CON</code>, <code>PRN</code>, <code>AUX</code>, <code>NUL</code>, de <code>COM1</code> a <code>COM9</code> y de
+<code>LPT1</code> a <code>LPT9</code>, con cualquier extensión (<code>F Nombre de fichero no válido</code> en el
+BASIC, <code>ZXV_E_NAME</code> en C); en la tarjeta de verdad y en una imagen son
+nombres normales.</p>
 <p><strong><code>sdimg</code></strong> crea y llena imágenes de tarjeta desde la línea de órdenes:</p>
 <pre><code class="language-sh">sdimg new tarjeta.img 64 fat32            # una imagen nueva de 64 MB (fat, fat32 o exfat)
 sdimg put tarjeta.img juego.zvb /juego.zvb   # copia un fichero a la imagen
@@ -476,7 +494,8 @@ sdimg get tarjeta.img /juego.zvb juego.zvb   # copia un fichero de la imagen
 sdimg mkdir tarjeta.img /juegos           # crea una carpeta
 sdimg ls tarjeta.img /                    # lista una carpeta, con las fechas
 </code></pre>
-<p>(Por ahora <code>sdimg</code> solo habla español.)</p>
+<p><code>sdimg</code> habla el idioma de tu sistema; <code>--lang en</code> o <code>--lang es</code> delante de la
+orden lo cambia.</p>
 <p><strong>La unidad <code>ROM:</code></strong>, con los ejemplos de serie, es el fichero <code>romdisk.bin</code> que
 está junto al emulador. Si falta, <code>ROM:</code> está vacía.</p>
 <h3 id="la-unidad-ext">La unidad EXT:<a class="ancla" href="#la-unidad-ext" aria-hidden="true">#</a></h3>
@@ -710,7 +729,7 @@ lista todas). Estas son las que más vas a usar:</p>
 </tr>
 <tr>
 <td><code>--type TEXTO</code></td>
-<td>Teclea TEXTO al arrancar. <code>\n</code> o <code>{ENTER}</code> es Intro; también <code>{ESC}</code>, <code>{TAB}</code>, <code>{BS}</code>, <code>{DEL}</code>, <code>{UP}</code>, <code>{DOWN}</code>, <code>{LEFT}</code>, <code>{RIGHT}</code>, <code>{HOME}</code>, <code>{END}</code>, <code>{PGUP}</code>, <code>{PGDN}</code>, <code>{F1}</code>...<code>{F12}</code>, <code>{CTRL+END}</code>, <code>{SHIFT+UP}</code>; <code>{WAIT n}</code> espera n imágenes, <code>{RESET}</code> pulsa Ctrl+Alt+Supr y <code>{JOY bits}</code> deja el mando 1 con esos botones (los de <a href="basic/reference.html#joy"><code>JOY</code></a>) hasta el siguiente <code>{JOY}</code>: <code>{JOY 1}{WAIT 60}{JOY 0}</code> lo lleva a la derecha un segundo</td>
+<td>Teclea TEXTO al arrancar. <code>\n</code> o <code>{ENTER}</code> es Intro; también <code>{ESC}</code>, <code>{TAB}</code>, <code>{BS}</code>, <code>{DEL}</code>, <code>{UP}</code>, <code>{DOWN}</code>, <code>{LEFT}</code>, <code>{RIGHT}</code>, <code>{HOME}</code>, <code>{END}</code>, <code>{PGUP}</code>, <code>{PGDN}</code>, <code>{F1}</code>...<code>{F12}</code>, <code>{CTRL+END}</code>, <code>{SHIFT+UP}</code>; <code>{WAIT n}</code> espera n imágenes, <code>{RESET}</code> pulsa Ctrl+Alt+Supr y <code>{JOY bits}</code> deja el mando 1 con esos botones (los de <a href="basic/reference.html#joy"><code>JOY</code></a>) hasta el siguiente <code>{JOY}</code>: <code>{JOY 1}{WAIT 60}{JOY 0}</code> lo lleva a la derecha un segundo; <code>{JOYn bits}</code> hace lo mismo con el mando de <code>JOY n</code> (de 0 a 3): <code>{JOY2 16}</code></td>
 </tr>
 <tr>
 <td><code>--paste FICHERO</code></td>
@@ -746,7 +765,7 @@ lista todas). Estas son las que más vas a usar:</p>
 </tr>
 <tr>
 <td><code>--version</code></td>
-<td>Escribe la versión de ZX-V (<code>ZX-V 0.11.0</code>) y termina. En Windows, <code>zxv</code> no tiene consola: su versión está en <strong>Ayuda &gt; Acerca de ZX-V</strong></td>
+<td>Escribe la versión de ZX-V (<code>ZX-V 0.12.0</code>) y termina. En Windows, <code>zxv</code> no tiene consola: su versión está en <strong>Ayuda &gt; Acerca de ZX-V</strong></td>
 </tr>
 </tbody>
 </table>

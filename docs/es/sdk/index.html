@@ -128,7 +128,7 @@ línea y lo vuelves a ejecutar en un segundo.</p>
   unos 2,4 millones de instrucciones por frame (60 frames por segundo).</li>
 <li><strong>Control.</strong> Tus propias estructuras de datos, aritmética de coma fija,
   tu propio motor de sonido, tus propios formatos de fichero.</li>
-<li><strong>Espacio.</strong> Casi 244 KB para código y datos, con toda la memoria de la
+<li><strong>Espacio.</strong> Casi 240 KB para código y datos, con toda la memoria de la
   máquina a tu disposición mientras el programa funciona.</li>
 </ul>
 <p>A cambio, escribes en C en tu ordenador, compilas y luego cargas el
@@ -210,6 +210,10 @@ Windows, no la tiene), <code>make</code> lo dice y compila los demás, sin <code
 <tr>
 <td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/hello/hello.c"><code>hello</code></a></td>
 <td>Los primeros pasos: texto con las rutinas del sistema, dibujo directo en la memoria de vídeo y una nota en el chip de sonido</td>
+</tr>
+<tr>
+<td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/asmhello/asmhello.S"><code>asmhello</code></a></td>
+<td>Un programa en ensamblador, sin C: las rutinas del sistema con <code>ZXV_CALL</code>, el registro del mando y una variable del sistema (<a href="#programar-en-ensamblador">Programar en ensamblador</a>)</td>
 </tr>
 <tr>
 <td><a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/graphics/graphics.c"><code>graphics</code></a></td>
@@ -327,7 +331,7 @@ int main(void)
 <pre><code class="language-sh">SDK=../ZX-V/sdk
 riscv64-unknown-elf-gcc -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 \
     -Os -g -Wall -Wextra -std=gnu11 -ffreestanding -fno-builtin \
-    -fno-tree-loop-distribute-patterns -I$SDK/include \
+    -fno-tree-loop-distribute-patterns -ffunction-sections -fdata-sections -I$SDK/include \
     -nostdlib -nostartfiles -static -T $SDK/zxv.ld -Wl,--gc-sections \
     -Wl,--no-warn-rwx-segments \
     $SDK/crt0.S $SDK/zxvlib.c hello.c -lgcc -o hello.elf
@@ -361,7 +365,7 @@ SOURCES := hello.c
 
 CFLAGS  := -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 \
            -Os -g -Wall -Wextra -std=gnu11 -ffreestanding -fno-builtin \
-           -fno-tree-loop-distribute-patterns -I$(SDK)/include
+           -fno-tree-loop-distribute-patterns -ffunction-sections -fdata-sections -I$(SDK)/include
 LDFLAGS := -nostdlib -nostartfiles -static -T $(SDK)/zxv.ld -Wl,--gc-sections \
            -Wl,--no-warn-rwx-segments
 
@@ -433,8 +437,8 @@ llama un <code>.zxv</code>. Solo el BASIC lanza programas.</p>
 <tbody>
 <tr>
 <td>RAM de usuario</td>
-<td><code>0x2003_4000</code> – <code>0x2007_0FFF</code></td>
-<td>244 KB</td>
+<td><code>0x2003_4000</code> – <code>0x2006_FFFF</code></td>
+<td>240 KB</td>
 <td>Tu código, tus datos y la pila</td>
 </tr>
 <tr>
@@ -484,7 +488,7 @@ llama un <code>.zxv</code>. Solo el BASIC lanza programas.</p>
   venir de otro programa), porque el modo 1 y el campo de scroll grande usan
   la página entera. Y no lo mezcles con punteros a mano a la misma zona,
   como hacen Route 128 y Umbra (<code>SPARE0</code>, <code>SPARE1</code>): se pisarían.
-- Los 68 KB que hay encima de la RAM de usuario son del sistema: tocarlos
+- Los 72 KB que hay encima de la RAM de usuario son del sistema: tocarlos
   detiene tu programa.</p>
 <h3 id="las-reglas-de-la-máquina">Las reglas de la máquina<a class="ancla" href="#las-reglas-de-la-máquina" aria-hidden="true">#</a></h3>
 <p>El mismo programa tiene que funcionar en el emulador y en la máquina real.
@@ -557,7 +561,7 @@ C. <code>zxvc.c</code> la conecta con la máquina. Se compila con
 <code>zxvlib.c</code>:</p>
 <pre><code class="language-sh">riscv64-unknown-elf-gcc -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 -Os \
     --specs=picolibc.specs -nostartfiles -static -T $SDK/zxv.ld -I$SDK/include \
-    -Wl,--gc-sections -Wl,--no-warn-rwx-segments \
+    -ffunction-sections -fdata-sections -Wl,--gc-sections -Wl,--no-warn-rwx-segments \
     $SDK/crt0.S $SDK/zxvc.c mi_programa.c -o mi_programa.elf
 </code></pre>
 <p>El programa crece (el ejemplo <code>files</code> ocupa 14 KB; 6,7 KB con
@@ -1372,8 +1376,8 @@ partida sigue ahí cuando vuelve el BASIC.</p>
 siempre, ocho semifilas con 0 para pulsada, para los programas que la leen
 como el puerto <code>0xFE</code> del Spectrum.</p>
 <h3 id="los-mandos">Los mandos<a class="ancla" href="#los-mandos" aria-hidden="true">#</a></h3>
-<p><code>zxv_joy_read(0)</code> y <code>zxv_joy_read(1)</code> devuelven el estado del primer y del
-segundo mando (el primero que se conecta es el 0). Cada bit es un botón:</p>
+<p><code>zxv_joy_read(0)</code> a <code>zxv_joy_read(3)</code> devuelven el estado de los mandos del
+primero al cuarto (el primero que se conecta es el 0). Cada bit es un botón:</p>
 <table>
 <thead>
 <tr>
@@ -1393,6 +1397,10 @@ segundo mando (el primero que se conecta es el 0). Cada bit es un botón:</p>
 <tr>
 <td>7, 8</td>
 <td><code>START</code>, <code>SELECT</code></td>
+</tr>
+<tr>
+<td>9, 10, 11</td>
+<td><code>FIRE4</code>, <code>L</code>, <code>R</code> (los gatillos de arriba)</td>
 </tr>
 <tr>
 <td>15</td>
@@ -1587,7 +1595,7 @@ int main(void)
 <ul>
 <li><strong>Guardar:</strong> escribe en <code>SD:</code> expresamente, como arriba. Tu programa
   puede haberse cargado desde <code>ROM:</code>, y escribir allí falla con
-  <code>ZXV_E_ACCESS</code>. Por eso Estela guarda su récord en <code>SD:estela.txt</code>.</li>
+  <code>ZXV_E_ACCESS</code>. Por eso Estela guarda su récord en <code>SD:estela.sav</code> (con <a href="libraries.html#guardar-datos-zxv_saveh"><code>zxv_save</code></a>).</li>
 <li><strong>Cargar un fichero entero:</strong> <code>zxv_file_load(nombre, dirección, máx)</code> lo
   lee de una vez en memoria y devuelve su tamaño. <code>máx</code> es el tamaño de tu
   buffer: si el fichero es más grande, no se carga nada y te da
@@ -1896,11 +1904,10 @@ direcciones</strong> en <code>0x2000_0000</code>: la entrada <em>n</em> (de 4 by
 dirección de la función <em>n</em>, que sigue la convención de llamada estándar de
 RISC-V (argumentos en <code>a0</code>–<code>a7</code>, resultado en <code>a0</code>). Los números son las
 constantes <code>ZXV_API_...</code> de <code>zxv.h</code>, una cabecera que puedes incluir en los
-ficheros <code>.S</code>:</p>
+ficheros <code>.S</code>. Para ensamblador trae <code>ZXV_CALL(n)</code>, que llama a la función
+<em>n</em> por la tabla (usa <code>t0</code> y, como cualquier llamada, pisa <code>ra</code> y los
+registros temporales):</p>
 <pre><code class="language-asm">#include &quot;zxv.h&quot;
-
-/* Llama a la función n de la API: su dirección está en la tabla de 0x2000_0000. */
-#define API(n)  lui t0, %hi(ZXV_API_TABLE); lw t0, 4*(n)(t0); jalr t0
 
     .section .rodata
 msg:
@@ -1913,13 +1920,13 @@ main:
     sw ra, 12(sp)                   # llamamos a otras funciones: guarda ra
 
     li a0, 7
-    API(ZXV_API_CLS)                # cls(7)
+    ZXV_CALL(ZXV_API_CLS)           # cls(7)
     la a0, msg
-    API(ZXV_API_PRINT_STR)          # print_str(msg)
+    ZXV_CALL(ZXV_API_PRINT_STR)     # print_str(msg)
 
 wait:
-    API(ZXV_API_WAIT_VBLANK)
-    API(ZXV_API_KEY_GET)            # a0 = tecla, o -1
+    ZXV_CALL(ZXV_API_WAIT_VBLANK)
+    ZXV_CALL(ZXV_API_KEY_GET)       # a0 = tecla, o -1
     bltz a0, wait
 
     li a0, 0                        # main devuelve 0
@@ -1932,6 +1939,13 @@ preprocesador de C) y compílalo con las mismas órdenes que un fichero de C,
 poniendo <code>hello.S</code> en lugar de <code>hello.c</code>. Como en C, conserva <code>s0</code>–<code>s11</code> y
 la pila alineada a 16 bytes si quieres volver al BASIC. Por supuesto,
 puedes mezclar ficheros de C y de ensamblador en un mismo programa.</p>
+<p>En ensamblador, de <code>zxv.h</code> valen las direcciones, los números y los bits,
+pero no las macros que llevan conversiones de tipo de C (<code>ZXV_LANG</code>,
+<code>ZXV_RGB</code>...): ahí se pone el valor. El ejemplo
+<a href="https://github.com/cronomantic/ZX-V/blob/main/sdk/examples/asmhello/asmhello.S"><code>asmhello</code></a> es un programa
+entero en ensamblador: saluda en el idioma de la máquina (la variable
+<code>LANGUAGE</code>) y mueve una estrella con el mando (su registro, <code>JOY0</code>) o con
+los cursores.</p>
 <p>Como la tabla está en la RAM, un programa puede cambiar una entrada por una
 función suya para interceptar una rutina del sistema, como se hacía con los
 ganchos del Spectrum.</p>

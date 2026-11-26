@@ -5862,7 +5862,8 @@ to 511 that is not any key of the keyboard).</p>
 JOY n, mode
 </code></pre>
 <p>The function <code>JOY n</code> gives the state of joystick <code>n</code> (0 for the first one
-connected and 1 for the second) as a number made of these bits:</p>
+connected, 1 for the second, and so on up to 3) as a number made of these
+bits:</p>
 <table>
 <thead>
 <tr>
@@ -5917,6 +5918,21 @@ connected and 1 for the second) as a number made of these bits:</p>
 <td>256</td>
 <td>select</td>
 </tr>
+<tr>
+<td>9</td>
+<td>512</td>
+<td>fire 4</td>
+</tr>
+<tr>
+<td>10</td>
+<td>1024</td>
+<td>L (upper left shoulder button)</td>
+</tr>
+<tr>
+<td>11</td>
+<td>2048</td>
+<td>R (upper right shoulder button)</td>
+</tr>
 </tbody>
 </table>
 <p>To test a button, divide and look at the remainder: for example,
@@ -5969,8 +5985,9 @@ that read the keyboard with <code>INKEY$</code> or <code>IN</code> (any fire but
 </tr>
 </tbody>
 </table>
-<p>When the machine is switched on, joystick 0 is Sinclair 1 and joystick 1 is
-Sinclair 2 (<code>NEW</code> and <code>RUN</code> do not change it). <code>KEY</code> does not see these
+<p>When the machine is switched on, joystick 0 is Sinclair 1, joystick 1 is
+Sinclair 2, and joysticks 2 and 3 do not act as keys (<code>NEW</code> and <code>RUN</code> do not
+change it). <code>KEY</code> does not see these
 keys.</p>
 <p><strong>Parameters</strong></p>
 <table>
@@ -5984,8 +6001,8 @@ keys.</p>
 <tbody>
 <tr>
 <td><code>n</code></td>
-<td>0 or 1</td>
-<td>The joystick.</td>
+<td>0–3</td>
+<td>The joystick (up to 0.11, 0 or 1).</td>
 </tr>
 <tr>
 <td><code>mode</code></td>
@@ -5994,7 +6011,7 @@ keys.</p>
 </tr>
 </tbody>
 </table>
-<p><strong>Returns</strong> (the function): the buttons held, from 0 to 511 (the sum of the
+<p><strong>Returns</strong> (the function): the buttons held, from 0 to 4095 (the sum of the
 values in the table); 0 if the joystick is not connected.</p>
 <p><strong>Errors</strong></p>
 <table>
@@ -6007,7 +6024,7 @@ values in the table); 0 if the joystick is not connected.</p>
 <tbody>
 <tr>
 <td><code>B Integer out of range</code></td>
-<td><code>n</code> is not 0 or 1, or <code>mode</code> is not 0 to 3 (also in the function).</td>
+<td><code>n</code> or <code>mode</code> is not 0 to 3 (also in the function).</td>
 </tr>
 </tbody>
 </table>
@@ -8362,7 +8379,7 @@ yet.</p>
 <td>11</td>
 <td>Integer out of range</td>
 <td>Entero fuera de rango</td>
-<td>A whole number out of its range: a coordinate off the screen, <code>CHR$ 300</code>, <code>POKE</code> with 256 or at an address that is not RAM, a stream greater than 15, <code>JOY 2</code>, <code>MOUSE 4</code>, <code>CLOCK 7</code>, <code>KEY 512</code>, a line greater than 9999 in <code>RENUM</code>, <code>AUTO</code> or <code>SAVE</code>; a block over 65535 bytes in a <code>.tap</code>. A value that is negative or greater than 255 where a byte is expected gives <code>B</code> even if the statement then checks a different range with a different report.</td>
+<td>A whole number out of its range: a coordinate off the screen, <code>CHR$ 300</code>, <code>POKE</code> with 256 or at an address that is not RAM, a stream greater than 15, <code>JOY 4</code>, <code>MOUSE 4</code>, <code>CLOCK 7</code>, <code>KEY 512</code>, a line greater than 9999 in <code>RENUM</code>, <code>AUTO</code> or <code>SAVE</code>; a block over 65535 bytes in a <code>.tap</code>. A value that is negative or greater than 255 where a byte is expected gives <code>B</code> even if the statement then checks a different range with a different report.</td>
 </tr>
 <tr>
 <td>C</td>
@@ -8747,7 +8764,7 @@ user-defined graphics are written with <code>CHR$</code>.</p>
 </tr>
 <tr>
 <td>Nested brackets in an expression</td>
-<td>about 170 (about 24 nested <code>FN</code>)</td>
+<td>about 170 (20 nested <code>FN</code>)</td>
 </tr>
 <tr>
 <td>Memory for program and variables</td>

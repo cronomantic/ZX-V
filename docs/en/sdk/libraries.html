@@ -102,6 +102,14 @@ Makefile from <a href="index.html#a-makefile-for-your-project">Your first progra
 </code></pre>
 <p>The headers are in <code>sdk/include</code>, the same folder as the system ones, so
 no extra <code>-I</code> is needed.</p>
+<p>The SDK examples use them, so they work as samples: the keyboard and the
+gamepad with <code>zxv_input</code> and the high score with <code>zxv_save</code> in Estela, The
+Mine, The Keep, Route 128, Umbra and Street Justice (each one, in the SDK
+<code>Makefile</code>, with its own); Gone Silent, the keyboard and gamepad also with
+<code>zxv_input</code> (its sixteen actions, as many as fit) and the saved game with
+<code>zxv_save</code>; the square roots and angles of <code>zxv_math</code> in
+Estela, Street Justice and Gone Silent; and the floor cones of <code>graphics</code>,
+with <code>zxv_m7_project</code>.</p>
 <table>
 <thead>
 <tr>
@@ -1774,11 +1782,12 @@ name. The map is data: it can be copied, changed and saved with
 <p><code>ZXV_IN_ACTIONS</code>: how many actions there are (16; action <code>a</code> is bit
 <code>1 &lt;&lt; a</code>). <code>ZXV_IN_KEYS</code>: how many keys each one can have in a map (3).</p>
 <p><strong>See also:</strong> <a href="#zxv_input_map"><code>zxv_input_map</code></a>.</p>
-<h3 id="zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc"><code>ZXV_IN_RIGHT</code>, <code>ZXV_IN_LEFT</code>, <code>ZXV_IN_DOWN</code>, <code>ZXV_IN_UP</code>, <code>ZXV_IN_FIRE</code>, <code>ZXV_IN_FIRE2</code>, <code>ZXV_IN_FIRE3</code>, <code>ZXV_IN_START</code>, <code>ZXV_IN_SELECT</code>, <code>ZXV_IN_ESC</code><a class="ancla" href="#zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc" aria-hidden="true">#</a></h3>
-<p>The actions of the <a href="#zxv_input_default">default map</a>. They are the same
-bits as the gamepad buttons (<code>ZXV_JOY_...</code>), plus Esc. The bits it does
-not use (0x0400 to 0x8000) are for the game, with a map of its own; and a
-game can give these whatever meaning it likes.</p>
+<h3 id="zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc-zxv_in_fire4-zxv_in_l-zxv_in_r"><code>ZXV_IN_RIGHT</code>, <code>ZXV_IN_LEFT</code>, <code>ZXV_IN_DOWN</code>, <code>ZXV_IN_UP</code>, <code>ZXV_IN_FIRE</code>, <code>ZXV_IN_FIRE2</code>, <code>ZXV_IN_FIRE3</code>, <code>ZXV_IN_START</code>, <code>ZXV_IN_SELECT</code>, <code>ZXV_IN_ESC</code>, <code>ZXV_IN_FIRE4</code>, <code>ZXV_IN_L</code>, <code>ZXV_IN_R</code><a class="ancla" href="#zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc-zxv_in_fire4-zxv_in_l-zxv_in_r" aria-hidden="true">#</a></h3>
+<p>The actions of the <a href="#zxv_input_default">default map</a>. The first nine are
+the same bits as the gamepad buttons (<code>ZXV_JOY_...</code>); then come Esc and
+fire 4, L and R (these three only on the gamepad). The bits it does not use
+(0x2000 to 0x8000) are for the game, with a map of its own; and a game can
+give these whatever meaning it likes.</p>
 <table>
 <thead>
 <tr>
@@ -1848,6 +1857,24 @@ game can give these whatever meaning it likes.</p>
 <td>0x0200</td>
 <td>Esc</td>
 <td>none</td>
+</tr>
+<tr>
+<td><code>ZXV_IN_FIRE4</code></td>
+<td>0x0400</td>
+<td>none</td>
+<td><code>ZXV_JOY_FIRE4</code></td>
+</tr>
+<tr>
+<td><code>ZXV_IN_L</code></td>
+<td>0x0800</td>
+<td>none</td>
+<td><code>ZXV_JOY_L</code></td>
+</tr>
+<tr>
+<td><code>ZXV_IN_R</code></td>
+<td>0x1000</td>
+<td>none</td>
+<td><code>ZXV_JOY_R</code></td>
 </tr>
 </tbody>
 </table>
@@ -1942,8 +1969,8 @@ yourself.</p>
 <pre><code class="language-c">extern const zxv_input_map zxv_input_default;
 </code></pre>
 <p>The default map: cursor keys or Q A O P, fire with Space or M, fire 2 with
-N or Z, fire 3 with B or X, Enter for START, Tab for SELECT, Esc, and
-gamepad 0. The table of <a href="#zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc">the actions</a>
+N or Z, fire 3 with B or X, Enter for START, Tab for SELECT, Esc, fire 4,
+L and R only on the gamepad, and gamepad 0. The table of <a href="#zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc-zxv_in_fire4-zxv_in_l-zxv_in_r">the actions</a>
 says what each one does. It is the one used with
 <code>zxv_input_init(&amp;in, NULL)</code>.</p>
 <p>It is <code>const</code>: to change it, copy it.</p>

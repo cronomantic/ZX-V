@@ -164,7 +164,7 @@ it shows in a few things (explained in <a href="https://github.com/cronomantic/z
 <li><strong>The Spectrum's screen</strong> is the top-left 256 × 192 pixels of the drawing
   page, in any mode: <code>PRINT</code>, <code>PLOT</code>, <code>DRAW</code>, <code>CIRCLE</code> and <code>CLS</code> do not go
   outside it. The shapes, sprites and maps of <code>zxv.bas</code> reach the whole page.</li>
-<li><strong>Memory.</strong> A program has 244 KB (code, data, heap and stack); the heap is
+<li><strong>Memory.</strong> A program has 240 KB (code, data, heap and stack); the heap is
   all that is left over, without <code>-H</code>. See
   <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#how-much-memory-a-program-has">How much memory a program has</a>.</li>
 <li><strong>Compiler options.</strong> There is no <code>tap</code>, <code>tzx</code> or <code>sna</code>: the output is a
@@ -174,11 +174,11 @@ it shows in a few things (explained in <a href="https://github.com/cronomantic/z
   other memory without an error. The list, in <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#compiler-options">Compiler options</a>.</li>
 </ul>
 <h2 id="the-versions">The versions<a class="ancla" href="#the-versions" aria-hidden="true">#</a></h2>
-<p>This page is the one for <strong>v1.19.0-zxv.7</strong>, which comes out together with
-ZX-V 0.11.0: <code>zxv.bas</code> with the modes, the pages, sprites, shapes, tile maps
+<p>This page is the one for <strong>v1.19.0-zxv.8</strong>, which comes out together with
+ZX-V 0.12.0: <code>zxv.bas</code> with the modes, the pages, sprites, shapes, tile maps
 (<code>TILE</code>, <code>MAPDIM</code>, <code>MAP</code>, <code>CELL</code>...), mode 7 (<code>TEXTURE</code>, <code>FLOOR</code>,
 <code>FLOORMAP</code>, <code>ROTATE</code>, <code>ROTATEMAP</code>), patterns (<code>PATTERN</code>, <code>PATTERNBITS</code>), the
-keyboard, the joysticks, the AY chips, music (<code>.zxm</code>, PT3, TurboSound,
+keyboard, the four joysticks, the AY chips, music (<code>.zxm</code>, PT3, TurboSound,
 VGM...), effects and recorded sounds; <code>SAVE</code>, <code>LOAD</code> and <code>VERIFY</code>; the SDK
 libraries (<code>zxvinput.bas</code>... <code>zxv3d.bas</code>); and the <code>--loading-screen</code>,
 <code>--embed</code> and <code>--code-bank</code> options. Its programs need ZX-V 0.7.0 or later,
@@ -191,10 +191,12 @@ banks, <code>PATTERN</code>, <code>PATTERNBITS</code>, <code>ROTATE</code>, <cod
 and the shading of <code>zxv3d.bas</code>. With an earlier ROM the program loads, but a
 bank stops it with "the ROM has no banks", patterns come out in a plain
 colour and those mode 7 planes are not drawn properly. Each entry of the
-fork's documentation says which ROM it needs.</p>
+fork's documentation says which ROM it needs. Joysticks 2 and 3, and fire 4,
+L and R, are <strong>specification 0.3</strong>, that of ZX-V 0.12.0 or later: with an
+earlier ROM they read 0.</p>
 <h2 id="installing-it">Installing it<a class="ancla" href="#installing-it" aria-hidden="true">#</a></h2>
-<p><strong>On Windows:</strong> download <code>zxbasic-1.19.0-zxv.7-win64.zip</code> from the
-<a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.7">release page</a>
+<p><strong>On Windows:</strong> download <code>zxbasic-1.19.0-zxv.8-win64.zip</code> from the
+<a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.8">release page</a>
 and unzip it anywhere. It has <code>zxbc.exe</code>, which does not need Python.</p>
 <p><strong>On Linux and macOS:</strong> download the source code from that same page, or
 clone the fork's <code>zxv</code> branch (<code>git clone -b zxv https://github.com/cronomantic/zxbasic</code>). You need

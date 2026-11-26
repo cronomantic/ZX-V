@@ -166,7 +166,7 @@ cosas (las explica <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs
   izquierda de la página de dibujo, en cualquier modo: <code>PRINT</code>, <code>PLOT</code>,
   <code>DRAW</code>, <code>CIRCLE</code> y <code>CLS</code> no salen de ahí. Las figuras, los sprites y los
   mapas de <code>zxv.bas</code> llegan a toda la página.</li>
-<li><strong>La memoria.</strong> Un programa tiene 244 KB (código, datos, montón y pila); el
+<li><strong>La memoria.</strong> Un programa tiene 240 KB (código, datos, montón y pila); el
   montón es todo lo que sobra, sin <code>-H</code>. Ver
   <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#how-much-memory-a-program-has">How much memory a program has</a>.</li>
 <li><strong>Opciones del compilador.</strong> No hay <code>tap</code>, <code>tzx</code> ni <code>sna</code>: sale un <code>.zxv</code>
@@ -177,11 +177,11 @@ cosas (las explica <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs
   <a href="https://github.com/cronomantic/zxbasic/blob/zxv/docs/zxv.md#compiler-options">Compiler options</a>.</li>
 </ul>
 <h2 id="las-versiones">Las versiones<a class="ancla" href="#las-versiones" aria-hidden="true">#</a></h2>
-<p>Esta página es la de la <strong>v1.19.0-zxv.7</strong>, que sale junto con ZX-V 0.11.0:
+<p>Esta página es la de la <strong>v1.19.0-zxv.8</strong>, que sale junto con ZX-V 0.12.0:
 <code>zxv.bas</code> con los modos, las páginas, los sprites, las figuras, los mapas de
 tiles (<code>TILE</code>, <code>MAPDIM</code>, <code>MAP</code>, <code>CELL</code>...), el modo 7 (<code>TEXTURE</code>, <code>FLOOR</code>,
 <code>FLOORMAP</code>, <code>ROTATE</code>, <code>ROTATEMAP</code>), las tramas (<code>PATTERN</code>, <code>PATTERNBITS</code>),
-el teclado, los mandos, los AY, la música (<code>.zxm</code>, PT3, TurboSound, VGM...),
+el teclado, los cuatro mandos, los AY, la música (<code>.zxm</code>, PT3, TurboSound, VGM...),
 los efectos y los sonidos grabados; <code>SAVE</code>, <code>LOAD</code> y <code>VERIFY</code>; las
 bibliotecas del SDK (<code>zxvinput.bas</code>... <code>zxv3d.bas</code>); y las opciones
 <code>--loading-screen</code>, <code>--embed</code> y <code>--code-bank</code>. Sus programas necesitan ZX-V
@@ -195,10 +195,12 @@ especificación 0.1): los bancos de código, <code>PATTERN</code>,
 <code>zxv3d.bas</code>. Con una ROM anterior el programa carga, pero un banco lo para
 con «the ROM has no banks», las tramas salen de color liso y esos planos del
 modo 7 no se dibujan bien. Cada entrada de la documentación del fork dice
-qué ROM necesita.</p>
+qué ROM necesita. Los mandos 2 y 3, y el fuego 4, L y R, son de la
+<strong>especificación 0.3</strong>, la de ZX-V 0.12.0 o posterior: con una ROM anterior se
+leen a 0.</p>
 <h2 id="instalarlo">Instalarlo<a class="ancla" href="#instalarlo" aria-hidden="true">#</a></h2>
-<p><strong>En Windows:</strong> descarga <code>zxbasic-1.19.0-zxv.7-win64.zip</code> de la
-<a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.7">página de la versión</a>
+<p><strong>En Windows:</strong> descarga <code>zxbasic-1.19.0-zxv.8-win64.zip</code> de la
+<a href="https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.8">página de la versión</a>
 y descomprímelo donde quieras. Trae <code>zxbc.exe</code>, que no necesita Python.</p>
 <p><strong>En Linux y macOS:</strong> descarga el código de esa misma página, o clona la
 rama <code>zxv</code> del fork

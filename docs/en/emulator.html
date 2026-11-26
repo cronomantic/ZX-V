@@ -149,7 +149,8 @@ other way round. It comes in several forms:</p>
 <p>The Windows and Linux packages contain <code>zxv</code>, <code>zxv-sdl</code>, <code>zxv-cli</code>, <code>sdimg</code>, <code>zxv-check</code>, <code>zxv-gfx</code>, <code>zxv-tracker</code>, <code>zxv-music</code>, <code>zxv-link</code> and <code>zxv-link-gui</code>,
 plus the examples (the <code>ejemplos</code> folder) and the <code>ROM:</code> drive
 (<code>romdisk.bin</code>). How to download them is explained in
-<a href="getting-started.html#download">Getting started</a>.</p>
+<a href="getting-started.html#download">Getting started</a>. There is no package for
+macOS: on a Mac, use <a href="#the-web-version">the web version</a>.</p>
 <h2 id="the-desktop-application-zxv">The desktop application (<code>zxv</code>)<a class="ancla" href="#the-desktop-application-zxv" aria-hidden="true">#</a></h2>
 <p><code>zxv</code> opens a window with the machine's screen, menus and a status bar. The
 picture is scaled without distortion when you resize the window. What you
@@ -411,8 +412,8 @@ picture, the machine's pointer goes to the same place, and the buttons and the
 wheel are the machine's. When it leaves the picture, it is your PC's pointer
 again. If a program draws its own pointer, <strong>Options &gt; Hide the PC pointer over
 the picture</strong> removes the duplicate.</p>
-<p><strong>Gamepads</strong> work as soon as you connect them; the first is player 1 and the
-second, player 2. The d-pad or the left stick are the directions, and the
+<p><strong>Gamepads</strong> work as soon as you connect them, up to four; the first is player
+1, the second, player 2, and so on. The d-pad or the left stick are the directions, and the
 buttons are:</p>
 <table>
 <thead>
@@ -435,6 +436,18 @@ buttons are:</p>
 <td>Fire 3</td>
 </tr>
 <tr>
+<td>Y</td>
+<td>Fire 4</td>
+</tr>
+<tr>
+<td>LB</td>
+<td>L</td>
+</tr>
+<tr>
+<td>RB</td>
+<td>R</td>
+</tr>
+<tr>
 <td>Start (Menu)</td>
 <td>Start</td>
 </tr>
@@ -444,7 +457,7 @@ buttons are:</p>
 </tr>
 </tbody>
 </table>
-<p>On a PlayStation pad that is ✕, ○ and □. The PC keyboard is not turned into
+<p>On a PlayStation pad that is ✕, ○, □, △, L1 and R1. The PC keyboard is not turned into
 a gamepad; most games, like <em>Estela</em>, accept both the keyboard and a gamepad.</p>
 <h3 id="the-sd-card">The SD card<a class="ancla" href="#the-sd-card" aria-hidden="true">#</a></h3>
 <p>The machine keeps your files on its SD card. In <code>zxv</code> you can choose, in
@@ -468,7 +481,10 @@ outside the folder. File names can use only unaccented letters, digits and
 some symbols, up to 63 characters; files with other names do not show up.
 And, as on the card, a file the machine has open cannot be opened for
 writing, removed or renamed (<code>ZXV_E_ACCESS</code>). The <code>EXT:</code> drive does allow it,
-as the <code>zxv-link</code> server does.</p>
+as the <code>zxv-link</code> server does. On Windows, a folder also refuses the names
+Windows keeps for its devices: <code>CON</code>, <code>PRN</code>, <code>AUX</code>, <code>NUL</code>, <code>COM1</code> to <code>COM9</code>
+and <code>LPT1</code> to <code>LPT9</code>, with any extension (<code>F Invalid file name</code> in BASIC,
+<code>ZXV_E_NAME</code> in C); on the real card and in an image they are ordinary names.</p>
 <p><strong><code>sdimg</code></strong> creates and fills card images from the command line:</p>
 <pre><code class="language-sh">sdimg new card.img 64 fat32          # a new 64 MB image (fat, fat32 or exfat)
 sdimg put card.img game.zvb /game.zvb   # copy a file into the image
@@ -476,7 +492,8 @@ sdimg get card.img /game.zvb game.zvb   # copy a file out of it
 sdimg mkdir card.img /games          # create a folder
 sdimg ls card.img /                  # list a folder, with dates
 </code></pre>
-<p>(<code>sdimg</code> speaks only Spanish for now.)</p>
+<p><code>sdimg</code> speaks your system's language; <code>--lang en</code> or <code>--lang es</code> before the
+command changes it.</p>
 <p><strong>The <code>ROM:</code> drive</strong>, with the built-in examples, is the <code>romdisk.bin</code> file that
 sits next to the emulator. If it is missing, <code>ROM:</code> is empty.</p>
 <h3 id="the-ext-drive">The EXT: drive<a class="ancla" href="#the-ext-drive" aria-hidden="true">#</a></h3>
@@ -707,7 +724,7 @@ lists them all). These are the ones you are most likely to use:</p>
 </tr>
 <tr>
 <td><code>--type TEXT</code></td>
-<td>Type TEXT at start-up. <code>\n</code> or <code>{ENTER}</code> is Enter; also <code>{ESC}</code>, <code>{TAB}</code>, <code>{BS}</code>, <code>{DEL}</code>, <code>{UP}</code>, <code>{DOWN}</code>, <code>{LEFT}</code>, <code>{RIGHT}</code>, <code>{HOME}</code>, <code>{END}</code>, <code>{PGUP}</code>, <code>{PGDN}</code>, <code>{F1}</code>...<code>{F12}</code>, <code>{CTRL+END}</code>, <code>{SHIFT+UP}</code>; <code>{WAIT n}</code> waits n frames, <code>{RESET}</code> presses Ctrl+Alt+Del and <code>{JOY bits}</code> holds gamepad 1 with those buttons (those of <a href="basic/reference.html#joy"><code>JOY</code></a>) until the next <code>{JOY}</code>: <code>{JOY 1}{WAIT 60}{JOY 0}</code> pushes it right for one second</td>
+<td>Type TEXT at start-up. <code>\n</code> or <code>{ENTER}</code> is Enter; also <code>{ESC}</code>, <code>{TAB}</code>, <code>{BS}</code>, <code>{DEL}</code>, <code>{UP}</code>, <code>{DOWN}</code>, <code>{LEFT}</code>, <code>{RIGHT}</code>, <code>{HOME}</code>, <code>{END}</code>, <code>{PGUP}</code>, <code>{PGDN}</code>, <code>{F1}</code>...<code>{F12}</code>, <code>{CTRL+END}</code>, <code>{SHIFT+UP}</code>; <code>{WAIT n}</code> waits n frames, <code>{RESET}</code> presses Ctrl+Alt+Del and <code>{JOY bits}</code> holds gamepad 1 with those buttons (those of <a href="basic/reference.html#joy"><code>JOY</code></a>) until the next <code>{JOY}</code>: <code>{JOY 1}{WAIT 60}{JOY 0}</code> pushes it right for one second; <code>{JOYn bits}</code> does the same with the gamepad of <code>JOY n</code> (0 to 3): <code>{JOY2 16}</code></td>
 </tr>
 <tr>
 <td><code>--paste FILE</code></td>
@@ -743,7 +760,7 @@ lists them all). These are the ones you are most likely to use:</p>
 </tr>
 <tr>
 <td><code>--version</code></td>
-<td>Print the ZX-V version (<code>ZX-V 0.11.0</code>) and exit. On Windows <code>zxv</code> has no console: its version is in <strong>Help &gt; About ZX-V</strong></td>
+<td>Print the ZX-V version (<code>ZX-V 0.12.0</code>) and exit. On Windows <code>zxv</code> has no console: its version is in <strong>Help &gt; About ZX-V</strong></td>
 </tr>
 </tbody>
 </table>

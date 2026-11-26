@@ -349,8 +349,9 @@ sobre la placa.</p>
 Solo hacen falta para la carga remota (J5: mandar programas desde el PC,
 depurar el BASIC en la placa y servir la unidad <code>EXT:</code>; ver
 <a href="firmware.html#cargar-programas-desde-el-pc-j5">Cargar programas desde el PC</a>)
-o para conectar un módulo I2C, como un reloj DS3231 (J6). Tiras macho rectas
-de 2,54 mm.</p>
+o para mirar el bus del reloj con un analizador, o conectar un módulo de reloj
+DS3231, que se usa en lugar del de la placa (J6; los programas no usan el I2C).
+Tiras macho rectas de 2,54 mm.</p>
 <h3 id="las-pico">Las Pico<a class="ancla" href="#las-pico" aria-hidden="true">#</a></h3>
 <p>La huella admite las Pico de tres maneras:</p>
 <ul>
@@ -531,7 +532,7 @@ enlace. Si algo no funciona, mira <a href="firmware.html#si-no-hay-imagen-o-no-h
 <td><code>I2C</code> <code>3V3</code> <code>GND</code> <code>SDA</code> <code>SCL</code></td>
 <td>Detrás, a la derecha</td>
 <td>J6 (sin montar)</td>
-<td>El bus I2C del reloj, a 3,3 V, para otro módulo (si hay un módulo de reloj DS3231, se usa en lugar del de la placa)</td>
+<td>El bus I2C del reloj, a 3,3 V: para mirarlo con un analizador o para un módulo de reloj DS3231, que se usa en lugar del de la placa. Los programas no usan el I2C</td>
 </tr>
 <tr>
 <td><code>ULA</code> <em>vídeo y sonido</em></td>

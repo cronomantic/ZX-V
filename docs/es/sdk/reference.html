@@ -164,7 +164,7 @@ propia referencia: <a href="libraries.html">Las bibliotecas del SDK</a>.</p>
 </tr>
 <tr>
 <td><code>include/zxv_version.h</code></td>
-<td>La versión de ZX-V con la que se publicó este SDK (<code>ZXV_VERSION</code>, por ejemplo <code>"0.11.0"</code>, y <code>ZXV_VERSION_MAJOR</code>, <code>_MINOR</code> y <code>_PATCH</code>); ver <a href="#zxv_api_version"><code>zxv_api_version</code></a></td>
+<td>La versión de ZX-V con la que se publicó este SDK (<code>ZXV_VERSION</code>, por ejemplo <code>"0.12.0"</code>, y <code>ZXV_VERSION_MAJOR</code>, <code>_MINOR</code> y <code>_PATCH</code>); ver <a href="#zxv_api_version"><code>zxv_api_version</code></a></td>
 </tr>
 <tr>
 <td><code>include/sys/dirent.h</code></td>
@@ -396,9 +396,9 @@ uint32_t tardado = zxv_time_us() - t0;     /* en µs, aunque dé la vuelta */
 <p>La versión de la especificación de la máquina que cumple la ROM en la que
 va el programa. Es la que dice qué funciones y qué variables del sistema
 hay.</p>
-<p><strong>Devuelve:</strong> <code>mayor &lt;&lt; 16 | menor</code>. La ROM actual da <strong>2</strong> (la versión
-0.2); las anteriores, 1 (la 0.1). Es lo mismo que la variable del sistema
-<code>ZXV_SV_VERSION</code>. <code>ZXV_SPEC_VERSION</code> (2) es la versión de las cabeceras con
+<p><strong>Devuelve:</strong> <code>mayor &lt;&lt; 16 | menor</code>. La ROM actual da <strong>3</strong> (la versión
+0.3); las anteriores, 2 (la 0.2) o 1 (la 0.1). Es lo mismo que la variable del sistema
+<code>ZXV_SV_VERSION</code>. <code>ZXV_SPEC_VERSION</code> (3) es la versión de las cabeceras con
 las que compilas, no la de la máquina.</p>
 <p><strong>Errores:</strong> ninguno.</p>
 <p><strong>Comprobar la versión.</strong> Un programa compilado con este SDK puede acabar
@@ -406,11 +406,12 @@ en una máquina con una ROM más antigua. Antes de usar lo que llegó con la
 especificación 0.2 (la trama de las figuras, <code>zxv_m7_draw_map</code>,
 <code>zxv_m7_affine</code>, los bancos, los mensajes de <code>zxv_report_error</code> de más de
 47 bytes...), mira que la ROM lo tiene. Con una ROM 0.1, una función de la
-0.2 no hace nada (devuelve −1), y los bancos dan <code>ZXV_E_ACCESS</code>. La
-especificación 0.2 es la de ZX-V 0.11.0 y posteriores; la 0.1, la de las
-anteriores.</p>
+0.2 no hace nada (devuelve −1), y los bancos dan <code>ZXV_E_ACCESS</code>. Lo mismo con
+lo que llegó con la 0.3 (<code>JOY2</code>, <code>JOY3</code>, el fuego 4, L y R): con una ROM
+anterior se lee a 0. La especificación 0.3 es la de ZX-V 0.12.0 y posteriores;
+la 0.2, la de la 0.11.0; la 0.1, la de las anteriores.</p>
 <p><strong>La versión de ZX-V no es esto.</strong> <code>ZXV_VERSION</code> (de <code>zxv_version.h</code>, por
-ejemplo <code>"0.11.0"</code>) es la versión de los programas de ZX-V (la ROM, el
+ejemplo <code>"0.12.0"</code>) es la versión de los programas de ZX-V (la ROM, el
 emulador y el firmware, que se publican juntos) con la que salió este SDK.
 Es un texto fijo que se compila dentro de tu programa: no dice qué ROM
 tiene la máquina, y muchas versiones de ZX-V cumplen la misma
@@ -447,12 +448,12 @@ if (zxv_api_version() &gt;= 2)         /* especificación 0.2 o posterior */
 </tr>
 <tr>
 <td><code>ZXV_SPEC_VERSION</code></td>
-<td>2</td>
-<td>Versión de la especificación de estas cabeceras (0.2)</td>
+<td>3</td>
+<td>Versión de la especificación de estas cabeceras (0.3)</td>
 </tr>
 <tr>
 <td><code>ZXV_VERSION</code></td>
-<td><code>"0.11.0"</code></td>
+<td><code>"0.12.0"</code></td>
 <td>Versión de ZX-V con la que salió el SDK, en <code>zxv_version.h</code> (con <code>ZXV_VERSION_MAJOR</code>, <code>_MINOR</code>, <code>_PATCH</code>)</td>
 </tr>
 </tbody>
@@ -959,7 +960,7 @@ while ((k = zxv_key_get()) &gt;= 0) {
 <pre><code class="language-c">uint32_t zxv_joy_read(int n);
 </code></pre>
 <p>El estado de un mando USB: qué direcciones y botones están pulsados ahora
-mismo. Es lo mismo que leer los registros <code>ZXV_I_JOY0</code> y <code>ZXV_I_JOY1</code>.</p>
+mismo. Es lo mismo que leer los registros <code>ZXV_I_JOY0</code> a <code>ZXV_I_JOY3</code>.</p>
 <p><strong>Parámetros</strong></p>
 <table>
 <thead>
@@ -972,8 +973,8 @@ mismo. Es lo mismo que leer los registros <code>ZXV_I_JOY0</code> y <code>ZXV_I_
 <tbody>
 <tr>
 <td><code>n</code></td>
-<td>0 o 1</td>
-<td>El mando: el primero que se conecta es el 0 y el segundo, el 1. Cualquier valor que no sea 0 lee el 1.</td>
+<td>0–3</td>
+<td>El mando: el primero que se conecta es el 0, el segundo, el 1, y así hasta el 3; cualquier otro valor da 0. El 2 y el 3, desde la especificación 0.3 (antes daban siempre 0); hasta ZX-V 0.11, cualquier valor distinto de 0 leía el 1.</td>
 </tr>
 </tbody>
 </table>
@@ -992,39 +993,54 @@ dice que hay un mando. Un mando desconectado da 0.</p>
 <tr>
 <td><code>ZXV_JOY_RIGHT</code></td>
 <td>0</td>
-<td><code>ZXV_JOY_FIRE2</code></td>
-<td>5</td>
-</tr>
-<tr>
-<td><code>ZXV_JOY_LEFT</code></td>
-<td>1</td>
-<td><code>ZXV_JOY_FIRE3</code></td>
-<td>6</td>
-</tr>
-<tr>
-<td><code>ZXV_JOY_DOWN</code></td>
-<td>2</td>
 <td><code>ZXV_JOY_START</code></td>
 <td>7</td>
 </tr>
 <tr>
-<td><code>ZXV_JOY_UP</code></td>
-<td>3</td>
+<td><code>ZXV_JOY_LEFT</code></td>
+<td>1</td>
 <td><code>ZXV_JOY_SELECT</code></td>
 <td>8</td>
 </tr>
 <tr>
+<td><code>ZXV_JOY_DOWN</code></td>
+<td>2</td>
+<td><code>ZXV_JOY_FIRE4</code></td>
+<td>9</td>
+</tr>
+<tr>
+<td><code>ZXV_JOY_UP</code></td>
+<td>3</td>
+<td><code>ZXV_JOY_L</code></td>
+<td>10</td>
+</tr>
+<tr>
 <td><code>ZXV_JOY_FIRE1</code></td>
 <td>4</td>
+<td><code>ZXV_JOY_R</code></td>
+<td>11</td>
+</tr>
+<tr>
+<td><code>ZXV_JOY_FIRE2</code></td>
+<td>5</td>
 <td><code>ZXV_JOY_CONNECTED</code></td>
 <td>15</td>
 </tr>
+<tr>
+<td><code>ZXV_JOY_FIRE3</code></td>
+<td>6</td>
+<td></td>
+<td></td>
+</tr>
 </tbody>
 </table>
+<p><code>ZXV_JOY_FIRE4</code>, <code>ZXV_JOY_L</code> y <code>ZXV_JOY_R</code>, desde la especificación 0.3 (antes, a 0).</p>
 <p>La dirección sale de la cruceta o del stick izquierdo (pasado un cuarto de
-su recorrido). En un mando de PlayStation, ✕, ○ y □ son los fuegos 1, 2 y
-3; Share/Create es Select y Options, Start. En un mando genérico, los
-botones 1–3 son los fuegos, el 9 es Select y el 10, Start.</p>
+su recorrido). En un mando de PlayStation, ✕, ○, □ y △ son los fuegos 1 a
+4, L1 es L y R1 es R; Share/Create es Select y Options, Start. En uno de
+Xbox (360, One o Series), A, B, X e Y son los fuegos, LB y RB son L y R.
+En un mando genérico, los botones 1–4 son los fuegos, el 5 es L, el 6 es
+R, el 9 es Select y el 10, Start.</p>
 <p><strong>Errores:</strong> ninguno.</p>
 <p><strong>Ejemplo</strong></p>
 <pre><code class="language-c">uint32_t j = zxv_joy_read(0);
@@ -1510,7 +1526,7 @@ muestras directamente (desde <code>ZXV_SMP_TABLE</code>).</p>
 </tr>
 <tr>
 <td><code>src</code></td>
-<td>en la RAM (0x2000_0000–0x2007_0FFF)</td>
+<td>en la RAM (0x2000_0000–0x2006_FFFF)</td>
 <td>De dónde. Los datos de tu programa (también los <code>const</code>) están en la RAM; la ROM no vale (el emulador la acepta, la placa no).</td>
 </tr>
 <tr>
@@ -2483,7 +2499,7 @@ para las tres.</p>
 <li>Cada unidad tiene su carpeta actual, y una de ellas es la unidad actual
   (<code>SD:</code> al encender).</li>
 <li><strong>Los buffers</strong> tienen que estar enteros en la RAM (de 0x2000_0000 a
-  0x2007_0FFF: el área de sistema, la VRAM y la RAM de usuario) o, si la
+  0x2006_FFFF: el área de sistema, la VRAM y la RAM de usuario) o, si la
   función solo los lee (lo que se escribe en un fichero, los nombres), en
   la ROM. Si no, la función devuelve <code>ZXV_E_FAULT</code> y no hace nada.</li>
 <li><strong>En una tarjeta SD</strong>, cada <code>zxv_file_write</code> llega a la tarjeta antes de
@@ -6432,10 +6448,10 @@ los primeros 24.576 bytes de cada página con <code>ZXV_VSIZE_SCREEN</code>, y e
 <td>Modificadores: bits 0–3 Ctrl, Mayús, Alt y GUI izquierdas; bits 4–7, los mismos a la derecha</td>
 </tr>
 <tr>
-<td><code>ZXV_I_JOY0</code>, <code>ZXV_I_JOY1</code></td>
-<td>0x40, 0x42</td>
+<td><code>ZXV_I_JOY0</code> a <code>ZXV_I_JOY3</code></td>
+<td>0x40, 0x42, 0x44, 0x46</td>
 <td>16 bits cada uno</td>
-<td>Los mandos de los jugadores 1 y 2 (los bits <code>ZXV_JOY_*</code>, como <code>zxv_joy_read</code>)</td>
+<td>Los mandos de los jugadores 1 a 4 (los bits <code>ZXV_JOY_*</code>, como <code>zxv_joy_read</code>; <code>JOY2</code> y <code>JOY3</code> desde la especificación 0.3, antes a 0)</td>
 </tr>
 <tr>
 <td><code>ZXV_I_MOUSE_X</code>, <code>ZXV_I_MOUSE_Y</code></td>
@@ -6792,7 +6808,7 @@ las leen, salvo que se diga otra cosa.</p>
 <tr>
 <td><code>ZXV_SV_VERSION</code></td>
 <td>0x04</td>
-<td>Versión de la especificación (<code>mayor &lt;&lt; 16 \| menor</code>): 2, la 0.2, con esta ROM (<code>ZXV_SPEC_VERSION</code>)</td>
+<td>Versión de la especificación (<code>mayor &lt;&lt; 16 \| menor</code>): 3, la 0.3, con esta ROM (<code>ZXV_SPEC_VERSION</code>)</td>
 </tr>
 <tr>
 <td><code>ZXV_SV_FRAME_HOOK</code></td>
@@ -7437,15 +7453,15 @@ interceptar una rutina.</p>
 </tr>
 <tr>
 <td><code>0x2003_4000</code></td>
-<td><code>0x2007_0FFF</code></td>
-<td>244 KB</td>
+<td><code>0x2006_FFFF</code></td>
+<td>240 KB</td>
 <td>RAM de usuario (de <code>ZXV_URAM_BASE</code> a <code>ZXV_URAM_END</code>)</td>
 <td>Lectura, escritura, ejecución</td>
 </tr>
 <tr>
-<td><code>0x2007_1000</code></td>
+<td><code>0x2007_0000</code></td>
 <td><code>0x2008_1FFF</code></td>
-<td>68 KB</td>
+<td>72 KB</td>
 <td>Reservada para el sistema (<code>ZXV_RESERVED_BASE</code>)</td>
 <td><strong>Prohibido</strong></td>
 </tr>

@@ -107,7 +107,7 @@ machine in the emulator and in the real hardware.</p>
 </tr>
 <tr>
 <td>Memory</td>
-<td>520 KB of RAM in total; about 94 KB free for a BASIC program, and up to 244 KB for a native program</td>
+<td>520 KB of RAM in total; about 94 KB free for a BASIC program, and up to 240 KB for a native program</td>
 </tr>
 <tr>
 <td>Screen</td>
@@ -131,7 +131,7 @@ machine in the emulator and in the real hardware.</p>
 </tr>
 <tr>
 <td>Input</td>
-<td>USB keyboard, mouse and up to two gamepads</td>
+<td>USB keyboard, mouse and up to four gamepads</td>
 </tr>
 <tr>
 <td>Clock</td>
@@ -397,14 +397,23 @@ also through an analogue line output.</p>
   layout of your PC.</li>
 <li><strong>Mouse.</strong> A USB mouse with three buttons and a wheel. BASIC and C programs
   get a pointer position in screen pixels (in BASIC, <code>MOUSE</code>).</li>
-<li><strong>Gamepads.</strong> Up to two USB gamepads: generic ones and PlayStation
-  DualShock 4 and DualSense (in the emulator, any gamepad your PC
-  recognises). Each has the directions, three fire buttons,
-  Start and Select. The first gamepad also works as a <em>Kempston joystick</em> for
+<li><strong>Gamepads.</strong> Up to four USB gamepads (with a hub): generic ones, PlayStation
+  DualShock 4 and DualSense, and wired Xbox 360, Xbox One and Series
+  controllers (and compatible ones), but not wireless ones with their
+  receiver (in the emulator, any gamepad your PC recognises). Each has the
+  directions, four fire buttons, L and R (the upper shoulder buttons), Start
+  and Select. The first gamepad also works as a <em>Kempston joystick</em> for
   programs written for the Spectrum, and BASIC can present a gamepad as keys
   (<code>JOY</code>).</li>
 </ul>
-<p>On the real machine, the keyboard, mouse and gamepads plug into a USB hub.</p>
+<p>On the real machine, the keyboard, mouse and gamepads plug into a USB hub.
+Up to six USB devices work at once, not counting the hubs.</p>
+<p><strong>Connect USB devices with the machine switched off.</strong> Plugging or
+unplugging something while it is on, above all something that draws a lot
+of current (an Xbox controller, or the whole hub with what is on it), can
+leave the hub without power for a moment: USB stops responding for a few
+seconds and comes back by itself, or the whole machine restarts (whatever
+you have not saved is lost).</p>
 <p><strong>Ctrl+Alt+Del</strong> is the emergency reset: whatever is running, even a program
 that has hung, the whole machine restarts, as if switched off and on, and
 goes back to BASIC. Memory is cleared, so a BASIC program you have not saved
@@ -427,7 +436,7 @@ is lost; the language and the key click are kept.</p>
 </tr>
 <tr>
 <td>User memory</td>
-<td>244 KB</td>
+<td>240 KB</td>
 <td>Your program and its data</td>
 </tr>
 <tr>
@@ -442,7 +451,7 @@ graphics (sprites, tiles and maps): the editor shows the exact number,
 93,832 bytes when the machine starts. The rest of the user memory is BASIC's
 own working space.</p>
 <p><strong>A native program</strong> takes over the user memory: it can use nearly all of the
-244 KB. In mode 0 each video page only needs 24 KB for the screen, so a
+240 KB. In mode 0 each video page only needs 24 KB for the screen, so a
 program that does not use a large virtual playfield can also use the other
 72 KB of each page.</p>
 <p>The ROM, with the BASIC, takes 512 KB, and the <code>ROM:</code> drive up to 2.5 MB;
