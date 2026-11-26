@@ -90,7 +90,7 @@ cosas (las explica [How it works][how]):
   izquierda de la página de dibujo, en cualquier modo: `PRINT`, `PLOT`,
   `DRAW`, `CIRCLE` y `CLS` no salen de ahí. Las figuras, los sprites y los
   mapas de `zxv.bas` llegan a toda la página.
-- **La memoria.** Un programa tiene 244 KB (código, datos, montón y pila); el
+- **La memoria.** Un programa tiene 240 KB (código, datos, montón y pila); el
   montón es todo lo que sobra, sin `-H`. Ver
   [How much memory a program has][cuanta].
 - **Opciones del compilador.** No hay `tap`, `tzx` ni `sna`: sale un `.zxv`
@@ -102,11 +102,11 @@ cosas (las explica [How it works][how]):
 
 ## Las versiones
 
-Esta página es la de la **v1.19.0-zxv.7**, que sale junto con ZX-V 0.11.0:
+Esta página es la de la **v1.19.0-zxv.8**, que sale junto con ZX-V 0.12.0:
 `zxv.bas` con los modos, las páginas, los sprites, las figuras, los mapas de
 tiles (`TILE`, `MAPDIM`, `MAP`, `CELL`...), el modo 7 (`TEXTURE`, `FLOOR`,
 `FLOORMAP`, `ROTATE`, `ROTATEMAP`), las tramas (`PATTERN`, `PATTERNBITS`),
-el teclado, los mandos, los AY, la música (`.zxm`, PT3, TurboSound, VGM...),
+el teclado, los cuatro mandos, los AY, la música (`.zxm`, PT3, TurboSound, VGM...),
 los efectos y los sonidos grabados; `SAVE`, `LOAD` y `VERIFY`; las
 bibliotecas del SDK (`zxvinput.bas`... `zxv3d.bas`); y las opciones
 `--loading-screen`, `--embed` y `--code-bank`. Sus programas necesitan ZX-V
@@ -121,12 +121,14 @@ especificación 0.1): los bancos de código, `PATTERN`,
 `zxv3d.bas`. Con una ROM anterior el programa carga, pero un banco lo para
 con «the ROM has no banks», las tramas salen de color liso y esos planos del
 modo 7 no se dibujan bien. Cada entrada de la documentación del fork dice
-qué ROM necesita.
+qué ROM necesita. Los mandos 2 y 3, y el fuego 4, L y R, son de la
+**especificación 0.3**, la de ZX-V 0.12.0 o posterior: con una ROM anterior se
+leen a 0.
 
 ## Instalarlo
 
-**En Windows:** descarga `zxbasic-1.19.0-zxv.7-win64.zip` de la
-[página de la versión](https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.7)
+**En Windows:** descarga `zxbasic-1.19.0-zxv.8-win64.zip` de la
+[página de la versión](https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.8)
 y descomprímelo donde quieras. Trae `zxbc.exe`, que no necesita Python.
 
 **En Linux y macOS:** descarga el código de esa misma página, o clona la

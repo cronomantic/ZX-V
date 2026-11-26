@@ -4,8 +4,8 @@
  *
  * Al empezar: la salida de vídeo y el monitor (OUT_INFO), el reloj (que esté
  * en hora y que avance), la tarjeta (escribe, lee y borra un fichero; el LED
- * SD parpadea) y la versión. Luego, en vivo: el teclado, los dos mandos y el
- * ratón. Con 1, 2 y 3 suenan el beeper, el AY por la izquierda y por la
+ * SD parpadea) y la versión. Luego, en vivo: el teclado, los cuatro mandos
+ * (D122) y el ratón. Con 1, 2 y 3 suenan el beeper, el AY por la izquierda y por la
  * derecha; con T se repiten la tarjeta y el reloj; con P, la página de las
  * paletas (spec §4.6); con Esc se vuelve al BASIC. Lo que no se ve desde aquí
  * (MODO, RESET, el LED del enlace) va en las instrucciones de abajo.
@@ -178,19 +178,20 @@ static void card_test(void)
 
 static void joystick(int n)
 {
-    static const char marks[] = "<>v^123Ss";
+    static const char marks[] = "<>v^123Ss4LR";
     uint32_t j = zxv_joy_read(n);
     int row = 9 + n;
-    rest(10, row);
+    rest(9, row);
     if (!(j & ZXV_JOY_CONNECTED)) {
         at(10, row, AZUL, TR("not connected", "no conectado"));
         return;
     }
     static const uint16_t bits[] = { ZXV_JOY_LEFT, ZXV_JOY_RIGHT, ZXV_JOY_DOWN, ZXV_JOY_UP, ZXV_JOY_FIRE1,
-                                     ZXV_JOY_FIRE2, ZXV_JOY_FIRE3, ZXV_JOY_START, ZXV_JOY_SELECT };
-    for (int i = 0; i < 9; i++) {
+                                     ZXV_JOY_FIRE2, ZXV_JOY_FIRE3, ZXV_JOY_START, ZXV_JOY_SELECT,
+                                     ZXV_JOY_FIRE4, ZXV_JOY_L, ZXV_JOY_R };
+    for (int i = 0; i < 12; i++) {
         zxv_text_colors((j & bits[i]) ? BLANCO : NEGRO, (j & bits[i]) ? VERDE : BLANCO);
-        zxv_text_at(10 + 2 * i, row);
+        zxv_text_at(9 + 2 * i, row);       /* doce: de la columna 9 a la 31 */
         zxv_print_char(marks[i]);
     }
 }
@@ -209,8 +210,8 @@ static void mouse(zxv_mouse_t *m)
     *p++ = (m->buttons & 4) ? 'C' : '.';
     *p++ = (m->buttons & 2) ? 'D' : '.';
     *p = 0;
-    rest(10, 12);
-    at(10, 12, NEGRO, s);
+    rest(10, 14);
+    at(10, 14, NEGRO, s);
 }
 
 static void key(int k)
@@ -431,14 +432,15 @@ static void labels(void)
     at(0, 8, AZUL, TR("Keyboard", "Teclado"));
     at(0, 9, AZUL, TR("Gamepad 1", "Mando 1"));
     at(0, 10, AZUL, TR("Gamepad 2", "Mando 2"));
-    at(0, 11, AZUL, TR("(keys)", "(teclas)"));
-    at(10, 11, NEGRO, "< > v ^ 1 2 3 S s");
-    at(0, 12, AZUL, TR("Mouse", "Ratón"));
-    at(0, 14, NEGRO, TR("1 beeper  2 AY left  3 AY right", "1 beeper  2 AY izq.  3 AY der."));
-    at(0, 15, NEGRO, TR("T: card and clock again", "T: otra vez tarjeta y reloj"));
-    at(0, 16, NEGRO, TR("P: the palettes", "P: las paletas"));
-    at(0, 17, NEGRO, TR("MODE: changes the video mode;", "MODO: cambia el modo de vídeo;"));
-    at(0, 18, NEGRO, TR("  the Video line follows it.", "  la línea Vídeo lo sigue."));
+    at(0, 11, AZUL, TR("Gamepad 3", "Mando 3"));
+    at(0, 12, AZUL, TR("Gamepad 4", "Mando 4"));
+    at(0, 13, AZUL, TR("(keys)", "(teclas)"));
+    at(9, 13, NEGRO, "< > v ^ 1 2 3 S s 4 L R");
+    at(0, 14, AZUL, TR("Mouse", "Ratón"));
+    at(0, 15, NEGRO, TR("1 beeper  2 AY left  3 AY right", "1 beeper  2 AY izq.  3 AY der."));
+    at(0, 16, NEGRO, TR("T: card and clock again", "T: otra vez tarjeta y reloj"));
+    at(0, 17, NEGRO, TR("P: the palettes", "P: las paletas"));
+    at(0, 18, NEGRO, TR("MODE: video mode (see Video)", "MODO: modo de vídeo (ver Vídeo)"));
     at(0, 19, NEGRO, TR("RESET: restarts the machine.", "RESET: reinicia la máquina."));
     at(0, 20, NEGRO, TR("SD LED: blinks in the card test", "LED SD: parpadea con la tarjeta"));
     at(0, 21, NEGRO, TR("Link LED: on, steady.", "LED ENLACE: encendido, fijo."));
@@ -474,8 +476,8 @@ int main(void)
     for (;;) {
         zxv_wait_vblank();
         video();
-        joystick(0);
-        joystick(1);
+        for (int n = 0; n < 4; n++)
+            joystick(n);
         mouse(&m);
         if (ay_until && (int32_t)(zxv_time_us() - ay_until) >= 0)
             ay_off();

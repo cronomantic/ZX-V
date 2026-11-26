@@ -13,6 +13,7 @@
 #define STREET_H
 
 #include "zxv_gfx.h"
+#include "zxv_math.h"
 
 #define W           256
 #define H           192
@@ -195,7 +196,9 @@ static inline int chance(int n)
 extern const int8_t sin64[64];          /* seno x 64, 64 pasos por vuelta */
 static inline int isin(int a) { return sin64[a & 63]; }
 static inline int icos(int a) { return sin64[(a + 16) & 63]; }
-int isqrt(int v);
+/* La raíz entera (zxv_math.h): la de siempre, para distancias de unos pocos
+ * miles de píxeles. */
+static inline int isqrt(int v) { return (int)zxv_isqrt((uint32_t)v); }
 
 /* El idioma de la máquina: 0 español, 1 inglés. */
 extern int lang;

@@ -296,7 +296,7 @@ The line just above the bar shows:
 
 | Message | When |
 |---|---|
-| `© 2026 Cronomantic  ZX-V 0.11.0` | When ZX-V starts, and after `NEW`: the copyright and the ROM version |
+| `© 2026 Cronomantic  ZX-V 0.12.0` | When ZX-V starts, and after `NEW`: the copyright and the ROM version |
 | `The clock is not set: EDIT > Date and time` | Instead of the copyright when ZX-V starts, if the clock has no time: see [The date and time](#the-date-and-time) |
 | An error in red, such as `C Nonsense in BASIC` | When a line you tried to store or run has a mistake |
 | `Program renumbered`, `Cannot renumber` | After the Renumber option |

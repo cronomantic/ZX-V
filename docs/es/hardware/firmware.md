@@ -430,7 +430,9 @@ además 5 V en el pin 18 del conector HDMI
 
 - **El teclado no hace nada.** Mira el informe o la página de diagnóstico: la parte
   `USB:` dice cuántos teclados, ratones y mandos ve. Prueba sin el hub, o con
-  un hub con alimentación.
+  un hub con alimentación. Si dice además `N comprobaciones de TinyUSB
+  fallidas`, algún aparato no contesta como debe: ese no funciona, pero los
+  demás sí; prueba a quitarlos de uno en uno para saber cuál es.
 - **La tarjeta no va.** Tiene que estar en FAT, FAT32 o exFAT. El informe dice
   `sin tarjeta` hasta el primer acceso (por ejemplo, `CAT`), o si la tarjeta no
   responde. En la placa, la tarjeta se monta en cuanto entra.

@@ -52,7 +52,7 @@ Todo está en la carpeta `sdk` del repositorio.
 | `include/zxv_music.h`, `music/` | [Música y efectos](#música-y-efectos): el formato propio `.zxm`, módulos PT3, TurboSound, PT2, STC, ASC, PSG y VGM, y efectos AYFX |
 | `include/zxv_bank.h`, `zxvbank.c` | Los [bancos](#bancos) de datos: `zxv_bank_load` y `zxv_bank_size` |
 | `zxvbankcode.c` | Los bancos de código: lo que hacen los puentes y `zxv_bank_preload`. Lo enlaza `tools/zxvbanks.py`, no hace falta ponerlo a mano |
-| `include/zxv_version.h` | La versión de ZX-V con la que se publicó este SDK (`ZXV_VERSION`, por ejemplo `"0.11.0"`, y `ZXV_VERSION_MAJOR`, `_MINOR` y `_PATCH`); ver [`zxv_api_version`](#zxv_api_version) |
+| `include/zxv_version.h` | La versión de ZX-V con la que se publicó este SDK (`ZXV_VERSION`, por ejemplo `"0.12.0"`, y `ZXV_VERSION_MAJOR`, `_MINOR` y `_PATCH`); ver [`zxv_api_version`](#zxv_api_version) |
 | `include/sys/dirent.h` | `struct dirent` y `DIR` para el `<dirent.h>` de picolibc |
 | `lib/` y sus cabeceras | Las [bibliotecas opcionales](libraries.md): `zxv_math.h` (`lib/math.c`), `zxv_m7.h` (`lib/m7.c`), `zxv_mapmove.h` (`lib/mapmove.c`), `zxv_fade.h` (`lib/fade.c`), `zxv_input.h` (`lib/input.c`), `zxv_save.h` (`lib/save.c`), `zxv_inflate.h` (`lib/inflate.c`), `zxv_font.h` (`lib/font.c` y `lib/font_rom.c`) y `zxv_3d.h` (`lib/3d.c`) |
 | `sound/` | El sonido de la máquina, el mismo código que suena en la Pico ULA, en el emulador y en `zxv-tracker`: los dos AY (`aysynth`), los doce canales de muestras (`smpsynth`, con el codificador de ADPCM `smp_adpcm_encode`) y la mezcla (`sndsynth`, con los registros de `sndregs.h`) |
@@ -231,9 +231,9 @@ La versión de la especificación de la máquina que cumple la ROM en la que
 va el programa. Es la que dice qué funciones y qué variables del sistema
 hay.
 
-**Devuelve:** `mayor << 16 | menor`. La ROM actual da **2** (la versión
-0.2); las anteriores, 1 (la 0.1). Es lo mismo que la variable del sistema
-`ZXV_SV_VERSION`. `ZXV_SPEC_VERSION` (2) es la versión de las cabeceras con
+**Devuelve:** `mayor << 16 | menor`. La ROM actual da **3** (la versión
+0.3); las anteriores, 2 (la 0.2) o 1 (la 0.1). Es lo mismo que la variable del sistema
+`ZXV_SV_VERSION`. `ZXV_SPEC_VERSION` (3) es la versión de las cabeceras con
 las que compilas, no la de la máquina.
 
 **Errores:** ninguno.
@@ -243,12 +243,13 @@ en una máquina con una ROM más antigua. Antes de usar lo que llegó con la
 especificación 0.2 (la trama de las figuras, `zxv_m7_draw_map`,
 `zxv_m7_affine`, los bancos, los mensajes de `zxv_report_error` de más de
 47 bytes...), mira que la ROM lo tiene. Con una ROM 0.1, una función de la
-0.2 no hace nada (devuelve −1), y los bancos dan `ZXV_E_ACCESS`. La
-especificación 0.2 es la de ZX-V 0.11.0 y posteriores; la 0.1, la de las
-anteriores.
+0.2 no hace nada (devuelve −1), y los bancos dan `ZXV_E_ACCESS`. Lo mismo con
+lo que llegó con la 0.3 (`JOY2`, `JOY3`, el fuego 4, L y R): con una ROM
+anterior se lee a 0. La especificación 0.3 es la de ZX-V 0.12.0 y posteriores;
+la 0.2, la de la 0.11.0; la 0.1, la de las anteriores.
 
 **La versión de ZX-V no es esto.** `ZXV_VERSION` (de `zxv_version.h`, por
-ejemplo `"0.11.0"`) es la versión de los programas de ZX-V (la ROM, el
+ejemplo `"0.12.0"`) es la versión de los programas de ZX-V (la ROM, el
 emulador y el firmware, que se publican juntos) con la que salió este SDK.
 Es un texto fijo que se compila dentro de tu programa: no dice qué ROM
 tiene la máquina, y muchas versiones de ZX-V cumplen la misma
@@ -275,8 +276,8 @@ if (zxv_api_version() >= 2)         /* especificación 0.2 o posterior */
 |---|---|---|
 | `ZXV_FRAME_HZ` | 60 | Imágenes por segundo (los VBLANK) |
 | `ZXV_CPU_HZ_REF` | 144000000 | Velocidad de referencia del procesador (Hz); la de verdad, en la variable del sistema `ZXV_SV_CPU_HZ` |
-| `ZXV_SPEC_VERSION` | 2 | Versión de la especificación de estas cabeceras (0.2) |
-| `ZXV_VERSION` | `"0.11.0"` | Versión de ZX-V con la que salió el SDK, en `zxv_version.h` (con `ZXV_VERSION_MAJOR`, `_MINOR`, `_PATCH`) |
+| `ZXV_SPEC_VERSION` | 3 | Versión de la especificación de estas cabeceras (0.3) |
+| `ZXV_VERSION` | `"0.12.0"` | Versión de ZX-V con la que salió el SDK, en `zxv_version.h` (con `ZXV_VERSION_MAJOR`, `_MINOR`, `_PATCH`) |
 
 ## Pantalla y texto
 
@@ -594,29 +595,35 @@ uint32_t zxv_joy_read(int n);
 ```
 
 El estado de un mando USB: qué direcciones y botones están pulsados ahora
-mismo. Es lo mismo que leer los registros `ZXV_I_JOY0` y `ZXV_I_JOY1`.
+mismo. Es lo mismo que leer los registros `ZXV_I_JOY0` a `ZXV_I_JOY3`.
 
 **Parámetros**
 
 | Parámetro | Valores | Qué es |
 |---|---|---|
-| `n` | 0 o 1 | El mando: el primero que se conecta es el 0 y el segundo, el 1. Cualquier valor que no sea 0 lee el 1. |
+| `n` | 0–3 | El mando: el primero que se conecta es el 0, el segundo, el 1, y así hasta el 3; cualquier otro valor da 0. El 2 y el 3, desde la especificación 0.3 (antes daban siempre 0); hasta ZX-V 0.11, cualquier valor distinto de 0 leía el 1. |
 
 **Devuelve:** los bits de la tabla, a 1 los pulsados; `ZXV_JOY_CONNECTED`
 dice que hay un mando. Un mando desconectado da 0.
 
 | Constante | Bit | Constante | Bit |
 |---|---|---|---|
-| `ZXV_JOY_RIGHT` | 0 | `ZXV_JOY_FIRE2` | 5 |
-| `ZXV_JOY_LEFT` | 1 | `ZXV_JOY_FIRE3` | 6 |
-| `ZXV_JOY_DOWN` | 2 | `ZXV_JOY_START` | 7 |
-| `ZXV_JOY_UP` | 3 | `ZXV_JOY_SELECT` | 8 |
-| `ZXV_JOY_FIRE1` | 4 | `ZXV_JOY_CONNECTED` | 15 |
+| `ZXV_JOY_RIGHT` | 0 | `ZXV_JOY_START` | 7 |
+| `ZXV_JOY_LEFT` | 1 | `ZXV_JOY_SELECT` | 8 |
+| `ZXV_JOY_DOWN` | 2 | `ZXV_JOY_FIRE4` | 9 |
+| `ZXV_JOY_UP` | 3 | `ZXV_JOY_L` | 10 |
+| `ZXV_JOY_FIRE1` | 4 | `ZXV_JOY_R` | 11 |
+| `ZXV_JOY_FIRE2` | 5 | `ZXV_JOY_CONNECTED` | 15 |
+| `ZXV_JOY_FIRE3` | 6 | | |
+
+`ZXV_JOY_FIRE4`, `ZXV_JOY_L` y `ZXV_JOY_R`, desde la especificación 0.3 (antes, a 0).
 
 La dirección sale de la cruceta o del stick izquierdo (pasado un cuarto de
-su recorrido). En un mando de PlayStation, ✕, ○ y □ son los fuegos 1, 2 y
-3; Share/Create es Select y Options, Start. En un mando genérico, los
-botones 1–3 son los fuegos, el 9 es Select y el 10, Start.
+su recorrido). En un mando de PlayStation, ✕, ○, □ y △ son los fuegos 1 a
+4, L1 es L y R1 es R; Share/Create es Select y Options, Start. En uno de
+Xbox (360, One o Series), A, B, X e Y son los fuegos, LB y RB son L y R.
+En un mando genérico, los botones 1–4 son los fuegos, el 5 es L, el 6 es
+R, el 9 es Select y el 10, Start.
 
 **Errores:** ninguno.
 
@@ -950,7 +957,7 @@ muestras directamente (desde `ZXV_SMP_TABLE`).
 | Parámetro | Valores | Qué es |
 |---|---|---|
 | `dst` | 0 a `ZXV_SMP_SOUND_MEM` | Dónde, en la memoria de sonido. |
-| `src` | en la RAM (0x2000_0000–0x2007_0FFF) | De dónde. Los datos de tu programa (también los `const`) están en la RAM; la ROM no vale (el emulador la acepta, la placa no). |
+| `src` | en la RAM (0x2000_0000–0x2006_FFFF) | De dónde. Los datos de tu programa (también los `const`) están en la RAM; la ROM no vale (el emulador la acepta, la placa no). |
 | `len` | múltiplo de 4; 0 vale | Cuántos bytes. `dst + len` no puede pasar de `ZXV_SMP_SOUND_MEM`. |
 
 **Devuelve:** `ZXV_OK`, o un error.
@@ -1788,7 +1795,7 @@ para las tres.
 - Cada unidad tiene su carpeta actual, y una de ellas es la unidad actual
   (`SD:` al encender).
 - **Los buffers** tienen que estar enteros en la RAM (de 0x2000_0000 a
-  0x2007_0FFF: el área de sistema, la VRAM y la RAM de usuario) o, si la
+  0x2006_FFFF: el área de sistema, la VRAM y la RAM de usuario) o, si la
   función solo los lee (lo que se escribe en un fichero, los nombres), en
   la ROM. Si no, la función devuelve `ZXV_E_FAULT` y no hace nada.
 - **En una tarjeta SD**, cada `zxv_file_write` llega a la tarjeta antes de
@@ -4279,7 +4286,7 @@ En `ZXV_INPUT_REGS` (`0x2000_0500`). Los escribe el sistema, salvo
 | `ZXV_I_KEY_TAIL` | 0x09 | 8 bits | Cuántas ha leído el programa (lo avanza `zxv_key_get`). Si es igual que `ZXV_I_KEY_HEAD`, la cola está vacía; si no, la siguiente tecla está en `ZXV_I_KEY_FIFO[TAIL mod 64]` |
 | `ZXV_I_KEYMAP` | 0x10 | 32 bytes | 256 bits, uno por código HID de tecla; 1 = pulsada |
 | `ZXV_I_KEY_MODS` | 0x30 | 8 bits | Modificadores: bits 0–3 Ctrl, Mayús, Alt y GUI izquierdas; bits 4–7, los mismos a la derecha |
-| `ZXV_I_JOY0`, `ZXV_I_JOY1` | 0x40, 0x42 | 16 bits cada uno | Los mandos de los jugadores 1 y 2 (los bits `ZXV_JOY_*`, como `zxv_joy_read`) |
+| `ZXV_I_JOY0` a `ZXV_I_JOY3` | 0x40, 0x42, 0x44, 0x46 | 16 bits cada uno | Los mandos de los jugadores 1 a 4 (los bits `ZXV_JOY_*`, como `zxv_joy_read`; `JOY2` y `JOY3` desde la especificación 0.3, antes a 0) |
 | `ZXV_I_MOUSE_X`, `ZXV_I_MOUSE_Y` | 0x48, 0x4A | 16 bits con signo cada uno | Contadores del movimiento del ratón, circulares (x a la derecha, y hacia abajo) |
 | `ZXV_I_MOUSE_BTN` | 0x4C | 8 bits | Bits 0–2: botón izquierdo, derecho y central |
 | `ZXV_I_MOUSE_WHEEL` | 0x4D | 8 bits con signo | Contador de la rueda (positivo hacia arriba) |
@@ -4384,7 +4391,7 @@ las leen, salvo que se diga otra cosa.
 | Variable | Desplazamiento | Contenido |
 |---|---|---|
 | `ZXV_SV_FRAMES` | 0x00 | Contador de frames, +1 en cada VBLANK (60 por segundo; no con las interrupciones desactivadas) |
-| `ZXV_SV_VERSION` | 0x04 | Versión de la especificación (`mayor << 16 \| menor`): 2, la 0.2, con esta ROM (`ZXV_SPEC_VERSION`) |
+| `ZXV_SV_VERSION` | 0x04 | Versión de la especificación (`mayor << 16 \| menor`): 3, la 0.3, con esta ROM (`ZXV_SPEC_VERSION`) |
 | `ZXV_SV_FRAME_HOOK` | 0x08 | El gancho de frame actual (cámbialo con `zxv_set_frame_hook`) |
 | `ZXV_SV_RAMTOP` | 0x0C | Tope de la RAM usable; aquí empieza la pila del sistema (`ZXV_URAM_END`) |
 | `ZXV_SV_URAM_START`, `ZXV_SV_URAM_END` | 0x10, 0x14 | Principio y fin (excluido) de la RAM de usuario |
@@ -4546,8 +4553,8 @@ interceptar una rutina.
 | `0x2000_0000` | `0x2000_3FFF` | 16 KB | Área de sistema (`ZXV_SYS_BASE`) | Ver abajo |
 | `0x2000_4000` | `0x2001_BFFF` | 96 KB | Página de vídeo 0 (`ZXV_VRAM0_BASE`) | Lectura, escritura |
 | `0x2001_C000` | `0x2003_3FFF` | 96 KB | Página de vídeo 1 (`ZXV_VRAM1_BASE`) | Lectura, escritura |
-| `0x2003_4000` | `0x2007_0FFF` | 244 KB | RAM de usuario (de `ZXV_URAM_BASE` a `ZXV_URAM_END`) | Lectura, escritura, ejecución |
-| `0x2007_1000` | `0x2008_1FFF` | 68 KB | Reservada para el sistema (`ZXV_RESERVED_BASE`) | **Prohibido** |
+| `0x2003_4000` | `0x2006_FFFF` | 240 KB | RAM de usuario (de `ZXV_URAM_BASE` a `ZXV_URAM_END`) | Lectura, escritura, ejecución |
+| `0x2007_0000` | `0x2008_1FFF` | 72 KB | Reservada para el sistema (`ZXV_RESERVED_BASE`) | **Prohibido** |
 
 **Área de sistema:**
 

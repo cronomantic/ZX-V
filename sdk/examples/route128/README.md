@@ -33,7 +33,7 @@ It is also on the machine's ROM disk: `LOAD "ROM:route128"`.
   by the road sends the car spinning, and catching another car, a bump that
   slows you down.
 - **Points** for speed and, at the goal, a thousand for each second left.
-  **High score** in `SD:route128.txt` (on the card, even when the game is
+  **High score** in `SD:route128.sav`, with the `zxv_save` library (if the power goes off halfway, the previous one stays; without a `.sav`, it reads the `SD:route128.txt` of earlier versions) (on the card, even when the game is
   loaded from `ROM:`).
 - **Demo:** if you touch nothing on the title screen, after 12 seconds an
   autopilot drives the first stage.

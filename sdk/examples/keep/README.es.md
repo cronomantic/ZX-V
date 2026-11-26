@@ -39,7 +39,7 @@ También está en el disco ROM de la máquina: `LOAD "ROM:keep"`.
   vez) y las **pociones** llenan los corazones.
 - **El sabio** de la entrada da un consejo, y lo que no deja pasar (una
   puerta cerrada, los pinchos, las zarzas) se explica la primera vez.
-- **Récord** en `SD:keep.txt` (en la tarjeta, aunque el juego se cargue
+- **Récord** en `SD:keep.sav`, con la biblioteca `zxv_save` (si se va la luz a medias, se queda el de antes; si no hay `.sav`, lee el `SD:keep.txt` de las versiones anteriores) (en la tarjeta, aunque el juego se cargue
   desde `ROM:`): la victoria más rápida y el que más oro ha juntado.
 - **Demostración:** sin tocar nada en el título, a los 12 segundos un
   piloto juega solo.

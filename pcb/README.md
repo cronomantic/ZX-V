@@ -3,7 +3,7 @@
 > **Using ZX-V?** See the board guide: [English](../docs/en/hardware/board.md) · [Español](../docs/es/hardware/board.md). This page is developer documentation, in Spanish.  
 > **¿Usas ZX-V?** Mira la guía de la placa: [English](../docs/en/hardware/board.md) · [Español](../docs/es/hardware/board.md). Esta página es documentación de desarrollo.
 
-**Estado: revisión 1 (v0.1), fabricada y probada:** con las dos Pico pasa `boardtest`, usa la tarjeta microSD y, con la pila, el reloj guarda la hora. Licencia CERN-OHL-W v2 (§8). El esquema (82 piezas en
+**Estado: revisión 1 (v0.1), fabricada y probada:** con las dos Pico pasa `boardtest`, usa la tarjeta microSD y, con la pila, el reloj guarda la hora. Licencia CERN-OHL-W v2 (§8). El esquema (85 piezas en
 tres hojas: alimentación, Pico CPU y Pico ULA) lo dibuja `tools/schematic.py`,
 con ERC sin errores y cada pieza con su número LCSC. Las huellas que no traía
 KiCad están en `zxv.pretty`, comprobadas con los planos. La placa la ponen al
@@ -78,7 +78,7 @@ la placa. El proyecto de KiCad (10) está en `ZX-V/ZX-V/`.
 | Los mandos | **Delante**, lo que toca el usuario: USB-A, pulsadores, encendido y LED, **THT en ángulo recto** que asoman por el borde (el botón de los pulsadores, 4 mm; la palanca del deslizante, 3,4; la punta de los LED, 1). La microSD, en el lateral derecho | Para la caja: salen por agujeros del frontal, sin guías de luz ni capuchones. Los SMD de pulsación lateral y los LED de 0805 se quedaban dentro. Detrás, lo que se enchufa una vez |
 | Sujeción | **Cuatro taladros M3** en las esquinas (redondeadas, de 3 mm) | Para los separadores de una caja o unos pies |
 | La tarjeta | Su **contacto de detección**, a GP21 de la CPU (libre) | El firmware de la CPU monta y desmonta la tarjeta al ponerla y quitarla; sin el cable (la protoboard), va como antes |
-| El I2C | **Una tira de 4 pines** (3V3, GND, SDA, SCL), sin montar | Para un módulo DS3231 (tiene preferencia, §4.2) o lo que venga |
+| El I2C | **Una tira de 4 pines** (3V3, GND, SDA, SCL), sin montar | Para mirar el bus del reloj o para un módulo DS3231 (tiene preferencia, §4.2). Los programas no tienen acceso al I2C: otro módulo no lo usaría nadie |
 
 ---
 

@@ -28,7 +28,7 @@ machine's specification as "spec §N": that is [dev/spec.md](../dev/spec.md)
 | `tools/link/` | `zxv-link` and `zxv-link-gui` (with a window, Qt 6), which send programs from the PC to the board through its J5 header and run them; `zxv-link serve --folder` serves a folder as the machine's `EXT:` drive (`extserve.c`, the reference server): `cmake -S sdk/tools/link -B build-link` |
 | `tools/png2gfx.py` | Turns PNG images into `.gfx` graphics files for BASIC (`LOAD "x" GRAPHICS`) |
 | `tools/mkweb.py` | Makes a web page with only your game, for itch.io or your website ([docs](../docs/en/sdk/web.md)) |
-| `examples/` | `hello`, `graphics`, `scroll`, `digital`, `files`, `boardtest`, `player` (a music and effects player), `samples` (the sample channels) and `gfxedit` (a graphics editor), and eight complete games: `estela` (Estela), `route128` (Route 128), `mine` (The Mine), `street` (Street Justice), `umbra` (Umbra), `keep` (The Keep), `chess` (ZXV Chess, by ximoKom) and `gonesilent` (Gone Silent), each with its README |
+| `examples/` | `hello`, `asmhello` (in assembly), `graphics`, `scroll`, `digital`, `files`, `boardtest`, `player` (a music and effects player), `samples` (the sample channels) and `gfxedit` (a graphics editor), and eight complete games: `estela` (Estela), `route128` (Route 128), `mine` (The Mine), `street` (Street Justice), `umbra` (Umbra), `keep` (The Keep), `chess` (ZXV Chess, by ximoKom) and `gonesilent` (Gone Silent), each with its README |
 
 It needs `riscv64-unknown-elf-gcc`, picolibc for it (only for `files`) and
 Python 3:

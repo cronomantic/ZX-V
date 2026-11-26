@@ -230,7 +230,7 @@ static void draw_all(void)
     zxv_text_colors(0, 7);
     zxv_set_mode(1);
     at(1, 0, 7, 1, TR(" ZX-V player: ZXM, PT3, TS, PT2, STC, ASC, PSG, VGM and AYFX ",
-                      " Reproductor de ZX-V: ZXM, PT3, TS, PT2, STC, ASC, PSG, VGM y AYFX "));
+                      " Reproductor: ZXM, PT3, TS, PT2, STC, ASC, PSG, VGM y AYFX "));
     at(1, 28, 1, 7, TR("Enter play  Space pause  S stop  L repeat  2 AY  Esc exit",
                        "Enter tocar  Espacio pausa  S parar  L repetir  2 AY  Esc salir"));
     draw_list();

@@ -106,7 +106,7 @@ typedef struct {
     uint32_t spec;                      /* ZXV_SV_VERSION */
     bool waiting;                       /* el BASIC espera una orden */
     bool updating;                      /* está actualizando el firmware (versión 5) */
-    char firmware[64];                  /* "ZX-V 0.11.0" */
+    char firmware[64];                  /* "ZX-V 0.12.0" */
 } lc_info_t;
 
 /* Abrir el puerto (con serial_open: el porqué de LC_E_PORT, en *why_kind,

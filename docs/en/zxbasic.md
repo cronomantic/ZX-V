@@ -88,7 +88,7 @@ it shows in a few things (explained in [How it works][how]):
 - **The Spectrum's screen** is the top-left 256 × 192 pixels of the drawing
   page, in any mode: `PRINT`, `PLOT`, `DRAW`, `CIRCLE` and `CLS` do not go
   outside it. The shapes, sprites and maps of `zxv.bas` reach the whole page.
-- **Memory.** A program has 244 KB (code, data, heap and stack); the heap is
+- **Memory.** A program has 240 KB (code, data, heap and stack); the heap is
   all that is left over, without `-H`. See
   [How much memory a program has][cuanta].
 - **Compiler options.** There is no `tap`, `tzx` or `sna`: the output is a
@@ -99,11 +99,11 @@ it shows in a few things (explained in [How it works][how]):
 
 ## The versions
 
-This page is the one for **v1.19.0-zxv.7**, which comes out together with
-ZX-V 0.11.0: `zxv.bas` with the modes, the pages, sprites, shapes, tile maps
+This page is the one for **v1.19.0-zxv.8**, which comes out together with
+ZX-V 0.12.0: `zxv.bas` with the modes, the pages, sprites, shapes, tile maps
 (`TILE`, `MAPDIM`, `MAP`, `CELL`...), mode 7 (`TEXTURE`, `FLOOR`,
 `FLOORMAP`, `ROTATE`, `ROTATEMAP`), patterns (`PATTERN`, `PATTERNBITS`), the
-keyboard, the joysticks, the AY chips, music (`.zxm`, PT3, TurboSound,
+keyboard, the four joysticks, the AY chips, music (`.zxm`, PT3, TurboSound,
 VGM...), effects and recorded sounds; `SAVE`, `LOAD` and `VERIFY`; the SDK
 libraries (`zxvinput.bas`... `zxv3d.bas`); and the `--loading-screen`,
 `--embed` and `--code-bank` options. Its programs need ZX-V 0.7.0 or later,
@@ -117,12 +117,14 @@ banks, `PATTERN`, `PATTERNBITS`, `ROTATE`, `FLOORMAP`, `ROTATEMAP`
 and the shading of `zxv3d.bas`. With an earlier ROM the program loads, but a
 bank stops it with "the ROM has no banks", patterns come out in a plain
 colour and those mode 7 planes are not drawn properly. Each entry of the
-fork's documentation says which ROM it needs.
+fork's documentation says which ROM it needs. Joysticks 2 and 3, and fire 4,
+L and R, are **specification 0.3**, that of ZX-V 0.12.0 or later: with an
+earlier ROM they read 0.
 
 ## Installing it
 
-**On Windows:** download `zxbasic-1.19.0-zxv.7-win64.zip` from the
-[release page](https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.7)
+**On Windows:** download `zxbasic-1.19.0-zxv.8-win64.zip` from the
+[release page](https://github.com/cronomantic/zxbasic/releases/tag/v1.19.0-zxv.8)
 and unzip it anywhere. It has `zxbc.exe`, which does not need Python.
 
 **On Linux and macOS:** download the source code from that same page, or

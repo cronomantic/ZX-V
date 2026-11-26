@@ -583,7 +583,7 @@ step: rotated, zoomed or in perspective, like a floor seen from above.
 
 - The texture (`zxv_m7tex`) is a square of 2^`log2size` texels per side,
   from 2 × 2 (`log2size` 1) to 1024 × 1024 (10), with **one byte per
-  texel** (0–15). Since a program has 244 KB of user RAM, in practice a
+  texel** (0–15). Since a program has 240 KB of user RAM, in practice a
   texture in RAM goes up to 256 × 256 (`log2size` 8, 64 KB). With
   `wrap` = 1 it repeats for ever; with 0, outside it you see the colour
   `out`. With `ZXV_M7_TRANSPARENT` in `flags`, colour 8 is not drawn (nor

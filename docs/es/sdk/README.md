@@ -45,7 +45,7 @@ Usa un **programa nativo** cuando necesites:
   unos 2,4 millones de instrucciones por frame (60 frames por segundo).
 - **Control.** Tus propias estructuras de datos, aritmética de coma fija,
   tu propio motor de sonido, tus propios formatos de fichero.
-- **Espacio.** Casi 244 KB para código y datos, con toda la memoria de la
+- **Espacio.** Casi 240 KB para código y datos, con toda la memoria de la
   máquina a tu disposición mientras el programa funciona.
 
 A cambio, escribes en C en tu ordenador, compilas y luego cargas el
@@ -142,6 +142,7 @@ Windows, no la tiene), `make` lo dice y compila los demás, sin `files`.
 | Ejemplo | Qué enseña |
 |---|---|
 | [`hello`](../../../sdk/examples/hello/hello.c) | Los primeros pasos: texto con las rutinas del sistema, dibujo directo en la memoria de vídeo y una nota en el chip de sonido |
+| [`asmhello`](../../../sdk/examples/asmhello/asmhello.S) | Un programa en ensamblador, sin C: las rutinas del sistema con `ZXV_CALL`, el registro del mando y una variable del sistema ([Programar en ensamblador](#programar-en-ensamblador)) |
 | [`graphics`](../../../sdk/examples/graphics/graphics.c) | El motor gráfico: un mapa de tiles que se desplaza, sprites que rebotan y chocan, un polígono que gira y un suelo en «modo 7» con sprites escalados, todo con doble buffer |
 | [`scroll`](../../../sdk/examples/scroll/scroll.c) | Scroll por hardware sobre un campo de 1024 píxeles de ancho, dibujando solo la columna que entra, y parallax con la tabla por línea |
 | [`digital`](../../../sdk/examples/digital/digital.c) | Sonido digitalizado: muestras a 8 kHz por el volumen de un canal del chip de sonido |
@@ -217,7 +218,7 @@ Compílalo (cambia `SDK` por donde esté la carpeta `sdk`):
 SDK=../ZX-V/sdk
 riscv64-unknown-elf-gcc -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 \
     -Os -g -Wall -Wextra -std=gnu11 -ffreestanding -fno-builtin \
-    -fno-tree-loop-distribute-patterns -I$SDK/include \
+    -fno-tree-loop-distribute-patterns -ffunction-sections -fdata-sections -I$SDK/include \
     -nostdlib -nostartfiles -static -T $SDK/zxv.ld -Wl,--gc-sections \
     -Wl,--no-warn-rwx-segments \
     $SDK/crt0.S $SDK/zxvlib.c hello.c -lgcc -o hello.elf
@@ -255,7 +256,7 @@ SOURCES := hello.c
 
 CFLAGS  := -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 \
            -Os -g -Wall -Wextra -std=gnu11 -ffreestanding -fno-builtin \
-           -fno-tree-loop-distribute-patterns -I$(SDK)/include
+           -fno-tree-loop-distribute-patterns -ffunction-sections -fdata-sections -I$(SDK)/include
 LDFLAGS := -nostdlib -nostartfiles -static -T $(SDK)/zxv.ld -Wl,--gc-sections \
            -Wl,--no-warn-rwx-segments
 
@@ -330,7 +331,7 @@ llama un `.zxv`. Solo el BASIC lanza programas.
 
 | Zona | Dirección | Tamaño | Uso |
 |---|---|---|---|
-| RAM de usuario | `0x2003_4000` – `0x2007_0FFF` | 244 KB | Tu código, tus datos y la pila |
+| RAM de usuario | `0x2003_4000` – `0x2006_FFFF` | 240 KB | Tu código, tus datos y la pila |
 | Página de vídeo 0 | `0x2000_4000` | 96 KB | La pantalla (ver [gráficos](graphics.md)) |
 | Página de vídeo 1 | `0x2001_C000` | 96 KB | Una segunda pantalla, para el doble buffer |
 | Área de sistema | `0x2000_0000` | 16 KB | Registros de pantalla, sonido y entrada; variables del sistema |
@@ -358,7 +359,7 @@ llama un `.zxv`. Solo el BASIC lanza programas.
   venir de otro programa), porque el modo 1 y el campo de scroll grande usan
   la página entera. Y no lo mezcles con punteros a mano a la misma zona,
   como hacen Route 128 y Umbra (`SPARE0`, `SPARE1`): se pisarían.
-- Los 68 KB que hay encima de la RAM de usuario son del sistema: tocarlos
+- Los 72 KB que hay encima de la RAM de usuario son del sistema: tocarlos
   detiene tu programa.
 
 ### Las reglas de la máquina
@@ -414,7 +415,7 @@ C. `zxvc.c` la conecta con la máquina. Se compila con
 ```sh
 riscv64-unknown-elf-gcc -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 -Os \
     --specs=picolibc.specs -nostartfiles -static -T $SDK/zxv.ld -I$SDK/include \
-    -Wl,--gc-sections -Wl,--no-warn-rwx-segments \
+    -ffunction-sections -fdata-sections -Wl,--gc-sections -Wl,--no-warn-rwx-segments \
     $SDK/crt0.S $SDK/zxvc.c mi_programa.c -o mi_programa.elf
 ```
 
@@ -1128,14 +1129,15 @@ como el puerto `0xFE` del Spectrum.
 
 ### Los mandos
 
-`zxv_joy_read(0)` y `zxv_joy_read(1)` devuelven el estado del primer y del
-segundo mando (el primero que se conecta es el 0). Cada bit es un botón:
+`zxv_joy_read(0)` a `zxv_joy_read(3)` devuelven el estado de los mandos del
+primero al cuarto (el primero que se conecta es el 0). Cada bit es un botón:
 
 | Bit | `ZXV_JOY_...` |
 |---|---|
 | 0, 1, 2, 3 | `RIGHT`, `LEFT`, `DOWN`, `UP` (la cruceta o el stick izquierdo) |
 | 4, 5, 6 | `FIRE1`, `FIRE2`, `FIRE3` |
 | 7, 8 | `START`, `SELECT` |
+| 9, 10, 11 | `FIRE4`, `L`, `R` (los gatillos de arriba) |
 | 15 | `CONNECTED`: hay un mando |
 
 Los cinco bits bajos son los de un joystick Kempston.
@@ -1338,7 +1340,7 @@ int main(void)
 
 - **Guardar:** escribe en `SD:` expresamente, como arriba. Tu programa
   puede haberse cargado desde `ROM:`, y escribir allí falla con
-  `ZXV_E_ACCESS`. Por eso Estela guarda su récord en `SD:estela.txt`.
+  `ZXV_E_ACCESS`. Por eso Estela guarda su récord en `SD:estela.sav` (con [`zxv_save`](libraries.md#guardar-datos-zxv_saveh)).
 - **Cargar un fichero entero:** `zxv_file_load(nombre, dirección, máx)` lo
   lee de una vez en memoria y devuelve su tamaño. `máx` es el tamaño de tu
   buffer: si el fichero es más grande, no se carga nada y te da
@@ -1639,13 +1641,12 @@ direcciones** en `0x2000_0000`: la entrada *n* (de 4 bytes cada una) es la
 dirección de la función *n*, que sigue la convención de llamada estándar de
 RISC-V (argumentos en `a0`–`a7`, resultado en `a0`). Los números son las
 constantes `ZXV_API_...` de `zxv.h`, una cabecera que puedes incluir en los
-ficheros `.S`:
+ficheros `.S`. Para ensamblador trae `ZXV_CALL(n)`, que llama a la función
+*n* por la tabla (usa `t0` y, como cualquier llamada, pisa `ra` y los
+registros temporales):
 
 ```asm
 #include "zxv.h"
-
-/* Llama a la función n de la API: su dirección está en la tabla de 0x2000_0000. */
-#define API(n)  lui t0, %hi(ZXV_API_TABLE); lw t0, 4*(n)(t0); jalr t0
 
     .section .rodata
 msg:
@@ -1658,13 +1659,13 @@ main:
     sw ra, 12(sp)                   # llamamos a otras funciones: guarda ra
 
     li a0, 7
-    API(ZXV_API_CLS)                # cls(7)
+    ZXV_CALL(ZXV_API_CLS)           # cls(7)
     la a0, msg
-    API(ZXV_API_PRINT_STR)          # print_str(msg)
+    ZXV_CALL(ZXV_API_PRINT_STR)     # print_str(msg)
 
 wait:
-    API(ZXV_API_WAIT_VBLANK)
-    API(ZXV_API_KEY_GET)            # a0 = tecla, o -1
+    ZXV_CALL(ZXV_API_WAIT_VBLANK)
+    ZXV_CALL(ZXV_API_KEY_GET)       # a0 = tecla, o -1
     bltz a0, wait
 
     li a0, 0                        # main devuelve 0
@@ -1678,6 +1679,14 @@ preprocesador de C) y compílalo con las mismas órdenes que un fichero de C,
 poniendo `hello.S` en lugar de `hello.c`. Como en C, conserva `s0`–`s11` y
 la pila alineada a 16 bytes si quieres volver al BASIC. Por supuesto,
 puedes mezclar ficheros de C y de ensamblador en un mismo programa.
+
+En ensamblador, de `zxv.h` valen las direcciones, los números y los bits,
+pero no las macros que llevan conversiones de tipo de C (`ZXV_LANG`,
+`ZXV_RGB`...): ahí se pone el valor. El ejemplo
+[`asmhello`](../../../sdk/examples/asmhello/asmhello.S) es un programa
+entero en ensamblador: saluda en el idioma de la máquina (la variable
+`LANGUAGE`) y mueve una estrella con el mando (su registro, `JOY0`) o con
+los cursores.
 
 Como la tabla está en la RAM, un programa puede cambiar una entrada por una
 función suya para interceptar una rutina del sistema, como se hacía con los

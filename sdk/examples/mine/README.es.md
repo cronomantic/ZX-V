@@ -45,7 +45,7 @@ También está en el disco ROM de la máquina: `LOAD "ROM:mine"`.
   cada 500 puntos. En las cuevas de premio no se pierden vidas.
 - **En el título,** izquierda y derecha eligen la cueva de salida entre las
   cuatro primeras.
-- **Récord** en `SD:mine.txt` (en la tarjeta, aunque el juego se cargue
+- **Récord** en `SD:mine.sav`, con la biblioteca `zxv_save` (si se va la luz a medias, se queda el de antes; si no hay `.sav`, lee el `SD:mine.txt` de las versiones anteriores) (en la tarjeta, aunque el juego se cargue
   desde `ROM:`, que no se puede escribir). Salir de la partida con Esc
   también cuenta. Sin tarjeta, dura lo que la sesión.
 - **Demostración:** sin tocar nada en el título, a los 12 segundos un
@@ -115,10 +115,11 @@ También está en el disco ROM de la máquina: `LOAD "ROM:mine"`.
   cavar, empujar, las piedras que caen y las explosiones (con la
   envolvente), y el C los tintineos de los diamantes que caen, el tamiz y la
   cuenta de la bonificación.
-- **El teclado:** cada frame se lee el mapa de teclas pulsadas
-  (`ZXV_I_KEYMAP`); manda la última dirección pulsada, y una pulsación corta
-  entre dos pasos no se pierde. La cola de teclas se vacía cada frame para
-  que lo tecleado no le llegue al BASIC al volver.
+- **El teclado y el mando:** con la biblioteca `zxv_input` (un mapa de
+  teclas y botones por acción), cada frame; manda la última dirección
+  pulsada, y una pulsación corta entre dos pasos no se pierde. La biblioteca
+  vacía la cola de teclas para que lo tecleado no le llegue al BASIC al
+  volver.
 
 ## Las cuevas se pueden hacer
 

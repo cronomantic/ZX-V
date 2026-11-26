@@ -12,6 +12,7 @@
  * bitmaps en memoria. Pulsa una tecla para volver.
  */
 #include "zxv_gfx.h"
+#include "zxv_m7.h"
 
 #define W           256
 #define MAP_H       136             /* líneas del escenario; debajo, el suelo */
@@ -203,10 +204,9 @@ static void draw_star(int frame)
 }
 
 /* Los conos del suelo: uno en el centro de cada cuadro de 64 x 64 texels de
- * la textura (que se repite). Se proyectan con la misma cámara que el suelo:
- * la última línea calculada da la derecha de la cámara (du, dv) multiplicada
- * por lo que mide un píxel allí, height / dy; de ella sale la profundidad z
- * de cada cono, y con z su línea, su x y su tamaño (focal / z).
+ * la textura (que se repite). zxv_m7_project (zxv_m7.h) da, con la misma
+ * cámara que el suelo, dónde se apoya cada uno, a qué escala y a qué
+ * profundidad; se dibujan de lejos a cerca.
  *
  * El escenario de arriba es el fondo: un muro que está sobre el suelo, en la
  * línea MAP_H, y tapa lo que hay más allá. Un cono con la base por delante
@@ -217,37 +217,26 @@ static void draw_star(int frame)
 
 static void draw_cones(const zxv_m7cam *cam)
 {
-    const zxv_m7line *l = &floor_lines[191];
-    int dy0 = 191 - cam->horizon, focal = cam->focal >> 16;
-    int64_t step = cam->height / dy0;                   /* texels por píxel, 16.16 */
-    int32_t rx = l->du, ry = l->dv;
-    struct { int32_t z, lat; } c[CONES_MAX];
+    zxv_m7pos c[CONES_MAX];
     int n = 0;
     int bx = (cam->x >> 22) - 4, by = (cam->y >> 22) - 4;   /* el cuadro de la cámara */
     for (int j = 0; j < 9; j++)
         for (int i = 0; i < 9; i++) {
-            int32_t dx = ((bx + i) * 64 + 32) * 65536 - cam->x;
-            int32_t dy = ((by + j) * 64 + 32) * 65536 - cam->y;
-            int64_t fz = ((int64_t)dx * ry - (int64_t)dy * rx) >> 16;
-            int64_t fl = ((int64_t)dx * rx + (int64_t)dy * ry) >> 16;
-            int32_t z = (int32_t)((fz << 16) / step);
-            if (z < (24 << 16) || z > (240 << 16))      /* detrás, o más allá del horizonte */
+            zxv_m7pos p;
+            if (!zxv_m7_project(cam, W, ZXV_FIX((bx + i) * 64 + 32), ZXV_FIX((by + j) * 64 + 32), 0, &p) ||
+                p.depth < ZXV_FIX(24) || p.depth > ZXV_FIX(240))    /* detrás, o más allá del horizonte */
                 continue;
             int k = n++;                                /* ordenados de lejos a cerca */
-            for (; k > 0 && c[k - 1].z < z; k--)
+            for (; k > 0 && c[k - 1].depth < p.depth; k--)
                 c[k] = c[k - 1];
-            c[k].z = z;
-            c[k].lat = (int32_t)((fl << 16) / step);
+            c[k] = p;
         }
     for (int k = 0; k < n; k++) {
-        int64_t z = c[k].z;
-        int y = cam->horizon + (int)((cam->height * (int64_t)focal) / z);
-        if (y <= MAP_H)                                 /* detrás del muro */
+        if (c[k].y <= MAP_H)                            /* detrás del muro */
             continue;
-        int x = W / 2 + (int)(((int64_t)c[k].lat * focal) / z);
-        int h = (int)(((int64_t)CONE_SIZE * 65536 * focal) / z), w = h * 15 / 24;
+        int h = (int)((CONE_SIZE * (int64_t)c[k].scale) >> 16), w = h * 15 / 24;
         if (h > 0 && w > 0)
-            zxv_spr_draw_scaled(cone_spr, x - w / 2, y - h, w, h, 0, 0);
+            zxv_spr_draw_scaled(cone_spr, c[k].x - w / 2, c[k].y - h, w, h, 0, 0);
     }
 }
 

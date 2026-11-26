@@ -11,13 +11,13 @@ machine in the emulator and in the real hardware.
 | | ZX-V |
 |---|---|
 | Processor | 32-bit RISC-V at 144 MHz |
-| Memory | 520 KB of RAM in total; about 94 KB free for a BASIC program, and up to 244 KB for a native program |
+| Memory | 520 KB of RAM in total; about 94 KB free for a BASIC program, and up to 240 KB for a native program |
 | Screen | 256 × 192 or 512 × 384 pixels, with a border |
 | Colours | 15 as standard; with palettes, 16 per line out of 65,536 (up to 64 on screen), any colour on any pixel |
 | Video pages | Two, to draw one while you show the other |
 | Sound | Two AY-3-8912 music chips (6 voices), twelve sample channels for recorded sounds and a beeper, in stereo |
 | Storage | SD card, plus the built-in `ROM:` drive with the examples; and `EXT:`, a folder served by another device |
-| Input | USB keyboard, mouse and up to two gamepads |
+| Input | USB keyboard, mouse and up to four gamepads |
 | Clock | Date and time, kept while the machine is off |
 | Languages | English and Spanish |
 | Rhythm | 60 frames per second |
@@ -209,14 +209,24 @@ also through an analogue line output.
   layout of your PC.
 - **Mouse.** A USB mouse with three buttons and a wheel. BASIC and C programs
   get a pointer position in screen pixels (in BASIC, `MOUSE`).
-- **Gamepads.** Up to two USB gamepads: generic ones and PlayStation
-  DualShock 4 and DualSense (in the emulator, any gamepad your PC
-  recognises). Each has the directions, three fire buttons,
-  Start and Select. The first gamepad also works as a *Kempston joystick* for
+- **Gamepads.** Up to four USB gamepads (with a hub): generic ones, PlayStation
+  DualShock 4 and DualSense, and wired Xbox 360, Xbox One and Series
+  controllers (and compatible ones), but not wireless ones with their
+  receiver (in the emulator, any gamepad your PC recognises). Each has the
+  directions, four fire buttons, L and R (the upper shoulder buttons), Start
+  and Select. The first gamepad also works as a *Kempston joystick* for
   programs written for the Spectrum, and BASIC can present a gamepad as keys
   (`JOY`).
 
 On the real machine, the keyboard, mouse and gamepads plug into a USB hub.
+Up to six USB devices work at once, not counting the hubs.
+
+**Connect USB devices with the machine switched off.** Plugging or
+unplugging something while it is on, above all something that draws a lot
+of current (an Xbox controller, or the whole hub with what is on it), can
+leave the hub without power for a moment: USB stops responding for a few
+seconds and comes back by itself, or the whole machine restarts (whatever
+you have not saved is lost).
 
 **Ctrl+Alt+Del** is the emergency reset: whatever is running, even a program
 that has hung, the whole machine restarts, as if switched off and on, and
@@ -230,7 +240,7 @@ The processor has 520 KB of RAM. Most of it is shared like this:
 | Area | Size | Contents |
 |---|---|---|
 | Video pages | 2 × 96 KB | The two screens |
-| User memory | 244 KB | Your program and its data |
+| User memory | 240 KB | Your program and its data |
 | System | 84 KB | The machine's own variables and buffers |
 
 **From BASIC**, about 94 KB are free for your program, its variables and its
@@ -239,7 +249,7 @@ graphics (sprites, tiles and maps): the editor shows the exact number,
 own working space.
 
 **A native program** takes over the user memory: it can use nearly all of the
-244 KB. In mode 0 each video page only needs 24 KB for the screen, so a
+240 KB. In mode 0 each video page only needs 24 KB for the screen, so a
 program that does not use a large virtual playfield can also use the other
 72 KB of each page.
 

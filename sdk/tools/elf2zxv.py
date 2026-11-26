@@ -25,7 +25,7 @@ import struct
 import sys
 import zlib
 
-URAM_BASE, URAM_END = 0x20034000, 0x20071000
+URAM_BASE, URAM_END = 0x20034000, 0x20070000
 # La VRAM oculta de cada página en modo 0 (zxv.ld, D108): lo que el programa
 # pone ahí empieza a cero (crt0.S) y no va en el fichero.
 VRAM_HIDDEN = ((0x2000A000, 0x2001C000), (0x20022000, 0x20034000))

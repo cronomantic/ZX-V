@@ -3,12 +3,14 @@
  *
  * Única fuente de verdad compartida por la ROM, el SDK y el emulador.
  * Solo contiene #define, así que sirve tanto en C (anfitrión y RISC-V) como
- * en ensamblador (preprocesado con cpp).
+ * en ensamblador (preprocesado con cpp; ahí no valen las macros con
+ * conversiones de tipo, como ZXV_LANG o ZXV_RGB). Para ensamblador, además,
+ * ZXV_CALL (en los números de la API).
  */
 #ifndef ZXV_H
 #define ZXV_H
 
-#define ZXV_SPEC_VERSION        0x00000002u     /* 0.2: PROG_FILE y PROG_CRC (D109) */
+#define ZXV_SPEC_VERSION        0x00000003u     /* 0.3: JOY2, JOY3, fuego 4, L y R (D123) */
 
 /* --- Mapa de memoria (spec §3) ------------------------------------------ */
 #define ZXV_FLASH_BASE          0x10000000u
@@ -41,8 +43,8 @@
 #define ZXV_VRAM0_DATA          __attribute__((section(".bss.zxv_vram0")))
 #define ZXV_VRAM1_DATA          __attribute__((section(".bss.zxv_vram1")))
 #define ZXV_URAM_BASE           0x20034000u     /* RAM de usuario */
-#define ZXV_URAM_END            0x20071000u     /* exclusivo */
-#define ZXV_RESERVED_BASE       0x20071000u     /* reservada (PMP) */
+#define ZXV_URAM_END            0x20070000u     /* exclusivo (240 KB, D114) */
+#define ZXV_RESERVED_BASE       0x20070000u     /* reservada (PMP), 72 KB */
 #define ZXV_RESERVED_END        0x20082000u
 
 /* --- Área de sistema (spec §3.2) ---------------------------------------- */
@@ -187,6 +189,8 @@
 #define ZXV_I_KEY_MODS          (ZXV_INPUT_REGS + 0x30u)   /* u8            */
 #define ZXV_I_JOY0              (ZXV_INPUT_REGS + 0x40u)   /* u16           */
 #define ZXV_I_JOY1              (ZXV_INPUT_REGS + 0x42u)   /* u16           */
+#define ZXV_I_JOY2              (ZXV_INPUT_REGS + 0x44u)   /* u16, el tercer mando (D122) */
+#define ZXV_I_JOY3              (ZXV_INPUT_REGS + 0x46u)   /* u16, el cuarto */
 #define ZXV_I_MOUSE_X           (ZXV_INPUT_REGS + 0x48u)   /* i16           */
 #define ZXV_I_MOUSE_Y           (ZXV_INPUT_REGS + 0x4Au)   /* i16           */
 #define ZXV_I_MOUSE_BTN         (ZXV_INPUT_REGS + 0x4Cu)   /* u8            */
@@ -205,6 +209,9 @@
 #define ZXV_JOY_FIRE3           0x0040u
 #define ZXV_JOY_START           0x0080u
 #define ZXV_JOY_SELECT          0x0100u
+#define ZXV_JOY_FIRE4           0x0200u
+#define ZXV_JOY_L               0x0400u     /* el gatillo de arriba izquierdo (L, L1, LB) */
+#define ZXV_JOY_R               0x0800u     /* y el derecho (R, R1, RB) */
 #define ZXV_JOY_CONNECTED       0x8000u
 
 /* --- Registros de sonido (spec §5.2) ------------------------------------ */
@@ -456,6 +463,14 @@
 #define ZXV_API_GFX_PATTERN     56      /* desde la versión 0.2 */
 #define ZXV_API_M7_DRAW_MAP     57      /* desde la versión 0.2 */
 #define ZXV_API_M7_AFFINE       58      /* desde la versión 0.2 */
+
+/* En ensamblador (.S): ZXV_CALL(n) llama a la función n de la API por su
+ * tabla (spec §7.3), con los argumentos en a0-a7 y el resultado en a0, como
+ * una llamada de C: usa t0 y pisa ra y los registros temporales. Ejemplo:
+ * li a0, 7; ZXV_CALL(ZXV_API_CLS). */
+#ifdef __ASSEMBLER__
+#define ZXV_CALL(n)             lui t0, %hi(ZXV_API_TABLE); lw t0, 4 * (n)(t0); jalr t0
+#endif
 
 /* --- Reloj (spec §7.9) --------------------------------------------------- */
 #define ZXV_CLOCK_SIZE          8

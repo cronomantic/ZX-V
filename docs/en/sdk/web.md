@@ -126,7 +126,8 @@ Or your own, with JSON (in a file or on the command line):
 | `menu` | Up to four small buttons, at the bottom |
 
 Each control is `{"label": "A", "joy": "FIRE1"}`, a bit of joystick 1 (`UP`,
-`DOWN`, `LEFT`, `RIGHT`, `FIRE1`, `FIRE2`, `FIRE3`, `START` or `SELECT`), or
+`DOWN`, `LEFT`, `RIGHT`, `FIRE1`, `FIRE2`, `FIRE3`, `FIRE4`, `L`, `R`, `START` or
+`SELECT`), or
 `{"label": "Z", "key": "KeyZ"}`, a key with the browser's name for it
 (`KeyboardEvent.code`: `KeyA`…`KeyZ`, `Digit0`…`Digit9`, `Space`, `Enter`,
 `Escape`, `ArrowUp`, `ShiftLeft`...).

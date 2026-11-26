@@ -27,7 +27,7 @@ typedef struct netpc netpc_t;
 typedef struct {
     char name[ZLN_NAME + 1];            /* "ZX-V-1A2B" */
     char addr[24];                      /* "192.168.0.24" (con ":puerto" si no es ZLN_PORT) */
-    char firmware[48];                  /* "ZX-V 0.11.0" */
+    char firmware[48];                  /* "ZX-V 0.12.0" */
     bool paired;                        /* con este PC */
     unsigned version;                   /* su protocolo de la red: si no es ZLN_VERSION, no se habla con ella */
 } netpc_found_t;

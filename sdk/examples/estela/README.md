@@ -27,7 +27,7 @@ It is also on the machine's built-in `ROM:` drive: `LOAD "ROM:estela"`.
   which takes one hit.
 - **Three lives**, one more every 20,000 points, and a bonus for those
   left at the end. Losing a life keeps the weapon.
-- **High score** in `SD:estela.txt` (on the card, even if the game was
+- **High score** in `SD:estela.sav`, with the `zxv_save` library (if the power goes off halfway, the previous one stays; without a `.sav`, it reads the `SD:estela.txt` of earlier versions) (on the card, even if the game was
   loaded from `ROM:`, which cannot be written to). Without a card, it lasts
   for the session.
 - **Demo:** if nothing is touched on the title screen, after 12 seconds an
@@ -114,9 +114,11 @@ The source code and its comments are in Spanish.
   be in time order: the sample starts after what the music already has
   and, while it plays, the music goes up to each sample and no further
   (`zxv_music_update_until`).
-- **The keyboard:** the map of keys held down (`ZXV_I_KEYMAP`) is read to
-  move and fire at the same time, and the key queue is emptied every frame
-  so that what was typed does not reach BASIC on the way back.
+- **The keyboard and the gamepad:** with the `zxv_input` library, a map
+  says which keys and buttons do each action; every frame it gives the ones
+  held down (to move and fire at the same time) and the ones just pressed,
+  and it empties the key queue so that what was typed does not reach BASIC
+  on the way back.
 
 ## Difficulty
 

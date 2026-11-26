@@ -11,7 +11,7 @@
  *     F  id del PC (8), versión del protocolo de la red del PC (u8, ZLN_VERSION)
  *     f  id de la máquina (8), arranque (8), emparejado con ese PC (u8),
  *        versión del protocolo de las tramas (u16), nombre (16, con ceros),
- *        firmware (texto: "ZX-V 0.11.0"), un 0 y la versión del protocolo de
+ *        firmware (texto: "ZX-V 0.12.0"), un 0 y la versión del protocolo de
  *        la red (u8, ZLN_VERSION). Sin el 0 y la versión, es la 1 (las
  *        primeras versiones de prueba). Con otra versión, el PC no habla con
  *        ella: dice que no son compatibles y cuál hay que actualizar.

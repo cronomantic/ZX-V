@@ -46,7 +46,7 @@ It is also on the machine's ROM disk: `LOAD "ROM:mine"`.
   every 500 points. Losing in a bonus cave costs no life.
 - **On the title,** left and right choose the starting cave among the first
   four.
-- **High score** in `SD:mine.txt` (on the card, even if the game was loaded
+- **High score** in `SD:mine.sav`, with the `zxv_save` library (if the power goes off halfway, the previous one stays; without a `.sav`, it reads the `SD:mine.txt` of earlier versions) (on the card, even if the game was loaded
   from `ROM:`, which cannot be written to). Leaving a game with Esc also
   counts. Without a card, it lasts for the session.
 - **Demo:** if nothing is touched on the title screen, after 12 seconds an
@@ -116,10 +116,11 @@ The source code and its comments are in Spanish.
   warnings (diamond, exit open, time running out), B the noise of digging,
   pushing, boulders landing and explosions (with the envelope), and C the
   chimes of diamonds landing, the sieve and the bonus count.
-- **The keyboard:** the map of keys held down (`ZXV_I_KEYMAP`) is read every
-  frame; the last direction pressed wins, and a short press between two
-  steps is not lost. The key queue is emptied every frame so that what was
-  typed does not reach BASIC on the way back.
+- **The keyboard and the gamepad:** with the `zxv_input` library (a map of
+  keys and buttons per action), every frame; the last direction pressed
+  wins, and a short press between two steps is not lost. The library empties
+  the key queue so that what was typed does not reach BASIC on the way
+  back.
 
 ## The caves can be done
 

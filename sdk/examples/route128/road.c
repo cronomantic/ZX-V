@@ -26,7 +26,11 @@
 #define RUMBLE      3                   /* segmentos de cada banda de color */
 
 static int8_t curves[MAX_SEGS];         /* x 16 */
-static int32_t heights[MAX_SEGS + 1];   /* la altura al principio de cada segmento */
+/* La altura al principio de cada segmento, en 16 bits (9 KB): las del
+ * circuito van de -4.000 a 10.000. En la RAM de usuario: la VRAM oculta es
+ * de los sprites, el paisaje y la música (route128.h), y si las alturas van
+ * allí pisan las palmeras y los parasoles (D108, y otra vez en D114). */
+static int16_t heights[MAX_SEGS + 1];
 static uint8_t themes[MAX_SEGS];
 static uint16_t first_obj[MAX_SEGS + 1];
 static struct { int16_t x; uint8_t type; } objs[MAX_OBJS];
@@ -81,7 +85,7 @@ static void add_segment(int curve, int32_t y)
     if (n_segs >= MAX_SEGS)
         return;
     curves[n_segs] = (int8_t)curve;
-    heights[n_segs + 1] = y;
+    heights[n_segs + 1] = (int16_t)y;
     themes[n_segs] = (uint8_t)cur_theme;
     n_segs++;
 }

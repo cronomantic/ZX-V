@@ -1,8 +1,7 @@
 # Especificación de la máquina ZX-V
 
-**Versión 0.1 (borrador).** Todo lo que aparece aquí puede cambiar hasta la v1.0. Las
-direcciones, desplazamientos y tamaños marcados como *provisional* se fijarán con las
-pruebas de la placa.
+**Versión 0.3, candidata a la 1.0.** Hasta la 1.0 todo puede cambiar; con
+ella, lo que dice §11 vale para todas las 1.x.
 Licencia CC BY 4.0, como el resto de la documentación ([docs/LICENSE](../docs/LICENSE)).
 
 Este documento describe la máquina **tal como la ve el software**. La forma de
@@ -26,6 +25,14 @@ en [basic.md](basic.md).
    Los programas se sincronizan con el VBLANK, nunca contando ciclos.
 4. **Los periféricos del RP2350 no forman parte de la máquina.** Los programas solo
    usan los registros ZX-V, la API de la ROM y la propia CPU.
+5. **Lo que no está descrito está reservado.** Los huecos entre registros
+   (y detrás del último de cada bloque), los bits sin significado de un
+   registro, los valores que no se describen (de `MODE`, de `REMAP`...) y
+   las entradas libres de la tabla de la API son para versiones futuras. Un
+   programa escribe a 0 los huecos y los bits reservados (o deja lo que
+   había), no escribe valores que no existen y no da por hecho nada de lo que
+   lea en ellos; una entrada libre de la API devuelve −1. Así una versión
+   nueva puede darles un sentido sin romper los programas de antes.
 
 ---
 
@@ -93,15 +100,16 @@ Hazard3 ni en las de PMP. Esas pertenecen a la ROM.
 | `0x2000_0000` | `0x2000_3FFF` | 16 KB | **Área de sistema**: tabla API, registros y colas | Según cada registro |
 | `0x2000_4000` | `0x2001_BFFF` | 96 KB | **VRAM, página 0** | Lectura y escritura |
 | `0x2001_C000` | `0x2003_3FFF` | 96 KB | **VRAM, página 1** | Lectura y escritura |
-| `0x2003_4000` | `0x2007_0FFF` | 244 KB | **RAM de usuario** (programas y datos del BASIC) | Lectura, escritura y ejecución |
-| `0x2007_1000` | `0x2008_1FFF` | 68 KB | Reservada para el sistema (núcleo 1, USB, audio, ficheros) | **Prohibido** (protegida por PMP) |
+| `0x2003_4000` | `0x2006_FFFF` | 240 KB | **RAM de usuario** (programas y datos del BASIC) | Lectura, escritura y ejecución |
+| `0x2007_0000` | `0x2008_1FFF` | 72 KB | Reservada para el sistema (núcleo 1, USB, audio, ficheros) | **Prohibido** (protegida por PMP) |
 
-Los tamaños son definitivos desde D107, que le dio 4 KB más al firmware para
-el Wi-Fi (antes la RAM de usuario llegaba a `0x2007_1FFF`, 248 KB). El firmware
-de la Pico CPU usa de los 60 KB reservados de `0x2007_1000` unos 54 KB para sus
-datos (USB, tarjeta, disco ROM, sonido, enlace y red), deja unos 5,7 KB libres,
-y los dos bancos de 4 KB del final son las pilas de sus dos núcleos y algo de
-código que tiene que ir rápido.
+Los tamaños son definitivos desde D114, que le dio 4 KB más al firmware antes
+de congelarlos para las 1.x (antes la RAM de usuario llegaba a `0x2007_0FFF`,
+244 KB; antes de D107, a `0x2007_1FFF`, 248 KB). El firmware de la Pico CPU
+usa de los 64 KB reservados de `0x2007_0000` unos 58 KB para sus datos (USB,
+tarjeta, disco ROM, sonido, enlace y red) y deja unos 6 KB libres, que son
+también la pila de su núcleo 1; los dos bancos de 4 KB del final son las pilas
+de sus dos núcleos y algo de código que tiene que ir rápido.
 
 - La flash es de **solo lectura en tiempo de ejecución**. Escribir en ella detiene
   ambos núcleos del RP2350, así que los ficheros se guardan siempre en la tarjeta SD.
@@ -213,7 +221,7 @@ El borde es de 64 píxeles a cada lado y 48 líneas arriba y abajo (la mitad en
 píxeles de modo 0). En `zxv.h`: `ZXV_FRAME_W`, `ZXV_FRAME_H`, `ZXV_BORDER_X`,
 `ZXV_BORDER_Y`, `ZXV_FRAME_LINES(modo)` y `ZXV_BORDER_LINES(modo)`.
 
-### 4.5 Registros de vídeo (`0x2000_0400`, *provisional*)
+### 4.5 Registros de vídeo (`0x2000_0400`)
 
 | Desp. | Nombre | Tipo | Descripción |
 |---|---|---|---|
@@ -352,7 +360,7 @@ salida analógica de línea, en la placa.
   sonido de 96 KB, con su nota, su volumen y su panorama.
 - **Salida:** estéreo a 48 kHz, 16 bits. El AY admite mezcla mono, ABC o ACB.
 
-### 5.2 Registros de sonido (`0x2000_0600`, *provisional*)
+### 5.2 Registros de sonido (`0x2000_0600`)
 
 | Desp. | Nombre | Tipo | Escribe | Descripción |
 |---|---|---|---|---|
@@ -364,9 +372,9 @@ salida analógica de línea, en la placa.
 | `+0x06` | `AY_TAIL` | u16 | sistema | Índice de lectura de la cola del AY |
 | `+0x08` | `BEEP_HEAD` | u16 | programa | Índice de escritura de la cola del beeper |
 | `+0x0A` | `BEEP_TAIL` | u16 | sistema | Índice de lectura de la cola del beeper |
+| `+0x0C` | `SMP_VOLUME` | u8 | programa | Volumen de los canales de muestras (0–255); la ROM lo pone a 255 al arrancar (5.6) |
 | `+0x10` | `AY_REGS` | 16 × u8 | sistema | Copia de solo lectura de los registros del AY ya aplicados |
 | `+0x20` | `AY2_REGS` | 16 × u8 | sistema | Lo mismo, del segundo AY |
-| `+0x0C` | `SMP_VOLUME` | u8 | programa | Volumen de los canales de muestras (0–255); la ROM lo pone a 255 al arrancar (5.6) |
 | `+0x40` | `SMP_REGS` | 96 × u8 | sistema | Copia de solo lectura de los registros de los 12 canales de muestras (5.6) |
 | `+0xA0` | `SMP_SRC` | u32 | programa | Subida a la memoria de sonido: desde aquí (la RAM del programa)... |
 | `+0xA4` | `SMP_DST` | u32 | programa | ... a aquí (la memoria de sonido)... |
@@ -503,7 +511,7 @@ hace en la Pico ULA y en el emulador (D97).
 El sistema actualiza estos registros con la información de los dispositivos USB
 (teclado, mandos y ratón, a través de un hub).
 
-### 6.1 Registros de entrada (`0x2000_0500`, *provisional*)
+### 6.1 Registros de entrada (`0x2000_0500`)
 
 | Desp. | Nombre | Tipo | Descripción |
 |---|---|---|---|
@@ -514,6 +522,8 @@ El sistema actualiza estos registros con la información de los dispositivos USB
 | `+0x30` | `KEY_MODS` | u8 | Modificadores HID (Ctrl, Shift, Alt, GUI, izquierda y derecha) |
 | `+0x40` | `JOY0` | u16 | Mando del jugador 1 (ver 6.3) |
 | `+0x42` | `JOY1` | u16 | Mando del jugador 2 |
+| `+0x44` | `JOY2` | u16 | El tercer mando (D122). Desde la versión 0.3; antes, a 0 |
+| `+0x46` | `JOY3` | u16 | El cuarto mando (D122). Desde la versión 0.3; antes, a 0 |
 | `+0x48` | `MOUSE_X` | i16 | Movimiento acumulado (circular), positivo a la derecha |
 | `+0x4A` | `MOUSE_Y` | i16 | Movimiento acumulado (circular), positivo hacia abajo |
 | `+0x4C` | `MOUSE_BTN` | u8 | Bits 0–2: izquierdo, derecho y central |
@@ -568,16 +578,20 @@ Traducción del teclado USB:
 
 ### 6.3 Mandos
 
-| Bit | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 15 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Función | Derecha | Izquierda | Abajo | Arriba | Fuego 1 | Fuego 2 | Fuego 3 | Start | Select | Conectado |
+| Bit | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 15 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Función | Derecha | Izquierda | Abajo | Arriba | Fuego 1 | Fuego 2 | Fuego 3 | Start | Select | Fuego 4 | L | R | Conectado |
+
+El fuego 4, L y R (bits 9 a 11, D118), desde la versión 0.3; antes, a 0.
 
 Los 5 bits bajos coinciden con la **interfaz Kempston**. Se admiten mandos HID
-genéricos y DualShock 4 o DualSense; XInput (Xbox, 8BitDo en modo X) está previsto.
+genéricos, DualShock 4 o DualSense, y los XInput como el de Xbox 360 con cable
+(y los compatibles, como los 8BitDo en modo X), y los de Xbox One y Series
+con cable (GIP). Los inalámbricos con su receptor, no.
 
 - **Dirección:** la cruceta o el stick izquierdo, pasado un cuarto de su recorrido.
-- **Botones de un mando genérico:** los botones 1, 2 y 3 son los fuegos; el 9 es
-  Select y el 10, Start.
+- **Botones de un mando genérico:** los botones 1, 2, 3 y 4 son los fuegos; el
+  5 es L, el 6 es R, el 9 es Select y el 10, Start.
 - **DualShock 4 y DualSense:**
 
   | Botón | Bit |
@@ -585,10 +599,20 @@ genéricos y DualShock 4 o DualSense; XInput (Xbox, 8BitDo en modo X) está prev
   | ✕ | Fuego 1 |
   | ○ | Fuego 2 |
   | □ | Fuego 3 |
+  | △ | Fuego 4 |
+  | L1 | L |
+  | R1 | R |
   | Share o Create | Select |
   | Options | Start |
-- **JOY0 y JOY1:** el primer mando que se conecta va a JOY0 y el segundo a JOY1.
-  Si se desconecta uno, su registro se queda a 0 (sin el bit «conectado»).
+- **XInput (Xbox 360):** A, B, X e Y son los fuegos 1, 2, 3 y 4; LB es L y RB
+  es R; Back es Select y Start, Start.
+- **GIP (Xbox One y Series):** los mismos; Vista es Select y Menú, Start. El
+  botón Xbox no se usa. En los de Xbox 360, el aro de luz enciende el cuadrante del mando (del 1 al 4:
+  JOY0 a JOY3).
+- **JOY0 a JOY3:** cada mando que se conecta va al primero libre (el primero, a
+  JOY0; el segundo, a JOY1...). Si se desconecta uno, su registro se queda a 0
+  (sin el bit «conectado») y el siguiente que se conecte ocupa ese hueco. Un
+  quinto mando no se usa (D122).
 
 ### 6.4 Cola de teclas
 
@@ -663,11 +687,11 @@ rellena al arrancar. Para llamar a la función `n`:
 Como la tabla está en RAM, un programa puede **redirigir** una entrada para
 interceptar una rutina del sistema, igual que se hacía con los ganchos del Spectrum.
 
-### 7.3 Funciones iniciales (*provisional*)
+### 7.3 Funciones
 
 | n | Función | Descripción |
 |---|---|---|
-| 0 | `u32 api_version(void)` | Versión de la API |
+| 0 | `u32 api_version(void)` | La versión de la especificación que cumple la ROM (`mayor << 16 \| menor`, la misma que la variable `VERSION`, §8.1): para saber si tiene una función de las de después |
 | 1 | `void wait_vblank(void)` | Espera al siguiente VBLANK (equivale a `HALT`) |
 | 2 | `void set_frame_hook(void (*fn)(void))` | Instala (o quita, con NULL) la función que se llama en cada VBLANK |
 | 3 | `u32 time_us(void)` | Contador de microsegundos (circular) |
@@ -678,7 +702,7 @@ interceptar una rutina del sistema, igual que se hacía con los ganchos del Spec
 | 8 | `void print_char(int c)` | Imprime un carácter (su código Unicode) en la posición del cursor, con los colores de `text_colors`. Dibuja ASCII, `©` y las letras del español de la fuente de la ROM (§7.10); los demás salen como `?` |
 | 9 | `void print_str(const char *s)` | Imprime una cadena en UTF-8, como `print_char` |
 | 10 | `int key_get(void)` | Siguiente tecla de la cola, o −1 si está vacía |
-| 11 | `u32 joy_read(int n)` | Estado del mando `n` |
+| 11 | `u32 joy_read(int n)` | Estado del mando `n` (0 a 3: `JOY0` a `JOY3`); con otro `n`, 0. Hasta la 0.11, cualquier `n` distinto de 0 leía `JOY1` |
 | 12 | `void ay_write(int reg, int valor)` | Escribe en el AY mediante la cola |
 | 13 | `void beeper_event(int nivel)` | Cambio del beeper con marca de tiempo |
 | 14 | `int file_open(const char *nombre, int modo)` | Abre un fichero de la SD |
@@ -708,11 +732,16 @@ interceptar una rutina del sistema, igual que se hacía con los ganchos del Spec
 | 53 | `void text_colors(int tinta, int papel)` | Colores (0–15) del texto de `print_char` y `print_str`. Al arrancar, 0 y 7. `set_mode` borra con el papel |
 | 54 | `void text_at(int col, int fila)` | Lleva el cursor del texto a esa celda (desde 0, arriba a la izquierda) |
 | 55 | `void beeper_event_at(u32 tiempo_us, int nivel)` | Cambio del beeper a esa hora, por la cola con marca de tiempo (§5.4); con la cola llena, espera |
+| 56–58 | Gráficos | Ver §7.8 (desde la versión 0.2) |
+| 59–255 | Libres | Devuelven −1 (principio 5) |
 
 Las funciones de ficheros devuelven un valor ≥ 0 si todo va bien o un código
 de error negativo (§7.7).
 
-Los números de función no se reordenarán a partir de la v1.0.
+Los números de función no se reordenan nunca. Una función nueva toma el
+siguiente número libre, sea de lo que sea (los grupos de las primeras ya se
+mezclaron: 48–51 y 53–55 no son gráficos), y la especificación sube su
+versión menor, para que un programa la busque con `api_version`.
 
 ### 7.4 Interrupciones
 
@@ -1264,12 +1293,12 @@ actualización solo escucha a J5.
 
 ## 8. Variables del sistema
 
-### 8.1 Variables (`0x2000_0700`, *provisional*)
+### 8.1 Variables (`0x2000_0700`)
 
 | Desp. | Nombre | Tipo | Descripción |
 |---|---|---|---|
 | `+0x00` | `FRAMES` | u32 | Contador de frames (60 Hz). No es el `FRAMES` del Spectrum (23672 en el BASIC), que cuenta cincuentavos de segundo |
-| `+0x04` | `VERSION` | u32 | Versión de la especificación (`mayor << 16 \| menor`): 0.2 desde D109 (`PROG_FILE` y `PROG_CRC`) |
+| `+0x04` | `VERSION` | u32 | Versión de la especificación (`mayor << 16 \| menor`): 0.3 desde D123 (`JOY2`, `JOY3`, el fuego 4, L y R); 0.2, desde D109 (`PROG_FILE` y `PROG_CRC`) |
 | `+0x08` | `FRAME_HOOK` | u32 | Gancho de frame actual (cámbialo con `set_frame_hook`) |
 | `+0x0C` | `RAMTOP` | u32 | Tope de la RAM usable; la pila del núcleo 0 empieza aquí |
 | `+0x10` | `URAM_START` | u32 | Inicio de la RAM de usuario |
@@ -1460,12 +1489,11 @@ Ver [sdk/README.md](../sdk/README.md):
   en PNG en sprites, tiles y mapas; `tools/mkweb.py`, la página web de un
   juego (D85).
 - Ejemplos en C: `hello`, `graphics`, `scroll`, `digital`, `files`, `boardtest`,
-  `estela`, `route128`, `mine`, `street`, `umbra`, `keep`, `chess`, `player` y
-  `gfxedit`.
-  Todos devuelven 0 al acabar bien.
-
-Previsto: `zxv.inc` con macros para ensamblador (`ZXV_CALL`, `WAIT_VBLANK`,
-`AY_WRITE`…) y un juego de ejemplo en ensamblador puro.
+  `samples`, `estela`, `route128`, `mine`, `street`, `umbra`, `keep`,
+  `gonesilent`, `chess`, `player`, `gfxedit` y `fases` (los bancos); en
+  ensamblador, `asmhello`. Todos devuelven 0 al acabar bien.
+- Ensamblador: `zxv.h` vale en los `.S` (salvo las macros con conversiones de
+  tipo de C) y trae `ZXV_CALL(n)`, la llamada a la función *n* por la tabla.
 
 ---
 
@@ -1500,7 +1528,115 @@ versión web (WebAssembly). Ver [la guía del emulador](../docs/es/emulator.md).
 
 ---
 
-## 11. Pendiente
+## 11. Compatibilidad en las 1.x
+
+Con la 1.0, esta especificación pasa a ser una promesa: **un programa hecho
+para la 1.0, en BASIC o nativo, funciona igual en todas las 1.x, y los
+ficheros que guarda se siguen leyendo.** Lo nuevo de una 1.x puede faltar en
+una máquina anterior; cuando falta, se nota de una forma descrita (la función
+da −1, el fichero da un error al cargarlo), nunca haciendo otra cosa.
+
+Corregir un error (que la máquina no haga lo que dice esta especificación) no
+rompe la promesa: se corrige, y lo dicen las notas de la versión.
+
+### 11.1 Lo que no cambia
+
+- **La CPU** (§2): el perfil de instrucciones, la convención de llamada, los
+  CSR que pueden usar los programas y las instrucciones especiales.
+- **El mapa de memoria** (§3.1): las zonas, sus direcciones y sus tamaños; la
+  RAM de usuario va de `0x2003_4000` a `0x2006_FFFF` (D114), como dicen
+  `URAM_START` y `URAM_END`.
+- **El área de sistema** (§3.2), en lo que es para los programas: la tabla de
+  la API, los registros de vídeo, entrada y sonido, las variables del
+  sistema, las colas del AY y del beeper, las tablas de remapeo, las
+  paletas, la tabla por línea y el buzón del depurador. Cada registro y cada
+  variable conserva su dirección, su tamaño, sus bits y sus valores, con su
+  significado.
+- **La API** (§7.3): los números de las funciones y lo que hace cada una, con
+  sus argumentos, su resultado y sus códigos de error (§7.7).
+- **La máquina por frame**: los 60 Hz lógicos, el VBLANK y cuándo se aplican
+  los cambios (§4.8); el vídeo (los modos, el formato de píxel, los colores
+  de siempre, el campo de juego virtual); el sonido (los dos AY, el beeper,
+  la mezcla, los canales de muestras); la entrada (la matriz del Spectrum,
+  los mandos, la cola de teclas, el ratón).
+- **El BASIC**: sus palabras y lo que hacen, sus informes y los códigos de
+  sus palabras en los ficheros (los de ZX-V, con el prefijo `0x01`,
+  [basic.md](basic.md)): un `.zvb` de la 1.0 se carga en todas las 1.x. La
+  memoria libre al arrancar (93.832 bytes) no baja.
+- **El SDK**: los nombres de `zxv.h`, `zxv_api.h` y las demás cabeceras se
+  conservan, así que un programa de la 1.0 se compila con el SDK de
+  cualquier 1.x. Un `.zxv` ya compilado no necesita compilarse otra vez.
+
+### 11.2 Cómo crece una 1.x
+
+- **Funciones nuevas:** toman el siguiente número libre de la tabla (§7.3) y
+  la versión menor de la especificación sube. Un programa que las use mira
+  antes `api_version` (o la variable `VERSION`): en una ROM anterior, esa
+  entrada da −1.
+- **Registros, variables, bits y valores nuevos:** van a lo reservado
+  (principio 5). En una máquina anterior se leen como 0, así que se
+  diseñan para que 0 sea «como antes».
+- **La versión** de una 1.x es `1 << 16 | menor` en `api_version` y en
+  `VERSION`: un programa compara con la que necesita, nunca con una igual.
+- **Una revisión de la placa** (más puertos USB, otra Pico) es una 1.x si
+  los programas no ven nada distinto, más allá de lo que ya está reservado.
+
+### 11.3 Los ficheros
+
+| Fichero | Lo que se lee siempre | Cómo crece |
+|---|---|---|
+| `.zxv` (§9.2) | La firma `ZXV1`, la cabecera de 72 bytes y el perfil 1, con los bancos (`ZXVBANK1`) | Los campos reservados, a 0. Usar funciones nuevas no cambia el perfil (el programa mira `api_version`); el perfil solo subiría si cambiara la forma de cargar, y entonces una ROM anterior lo rechaza |
+| `.zvb`, `.zvd` ([basic.md](basic.md)) | La versión 1, con sus tipos y sus marcas | Las palabras nuevas, con códigos nuevos. Una marca o una versión que no se conoce no se carga (`R`): nunca se carga a medias |
+| `.gfx` ([basic.md](basic.md)) | La versión 1 y sus cinco tipos de objeto | Un tipo de objeto nuevo no cambia la versión: los lectores se saltan los que no conocen (la ROM y el SDK) |
+| `.zxm` (D98) | La firma `ZXVMUS01` | Lo que no se pueda leer igual lleva otra firma, que un reproductor anterior rechaza (`ZXV_MUSIC_NONE`) |
+| Los de `zxv_save` (SDK) | El contenedor `ZXVS` | La versión de los datos la pone el programa: si no es la suya, `zxv_load` no los carga |
+| Las instantáneas del emulador | Las de la versión 2 a la de la 1.0 | Bloques con nombre: los que no se conocen se saltan. Un emulador anterior no abre las de uno nuevo y lo dice |
+
+Y una máquina con la 1.0 se actualiza a cualquier 1.x, desde la tarjeta o por
+J5 (§7.12): el fichero de actualización se sigue pudiendo leer con el
+firmware de la 1.0.
+
+### 11.4 Los protocolos
+
+- **La carga remota por J5** (`HELLO`, versión 6,
+  [docs/es/hardware/protocol.md](../docs/es/hardware/protocol.md)): las
+  órdenes de la versión 6 no cambian. Las nuevas suben la versión, y un PC
+  mira la de `HELLO` antes de usarlas. La unidad `EXT:` va en este mismo
+  protocolo.
+- **La carga por la red** (versión 2): las dos puntas tienen que tener la
+  misma. Si una 1.x la cambiara (por seguridad, por ejemplo), `zxv-link` no
+  habla con la máquina y dice cuál de los dos hay que actualizar.
+- **El buzón del depurador del BASIC** (§8.2), versión 2: sus palabras no
+  cambian. Lo nuevo va a lo reservado del buzón y sube su versión
+  (`ZXV_DBG_VERSION`), que un depurador mira si lo necesita.
+
+### 11.5 Lo que queda fuera
+
+- **Lo interno**, marcado así en §3.2: la interfaz entre la ROM y la
+  plataforma (`0x2000_1240`) y el espacio de trabajo de la ROM
+  (`0x2000_2A00`); además, la RAM reservada, el contenido de la flash (el
+  código de la ROM y sus direcciones), el enlace entre las dos Pico y el
+  formato interno del fichero de actualización.
+- **El tiempo**: las cifras de rendimiento (§7.8), la frecuencia de la CPU
+  (`CPU_HZ`) y lo que tarda cada instrucción. Una 1.x puede ir más deprisa;
+  los programas se sincronizan con el VBLANK (principio 3).
+- **Lo que un programa no debe usar**: los periféricos del RP2350 (principio
+  4), lo reservado (principio 5) y lo que esta especificación no describe.
+- **Los límites del BASIC que dependen del compilador de la ROM**: cuántos
+  paréntesis o `FN` anida una expresión puede variar un poco de una versión
+  a otra; pasar del límite da siempre `4 Out of memory`.
+- **El emulador y las herramientas**: sus opciones pueden crecer, y el modo
+  estricto puede avisar de más cosas.
+
+### 11.6 Qué obliga a una 2.0
+
+Cambiar algo de 11.1, quitarlo o darle otro sentido: mover una zona de
+memoria, cambiar un registro, una variable o una función, dejar de leer un
+fichero de la 1.0, o una máquina en la que los programas vean otra cosa.
+
+---
+
+## 12. Pendiente
 
 Nada por ahora: los puntos abiertos de esta versión están cerrados (decisiones
 D51 a D53, y el escalado de sprites en D55). Lo que surja, aquí.

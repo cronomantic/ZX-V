@@ -23,7 +23,8 @@ other way round. It comes in several forms:
 The Windows and Linux packages contain `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-check`, `zxv-gfx`, `zxv-tracker`, `zxv-music`, `zxv-link` and `zxv-link-gui`,
 plus the examples (the `ejemplos` folder) and the `ROM:` drive
 (`romdisk.bin`). How to download them is explained in
-[Getting started](getting-started.md#download).
+[Getting started](getting-started.md#download). There is no package for
+macOS: on a Mac, use [the web version](#the-web-version).
 
 ## The desktop application (`zxv`)
 
@@ -152,8 +153,8 @@ wheel are the machine's. When it leaves the picture, it is your PC's pointer
 again. If a program draws its own pointer, **Options > Hide the PC pointer over
 the picture** removes the duplicate.
 
-**Gamepads** work as soon as you connect them; the first is player 1 and the
-second, player 2. The d-pad or the left stick are the directions, and the
+**Gamepads** work as soon as you connect them, up to four; the first is player
+1, the second, player 2, and so on. The d-pad or the left stick are the directions, and the
 buttons are:
 
 | Gamepad (Xbox names) | ZX-V |
@@ -161,10 +162,13 @@ buttons are:
 | A | Fire 1 |
 | B | Fire 2 |
 | X | Fire 3 |
+| Y | Fire 4 |
+| LB | L |
+| RB | R |
 | Start (Menu) | Start |
 | Back (View) | Select |
 
-On a PlayStation pad that is ✕, ○ and □. The PC keyboard is not turned into
+On a PlayStation pad that is ✕, ○, □, △, L1 and R1. The PC keyboard is not turned into
 a gamepad; most games, like *Estela*, accept both the keyboard and a gamepad.
 
 ### The SD card
@@ -190,7 +194,10 @@ outside the folder. File names can use only unaccented letters, digits and
 some symbols, up to 63 characters; files with other names do not show up.
 And, as on the card, a file the machine has open cannot be opened for
 writing, removed or renamed (`ZXV_E_ACCESS`). The `EXT:` drive does allow it,
-as the `zxv-link` server does.
+as the `zxv-link` server does. On Windows, a folder also refuses the names
+Windows keeps for its devices: `CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9`
+and `LPT1` to `LPT9`, with any extension (`F Invalid file name` in BASIC,
+`ZXV_E_NAME` in C); on the real card and in an image they are ordinary names.
 
 **`sdimg`** creates and fills card images from the command line:
 
@@ -202,7 +209,8 @@ sdimg mkdir card.img /games          # create a folder
 sdimg ls card.img /                  # list a folder, with dates
 ```
 
-(`sdimg` speaks only Spanish for now.)
+`sdimg` speaks your system's language; `--lang en` or `--lang es` before the
+command changes it.
 
 **The `ROM:` drive**, with the built-in examples, is the `romdisk.bin` file that
 sits next to the emulator. If it is missing, `ROM:` is empty.
@@ -352,7 +360,7 @@ lists them all). These are the ones you are most likely to use:
 | `--turbo` | Unlimited CPU speed |
 | `--cpu-hz N` | Emulated processor speed in Hz (default 144000000) |
 | `--clock DATE` | The clock: `host` (your PC's time, the default), `"2026-01-31 12:00:00"` (that time at start-up, then running), or `off` (no time until a program sets it) |
-| `--type TEXT` | Type TEXT at start-up. `\n` or `{ENTER}` is Enter; also `{ESC}`, `{TAB}`, `{BS}`, `{DEL}`, `{UP}`, `{DOWN}`, `{LEFT}`, `{RIGHT}`, `{HOME}`, `{END}`, `{PGUP}`, `{PGDN}`, `{F1}`...`{F12}`, `{CTRL+END}`, `{SHIFT+UP}`; `{WAIT n}` waits n frames, `{RESET}` presses Ctrl+Alt+Del and `{JOY bits}` holds gamepad 1 with those buttons (those of [`JOY`](basic/reference.md#joy)) until the next `{JOY}`: `{JOY 1}{WAIT 60}{JOY 0}` pushes it right for one second |
+| `--type TEXT` | Type TEXT at start-up. `\n` or `{ENTER}` is Enter; also `{ESC}`, `{TAB}`, `{BS}`, `{DEL}`, `{UP}`, `{DOWN}`, `{LEFT}`, `{RIGHT}`, `{HOME}`, `{END}`, `{PGUP}`, `{PGDN}`, `{F1}`...`{F12}`, `{CTRL+END}`, `{SHIFT+UP}`; `{WAIT n}` waits n frames, `{RESET}` presses Ctrl+Alt+Del and `{JOY bits}` holds gamepad 1 with those buttons (those of [`JOY`](basic/reference.md#joy)) until the next `{JOY}`: `{JOY 1}{WAIT 60}{JOY 0}` pushes it right for one second; `{JOYn bits}` does the same with the gamepad of `JOY n` (0 to 3): `{JOY2 16}` |
 | `--paste FILE` | Type the contents of a text file (a BASIC listing, for example) after `--type`, much faster than key by key |
 | `--load-snapshot F.zxvs` | Start from a snapshot |
 | `--save-snapshot F.zxvs` | Save a snapshot at the end (`zxv-cli`) |
@@ -361,7 +369,7 @@ lists them all). These are the ones you are most likely to use:
 | `--shots PREFIX` | Save the screen of every frame, `PREFIX00001.bmp`, `PREFIX00002.bmp`... (`zxv-cli`): the frames of an animation. With `--shots-every N`, only one of every N frames; with `--shots-from N`, from frame N on |
 | `--wav F.wav` | Record the sound to a WAV file |
 | `--strict` | Strict mode: warn about anything the real machine would not allow |
-| `--version` | Print the ZX-V version (`ZX-V 0.11.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
+| `--version` | Print the ZX-V version (`ZX-V 0.12.0`) and exit. On Windows `zxv` has no console: its version is in **Help > About ZX-V** |
 
 The rest (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
 `--profile`, `--symbols`, `--panel`, `--test`, `--fail-on-warning`) are for programmers:

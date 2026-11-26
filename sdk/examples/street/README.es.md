@@ -35,7 +35,7 @@ También está en el disco ROM de la máquina: `LOAD "ROM:street"`.
   (una manzana, pan o pollo) que devuelve vida.
 - **Tres vidas**, una más cada 30 000 puntos, bonificación al acabar cada
   fase y por las vidas que queden al final.
-- **Récord** en `SD:street.txt` (en la tarjeta, aunque el juego se cargue
+- **Récord** en `SD:street.sav`, con la biblioteca `zxv_save` (si se va la luz a medias, se queda el de antes; si no hay `.sav`, lee el `SD:street.txt` de las versiones anteriores) (en la tarjeta, aunque el juego se cargue
   desde `ROM:`, que no se puede escribir). Sin tarjeta, dura lo que la
   sesión.
 - **Demostración:** sin tocar nada en el título, a los 12 segundos el piloto
@@ -90,9 +90,10 @@ También está en el disco ROM de la máquina: `LOAD "ROM:street"`.
   velocidad, pero más suave; con el 36 de las posiciones, las velocidades y
   la gravedad salen exactas. La música y los efectos siguen avanzando 50
   pasos por segundo.
-- **El teclado:** se lee el mapa de teclas pulsadas (`ZXV_I_KEYMAP`) para
-  andar y pegar a la vez, y se vacía la cola de teclas cada frame para que lo
-  tecleado no le llegue al BASIC al volver.
+- **El teclado y el mando:** con la biblioteca `zxv_input` (un mapa de
+  teclas y botones por acción), para andar y pegar a la vez; la biblioteca
+  vacía la cola de teclas para que lo tecleado no le llegue al BASIC al
+  volver.
 
 ## La dificultad
 

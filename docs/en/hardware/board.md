@@ -162,8 +162,9 @@ on the board.
 only need them for remote loading (J5: sending programs from the PC,
 debugging BASIC on the board and serving the `EXT:` drive; see
 [Loading programs from the PC](firmware.md#loading-programs-from-the-pc-j5))
-or to connect an I2C module such as a DS3231 clock (J6). Straight 2.54 mm
-male headers.
+or to watch the clock's bus with an analyser, or to connect a DS3231 clock
+module, which is used instead of the on-board one (J6; programs do not use
+I2C). Straight 2.54 mm male headers.
 
 ### The Picos
 
@@ -283,7 +284,7 @@ The labels printed on the board are in Spanish.
 | `microSD` | Right side | J3 | The SD card (push to insert, push again to release) |
 | `CR2032` `+` | Right side | BT1 | The clock's coin cell, `+` up |
 | `UART` `GND` `TX` `RX` | Back, right | J5 (not fitted) | Remote loading: programs from the PC with `zxv-link` and a 3.3 V USB-serial adapter ([how](firmware.md#loading-programs-from-the-pc-j5)). `TX` is the Pico's output |
-| `I2C` `3V3` `GND` `SDA` `SCL` | Back, right | J6 (not fitted) | The clock's I2C bus, 3.3 V, for an extra module (a DS3231 clock module is used instead of the on-board one if present) |
+| `I2C` `3V3` `GND` `SDA` `SCL` | Back, right | J6 (not fitted) | The clock's I2C bus, 3.3 V: to watch it with an analyser, or for a DS3231 clock module, which is used instead of the on-board one. Programs do not use I2C |
 | `ULA` *vídeo y sonido* | Centre left | U2 | The ULA Pico ("video and sound") |
 | `CPU` *BASIC y programas* | Centre right | U1 | The CPU Pico ("BASIC and programs") |
 

@@ -2,14 +2,14 @@
  * zxv_version.h - La versión de ZX-V: la de la ROM, el emulador y el
  * firmware de las Pico, que se publican juntos (una etiqueta vX.Y.Z).
  *
- * Se cambia aquí al sacar una versión nueva (ver dev/README.md).
+ * Se cambia aquí al sacar una versión nueva (ver dev/guia/publicar.md).
  */
 #ifndef ZXV_VERSION_H
 #define ZXV_VERSION_H
 
 #define ZXV_VERSION_MAJOR   0
-#define ZXV_VERSION_MINOR   11
+#define ZXV_VERSION_MINOR   12
 #define ZXV_VERSION_PATCH   0
-#define ZXV_VERSION         "0.11.0"
+#define ZXV_VERSION         "0.12.0"
 
 #endif

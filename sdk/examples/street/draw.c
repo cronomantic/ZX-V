@@ -255,7 +255,10 @@ void number(char *out, uint32_t v, int digits)
 
 /* --- Los lienzos y los sprites -------------------------------------------------- */
 
-static uint32_t pool[20480];            /* los sprites preparados (80 KB) */
+/* Los sprites preparados: hacen falta 86.000 bytes (los cuerpos, las
+ * cabezas y las cosas). Con 80 KB no cabían las cabezas desde la del punk
+ * tumbado, y los matones salían sin cabeza en el emulador y en la placa. */
+static uint32_t pool[22528];            /* 88 KB */
 static uint32_t pool_used;
 static uint32_t canvas_mem[64 * 64 / 8];
 static zxv_bitmap canvas_bmp;
@@ -323,7 +326,11 @@ sprite_t canvas_sprite(int x, int y, int w, int h)
         zxv_spr_prepare(&canvas_bmp, x, y, w, h, &pool[pool_used]);
         s.spr = &pool[pool_used];
         pool_used += (bytes + 3) / 4;
-    }                                   /* si no cabe, no se dibuja */
+    } else if (bytes) {
+        /* Los dibujos son del programa, no de la tarjeta: si no caben, es un
+         * fallo, y mejor que se vea (antes se callaba y faltaba lo último). */
+        zxv_report_error(0, T("no caben los sprites", "the sprites do not fit"));
+    }
     canvas_end();
     return s;
 }

@@ -23,7 +23,8 @@ hardware, y al revés. Viene en varias formas:
 Los paquetes de Windows y Linux traen `zxv`, `zxv-sdl`, `zxv-cli`, `sdimg`, `zxv-check`, `zxv-gfx`, `zxv-tracker`, `zxv-music`, `zxv-link` y `zxv-link-gui`,
 además de los ejemplos (la carpeta `ejemplos`) y la unidad `ROM:`
 (`romdisk.bin`). Cómo descargarlos se explica en
-[Primeros pasos](getting-started.md#descarga).
+[Primeros pasos](getting-started.md#descarga). No hay paquete para macOS: en un
+Mac, usa [la versión web](#la-versión-web).
 
 ## La aplicación de escritorio (`zxv`)
 
@@ -152,8 +153,8 @@ máquina. Al salir de la imagen vuelve a ser el puntero de tu PC. Si un programa
 dibuja su propio puntero, **Opciones > Ocultar el puntero del PC sobre la
 imagen** quita el que sobra.
 
-**Los mandos** funcionan en cuanto los conectas; el primero es el jugador 1 y
-el segundo, el jugador 2. La cruceta o el stick izquierdo son las direcciones,
+**Los mandos** funcionan en cuanto los conectas, hasta cuatro; el primero es el
+jugador 1, el segundo, el jugador 2, y así. La cruceta o el stick izquierdo son las direcciones,
 y los botones son:
 
 | Mando (nombres de Xbox) | ZX-V |
@@ -161,10 +162,13 @@ y los botones son:
 | A | Fuego 1 |
 | B | Fuego 2 |
 | X | Fuego 3 |
+| Y | Fuego 4 |
+| LB | L |
+| RB | R |
 | Start (Menú) | Start |
 | Back (Vista) | Select |
 
-En un mando de PlayStation son ✕, ○ y □. El teclado del PC no se convierte en
+En un mando de PlayStation son ✕, ○, □, △, L1 y R1. El teclado del PC no se convierte en
 un mando; la mayoría de los juegos, como *Estela*, admiten las dos cosas.
 
 ### La tarjeta SD
@@ -191,6 +195,11 @@ letras sin tildes, cifras y algunos signos, hasta 63 caracteres; los ficheros
 con otros nombres no aparecen. Y, como en la tarjeta, un fichero que la
 máquina tiene abierto no se puede abrir para escribir, borrar ni renombrar
 (`ZXV_E_ACCESS`). La unidad `EXT:` sí lo deja, como el servidor de `zxv-link`.
+En Windows, además, una carpeta no admite los nombres que Windows reserva
+para sus dispositivos: `CON`, `PRN`, `AUX`, `NUL`, de `COM1` a `COM9` y de
+`LPT1` a `LPT9`, con cualquier extensión (`F Nombre de fichero no válido` en el
+BASIC, `ZXV_E_NAME` en C); en la tarjeta de verdad y en una imagen son
+nombres normales.
 
 **`sdimg`** crea y llena imágenes de tarjeta desde la línea de órdenes:
 
@@ -202,7 +211,8 @@ sdimg mkdir tarjeta.img /juegos           # crea una carpeta
 sdimg ls tarjeta.img /                    # lista una carpeta, con las fechas
 ```
 
-(Por ahora `sdimg` solo habla español.)
+`sdimg` habla el idioma de tu sistema; `--lang en` o `--lang es` delante de la
+orden lo cambia.
 
 **La unidad `ROM:`**, con los ejemplos de serie, es el fichero `romdisk.bin` que
 está junto al emulador. Si falta, `ROM:` está vacía.
@@ -355,7 +365,7 @@ lista todas). Estas son las que más vas a usar:
 | `--turbo` | CPU sin límite de velocidad |
 | `--cpu-hz N` | La velocidad del procesador emulado, en Hz (144000000 si no se dice) |
 | `--clock FECHA` | El reloj: `host` (la hora de tu PC, la de partida), `"2026-01-31 12:00:00"` (esa hora al arrancar, y luego avanza) u `off` (sin hora hasta que un programa la ponga) |
-| `--type TEXTO` | Teclea TEXTO al arrancar. `\n` o `{ENTER}` es Intro; también `{ESC}`, `{TAB}`, `{BS}`, `{DEL}`, `{UP}`, `{DOWN}`, `{LEFT}`, `{RIGHT}`, `{HOME}`, `{END}`, `{PGUP}`, `{PGDN}`, `{F1}`...`{F12}`, `{CTRL+END}`, `{SHIFT+UP}`; `{WAIT n}` espera n imágenes, `{RESET}` pulsa Ctrl+Alt+Supr y `{JOY bits}` deja el mando 1 con esos botones (los de [`JOY`](basic/reference.md#joy)) hasta el siguiente `{JOY}`: `{JOY 1}{WAIT 60}{JOY 0}` lo lleva a la derecha un segundo |
+| `--type TEXTO` | Teclea TEXTO al arrancar. `\n` o `{ENTER}` es Intro; también `{ESC}`, `{TAB}`, `{BS}`, `{DEL}`, `{UP}`, `{DOWN}`, `{LEFT}`, `{RIGHT}`, `{HOME}`, `{END}`, `{PGUP}`, `{PGDN}`, `{F1}`...`{F12}`, `{CTRL+END}`, `{SHIFT+UP}`; `{WAIT n}` espera n imágenes, `{RESET}` pulsa Ctrl+Alt+Supr y `{JOY bits}` deja el mando 1 con esos botones (los de [`JOY`](basic/reference.md#joy)) hasta el siguiente `{JOY}`: `{JOY 1}{WAIT 60}{JOY 0}` lo lleva a la derecha un segundo; `{JOYn bits}` hace lo mismo con el mando de `JOY n` (de 0 a 3): `{JOY2 16}` |
 | `--paste FICHERO` | Teclea el contenido de un fichero de texto (un listado BASIC, por ejemplo) después de `--type`, mucho más deprisa que tecla a tecla |
 | `--load-snapshot F.zxvs` | Empieza desde una instantánea |
 | `--save-snapshot F.zxvs` | Guarda una instantánea al terminar (`zxv-cli`) |
@@ -364,7 +374,7 @@ lista todas). Estas son las que más vas a usar:
 | `--shots PREFIJO` | Guarda la pantalla de cada frame, `PREFIJO00001.bmp`, `PREFIJO00002.bmp`... (`zxv-cli`): los fotogramas de una animación. Con `--shots-every N`, solo uno de cada N frames; con `--shots-from N`, a partir del frame N |
 | `--wav F.wav` | Graba el sonido en un fichero WAV |
 | `--strict` | Modo estricto: avisa de lo que la máquina real no permitiría |
-| `--version` | Escribe la versión de ZX-V (`ZX-V 0.11.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
+| `--version` | Escribe la versión de ZX-V (`ZX-V 0.12.0`) y termina. En Windows, `zxv` no tiene consola: su versión está en **Ayuda > Acerca de ZX-V** |
 
 Las demás (`--rom`, `--elf`, `--load`, `--gdb`, `--basic-debug`, `--debug`,
 `--profile`, `--symbols`, `--panel`, `--test`, `--fail-on-warning`) son para programadores:

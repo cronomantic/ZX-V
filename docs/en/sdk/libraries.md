@@ -20,6 +20,15 @@ SOURCES := juego.c $(SDK)/lib/math.c $(SDK)/lib/input.c $(SDK)/lib/save.c
 The headers are in `sdk/include`, the same folder as the system ones, so
 no extra `-I` is needed.
 
+The SDK examples use them, so they work as samples: the keyboard and the
+gamepad with `zxv_input` and the high score with `zxv_save` in Estela, The
+Mine, The Keep, Route 128, Umbra and Street Justice (each one, in the SDK
+`Makefile`, with its own); Gone Silent, the keyboard and gamepad also with
+`zxv_input` (its sixteen actions, as many as fit) and the saved game with
+`zxv_save`; the square roots and angles of `zxv_math` in
+Estela, Street Justice and Gone Silent; and the floor cones of `graphics`,
+with `zxv_m7_project`.
+
 | Library | Header | Files to add | What for |
 |---|---|---|---|
 | [Maths](#maths-zxv_mathh) | `zxv_math.h` | `lib/math.c` | 16.16 fixed point, sine and cosine, atan2, square roots, random numbers |
@@ -1464,12 +1473,13 @@ name. The map is data: it can be copied, changed and saved with
 
 **See also:** [`zxv_input_map`](#zxv_input_map).
 
-### `ZXV_IN_RIGHT`, `ZXV_IN_LEFT`, `ZXV_IN_DOWN`, `ZXV_IN_UP`, `ZXV_IN_FIRE`, `ZXV_IN_FIRE2`, `ZXV_IN_FIRE3`, `ZXV_IN_START`, `ZXV_IN_SELECT`, `ZXV_IN_ESC`
+### `ZXV_IN_RIGHT`, `ZXV_IN_LEFT`, `ZXV_IN_DOWN`, `ZXV_IN_UP`, `ZXV_IN_FIRE`, `ZXV_IN_FIRE2`, `ZXV_IN_FIRE3`, `ZXV_IN_START`, `ZXV_IN_SELECT`, `ZXV_IN_ESC`, `ZXV_IN_FIRE4`, `ZXV_IN_L`, `ZXV_IN_R`
 
-The actions of the [default map](#zxv_input_default). They are the same
-bits as the gamepad buttons (`ZXV_JOY_...`), plus Esc. The bits it does
-not use (0x0400 to 0x8000) are for the game, with a map of its own; and a
-game can give these whatever meaning it likes.
+The actions of the [default map](#zxv_input_default). The first nine are
+the same bits as the gamepad buttons (`ZXV_JOY_...`); then come Esc and
+fire 4, L and R (these three only on the gamepad). The bits it does not use
+(0x2000 to 0x8000) are for the game, with a map of its own; and a game can
+give these whatever meaning it likes.
 
 | Action | Value | Keys | Gamepad button |
 |---|---|---|---|
@@ -1483,6 +1493,9 @@ game can give these whatever meaning it likes.
 | `ZXV_IN_START` | 0x0080 | Enter | `ZXV_JOY_START` |
 | `ZXV_IN_SELECT` | 0x0100 | Tab | `ZXV_JOY_SELECT` |
 | `ZXV_IN_ESC` | 0x0200 | Esc | none |
+| `ZXV_IN_FIRE4` | 0x0400 | none | `ZXV_JOY_FIRE4` |
+| `ZXV_IN_L` | 0x0800 | none | `ZXV_JOY_L` |
+| `ZXV_IN_R` | 0x1000 | none | `ZXV_JOY_R` |
 
 The letters are those at their place on a US keyboard (on a Spanish one
 they are the same).
@@ -1573,8 +1586,8 @@ extern const zxv_input_map zxv_input_default;
 ```
 
 The default map: cursor keys or Q A O P, fire with Space or M, fire 2 with
-N or Z, fire 3 with B or X, Enter for START, Tab for SELECT, Esc, and
-gamepad 0. The table of [the actions](#zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc)
+N or Z, fire 3 with B or X, Enter for START, Tab for SELECT, Esc, fire 4,
+L and R only on the gamepad, and gamepad 0. The table of [the actions](#zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc-zxv_in_fire4-zxv_in_l-zxv_in_r)
 says what each one does. It is the one used with
 `zxv_input_init(&in, NULL)`.
 

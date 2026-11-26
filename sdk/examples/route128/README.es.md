@@ -35,7 +35,7 @@ También está en el disco ROM de la máquina: `LOAD "ROM:route128"`.
   algo de la cuneta hace dar vueltas al coche, y alcanzar a otro coche, un
   golpe que frena.
 - **Puntos** por la velocidad y, al llegar, mil por cada segundo que sobre.
-  **Récord** en `SD:route128.txt` (en la tarjeta, aunque el juego se cargue
+  **Récord** en `SD:route128.sav`, con la biblioteca `zxv_save` (si se va la luz a medias, se queda el de antes; si no hay `.sav`, lee el `SD:route128.txt` de las versiones anteriores) (en la tarjeta, aunque el juego se cargue
   desde `ROM:`).
 - **Demostración:** sin tocar nada en el título, a los 12 segundos un piloto
   automático corre la primera etapa.

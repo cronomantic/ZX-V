@@ -27,7 +27,7 @@ También está en el disco ROM de la máquina: `LOAD "ROM:estela"`.
   aguanta un golpe.
 - **Tres vidas**, una más cada 20 000 puntos y una bonificación por las que
   queden al terminar. Al perder una vida, el arma se conserva.
-- **Récord** en `SD:estela.txt` (en la tarjeta, aunque el juego se cargue
+- **Récord** en `SD:estela.sav`, con la biblioteca `zxv_save` (si se va la luz a medias, se queda el de antes; si no hay `.sav`, lee el `SD:estela.txt` de las versiones anteriores) (en la tarjeta, aunque el juego se cargue
   desde `ROM:`, que no se puede escribir). Sin tarjeta, dura lo que la
   sesión.
 - **Demostración:** sin tocar nada en el título, a los 12 segundos un piloto
@@ -110,9 +110,11 @@ abajo de la roca, metal, sus dos bordes y una luz.
   que la música, que tiene que ir en orden de hora: la muestra empieza
   detrás de lo que ya tiene la música y, mientras suena, la música va hasta
   cada muestra y no más allá (`zxv_music_update_until`).
-- **El teclado:** se lee el mapa de teclas pulsadas (`ZXV_I_KEYMAP`) para
-  mover y disparar a la vez, y se vacía la cola de teclas cada frame para que
-  lo tecleado no le llegue al BASIC al volver.
+- **El teclado y el mando:** con la biblioteca `zxv_input`, un mapa dice qué
+  teclas y qué botones hacen cada acción; cada frame da las que están
+  pulsadas (para mover y disparar a la vez) y las que se acaban de pulsar, y
+  vacía la cola de teclas para que lo tecleado no le llegue al BASIC al
+  volver.
 
 ## La dificultad
 

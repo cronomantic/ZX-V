@@ -159,8 +159,9 @@ sobre la placa.
 Solo hacen falta para la carga remota (J5: mandar programas desde el PC,
 depurar el BASIC en la placa y servir la unidad `EXT:`; ver
 [Cargar programas desde el PC](firmware.md#cargar-programas-desde-el-pc-j5))
-o para conectar un módulo I2C, como un reloj DS3231 (J6). Tiras macho rectas
-de 2,54 mm.
+o para mirar el bus del reloj con un analizador, o conectar un módulo de reloj
+DS3231, que se usa en lugar del de la placa (J6; los programas no usan el I2C).
+Tiras macho rectas de 2,54 mm.
 
 ### Las Pico
 
@@ -279,7 +280,7 @@ enlace. Si algo no funciona, mira [Qué mirar](firmware.md#si-no-hay-imagen-o-no
 | `microSD` | Lateral derecho | J3 | La tarjeta SD (se empuja para meterla y otra vez para sacarla) |
 | `CR2032` `+` | Lateral derecho | BT1 | La pila del reloj, con el `+` hacia arriba |
 | `UART` `GND` `TX` `RX` | Detrás, a la derecha | J5 (sin montar) | La carga remota: programas desde el PC con `zxv-link` y un adaptador USB-serie de 3,3 V ([cómo](firmware.md#cargar-programas-desde-el-pc-j5)). `TX` es la salida de la Pico |
-| `I2C` `3V3` `GND` `SDA` `SCL` | Detrás, a la derecha | J6 (sin montar) | El bus I2C del reloj, a 3,3 V, para otro módulo (si hay un módulo de reloj DS3231, se usa en lugar del de la placa) |
+| `I2C` `3V3` `GND` `SDA` `SCL` | Detrás, a la derecha | J6 (sin montar) | El bus I2C del reloj, a 3,3 V: para mirarlo con un analizador o para un módulo de reloj DS3231, que se usa en lugar del de la placa. Los programas no usan el I2C |
 | `ULA` *vídeo y sonido* | En el centro, a la izquierda | U2 | La Pico ULA |
 | `CPU` *BASIC y programas* | En el centro, a la derecha | U1 | La Pico CPU |
 

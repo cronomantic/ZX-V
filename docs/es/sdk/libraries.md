@@ -20,6 +20,15 @@ SOURCES := juego.c $(SDK)/lib/math.c $(SDK)/lib/input.c $(SDK)/lib/save.c
 Las cabeceras están en `sdk/include`, la misma carpeta que las del sistema,
 así que no hace falta ningún `-I` más.
 
+Los ejemplos del SDK las usan, así que sirven de muestra: el teclado y el
+mando con `zxv_input` y el récord con `zxv_save` en Estela, The Mine, The
+Keep, Route 128, Umbra y Street Justice (cada uno, en el `Makefile` del SDK,
+con las suyas); Gone Silent, el teclado y el mando también con `zxv_input`
+(sus dieciséis acciones, las que caben) y la partida guardada con
+`zxv_save`; las raíces y los ángulos de `zxv_math` en Estela, Street
+Justice y Gone Silent; y los conos del suelo de `graphics`, con
+`zxv_m7_project`.
+
 | Biblioteca | Cabecera | Ficheros que se añaden | Para qué |
 |---|---|---|---|
 | [Cuentas](#cuentas-zxv_mathh) | `zxv_math.h` | `lib/math.c` | Coma fija 16.16, seno y coseno, atan2, raíces, números al azar |
@@ -1464,11 +1473,12 @@ su nombre. El mapa son datos: se copia, se cambia y se guarda con
 
 **Ver también:** [`zxv_input_map`](#zxv_input_map).
 
-### `ZXV_IN_RIGHT`, `ZXV_IN_LEFT`, `ZXV_IN_DOWN`, `ZXV_IN_UP`, `ZXV_IN_FIRE`, `ZXV_IN_FIRE2`, `ZXV_IN_FIRE3`, `ZXV_IN_START`, `ZXV_IN_SELECT`, `ZXV_IN_ESC`
+### `ZXV_IN_RIGHT`, `ZXV_IN_LEFT`, `ZXV_IN_DOWN`, `ZXV_IN_UP`, `ZXV_IN_FIRE`, `ZXV_IN_FIRE2`, `ZXV_IN_FIRE3`, `ZXV_IN_START`, `ZXV_IN_SELECT`, `ZXV_IN_ESC`, `ZXV_IN_FIRE4`, `ZXV_IN_L`, `ZXV_IN_R`
 
-Las acciones del [mapa de siempre](#zxv_input_default). Son los mismos bits
-que los botones del mando (`ZXV_JOY_...`), más Esc. Los bits que no usa
-(de 0x0400 a 0x8000) son para el juego, con un mapa suyo; y un juego puede
+Las acciones del [mapa de siempre](#zxv_input_default). Las nueve primeras
+son los mismos bits que los botones del mando (`ZXV_JOY_...`); luego vienen
+Esc y el fuego 4, L y R (estos tres, solo con el mando). Los bits que no usa
+(de 0x2000 a 0x8000) son para el juego, con un mapa suyo; y un juego puede
 dar a estos el sentido que quiera.
 
 | Acción | Valor | Teclas | Botón del mando |
@@ -1483,6 +1493,9 @@ dar a estos el sentido que quiera.
 | `ZXV_IN_START` | 0x0080 | Intro | `ZXV_JOY_START` |
 | `ZXV_IN_SELECT` | 0x0100 | Tab | `ZXV_JOY_SELECT` |
 | `ZXV_IN_ESC` | 0x0200 | Esc | ninguno |
+| `ZXV_IN_FIRE4` | 0x0400 | ninguna | `ZXV_JOY_FIRE4` |
+| `ZXV_IN_L` | 0x0800 | ninguna | `ZXV_JOY_L` |
+| `ZXV_IN_R` | 0x1000 | ninguna | `ZXV_JOY_R` |
 
 Las letras son las de su sitio en un teclado de EE. UU. (en uno español
 son las mismas).
@@ -1572,8 +1585,8 @@ extern const zxv_input_map zxv_input_default;
 ```
 
 El mapa de siempre: cursores o Q A O P, fuego con Espacio o M, fuego 2 con
-N o Z, fuego 3 con B o X, Intro para START, Tab para SELECT, Esc, y el
-mando 0. La tabla de [las acciones](#zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc)
+N o Z, fuego 3 con B o X, Intro para START, Tab para SELECT, Esc, el fuego
+4, L y R solo con el mando, y el mando 0. La tabla de [las acciones](#zxv_in_right-zxv_in_left-zxv_in_down-zxv_in_up-zxv_in_fire-zxv_in_fire2-zxv_in_fire3-zxv_in_start-zxv_in_select-zxv_in_esc-zxv_in_fire4-zxv_in_l-zxv_in_r)
 dice qué hace cada una. Es el que se usa con `zxv_input_init(&in, NULL)`.
 
 Es `const`: para cambiarlo, cópialo.

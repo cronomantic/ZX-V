@@ -28,6 +28,8 @@
  * vidas que ha perdido y los frames perdidos.
  */
 #include "mine.h"
+#include "zxv_input.h"
+#include "zxv_save.h"
 
 
 uint32_t rng_state = 1;
@@ -82,50 +84,37 @@ static void bot_number(int v)
 
 enum { IN_UP = 1, IN_DOWN = 2, IN_LEFT = 4, IN_RIGHT = 8, IN_FIRE = 16, IN_PAUSE = 32, IN_ESC = 64 };
 
-static int key(unsigned hid)
-{
-    const volatile uint8_t *map = (const volatile uint8_t *)(uintptr_t)ZXV_I_KEYMAP;
-    return (map[hid >> 3] >> (hid & 7)) & 1;
-}
-
 static int input_now, input_edge, last_dir = D_NONE, tap_dir = D_NONE;
+
+/* Las teclas y los botones de cada acción (zxv_input.h), en el orden de
+ * sus bits: los de siempre de este juego. */
+static const zxv_input_map keys = {
+    .keys = {
+        { 0x52, 0x14 },          /* IN_UP: cursor arriba, Q */
+        { 0x51, 0x04 },          /* IN_DOWN: abajo, A */
+        { 0x50, 0x12 },          /* IN_LEFT: izquierda, O */
+        { 0x4F, 0x13 },          /* IN_RIGHT: derecha, P */
+        { 0x2C, 0x10 },          /* IN_FIRE: espacio, M */
+        { 0x28 },                /* IN_PAUSE: Intro */
+        { 0x29 },                /* IN_ESC */
+    },
+    .joy = { ZXV_JOY_UP, ZXV_JOY_DOWN, ZXV_JOY_LEFT, ZXV_JOY_RIGHT, ZXV_JOY_FIRE1 | ZXV_JOY_FIRE2,
+             ZXV_JOY_START },
+    .pad = 0,
+};
+
+static zxv_input input;
 
 static void read_input(void)
 {
-    int in = 0;
-    if (key(0x52) || key(0x14))
-        in |= IN_UP;                    /* cursor arriba, Q */
-    if (key(0x51) || key(0x04))
-        in |= IN_DOWN;                  /* abajo, A */
-    if (key(0x50) || key(0x12))
-        in |= IN_LEFT;                  /* izquierda, O */
-    if (key(0x4F) || key(0x13))
-        in |= IN_RIGHT;                 /* derecha, P */
-    if (key(0x2C) || key(0x10))
-        in |= IN_FIRE;                  /* espacio, M */
-    if (key(0x28))
-        in |= IN_PAUSE;                 /* Intro */
-    if (key(0x29))
-        in |= IN_ESC;
-    uint16_t joy = *(volatile uint16_t *)(uintptr_t)ZXV_I_JOY0;
-    if (joy & ZXV_JOY_CONNECTED) {
-        if (joy & ZXV_JOY_UP) in |= IN_UP;
-        if (joy & ZXV_JOY_DOWN) in |= IN_DOWN;
-        if (joy & ZXV_JOY_LEFT) in |= IN_LEFT;
-        if (joy & ZXV_JOY_RIGHT) in |= IN_RIGHT;
-        if (joy & (ZXV_JOY_FIRE1 | ZXV_JOY_FIRE2)) in |= IN_FIRE;
-        if (joy & ZXV_JOY_START) in |= IN_PAUSE;
-    }
-    input_edge = in & ~input_now;
-    input_now = in;
+    zxv_input_update(&input);           /* y vacía la cola de teclas */
+    input_edge = input.pressed;
+    input_now = input.held;
     /* La última dirección pulsada manda; una pulsación corta no se pierde. */
     static const uint8_t bit_dir[4][2] = { { IN_UP, D_UP }, { IN_RIGHT, D_RIGHT }, { IN_DOWN, D_DOWN }, { IN_LEFT, D_LEFT } };
     for (int k = 0; k < 4; k++)
         if (input_edge & bit_dir[k][0])
             last_dir = tap_dir = bit_dir[k][1];
-    /* Lo tecleado no le sirve al juego: que no le llegue al BASIC al volver. */
-    while (zxv_key_get() >= 0)
-        ;
 }
 
 /* La dirección de este paso. */
@@ -157,12 +146,19 @@ static uint32_t score, record, next_life;
 static const char *msg, *msg2;
 static int msg_t;
 
-#define RECORD_FILE "SD:mine.txt"
+/* El récord, con zxv_save.h (si se va la luz a medias, se queda el de antes).
+ * Hasta la 0.11 iba en texto en mine.txt: si no hay mine.sav, se lee ese
+ * una vez (y se deja donde está). */
+#define RECORD_FILE "SD:mine.sav"
+#define RECORD_OLD "SD:mine.txt"
+#define RECORD_VERSION 1
 
 static void load_record(void)
 {
+    if (zxv_load(RECORD_FILE, RECORD_VERSION, &record, sizeof record) == ZXV_OK)
+        return;
     char buf[12];
-    int f = zxv_file_open(RECORD_FILE, ZXV_O_READ);
+    int f = zxv_file_open(RECORD_OLD, ZXV_O_READ);
     if (f < 0)
         return;
     int n = zxv_file_read(f, buf, sizeof(buf) - 1);
@@ -174,14 +170,8 @@ static void load_record(void)
 
 static void save_record(void)
 {
-    char buf[12];
-    number(buf, record, 8);
-    buf[8] = '\n';
-    int f = zxv_file_open(RECORD_FILE, ZXV_O_WRITE | ZXV_O_CREATE | ZXV_O_TRUNC);
-    if (f < 0)
-        return;                         /* sin tarjeta: el récord dura lo que la sesión */
-    zxv_file_write(f, buf, 9);
-    zxv_file_close(f);
+    /* Sin tarjeta, el récord dura lo que la sesión. */
+    zxv_save(RECORD_FILE, RECORD_VERSION, &record, sizeof record);
 }
 
 /* Al acabar la partida (o salir de ella): ¿récord? */
@@ -745,7 +735,9 @@ int main(void)
     sound_init();
     art_init();
     load_record();
-    input_now = 0x7F;                   /* lo que esté pulsado al empezar no cuenta */
+    zxv_input_init(&input, &keys);
+    zxv_input_update(&input);           /* lo que esté pulsado al empezar no cuenta */
+    input_now = input.held;
 #ifdef MINA_BOT
     play(0, 1);
     bot_exit(0);

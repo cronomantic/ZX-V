@@ -38,7 +38,7 @@ It is also on the machine's ROM disk: `LOAD "ROM:umbra"`.
   your surroundings; M shows the whole maze (the game stops while you look).
 - **Points** for each rune (more in later levels), for flasks and for each
   level cleared, plus the oil you have left. The **high score** is saved in
-  `SD:umbra.txt`, on the card even when the game is loaded from `ROM:`.
+  `SD:umbra.sav`, with the `zxv_save` library (if the power goes off halfway, the previous one stays; without a `.sav`, it reads the `SD:umbra.txt` of earlier versions), on the card even when the game is loaded from `ROM:`.
 - **Demo:** leave the title alone for 12 seconds and an autopilot plays. It
   goes for the nearest rune, for oil when it runs low, and for the gate once
   it is open.

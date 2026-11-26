@@ -41,7 +41,7 @@ También está en el disco ROM de la máquina: `LOAD "ROM:umbra"`.
   mientras lo miras).
 - **Puntos** por cada runa (más en los niveles de más adelante), por los
   frascos y por cada nivel superado, más el aceite que te quede. **Récord**
-  en `SD:umbra.txt` (en la tarjeta, aunque el juego se cargue desde `ROM:`).
+  en `SD:umbra.sav`, con la biblioteca `zxv_save` (si se va la luz a medias, se queda el de antes; si no hay `.sav`, lee el `SD:umbra.txt` de las versiones anteriores) (en la tarjeta, aunque el juego se cargue desde `ROM:`).
 - **Demostración:** sin tocar nada en el título, a los 12 segundos un piloto
   automático juega: va a por la runa más cercana, a por aceite cuando le
   falta y a la puerta cuando está abierta.

@@ -28,8 +28,8 @@ software for both Picos comes ready to copy onto them.
 - **The firmware**: two `.uf2` files, one for each Pico
   ([The firmware](firmware.md)).
 - **A screen with an HDMI input** (a TV or a monitor) and an HDMI cable.
-- **A USB keyboard.** Optionally a USB mouse, one or two USB gamepads and a USB
-  hub to plug them all in.
+- **A USB keyboard.** Optionally a USB mouse, up to four USB gamepads and a
+  USB hub to plug them all in.
 - **A microSD card**, to save your programs and load others.
 - **A USB-C phone charger** of 5 V that can give 2 A, with its cable.
 - Optionally, **powered speakers** for the audio output, and a **CR2032 coin

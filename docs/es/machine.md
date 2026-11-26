@@ -11,13 +11,13 @@ emulador y en el hardware real.
 | | ZX-V |
 |---|---|
 | Procesador | RISC-V de 32 bits a 144 MHz |
-| Memoria | 520 KB de RAM en total; unos 94 KB libres para un programa BASIC y hasta 244 KB para un programa nativo |
+| Memoria | 520 KB de RAM en total; unos 94 KB libres para un programa BASIC y hasta 240 KB para un programa nativo |
 | Pantalla | 256 × 192 o 512 × 384 píxeles, con borde |
 | Colores | 15 de serie; con paletas, 16 por línea de entre 65.536 (hasta 64 en la pantalla), cualquiera en cualquier píxel |
 | Páginas de vídeo | Dos, para dibujar en una mientras se ve la otra |
 | Sonido | Dos chips de música AY-3-8912 (6 voces), doce canales de muestras para sonidos grabados y un beeper, en estéreo |
 | Almacenamiento | Tarjeta SD, y la unidad `ROM:` de serie con los ejemplos; y `EXT:`, una carpeta que sirve otro equipo |
-| Entrada | Teclado USB, ratón y hasta dos mandos |
+| Entrada | Teclado USB, ratón y hasta cuatro mandos |
 | Reloj | Fecha y hora, que se mantienen con la máquina apagada |
 | Idiomas | Español e inglés |
 | Ritmo | 60 imágenes por segundo |
@@ -215,14 +215,23 @@ salida analógica de línea.
 - **Ratón.** Un ratón USB con tres botones y rueda. Los programas en BASIC y en
   C reciben la posición de un puntero en píxeles de la pantalla (en el BASIC,
   `MOUSE`).
-- **Mandos.** Hasta dos mandos USB: genéricos y los DualShock 4 y DualSense de
-  PlayStation (en el emulador, cualquier mando que reconozca tu PC). Cada uno
-  tiene las direcciones, tres botones de disparo, Start y Select. El primer
+- **Mandos.** Hasta cuatro mandos USB (con un hub): genéricos, los DualShock 4 y DualSense de
+  PlayStation y los de Xbox 360, Xbox One y Series con cable (y los
+  compatibles); los inalámbricos con su receptor, no (en el emulador,
+  cualquier mando que reconozca tu PC). Cada uno tiene las direcciones, cuatro
+  botones de disparo, L y R (los gatillos de arriba), Start y Select. El primer
   mando funciona también como un *joystick Kempston* para los programas
   escritos para el Spectrum, y el BASIC puede presentar un mando como teclas
   (`JOY`).
 
 En la máquina real, el teclado, el ratón y los mandos se conectan a un hub USB.
+Caben hasta seis aparatos USB a la vez, sin contar los hubs.
+
+**Conecta los aparatos USB con la máquina apagada.** Enchufar o quitar algo
+en caliente, sobre todo lo que tira mucha corriente (un mando de Xbox, o el
+hub entero con lo suyo), puede hacer que el hub se quede un momento sin
+tensión: el USB deja de responder unos segundos y vuelve solo, o la
+máquina se reinicia entera (se pierde lo que no hayas guardado).
 
 **Ctrl+Alt+Supr** es el reset de emergencia: esté en marcha lo que esté,
 incluso un programa colgado, la máquina se reinicia entera, como al
@@ -236,7 +245,7 @@ El procesador tiene 520 KB de RAM. La mayor parte se reparte así:
 | Zona | Tamaño | Contenido |
 |---|---|---|
 | Páginas de vídeo | 2 × 96 KB | Las dos pantallas |
-| Memoria de usuario | 244 KB | Tu programa y sus datos |
+| Memoria de usuario | 240 KB | Tu programa y sus datos |
 | Sistema | 84 KB | Las variables y los buffers de la propia máquina |
 
 **Desde el BASIC** quedan unos 94 KB libres para tu programa, sus variables y
@@ -245,7 +254,7 @@ bytes al arrancar. El resto de la memoria de usuario es el espacio de trabajo
 del propio BASIC.
 
 **Un programa nativo** se queda con la memoria de usuario: puede usar casi los
-244 KB. En el modo 0 cada página de vídeo solo necesita 24 KB para la
+240 KB. En el modo 0 cada página de vídeo solo necesita 24 KB para la
 pantalla, así que un programa que no use un campo virtual grande puede usar
 también los otros 72 KB de cada página.
 

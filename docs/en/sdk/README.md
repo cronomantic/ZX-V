@@ -43,7 +43,7 @@ Use a **native program** when you need:
   million instructions per frame (60 frames per second).
 - **Control.** Your own data structures, fixed-point maths, your own sound
   engine, your own file formats.
-- **Size.** Up to almost 244 KB for code and data, with all the memory of the
+- **Size.** Up to almost 240 KB for code and data, with all the memory of the
   machine at your disposal while the program runs.
 
 The price is that you write in C on your computer, compile, and then load
@@ -139,6 +139,7 @@ others, leaving out `files`.
 | Example | What it shows |
 |---|---|
 | [`hello`](../../../sdk/examples/hello/hello.c) | The first steps: text through the system routines, drawing straight into video memory and a note on the sound chip |
+| [`asmhello`](../../../sdk/examples/asmhello/asmhello.S) | A program in assembly, with no C: the system routines through `ZXV_CALL`, the gamepad register and a system variable ([Writing in assembly](#writing-in-assembly)) |
 | [`graphics`](../../../sdk/examples/graphics/graphics.c) | The graphics engine: a scrolling tile map, bouncing sprites that collide, a spinning polygon, and a rotating "mode 7" floor with scaled sprites, all double-buffered |
 | [`scroll`](../../../sdk/examples/scroll/scroll.c) | Hardware scrolling over a 1024-pixel-wide field, drawing only the column that comes in, and parallax with the line table |
 | [`digital`](../../../sdk/examples/digital/digital.c) | Digitised sound: 8 kHz samples played through the volume of a sound chip channel |
@@ -213,7 +214,7 @@ Compile it (change `SDK` to where the `sdk` folder is):
 SDK=../ZX-V/sdk
 riscv64-unknown-elf-gcc -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 \
     -Os -g -Wall -Wextra -std=gnu11 -ffreestanding -fno-builtin \
-    -fno-tree-loop-distribute-patterns -I$SDK/include \
+    -fno-tree-loop-distribute-patterns -ffunction-sections -fdata-sections -I$SDK/include \
     -nostdlib -nostartfiles -static -T $SDK/zxv.ld -Wl,--gc-sections \
     -Wl,--no-warn-rwx-segments \
     $SDK/crt0.S $SDK/zxvlib.c hello.c -lgcc -o hello.elf
@@ -249,7 +250,7 @@ SOURCES := hello.c
 
 CFLAGS  := -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 \
            -Os -g -Wall -Wextra -std=gnu11 -ffreestanding -fno-builtin \
-           -fno-tree-loop-distribute-patterns -I$(SDK)/include
+           -fno-tree-loop-distribute-patterns -ffunction-sections -fdata-sections -I$(SDK)/include
 LDFLAGS := -nostdlib -nostartfiles -static -T $(SDK)/zxv.ld -Wl,--gc-sections \
            -Wl,--no-warn-rwx-segments
 
@@ -322,7 +323,7 @@ Only BASIC launches programs.
 
 | Area | Address | Size | Use |
 |---|---|---|---|
-| User RAM | `0x2003_4000` – `0x2007_0FFF` | 244 KB | Your code, data and stack |
+| User RAM | `0x2003_4000` – `0x2006_FFFF` | 240 KB | Your code, data and stack |
 | Video page 0 | `0x2000_4000` | 96 KB | The screen (see [graphics](graphics.md)) |
 | Video page 1 | `0x2001_C000` | 96 KB | A second screen, for double buffering |
 | System area | `0x2000_0000` | 16 KB | Registers of the screen, sound and input; system variables |
@@ -351,7 +352,7 @@ Only BASIC launches programs.
   field use the whole page. And don't mix it with hand-made pointers to the
   same area, as Route 128 and Umbra do (`SPARE0`, `SPARE1`): they would
   overwrite each other.
-- The 68 KB above the user RAM belong to the system: touching them stops
+- The 72 KB above the user RAM belong to the system: touching them stops
   your program.
 
 ### The rules of the machine
@@ -406,7 +407,7 @@ instead of `-nostdlib`, and with `zxvc.c` instead of `zxvlib.c`:
 ```sh
 riscv64-unknown-elf-gcc -march=rv32imac_zicsr_zifencei_zba_zbb_zbs_zbkb_zcb -mabi=ilp32 -Os \
     --specs=picolibc.specs -nostartfiles -static -T $SDK/zxv.ld -I$SDK/include \
-    -Wl,--gc-sections -Wl,--no-warn-rwx-segments \
+    -ffunction-sections -fdata-sections -Wl,--gc-sections -Wl,--no-warn-rwx-segments \
     $SDK/crt0.S $SDK/zxvc.c my_program.c -o my_program.elf
 ```
 
@@ -1115,14 +1116,15 @@ like the Spectrum's port `0xFE`.
 
 ### Joysticks
 
-`zxv_joy_read(0)` and `zxv_joy_read(1)` return the state of the first and
-second gamepad (the first one connected is number 0). Each bit is a button:
+`zxv_joy_read(0)` to `zxv_joy_read(3)` return the state of the first to the
+fourth gamepad (the first one connected is number 0). Each bit is a button:
 
 | Bit | `ZXV_JOY_...` |
 |---|---|
 | 0, 1, 2, 3 | `RIGHT`, `LEFT`, `DOWN`, `UP` (the d-pad or the left stick) |
 | 4, 5, 6 | `FIRE1`, `FIRE2`, `FIRE3` |
 | 7, 8 | `START`, `SELECT` |
+| 9, 10, 11 | `FIRE4`, `L`, `R` (the upper shoulder buttons) |
 | 15 | `CONNECTED`: there is a gamepad |
 
 The five low bits are those of a Kempston joystick.
@@ -1326,7 +1328,7 @@ int main(void)
 
 - **Saving:** write to `SD:` explicitly, as above. Your program may have
   been loaded from `ROM:`, and writing there fails with `ZXV_E_ACCESS`.
-  Estela keeps its high score in `SD:estela.txt` for that reason.
+  Estela keeps its high score in `SD:estela.sav` (with [`zxv_save`](libraries.md#saving-data-zxv_saveh)) for that reason.
 - **Loading a whole file:** `zxv_file_load(name, address, max)` reads it
   into memory in one go and returns its size. `max` is the size of your
   buffer: if the file is bigger, nothing is loaded and you get
@@ -1622,13 +1624,12 @@ The system routines are reached through a **table of addresses** at
 `0x2000_0000`: entry *n* (4 bytes each) is the address of function *n*,
 which follows the standard RISC-V calling convention (arguments in
 `a0`–`a7`, result in `a0`). The numbers are the `ZXV_API_...` constants of
-`zxv.h`, a header you can include in `.S` files:
+`zxv.h`, a header you can include in `.S` files. For assembly it has
+`ZXV_CALL(n)`, which calls function *n* through the table (it uses `t0`
+and, like any call, overwrites `ra` and the temporary registers):
 
 ```asm
 #include "zxv.h"
-
-/* Call API function n: load its address from the table at 0x2000_0000. */
-#define API(n)  lui t0, %hi(ZXV_API_TABLE); lw t0, 4*(n)(t0); jalr t0
 
     .section .rodata
 msg:
@@ -1641,13 +1642,13 @@ main:
     sw ra, 12(sp)                   # we call other functions: keep ra
 
     li a0, 7
-    API(ZXV_API_CLS)                # cls(7)
+    ZXV_CALL(ZXV_API_CLS)           # cls(7)
     la a0, msg
-    API(ZXV_API_PRINT_STR)          # print_str(msg)
+    ZXV_CALL(ZXV_API_PRINT_STR)     # print_str(msg)
 
 wait:
-    API(ZXV_API_WAIT_VBLANK)
-    API(ZXV_API_KEY_GET)            # a0 = key, or -1
+    ZXV_CALL(ZXV_API_WAIT_VBLANK)
+    ZXV_CALL(ZXV_API_KEY_GET)       # a0 = key, or -1
     bltz a0, wait
 
     li a0, 0                        # main returns 0
@@ -1661,6 +1662,13 @@ build it with the same commands as a C file, putting `hello.S` in place of
 `hello.c`. As in C, keep `s0`–`s11` and the stack aligned to 16 bytes if
 you want to return to BASIC. You can of course mix C and assembly files in
 one program.
+
+In assembly, the addresses, numbers and bits of `zxv.h` work, but not the
+macros with C type casts (`ZXV_LANG`, `ZXV_RGB`...): write the value
+instead. The [`asmhello`](../../../sdk/examples/asmhello/asmhello.S)
+example is a whole program in assembly: it greets you in the machine's
+language (the `LANGUAGE` variable) and moves a star with the gamepad (its
+register, `JOY0`) or the cursor keys.
 
 Because the table is in RAM, a program can replace an entry with its own
 function to intercept a system routine, as people did with the Spectrum's

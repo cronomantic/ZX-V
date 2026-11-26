@@ -594,7 +594,7 @@ visto desde arriba.
 
 - La textura (`zxv_m7tex`) es un cuadrado de 2^`log2size` texels de lado,
   de 2 × 2 (`log2size` 1) a 1024 × 1024 (10), con **un byte por texel**
-  (0–15). Como un programa tiene 244 KB de RAM de usuario, en la práctica
+  (0–15). Como un programa tiene 240 KB de RAM de usuario, en la práctica
   una textura en la RAM llega hasta 256 × 256 (`log2size` 8, 64 KB). Con
   `wrap` = 1 se repite sin fin; con 0, fuera de ella se ve el color `out`.
   Con `ZXV_M7_TRANSPARENT` en `flags`, el color 8 no se dibuja (ni lo de

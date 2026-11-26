@@ -174,6 +174,7 @@ CAT "ROM:"
 | `digital.zxv` | Sonido digitalizado por el chip de música |
 | `samples.zxv` | Los doce canales de muestras: una nota, una cuerda, un acorde con los doce a la vez y más, cada uno con una tecla |
 | `hello.zxv` | El ejemplo más pequeño de programa nativo |
+| `asmhello.zxv` | Un programa nativo escrito en ensamblador: mueve una estrella con el mando o los cursores |
 | `boardtest.zxv` | La prueba de la placa: monitor, reloj, tarjeta, teclado, mandos, ratón y sonido, uno a uno |
 | `files.zxv` | Un programa nativo que crea, lee y lista ficheros en la tarjeta SD |
 | `gfxedit.zxv` | Un editor de sprites, tiles y mapas en la propia máquina |

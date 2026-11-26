@@ -3788,7 +3788,8 @@ JOY n, mode
 ```
 
 The function `JOY n` gives the state of joystick `n` (0 for the first one
-connected and 1 for the second) as a number made of these bits:
+connected, 1 for the second, and so on up to 3) as a number made of these
+bits:
 
 | Bit | Value | Button |
 |---|---|---|
@@ -3801,6 +3802,9 @@ connected and 1 for the second) as a number made of these bits:
 | 6 | 64 | fire 3 |
 | 7 | 128 | start |
 | 8 | 256 | select |
+| 9 | 512 | fire 4 |
+| 10 | 1024 | L (upper left shoulder button) |
+| 11 | 2048 | R (upper right shoulder button) |
 
 To test a button, divide and look at the remainder: for example,
 `INT (JOY 0/16)-2*INT (JOY 0/32)` is 1 while fire 1 is held.
@@ -3815,25 +3819,26 @@ that read the keyboard with `INKEY$` or `IN` (any fire button counts as fire):
 | 2 Sinclair 2 | 1 | 2 | 3 | 4 | 5 |
 | 3 Cursor | 5 | 8 | 6 | 7 | 0 |
 
-When the machine is switched on, joystick 0 is Sinclair 1 and joystick 1 is
-Sinclair 2 (`NEW` and `RUN` do not change it). `KEY` does not see these
+When the machine is switched on, joystick 0 is Sinclair 1, joystick 1 is
+Sinclair 2, and joysticks 2 and 3 do not act as keys (`NEW` and `RUN` do not
+change it). `KEY` does not see these
 keys.
 
 **Parameters**
 
 | Parameter | Values | What it is |
 |---|---|---|
-| `n` | 0 or 1 | The joystick. |
+| `n` | 0–3 | The joystick (up to 0.11, 0 or 1). |
 | `mode` | 0–3 | Statement only: how it acts as keys (table above). |
 
-**Returns** (the function): the buttons held, from 0 to 511 (the sum of the
+**Returns** (the function): the buttons held, from 0 to 4095 (the sum of the
 values in the table); 0 if the joystick is not connected.
 
 **Errors**
 
 | Report | When |
 |---|---|
-| `B Integer out of range` | `n` is not 0 or 1, or `mode` is not 0 to 3 (also in the function). |
+| `B Integer out of range` | `n` or `mode` is not 0 to 3 (also in the function). |
 
 **Example**
 
@@ -5446,7 +5451,7 @@ The reports in English and Spanish, with the number that `ERR` gives:
 | 8 | 8 | End of file | Fin del fichero | `INPUT #` after the last line of a file. |
 | 9 | 9 | STOP statement | Sentencia STOP | The program reached a `STOP`. `CONTINUE` carries on. |
 | A | 10 | Invalid argument | Argumento no válido | A value a function or a statement does not accept: `SQR -1`, `LN 0`, `ASN 2`, a negative number raised to a non-whole one; `KEY` of a code that is not a key; `USR` of a string that is not `"a"` to `"u"`; a sprite, a map or a texture that does not exist; a badly written `PLAY` string; an impossible date (or no clock) in `CLOCK`; `SPEED` that is not 0 or 1; `LANGUAGE` without two letters; `REPLACE` with empty text; more than 64 corners in `POLY`; a `MODE` mode that does not exist. |
-| B | 11 | Integer out of range | Entero fuera de rango | A whole number out of its range: a coordinate off the screen, `CHR$ 300`, `POKE` with 256 or at an address that is not RAM, a stream greater than 15, `JOY 2`, `MOUSE 4`, `CLOCK 7`, `KEY 512`, a line greater than 9999 in `RENUM`, `AUTO` or `SAVE`; a block over 65535 bytes in a `.tap`. A value that is negative or greater than 255 where a byte is expected gives `B` even if the statement then checks a different range with a different report. |
+| B | 11 | Integer out of range | Entero fuera de rango | A whole number out of its range: a coordinate off the screen, `CHR$ 300`, `POKE` with 256 or at an address that is not RAM, a stream greater than 15, `JOY 4`, `MOUSE 4`, `CLOCK 7`, `KEY 512`, a line greater than 9999 in `RENUM`, `AUTO` or `SAVE`; a block over 65535 bytes in a `.tap`. A value that is negative or greater than 255 where a byte is expected gives `B` even if the statement then checks a different range with a different report. |
 | C | 12 | Nonsense in BASIC | Sintaxis incorrecta | The line is not valid BASIC (a typing mistake, a missing bracket); a value of the wrong type; a number of values that is not allowed (`PATTERN` takes 1, 2, 8 or 9; `POLY`, at least one point); `RENUM`, `DELETE`, `AUTO`, `FIND` or `REPLACE` inside a program; a form of `SAVE`, `LOAD`, `VERIFY` or `MERGE` that is not accepted (a `.tzx` in `SAVE`, `PROTECT` without `LINE`, `MERGE ... GRAPHICS`...); in `INPUT #`, a line that is not a number. |
 | D | 13 | BREAK - CONT repeats | BREAK - CONT repite | You answered N, Space or Esc to `scroll?`. `CONTINUE` repeats. |
 | E | 14 | Out of DATA | No quedan DATA | `READ` with no `DATA` left. |
@@ -5548,7 +5553,7 @@ user-defined graphics are written with `CHR$`.
 | Parameters of a procedure, and variables of a `LOCAL` | 16 |
 | What `PROC` and `LOCAL` keep (the earlier values of their variables) | 8 KB |
 | `FN` values in progress (adding up nested ones) | 32 |
-| Nested brackets in an expression | about 170 (about 24 nested `FN`) |
+| Nested brackets in an expression | about 170 (20 nested `FN`) |
 | Memory for program and variables | about 94 KB (shown in the editor's bar) |
 | Open files | 8 per drive (the card, `ROM:` and `EXT:`), on streams 4 to 15 |
 | Sprites | 256 (0–255), each up to 1024 × 1024 pixels |

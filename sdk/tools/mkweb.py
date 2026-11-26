@@ -133,7 +133,7 @@ TOUCH = {
              "menu": [{"label": "ESC", "key": "Escape"}]},
     "none": {"show": "never"},
 }
-JOY_BITS = ("UP", "DOWN", "LEFT", "RIGHT", "FIRE1", "FIRE2", "FIRE3", "START", "SELECT")
+JOY_BITS = ("UP", "DOWN", "LEFT", "RIGHT", "FIRE1", "FIRE2", "FIRE3", "START", "SELECT", "FIRE4", "L", "R")
 
 # El disco ROM (pico/common/romdisk.h, como rom/tools/mkromdisk.py), con
 # todos los ficheros en la raíz.

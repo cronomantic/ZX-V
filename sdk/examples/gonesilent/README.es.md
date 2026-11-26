@@ -39,7 +39,9 @@ También está en el disco ROM de la máquina: `LOAD "ROM:gonesilent"`.
   hace falta para seguir. El final depende de lo que hayas hecho.
 - **El mapa** (M) dibuja lo que has recorrido de la zona en la que estás.
 - **La partida se guarda** al llegar a un punto de recarga, en
-  `SD:gonesilent.sav`; en el título se puede continuar o empezar otra.
+  `SD:gonesilent.sav`, con la biblioteca `zxv_save` (si se va la luz a
+  medias, se queda la de antes; las de las versiones anteriores se siguen
+  leyendo); en el título se puede continuar o empezar otra.
 - **Dos modos de vídeo:** Tab cambia entre 256 × 192 y 512 × 384.
 - **Textos en español o en inglés**, según el idioma de la máquina.
 

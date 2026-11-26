@@ -3812,7 +3812,8 @@ JOY n, modo
 ```
 
 La función `JOY n` da el estado del mando `n` (0 para el primero que se
-conecta y 1 para el segundo) como un número formado por estos bits:
+conecta, 1 para el segundo, y así hasta el 3) como un número formado por estos
+bits:
 
 | Bit | Valor | Botón |
 |---|---|---|
@@ -3825,6 +3826,9 @@ conecta y 1 para el segundo) como un número formado por estos bits:
 | 6 | 64 | fuego 3 |
 | 7 | 128 | start |
 | 8 | 256 | select |
+| 9 | 512 | fuego 4 |
+| 10 | 1024 | L (gatillo de arriba izquierdo) |
+| 11 | 2048 | R (gatillo de arriba derecho) |
 
 Para mirar un botón, divide y quédate con el resto: por ejemplo,
 `INT (JOY 0/16)-2*INT (JOY 0/32)` vale 1 mientras se pulsa el fuego 1.
@@ -3840,24 +3844,24 @@ fuego cuenta como fuego):
 | 2 Sinclair 2 | 1 | 2 | 3 | 4 | 5 |
 | 3 Cursor | 5 | 8 | 6 | 7 | 0 |
 
-Al encender la máquina, el mando 0 es Sinclair 1 y el mando 1, Sinclair 2
-(`NEW` y `RUN` no lo cambian). `KEY` no ve estas teclas.
+Al encender la máquina, el mando 0 es Sinclair 1, el mando 1, Sinclair 2, y
+los mandos 2 y 3 no hacen de teclas (`NEW` y `RUN` no lo cambian). `KEY` no ve estas teclas.
 
 **Parámetros**
 
 | Parámetro | Valores | Qué es |
 |---|---|---|
-| `n` | 0 o 1 | El mando. |
+| `n` | 0–3 | El mando (hasta la 0.11, 0 o 1). |
 | `modo` | 0–3 | Solo la orden: cómo hace de teclas (tabla de arriba). |
 
-**Devuelve** (la función): los botones pulsados, de 0 a 511 (la suma de los
+**Devuelve** (la función): los botones pulsados, de 0 a 4095 (la suma de los
 valores de la tabla); 0 si el mando no está conectado.
 
 **Errores**
 
 | Informe | Cuándo |
 |---|---|
-| `B Entero fuera de rango` | `n` no es 0 ni 1, o `modo` no es de 0 a 3 (también en la función). |
+| `B Entero fuera de rango` | `n` o `modo` no son de 0 a 3 (también en la función). |
 
 **Ejemplo**
 
@@ -5484,7 +5488,7 @@ Los informes en español y en inglés, con el número que da `ERR`:
 | 8 | 8 | Fin del fichero | End of file | `INPUT #` después de la última línea de un fichero. |
 | 9 | 9 | Sentencia STOP | STOP statement | El programa ha llegado a un `STOP`. `CONTINUE` sigue. |
 | A | 10 | Argumento no válido | Invalid argument | Un valor que una función o una orden no admite: `SQR -1`, `LN 0`, `ASN 2`, un número negativo elevado a uno no entero; `KEY` de un código que no es una tecla; `USR` de una cadena que no es de `"a"` a `"u"`; un sprite, un mapa o una textura que no existe; una cadena de `PLAY` mal escrita; una fecha imposible (o sin reloj) en `CLOCK`; `SPEED` que no es 0 ni 1; `LANGUAGE` sin dos letras; `REPLACE` con el texto vacío; más de 64 vértices en `POLY`; un modo de `MODE` que no existe. |
-| B | 11 | Entero fuera de rango | Integer out of range | Un número entero fuera de su rango: una coordenada fuera de la pantalla, `CHR$ 300`, `POKE` con 256 o en una dirección que no es de la RAM, un stream mayor que 15, `JOY 2`, `MOUSE 4`, `CLOCK 7`, `KEY 512`, una línea mayor que 9999 en `RENUM`, `AUTO` o `SAVE`; un bloque de más de 65535 bytes en un `.tap`. Un valor negativo o mayor que 255 donde se espera un byte da `B` aunque la orden luego compruebe otro rango con otro informe. |
+| B | 11 | Entero fuera de rango | Integer out of range | Un número entero fuera de su rango: una coordenada fuera de la pantalla, `CHR$ 300`, `POKE` con 256 o en una dirección que no es de la RAM, un stream mayor que 15, `JOY 4`, `MOUSE 4`, `CLOCK 7`, `KEY 512`, una línea mayor que 9999 en `RENUM`, `AUTO` o `SAVE`; un bloque de más de 65535 bytes en un `.tap`. Un valor negativo o mayor que 255 donde se espera un byte da `B` aunque la orden luego compruebe otro rango con otro informe. |
 | C | 12 | Sintaxis incorrecta | Nonsense in BASIC | La línea no es BASIC válido (una errata, un paréntesis que falta); un valor del tipo equivocado; un número de valores que no vale (`PATTERN` lleva 1, 2, 8 o 9; `POLY`, al menos un punto); `RENUM`, `DELETE`, `AUTO`, `FIND` o `REPLACE` dentro de un programa; una forma de `SAVE`, `LOAD`, `VERIFY` o `MERGE` que no se admite (un `.tzx` en `SAVE`, `PROTECT` sin `LINE`, `MERGE ... GRAPHICS`...); en `INPUT #`, una línea que no es un número. |
 | D | 13 | BREAK - CONT repite | BREAK - CONT repeats | Has contestado N, Espacio o Esc a `scroll?`. `CONTINUE` repite. |
 | E | 14 | No quedan DATA | Out of DATA | `READ` sin `DATA` por leer. |
@@ -5589,7 +5593,7 @@ con `CHR$`.
 | Parámetros de un procedimiento, y variables de un `LOCAL` | 16 |
 | Lo que guardan `PROC` y `LOCAL` (los valores de antes de sus variables) | 8 KB |
 | Valores de `FN` en curso (sumando las que van una dentro de otra) | 32 |
-| Paréntesis anidados en una expresión | unos 170 (unas 24 `FN` una dentro de otra) |
+| Paréntesis anidados en una expresión | unos 170 (20 `FN` una dentro de otra) |
 | Memoria para el programa y las variables | unos 94 KB (se ve en la barra del editor) |
 | Ficheros abiertos | 8 por unidad (la tarjeta, `ROM:` y `EXT:`), en los streams 4 a 15 |
 | Sprites | 256 (0–255), cada uno de hasta 1024 × 1024 píxeles |

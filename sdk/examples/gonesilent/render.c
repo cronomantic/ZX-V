@@ -20,6 +20,7 @@
  * cámara (más lejos, las proyecciones se salen de 32 bits).
  */
 #include "gonesilent.h"
+#include "zxv_math.h"
 
 object_t objects[OBJECTS_MAX];
 int object_count;
@@ -137,21 +138,7 @@ static void face_colour(uint32_t out[4], int mat, const int16_t *n)
     }
 }
 
-static uint32_t isqrt64(uint64_t v)
-{
-    uint64_t r = 0, bit = (uint64_t)1 << 62;
-    while (bit > v)
-        bit >>= 2;
-    while (bit) {
-        if (v >= r + bit) {
-            v -= r + bit;
-            r = (r >> 1) + bit;
-        } else
-            r >>= 1;
-        bit >>= 2;
-    }
-    return (uint32_t)r;
-}
+#define isqrt64 zxv_isqrt64             /* la raíz entera de 64 bits (zxv_math.h) */
 
 void object_setup(object_t *o)
 {

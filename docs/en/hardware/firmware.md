@@ -432,6 +432,9 @@ HDMI connector ([On a protoboard](protoboard.md#hdmi)).
 
 - **The keyboard does nothing.** Look at the report or the diagnostic page: the
   `USB:` part says how many keyboards, mice and gamepads it sees. Try without a hub, or with a powered hub.
+  If it also says `N failed TinyUSB checks`, some device does not answer as it
+  should: that one does not work, but the others do; unplug them one at a time
+  to find which one it is.
 - **The SD card does not work.** It must be FAT, FAT32 or exFAT. The report
   says `no card` until the first access (for example `CAT`), or if the card
   does not answer. On the board the card is mounted as soon as it goes in.

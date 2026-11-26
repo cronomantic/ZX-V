@@ -39,7 +39,7 @@ It is also on the machine's ROM disk: `LOAD "ROM:keep"`.
   hearts.
 - **The sage** at the entrance gives advice, and whatever blocks the way (a
   locked door, the spikes, the brambles) is explained the first time.
-- **Records** in `SD:keep.txt` (on the card, even when the game is loaded
+- **Records** in `SD:keep.sav`, with the `zxv_save` library (if the power goes off halfway, the previous one stays; without a `.sav`, it reads the `SD:keep.txt` of earlier versions) (on the card, even when the game is loaded
   from `ROM:`): the fastest win and the most gold.
 - **Demo:** leave the title screen alone for 12 seconds and a pilot plays by
   itself.

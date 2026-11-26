@@ -207,7 +207,7 @@ endian:
 | Type | Who | What it carries |
 |---|---|---|
 | `F` | PC | Find: the PC's id (8 bytes) and the PC's network protocol version (u8). To the network broadcast or to an address |
-| `f` | Machine | The machine's id (8), its boot (8, random at each power-up), whether it is paired with that PC (u8), the frame version (u16), its name (16, zero-padded: `ZX-V-1A2B`, from its MAC), the firmware (text: `ZX-V 0.11.0`), a 0 and the network protocol version (u8) |
+| `f` | Machine | The machine's id (8), its boot (8, random at each power-up), whether it is paired with that PC (u8), the frame version (u16), its name (16, zero-padded: `ZX-V-1A2B`, from its MAC), the firmware (text: `ZX-V 0.12.0`), a 0 and the network protocol version (u8) |
 | `P` | PC | Start pairing: the PC's id (8), its X25519 public key (32) and its name |
 | `p` | Machine | State (u8), its public key (32) and its commitment (32) |
 | `N` | PC | The PC's id (8) and its random number Npc (16). From the address and port of the `P` |

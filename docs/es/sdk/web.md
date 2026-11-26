@@ -127,7 +127,8 @@ O a tu medida, con un JSON (en un fichero o en la misma orden):
 | `menu` | Hasta cuatro botones pequeños, abajo |
 
 Cada control es `{"label": "A", "joy": "FIRE1"}`, un bit del mando 1 (`UP`,
-`DOWN`, `LEFT`, `RIGHT`, `FIRE1`, `FIRE2`, `FIRE3`, `START` o `SELECT`), o
+`DOWN`, `LEFT`, `RIGHT`, `FIRE1`, `FIRE2`, `FIRE3`, `FIRE4`, `L`, `R`, `START` o
+`SELECT`), o
 `{"label": "Z", "key": "KeyZ"}`, una tecla con el nombre que le da el
 navegador (`KeyboardEvent.code`: `KeyA`…`KeyZ`, `Digit0`…`Digit9`, `Space`,
 `Enter`, `Escape`, `ArrowUp`, `ShiftLeft`...).

@@ -208,7 +208,7 @@ endian:
 | Tipo | Quién | Qué lleva |
 |---|---|---|
 | `F` | PC | Buscar: el id del PC (8 bytes) y la versión del protocolo de la red del PC (u8). A la difusión de la red o a una dirección |
-| `f` | Máquina | El id de la máquina (8), su arranque (8, al azar en cada encendido), si está emparejada con ese PC (u8), la versión de las tramas (u16), su nombre (16, con ceros: `ZX-V-1A2B`, de su MAC), el firmware (texto: `ZX-V 0.11.0`), un 0 y la versión del protocolo de la red (u8) |
+| `f` | Máquina | El id de la máquina (8), su arranque (8, al azar en cada encendido), si está emparejada con ese PC (u8), la versión de las tramas (u16), su nombre (16, con ceros: `ZX-V-1A2B`, de su MAC), el firmware (texto: `ZX-V 0.12.0`), un 0 y la versión del protocolo de la red (u8) |
 | `P` | PC | Empezar a emparejar: id del PC (8), su clave pública X25519 (32) y su nombre |
 | `p` | Máquina | Estado (u8), su clave pública (32) y su compromiso (32) |
 | `N` | PC | id del PC (8) y su número al azar Npc (16). Desde la dirección y el puerto del `P` |

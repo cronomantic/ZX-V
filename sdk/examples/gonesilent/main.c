@@ -34,6 +34,9 @@
  * lo que se lleva, el sensor de movimiento y los avisos.
  */
 #include "gonesilent.h"
+#include "zxv_input.h"
+#include "zxv_math.h"
+#include "zxv_save.h"
 
 int lang;
 
@@ -127,7 +130,6 @@ static const char *msg;                 /* el aviso del marcador */
 static int msg_time;
 #define HINT_TIME   (20 * ZXV_FRAME_HZ) /* lo que se ve «H: AYUDA» al empezar */
 static int hint_time;
-static uint8_t gone[ZONES_MAX][OBJECTS_MAX];    /* las criaturas destruidas y los objetos cogidos */
 
 /* Lo que se ve encima de la vista, con el juego parado: el título, la
  * introducción, un registro, los objetos que se llevan o el final. */
@@ -171,7 +173,20 @@ static int blip_count, track_t, track_period;
  * las montañas, que son piezas de kilómetros. */
 #define MAP_N       64
 #define MAP_HUGE    10000               /* las piezas así de grandes no cuentan */
-static uint8_t seen[ZONES_MAX][MAP_N * MAP_N / 8];
+/* La partida (la que se guarda, D117): dónde está y lo que lleva, las
+ * criaturas destruidas y los objetos cogidos de cada zona (gone) y lo que se
+ * ha visto de su mapa (seen). En una estructura para que zxv_save la escriba
+ * de una vez, sin copiarla. */
+typedef struct {
+    uint16_t got;
+    uint8_t zone, storm_strong;
+    int32_t x, z, feet, energy;
+    int32_t yaw;
+    uint32_t storm_clock;
+    uint8_t gone[ZONES_MAX][OBJECTS_MAX];
+    uint8_t seen[ZONES_MAX][MAP_N * MAP_N / 8];
+} progress_t;
+static progress_t prog;
 static int32_t map_x0, map_z0, map_cell;
 static int32_t map_bx, map_bz, map_bw, map_bh;  /* lo que ocupa la zona, para dibujarla */
 static int map_ray;                     /* el siguiente rayo con el que se mira */
@@ -205,7 +220,7 @@ static int map_seen(int i, int j)
 {
     if (i < 0 || j < 0 || i >= MAP_N || j >= MAP_N)
         return 0;
-    return (seen[zone][(j * MAP_N + i) >> 3] >> (i & 7)) & 1;
+    return (prog.seen[zone][(j * MAP_N + i) >> 3] >> (i & 7)) & 1;
 }
 
 static void map_mark(int32_t x, int32_t z)
@@ -215,7 +230,7 @@ static void map_mark(int32_t x, int32_t z)
         return;
     i /= map_cell;
     j /= map_cell;
-    seen[zone][(j * MAP_N + i) >> 3] |= (uint8_t)(1u << (i & 7));
+    prog.seen[zone][(j * MAP_N + i) >> 3] |= (uint8_t)(1u << (i & 7));
 }
 
 /* --- La partida guardada --------------------------------------------------------- */
@@ -226,8 +241,15 @@ void *memset(void *s, int c, unsigned n);
 void *memcpy(void *d, const void *s, unsigned n);
 int memcmp(const void *a, const void *b, unsigned n);
 
+/* Con zxv_save (D117): si se va la luz mientras se guarda, se queda la de
+ * antes, en SAVE_FILE o, si se iba justo al cambiar una por otra, en
+ * SAVE_FILE~ (zxv_load la busca ahí). La versión de los datos sigue a la del
+ * formato de antes, el «GSV4» (cabecera y tablas tal cual, sin
+ * comprobación), que se sigue leyendo. */
 #define SAVE_FILE   "SD:gonesilent.sav"
-#define SAVE_MAGIC  0x34565347u         /* "GSV4" */
+#define SAVE_TMP    SAVE_FILE "~"
+#define SAVE_VERSION 5
+#define SAVE_MAGIC  0x34565347u         /* "GSV4": el formato de hasta la 0.11 */
 typedef struct {
     uint32_t magic;
     uint16_t got;
@@ -235,18 +257,15 @@ typedef struct {
     int32_t x, z, feet, energy;
     int32_t yaw;
     uint32_t storm_clock;
-} save_t;                               /* y detrás, gone y seen tal cual */
+} old_save_t;                           /* y detrás, gone y seen tal cual */
 
 static int saved;                       /* si hay una guardada */
 static int title_pick;                  /* en el título: 0 continuarla, 1 partida nueva */
 
 static int save_exists(void)
 {
-    int f = zxv_file_open(SAVE_FILE, ZXV_O_READ);
-    if (f < 0)
-        return 0;
-    zxv_file_close(f);
-    return 1;
+    zxv_dirent_t e;
+    return zxv_file_stat(SAVE_FILE, &e) == ZXV_OK || zxv_file_stat(SAVE_TMP, &e) == ZXV_OK;
 }
 
 static void creatures_spawn(void);
@@ -420,6 +439,7 @@ static void gain(uint16_t m)
     if (now & F_ESCAPED) {
         panel = P_END;
         zxv_file_remove(SAVE_FILE);
+        zxv_file_remove(SAVE_TMP);      /* la de un apagón a medias, si la hubiera */
         saved = 0;
     }
     looks_update();
@@ -436,7 +456,7 @@ static void zone_enter(int z, int entry)
     for (int i = 0; i < object_count; i++) {
         objects[i].p = zn->pieces[i];
         objects[i].yaw = 0;
-        if (gone[z][i] && !(objects[i].p.flags & OBJ_SPRITE))
+        if (prog.gone[z][i] && !(objects[i].p.flags & OBJ_SPRITE))
             objects[i].p.flags |= OBJ_HIDDEN;
         object_setup(&objects[i]);
         actors[i] = (actor_t){ .hp = CREATURE_HP, .side = 1 };
@@ -468,10 +488,7 @@ static void game_start(void)
     panel = P_TITLE;
     storm_clock = 0;
     storm = storm_strong = 0;
-    for (int z = 0; z < ZONES_MAX; z++)
-        for (int i = 0; i < OBJECTS_MAX; i++)
-            gone[z][i] = 0;
-    memset(seen, 0, sizeof seen);
+    memset(&prog, 0, sizeof prog);
     zone_enter(0, 0);
     msg_time = 0;
     saved = save_exists();
@@ -499,45 +516,62 @@ static void respawn(void)
 /* Devuelve 1 si se guardó (sin tarjeta, no se puede). */
 static int game_save(void)
 {
-    save_t sv = { .magic = SAVE_MAGIC, .got = got, .zone = (uint8_t)zone, .storm_strong = (uint8_t)storm_strong,
-                  .x = px, .z = pz, .feet = feet, .energy = energy, .yaw = yaw, .storm_clock = storm_clock };
-    int f = zxv_file_open(SAVE_FILE, ZXV_O_WRITE | ZXV_O_CREATE | ZXV_O_TRUNC);
+    prog.got = (uint16_t)got;
+    prog.zone = (uint8_t)zone;
+    prog.storm_strong = (uint8_t)storm_strong;
+    prog.x = px;
+    prog.z = pz;
+    prog.feet = feet;
+    prog.energy = energy;
+    prog.yaw = yaw;
+    prog.storm_clock = storm_clock;
+    saved = zxv_save(SAVE_FILE, SAVE_VERSION, &prog, sizeof prog) == ZXV_OK;
+    return saved;
+}
+
+/* La del formato de antes («GSV4»): la cabecera y las dos tablas tal cual. */
+static int game_load_old(void)
+{
+    old_save_t sv;
+    int f = zxv_file_open(SAVE_FILE, ZXV_O_READ);
     if (f < 0)
         return 0;
-    int ok = zxv_file_write(f, &sv, sizeof sv) == (int)sizeof sv &&
-             zxv_file_write(f, gone, sizeof gone) == (int)sizeof gone &&
-             zxv_file_write(f, seen, sizeof seen) == (int)sizeof seen;
+    int ok = zxv_file_read(f, &sv, sizeof sv) == (int)sizeof sv && sv.magic == SAVE_MAGIC &&
+             zxv_file_read(f, prog.gone, sizeof prog.gone) == (int)sizeof prog.gone &&
+             zxv_file_read(f, prog.seen, sizeof prog.seen) == (int)sizeof prog.seen;
     zxv_file_close(f);
-    saved = ok;
+    if (ok) {
+        prog.got = sv.got;
+        prog.zone = sv.zone;
+        prog.storm_strong = sv.storm_strong;
+        prog.x = sv.x;
+        prog.z = sv.z;
+        prog.feet = sv.feet;
+        prog.energy = sv.energy;
+        prog.yaw = sv.yaw;
+        prog.storm_clock = sv.storm_clock;
+    }
     return ok;
 }
 
 /* La guardada, en el punto de recarga donde se guardó; 0 si no se puede leer. */
 static int game_load(void)
 {
-    save_t sv;
-    int f = zxv_file_open(SAVE_FILE, ZXV_O_READ);
-    if (f < 0)
-        return 0;
-    int ok = zxv_file_read(f, &sv, sizeof sv) == (int)sizeof sv && sv.magic == SAVE_MAGIC &&
-             sv.zone < zone_count && zxv_file_read(f, gone, sizeof gone) == (int)sizeof gone &&
-             zxv_file_read(f, seen, sizeof seen) == (int)sizeof seen;
-    zxv_file_close(f);
-    if (!ok) {                          /* lo que se leyera a medias, fuera: partida nueva */
-        memset(gone, 0, sizeof gone);
-        memset(seen, 0, sizeof seen);
+    int ok = zxv_load(SAVE_FILE, SAVE_VERSION, &prog, sizeof prog) == ZXV_OK || game_load_old();
+    if (!ok || prog.zone >= zone_count) {
+        memset(&prog, 0, sizeof prog);  /* lo que se leyera a medias, fuera: partida nueva */
         return 0;
     }
-    got = sv.got;
-    energy = sv.energy;
-    storm_clock = sv.storm_clock;
-    storm_strong = sv.storm_strong;
+    got = prog.got;
+    energy = prog.energy;
+    storm_clock = prog.storm_clock;
+    storm_strong = prog.storm_strong;
     storm = storm_strong ? 256 : 0;
-    zone_enter(sv.zone, 0);
-    px = sv.x;
-    pz = sv.z;
-    feet = sv.feet;
-    yaw = sv.yaw;
+    zone_enter(prog.zone, 0);
+    px = prog.x;
+    pz = prog.z;
+    feet = prog.feet;
+    yaw = prog.yaw;
     cp_zone = zone;
     cp_x = px;
     cp_z = pz;
@@ -702,21 +736,7 @@ static void use(void)
 
 /* --- Las criaturas y las torretas --------------------------------------------- */
 
-static uint32_t isqrt(uint32_t v)
-{
-    uint32_t r = 0, bit = 1u << 30;
-    while (bit > v)
-        bit >>= 2;
-    while (bit) {
-        if (v >= r + bit) {
-            v -= r + bit;
-            r = (r >> 1) + bit;
-        } else
-            r >>= 1;
-        bit >>= 2;
-    }
-    return r;
-}
+#define isqrt zxv_isqrt                 /* la raíz entera (zxv_math.h) */
 
 /* --- Las criaturas ------------------------------------------------------------- */
 
@@ -729,23 +749,12 @@ static uint32_t isqrt(uint32_t v)
 #define CR_TURN     24                  /* lo que gira por frame */
 #define REAR_TIME   30                  /* lo que tarda en erguirse y golpear */
 
-/* El ángulo (en 1/1024 de vuelta, 0 al norte) hacia (x, z). */
+/* El ángulo (en 1/1024 de vuelta, 0 al norte) hacia (x, z): el de zxv_atan2
+ * (en 1/65536, 0 hacia el segundo eje y un cuarto de vuelta hacia el primero),
+ * redondeado. */
 static int iatan2(int32_t x, int32_t z)
 {
-    int32_t ax = x < 0 ? -x : x, az = z < 0 ? -z : z;
-    if (!ax && !az)
-        return 0;
-    int swap = ax > az;
-    int64_t r = swap ? (int64_t)az * Q14 / ax : (int64_t)ax * Q14 / az;    /* de 0 a 1 */
-    /* atan(r) ~ (pi/4) r + 0,273 r (1 - r), en 1/1024 de vuelta. */
-    int a = (int)((128 * r + 44 * r * (Q14 - r) / Q14) / Q14);
-    if (swap)
-        a = 256 - a;
-    if (z < 0)
-        a = 512 - a;
-    if (x < 0)
-        a = -a;
-    return a & (TURN - 1);
+    return ((zxv_atan2(x, z) + (ZXV_TURN / TURN / 2)) / (ZXV_TURN / TURN)) & (TURN - 1);
 }
 
 /* Si una criatura en (x, z) choca con algo sólido. */
@@ -827,7 +836,7 @@ static void creatures_spawn(void)
         a->x = (o->p.x + 60) * 16;
         a->z = (o->p.z + 60) * 16;
         a->yaw = (int16_t)((i * 137) & (TURN - 1));
-        if (gone[zone][i]) {            /* la que se mató, en el suelo */
+        if (prog.gone[zone][i]) {            /* la que se mató, en el suelo */
             o->p.flags &= (uint16_t)~(OBJ_CREATURE | OBJ_HIDDEN);
             a->state = A_DEAD;
             a->timer = 0;
@@ -842,7 +851,7 @@ static void creature_kill(int i)
     objects[i].p.flags &= (uint16_t)~OBJ_CREATURE;
     actors[i].state = A_DEAD;
     actors[i].timer = 30;
-    gone[zone][i] = 1;
+    prog.gone[zone][i] = 1;
 }
 
 /* La que cae: sus tres sprites, y luego el último. */
@@ -1217,7 +1226,7 @@ static void item_update(int i)
         o->p.y + o->p.sy < feet)
         return;
     o->p.flags |= OBJ_HIDDEN;
-    gone[zone][i] = 1;
+    prog.gone[zone][i] = 1;
     sound_fx(FX_PICKUP);
     gain(b->give);
 }
@@ -1298,42 +1307,33 @@ enum { IN_FWD = 1, IN_BACK = 2, IN_LEFT = 4, IN_RIGHT = 8, IN_SLEFT = 16, IN_SRI
        IN_UP = 64, IN_DOWN = 128, IN_CENTRE = 256, IN_MODE = 512, IN_ESC = 1024, IN_FIRE = 2048,
        IN_USE = 4096, IN_ITEMS = 8192, IN_MAP = 16384, IN_HELP = 32768 };
 
-static int key(unsigned hid)
-{
-    const volatile uint8_t *map = (const volatile uint8_t *)(uintptr_t)ZXV_I_KEYMAP;
-    return (map[hid >> 3] >> (hid & 7)) & 1;
-}
+/* Las teclas y los botones de cada acción (zxv_input.h), en el orden de
+ * sus bits: las dieciséis que admite la biblioteca. */
+static const zxv_input_map keys = {
+    .keys = {
+        { 0x14, 0x52 },                 /* IN_FWD: Q, cursor arriba */
+        { 0x04, 0x51 },                 /* IN_BACK: A, abajo */
+        { 0x12, 0x50 },                 /* IN_LEFT: O, izquierda */
+        { 0x13, 0x4F },                 /* IN_RIGHT: P, derecha */
+        { 0x1D },                       /* IN_SLEFT: Z */
+        { 0x1B },                       /* IN_SRIGHT: X */
+        { 0x1A },                       /* IN_UP: W (mirar arriba) */
+        { 0x16 },                       /* IN_DOWN: S (mirar abajo) */
+        { 0x06 },                       /* IN_CENTRE: C */
+        { 0x2B },                       /* IN_MODE: Tab */
+        { 0x29 },                       /* IN_ESC */
+        { 0x2C },                       /* IN_FIRE: Espacio */
+        { 0x28, 0x18 },                 /* IN_USE: Intro, U */
+        { 0x0C },                       /* IN_ITEMS: I */
+        { 0x10 },                       /* IN_MAP: M */
+        { 0x0B },                       /* IN_HELP: H */
+    },
+    .joy = { ZXV_JOY_UP, ZXV_JOY_DOWN, ZXV_JOY_LEFT, ZXV_JOY_RIGHT, 0, 0, 0, 0, 0, 0, 0, ZXV_JOY_FIRE1,
+             ZXV_JOY_FIRE2 },
+    .pad = 0,
+};
 
-static int read_input(void)
-{
-    int in = 0;
-    if (key(0x14) || key(0x52)) in |= IN_FWD;
-    if (key(0x04) || key(0x51)) in |= IN_BACK;
-    if (key(0x12) || key(0x50)) in |= IN_LEFT;
-    if (key(0x13) || key(0x4F)) in |= IN_RIGHT;
-    if (key(0x1D)) in |= IN_SLEFT;
-    if (key(0x1B)) in |= IN_SRIGHT;
-    if (key(0x1A)) in |= IN_UP;
-    if (key(0x16)) in |= IN_DOWN;
-    if (key(0x06)) in |= IN_CENTRE;
-    if (key(0x2C)) in |= IN_FIRE;
-    if (key(0x10)) in |= IN_MAP;
-    if (key(0x28) || key(0x18)) in |= IN_USE;
-    if (key(0x0C)) in |= IN_ITEMS;
-    if (key(0x0B)) in |= IN_HELP;
-    if (key(0x2B)) in |= IN_MODE;
-    if (key(0x29)) in |= IN_ESC;
-    uint16_t joy = *(volatile uint16_t *)(uintptr_t)ZXV_I_JOY0;
-    if (joy & ZXV_JOY_CONNECTED) {
-        if (joy & ZXV_JOY_UP) in |= IN_FWD;
-        if (joy & ZXV_JOY_DOWN) in |= IN_BACK;
-        if (joy & ZXV_JOY_LEFT) in |= IN_LEFT;
-        if (joy & ZXV_JOY_RIGHT) in |= IN_RIGHT;
-        if (joy & ZXV_JOY_FIRE1) in |= IN_FIRE;
-        if (joy & ZXV_JOY_FIRE2) in |= IN_USE;
-    }
-    return in;
-}
+static zxv_input input;
 
 /* Si el jugador está encima de un punto de recarga. */
 static int on_charger(void)
@@ -1988,15 +1988,17 @@ static void border_update(int dt)
 int main(void)
 {
     lang = zxv_lang_get() == ZXV_LANG_ES ? 0 : 1;
-    int mode = 0, prev = IN_ESC | IN_MODE;  /* lo que esté pulsado al empezar no cuenta */
+    int mode = 0;
+    zxv_input_init(&input, &keys);
+    zxv_input_update(&input);           /* lo que esté pulsado al empezar no cuenta */
     video_init(mode);
     art_init();
     sound_init();
     game_start();
     uint32_t last = frames_now();
     for (;;) {
-        int in = read_input(), edge = in & ~prev;
-        prev = in;
+        zxv_input_update(&input);       /* y vacía la cola de teclas */
+        int in = input.held, edge = input.pressed;
         if (edge & IN_ESC)
             break;
         if (edge & IN_MODE) {

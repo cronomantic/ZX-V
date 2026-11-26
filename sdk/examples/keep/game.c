@@ -25,6 +25,8 @@
  * para ver lo difícil que es.
  */
 #include "keep.h"
+#include "zxv_input.h"
+#include "zxv_save.h"
 
 uint32_t rng_state = 1;
 int lang;
@@ -55,52 +57,36 @@ static uint32_t stats_us, stats_max, stats_t0, stats_worst;
 
 /* --- La entrada -------------------------------------------------------------------- */
 
-static int key(unsigned hid)
-{
-    const volatile uint8_t *map = (const volatile uint8_t *)(uintptr_t)ZXV_I_KEYMAP;
-    return (map[hid >> 3] >> (hid & 7)) & 1;
-}
-
 static int input_now, input_edge;
+
+/* Las teclas y los botones de cada acción (zxv_input.h), en el orden de
+ * sus bits: los de siempre de este juego. */
+static const zxv_input_map keys = {
+    .keys = {
+        { 0x52, 0x14 },          /* IN_UP: cursor arriba, Q */
+        { 0x51, 0x04 },          /* IN_DOWN: abajo, A */
+        { 0x50, 0x12 },          /* IN_LEFT: izquierda, O */
+        { 0x4F, 0x13 },          /* IN_RIGHT: derecha, P */
+        { 0x2C, 0x10 },          /* IN_ATTACK: espacio, M */
+        { 0x1D },                /* IN_POTION: Z */
+        { 0x28 },                /* IN_PAUSE: Intro */
+        { 0x29 },                /* IN_ESC */
+        { 0x16 },                /* IN_MUSIC: S */
+    },
+    .joy = { ZXV_JOY_UP, ZXV_JOY_DOWN, ZXV_JOY_LEFT, ZXV_JOY_RIGHT, ZXV_JOY_FIRE1, ZXV_JOY_FIRE2,
+             ZXV_JOY_START },
+    .pad = 0,
+};
+
+static zxv_input input;
 
 static void read_input(void)
 {
-    int in = 0;
-    if (key(0x52) || key(0x14))
-        in |= IN_UP;                    /* cursor arriba, Q */
-    if (key(0x51) || key(0x04))
-        in |= IN_DOWN;                  /* abajo, A */
-    if (key(0x50) || key(0x12))
-        in |= IN_LEFT;                  /* izquierda, O */
-    if (key(0x4F) || key(0x13))
-        in |= IN_RIGHT;                 /* derecha, P */
-    if (key(0x2C) || key(0x10))
-        in |= IN_ATTACK;                /* espacio, M */
-    if (key(0x1D))
-        in |= IN_POTION;                /* Z */
-    if (key(0x28))
-        in |= IN_PAUSE;                 /* Intro */
-    if (key(0x29))
-        in |= IN_ESC;
-    if (key(0x16))
-        in |= IN_MUSIC;                 /* S */
-    uint16_t joy = *(volatile uint16_t *)(uintptr_t)ZXV_I_JOY0;
-    if (joy & ZXV_JOY_CONNECTED) {
-        if (joy & ZXV_JOY_UP) in |= IN_UP;
-        if (joy & ZXV_JOY_DOWN) in |= IN_DOWN;
-        if (joy & ZXV_JOY_LEFT) in |= IN_LEFT;
-        if (joy & ZXV_JOY_RIGHT) in |= IN_RIGHT;
-        if (joy & ZXV_JOY_FIRE1) in |= IN_ATTACK;
-        if (joy & ZXV_JOY_FIRE2) in |= IN_POTION;
-        if (joy & ZXV_JOY_START) in |= IN_PAUSE;
-    }
-    input_edge = in & ~input_now;
-    input_now = in;
+    zxv_input_update(&input);           /* y vacía la cola de teclas */
+    input_edge = input.pressed;
+    input_now = input.held;
     if (input_edge & IN_MUSIC)          /* la música, sí o no, en cualquier momento */
         sound_music(!sound_music_on());
-    /* Lo tecleado no le sirve al juego: que no le llegue al BASIC al volver. */
-    while (zxv_key_get() >= 0)
-        ;
 }
 
 /* --- Los mensajes ------------------------------------------------------------------ */
@@ -555,12 +541,23 @@ static void frame_end(void)
 
 /* --- El récord -------------------------------------------------------------------- */
 
-#define RECORD_FILE "SD:keep.txt"
+/* El récord (el mejor tiempo y el mayor oro), con zxv_save.h: si se va la luz
+ * a medias, se queda el de antes. Hasta la 0.11 iba en texto en keep.txt: si
+ * no hay keep.sav, se lee ese una vez (y se deja donde está). */
+#define RECORD_FILE "SD:keep.sav"
+#define RECORD_OLD "SD:keep.txt"
+#define RECORD_VERSION 1
 
 static void load_record(void)
 {
+    uint32_t r[2];
+    if (zxv_load(RECORD_FILE, RECORD_VERSION, r, sizeof r) == ZXV_OK) {
+        best_time = r[0];
+        best_gold = r[1];
+        return;
+    }
     char buf[24];
-    int f = zxv_file_open(RECORD_FILE, ZXV_O_READ);
+    int f = zxv_file_open(RECORD_OLD, ZXV_O_READ);
     if (f < 0)
         return;
     int n = zxv_file_read(f, buf, sizeof(buf) - 1);
@@ -581,16 +578,9 @@ static void load_record(void)
 
 static void save_record(void)
 {
-    char buf[16];
-    number(buf, best_time, 5);
-    buf[5] = ' ';
-    number(buf + 6, best_gold, 5);
-    buf[11] = '\n';
-    int f = zxv_file_open(RECORD_FILE, ZXV_O_WRITE | ZXV_O_CREATE | ZXV_O_TRUNC);
-    if (f < 0)
-        return;                         /* sin tarjeta: el récord dura lo que la partida */
-    zxv_file_write(f, buf, 12);
-    zxv_file_close(f);
+    /* Sin tarjeta, el récord dura lo que la partida. */
+    uint32_t r[2] = { best_time, best_gold };
+    zxv_save(RECORD_FILE, RECORD_VERSION, r, sizeof r);
 }
 
 /* Lo de esta partida, en el récord; 1 si es nuevo. */
@@ -932,7 +922,9 @@ int main(void)
     sound_init();
     load_record();
     video_init();                       /* otra vez: lo que tarda lo de antes no son frames perdidos */
-    input_now = 0x1FF;                  /* lo que esté pulsado al empezar no cuenta */
+    zxv_input_init(&input, &keys);
+    zxv_input_update(&input);           /* lo que esté pulsado al empezar no cuenta */
+    input_now = input.held;
     for (;;) {
         int r = title();
         if (r < 0)

@@ -23,7 +23,7 @@
  *   ZL_HELLO   -                 estado, versión del protocolo (u16), si el
  *                                BASIC espera una orden (u8), la versión de
  *                                la spec (u32, ZXV_SV_VERSION) y la de
- *                                ZX-V (texto: "ZX-V 0.11.0")
+ *                                ZX-V (texto: "ZX-V 0.12.0")
  *   ZL_OPEN    tamaño (u32), ruta   estado (lo que llega va a SD:/zxv-link.tmp;
  *                                la ruta, con SD: o desde la raíz; el que
  *                                hubiera con ese nombre sigue igual)

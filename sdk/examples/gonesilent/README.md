@@ -38,7 +38,9 @@ It is also on the machine's ROM disk: `LOAD "ROM:gonesilent"`.
   you what you need to go on. The ending depends on what you did.
 - **The map** (M) shows what you have explored of the zone you are in.
 - **The game is saved** when you reach a charging pad, in
-  `SD:gonesilent.sav`; the title lets you continue or start again.
+  `SD:gonesilent.sav`, with the `zxv_save` library (if the power goes off
+  halfway, the previous one stays; those of earlier versions are still
+  read); the title lets you continue or start again.
 - **Two video modes:** Tab switches between 256 × 192 and 512 × 384.
 - **Text in English or Spanish**, following the machine's language.
 

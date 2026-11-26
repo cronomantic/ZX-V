@@ -667,6 +667,10 @@ es el transparente):
 | Textura (tipo 4) | log₂ del lado, repetición, color de fuera y marcas (bit 0: el 8 es transparente, D110) (1 byte cada uno) y los texels, uno por byte |
 | Pantalla (tipo 5) | Modo (1 byte, 0 o 1), color del borde (1 byte, 0–15), marcas (1 byte: bit 0, lleva paleta; los demás, 0), 0 (1 byte), la paleta si la lleva (16 colores RGB565, 32 bytes: los de cada índice como se veían, D90) y los píxeles de la página como en la VRAM: 192 líneas de 128 bytes en modo 0 (24.576) o 384 de 256 en modo 1 (98.304). `SAVE "x" SCREEN$` graba la pantalla del programa (la página 0) como el objeto 0 (D89); `LOAD GRAPHICS` se salta las pantallas |
 
+Quien lee un `.gfx` (la ROM y el SDK) se salta los objetos de un tipo que no
+conoce: así una versión posterior puede añadir tipos sin cambiar la del
+fichero (spec §11.3).
+
 `examples/basic/platformer` es un juego completo hecho así: gráficos
 convertidos con `png2gfx`, mapa con scroll, sprites con doble buffer,
 colisiones con `CELL` y `HIT`, sonido y récord en la tarjeta.
@@ -724,9 +728,9 @@ Diferencias conocidas:
 - `USR` con una dirección menor que 65536 da el error `S Z80 code not
   supported`; con una dirección real ejecuta código RISC-V.
 - Las excepciones del código nativo vuelven al BASIC con `W Native code error`.
-- Una expresión puede anidar unos 170 paréntesis, funciones o signos, y unas
-  24 llamadas a `FN` dentro de otras (también una `FN` que se llama a sí
-  misma); más, `4 Out of memory`. La pila de la ROM es de 28 KB (D107) y no
+- Una expresión puede anidar unos 170 paréntesis, funciones o signos, y 20
+  llamadas a `FN` dentro de otras (también una `FN` que se llama a sí
+  misma); más, `4 Out of memory`. La pila de la ROM es de 24 KB (D114) y no
   crece con la memoria libre, como en el 48K.
 
 Rendimiento: unas 33.000 vueltas por segundo de

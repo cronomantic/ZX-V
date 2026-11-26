@@ -35,7 +35,7 @@ It is also on the machine's ROM disk: `LOAD "ROM:street"`.
   bread or chicken) that restores health.
 - **Three lives**, one more every 30,000 points, a bonus for each stage
   cleared and for the lives left at the end.
-- **High score** in `SD:street.txt` (on the card, even when the game was
+- **High score** in `SD:street.sav`, with the `zxv_save` library (if the power goes off halfway, the previous one stays; without a `.sav`, it reads the `SD:street.txt` of earlier versions) (on the card, even when the game was
   loaded from `ROM:`, which cannot be written to). Without a card, it lasts
   for the session.
 - **Demo:** if nothing is pressed on the title screen, after 12 seconds the
@@ -90,9 +90,10 @@ It is also on the machine's ROM disk: `LOAD "ROM:street"`.
   speed, only smoother; with the 36 of the positions, speeds and gravity
   come out exact. The music and the effects still advance 50 steps per
   second.
-- **The keyboard:** the map of keys held down (`ZXV_I_KEYMAP`) is read so
-  you can walk and punch at the same time, and the key queue is emptied
-  every frame so that what was typed does not reach BASIC on the way back.
+- **The keyboard and the gamepad:** with the `zxv_input` library (a map of
+  keys and buttons per action), so you can walk and punch at the same time;
+  the library empties the key queue so that what was typed does not reach
+  BASIC on the way back.
 
 ## Difficulty
 

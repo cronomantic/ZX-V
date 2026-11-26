@@ -306,7 +306,7 @@ La línea que hay justo encima de la barra enseña:
 
 | Mensaje | Cuándo |
 |---|---|
-| `© 2026 Cronomantic  ZX-V 0.11.0` | Al arrancar ZX-V, y después de `NEW`: el copyright y la versión de la ROM |
+| `© 2026 Cronomantic  ZX-V 0.12.0` | Al arrancar ZX-V, y después de `NEW`: el copyright y la versión de la ROM |
 | `El reloj no tiene hora: EDIT > Fecha y hora` | En lugar del copyright al arrancar ZX-V, si el reloj no está en hora: ver [La fecha y la hora](#la-fecha-y-la-hora) |
 | Un error en rojo, como `C Sintaxis incorrecta` | Cuando una línea que querías guardar o ejecutar tiene un error |
 | `Programa renumerado`, `No se puede renumerar` | Tras la opción Renumerar |

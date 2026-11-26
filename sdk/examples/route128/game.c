@@ -26,6 +26,8 @@
  * entero: para medir el rendimiento.
  */
 #include "route128.h"
+#include "zxv_input.h"
+#include "zxv_save.h"
 
 uint32_t rng_state = 1;
 int lang;
@@ -55,52 +57,36 @@ static int per_frame(int *rest, int per_second)
 enum { IN_GAS = 1, IN_BRAKE = 2, IN_LEFT = 4, IN_RIGHT = 8, IN_START = 16, IN_PAUSE = 32, IN_ESC = 64,
        IN_SHIFT = 128, IN_MUSIC = 256 };
 
-static int key(unsigned hid)
-{
-    const volatile uint8_t *map = (const volatile uint8_t *)(uintptr_t)ZXV_I_KEYMAP;
-    return (map[hid >> 3] >> (hid & 7)) & 1;
-}
-
 static int input_now, input_edge;
+
+/* Las teclas y los botones de cada acción (zxv_input.h), en el orden de
+ * sus bits: los de siempre de este juego. */
+static const zxv_input_map keys = {
+    .keys = {
+        { 0x52, 0x14, 0x2C },    /* IN_GAS: cursor arriba, Q, espacio */
+        { 0x51, 0x04 },          /* IN_BRAKE: abajo, A */
+        { 0x50, 0x12 },          /* IN_LEFT: izquierda, O */
+        { 0x4F, 0x13 },          /* IN_RIGHT: derecha, P */
+        { 0x2C, 0x10 },          /* IN_START: espacio, M */
+        { 0x28 },                /* IN_PAUSE: Intro */
+        { 0x29 },                /* IN_ESC */
+        { 0x1D },                /* IN_SHIFT: Z */
+        { 0x16 },                /* IN_MUSIC: S */
+    },
+    .joy = { ZXV_JOY_UP | ZXV_JOY_FIRE1, ZXV_JOY_DOWN | ZXV_JOY_FIRE2, ZXV_JOY_LEFT, ZXV_JOY_RIGHT,
+             ZXV_JOY_FIRE1, ZXV_JOY_START, 0, ZXV_JOY_FIRE3 | ZXV_JOY_SELECT },
+    .pad = 0,
+};
+
+static zxv_input input;
 
 static void read_input(void)
 {
-    int in = 0;
-    if (key(0x52) || key(0x14) || key(0x2C))
-        in |= IN_GAS;                   /* cursor arriba, Q, espacio */
-    if (key(0x51) || key(0x04))
-        in |= IN_BRAKE;                 /* abajo, A */
-    if (key(0x50) || key(0x12))
-        in |= IN_LEFT;                  /* izquierda, O */
-    if (key(0x4F) || key(0x13))
-        in |= IN_RIGHT;                 /* derecha, P */
-    if (key(0x2C) || key(0x10))
-        in |= IN_START;                 /* espacio, M */
-    if (key(0x1D))
-        in |= IN_SHIFT;                 /* Z */
-    if (key(0x28))
-        in |= IN_PAUSE;                 /* Intro */
-    if (key(0x29))
-        in |= IN_ESC;
-    if (key(0x16))
-        in |= IN_MUSIC;                 /* S */
-    uint16_t joy = *(volatile uint16_t *)(uintptr_t)ZXV_I_JOY0;
-    if (joy & ZXV_JOY_CONNECTED) {
-        if (joy & (ZXV_JOY_UP | ZXV_JOY_FIRE1)) in |= IN_GAS;
-        if (joy & (ZXV_JOY_DOWN | ZXV_JOY_FIRE2)) in |= IN_BRAKE;
-        if (joy & ZXV_JOY_LEFT) in |= IN_LEFT;
-        if (joy & ZXV_JOY_RIGHT) in |= IN_RIGHT;
-        if (joy & (ZXV_JOY_FIRE3 | ZXV_JOY_SELECT)) in |= IN_SHIFT;
-        if (joy & ZXV_JOY_FIRE1) in |= IN_START;
-        if (joy & ZXV_JOY_START) in |= IN_PAUSE;
-    }
-    input_edge = in & ~input_now;
-    input_now = in;
+    zxv_input_update(&input);           /* y vacía la cola de teclas */
+    input_edge = input.pressed;
+    input_now = input.held;
     if (input_edge & IN_MUSIC)          /* la música, sí o no, en cualquier momento */
         sound_music(!sound_music_on());
-    /* Lo tecleado no le sirve al juego: que no le llegue al BASIC al volver. */
-    while (zxv_key_get() >= 0)
-        ;
 }
 
 /* --- La carrera ------------------------------------------------------------------ */
@@ -204,23 +190,54 @@ static void cars_update(void)
  * antes de las curvas cerradas. Gira como una persona: una vez que empieza,
  * sigue hasta llegar al carril, y no cambia de idea antes de AP_HOLD (con
  * el volante) o AP_REST (sin él); si no, en las curvas pulsaba una imagen
- * de cada dos o tres y el coche temblaba (la postura sigue al giro). */
-#define AP_HOLD (ZXV_FRAME_HZ / 8)
+ * de cada dos o tres y el coche temblaba (la postura sigue al giro).
+ * Y no corrige lo que no hace falta: solo gira si va a quedar a más de
+ * AP_SLACK de su carril. Las dos cosas van juntas: un toque de AP_HOLD lo
+ * mueve unos 180 a toda velocidad, y el margen tiene que ser más de la
+ * mitad (si no, cada toque se pasa y el siguiente va al otro lado: con 50 y
+ * toques de 1/8 s, en las curvas giraba a izquierda y derecha sin parar) y
+ * menos de 122 (lo que separa a dos coches en carriles vecinos de
+ * tocarse: 2/3 de X1 menos 1,7 CAR_HW). */
+#define AP_HOLD (ZXV_FRAME_HZ / 12)
 #define AP_REST (ZXV_FRAME_HZ / 15)
-static int ap_steer, ap_hold;
+#define AP_SLACK 100
+#define AP_LOOK (14 * SEG_LEN)          /* lo que mira por delante en cada carril */
+static int ap_steer, ap_hold, ap_lane = 1;
+static int32_t ap_ahead;                /* el coche más cercano delante, en su carril o el que busca */
+
+/* El carril al que va, de 0 a 2. Si en él hay un coche cerca, el que lo
+ * tiene más lejos (a igualdad, el más cercano al suyo), pero solo si es
+ * mejor por más de dos segmentos: con dos carriles tapados casi igual, iba
+ * de uno a otro. */
+static int autopilot_lane(void)
+{
+    int32_t clear[3] = { AP_LOOK, AP_LOOK, AP_LOOK };
+    for (int i = 0; i < CARS; i++) {
+        int32_t d = cars[i].z - player_z();
+        if (d <= 0 || d >= AP_LOOK)
+            continue;
+        for (int l = 0; l < 3; l++)
+            if (abs_i(cars[i].x - (l - 1) * X1 * 2 / 3) < X1 / 2 && d < clear[l])
+                clear[l] = d;
+    }
+    if (clear[ap_lane] < AP_LOOK) {
+        int lane = pl.x > X1 / 3 ? 2 : pl.x < -X1 / 3 ? 0 : 1, best = ap_lane;
+        for (int l = 0; l < 3; l++)
+            if (clear[l] > clear[best] || (clear[l] == clear[best] && abs_i(l - lane) < abs_i(best - lane)))
+                best = l;
+        if (clear[best] > clear[ap_lane] + 2 * SEG_LEN)
+            ap_lane = best;
+    }
+    int now = pl.x > X1 / 3 ? 2 : pl.x < -X1 / 3 ? 0 : 1;
+    ap_ahead = clear[now] < clear[ap_lane] ? clear[now] : clear[ap_lane];
+    return ap_lane;
+}
 
 static int autopilot(void)
 {
     int in = IN_GAS;
     int ps = player_seg();
-    int target = pl.x > X1 / 3 ? X1 * 2 / 3 : pl.x < -X1 / 3 ? -X1 * 2 / 3 : 0;
-    for (int i = 0; i < CARS; i++) {
-        int32_t d = cars[i].z - player_z();
-        if (d > 0 && d < 14 * SEG_LEN && abs_i(cars[i].x - target) < X1 / 2) {
-            target = cars[i].x > 0 ? -X1 * 2 / 3 : cars[i].x < -X1 / 3 ? X1 * 2 / 3 : (frame & 64 ? X1 * 2 / 3 : -X1 * 2 / 3);
-            break;
-        }
-    }
+    int target = (autopilot_lane() - 1) * X1 * 2 / 3;
     int curve = 0;
     for (int d = 2; d < 22; d++) {
         int c = seg_curve(ps + d);
@@ -233,7 +250,7 @@ static int autopilot(void)
     int sp = pl.speed * 256 / SPEED_MAX;
     int drift = 44 * sp / 256 * sp / 256 * seg_curve(ps + 2) * 22 / 1600;
     int x = pl.x - drift * 10;
-    int want = x < target - 50 ? 1 : x > target + 50 ? -1 : 0;
+    int want = x < target - AP_SLACK ? 1 : x > target + AP_SLACK ? -1 : 0;
     if (!want && ap_steer && (ap_steer > 0 ? x < target : x > target))
         want = ap_steer;                /* sigue hasta llegar */
     if (ap_hold > 0)
@@ -249,6 +266,10 @@ static int autopilot(void)
     int limit = abs_i(curve) >= 90 ? 66 : abs_i(curve) >= 60 ? 80 : 101;
     if (pl.speed > SPEED_MAX * limit / 100 || abs_i(pl.x) > X1)
         in = (in & ~IN_GAS) | (pl.speed > SPEED_MAX * (limit + 6) / 100 ? IN_BRAKE : 0);
+    /* Un coche cerca, delante, sin un carril mejor: suelta el gas y, más
+     * cerca, frena (si no, lo golpeaba una y otra vez). */
+    if (ap_ahead < 5 * SEG_LEN)
+        in = (in & ~IN_GAS) | (ap_ahead < 3 * SEG_LEN ? IN_BRAKE : 0);
     /* Las marchas: LO para arrancar, HI al llegar al tope de LO. */
     if (pl.gear ? pl.speed < HI_LUG : pl.speed >= LO_TOP - SPEED_MAX / 50)
         in |= IN_SHIFT;
@@ -499,12 +520,19 @@ static void frame_end(void)
 
 /* --- El récord -------------------------------------------------------------------- */
 
-#define RECORD_FILE "SD:route128.txt"
+/* El récord, con zxv_save.h (si se va la luz a medias, se queda el de antes).
+ * Hasta la 0.11 iba en texto en route128.txt: si no hay route128.sav, se lee ese
+ * una vez (y se deja donde está). */
+#define RECORD_FILE "SD:route128.sav"
+#define RECORD_OLD "SD:route128.txt"
+#define RECORD_VERSION 1
 
 static void load_record(void)
 {
+    if (zxv_load(RECORD_FILE, RECORD_VERSION, &record, sizeof record) == ZXV_OK)
+        return;
     char buf[12];
-    int f = zxv_file_open(RECORD_FILE, ZXV_O_READ);
+    int f = zxv_file_open(RECORD_OLD, ZXV_O_READ);
     if (f < 0)
         return;
     int n = zxv_file_read(f, buf, sizeof(buf) - 1);
@@ -516,14 +544,8 @@ static void load_record(void)
 
 static void save_record(void)
 {
-    char buf[12];
-    number(buf, record, 8);
-    buf[8] = '\n';
-    int f = zxv_file_open(RECORD_FILE, ZXV_O_WRITE | ZXV_O_CREATE | ZXV_O_TRUNC);
-    if (f < 0)
-        return;                         /* sin tarjeta: el récord dura lo que la partida */
-    zxv_file_write(f, buf, 9);
-    zxv_file_close(f);
+    /* Sin tarjeta, el récord dura lo que la partida. */
+    zxv_save(RECORD_FILE, RECORD_VERSION, &record, sizeof record);
 }
 
 /* --- La partida --------------------------------------------------------------- */
@@ -709,7 +731,9 @@ int main(void)
     track_build();
     load_record();
     video_init();                       /* otra vez: lo que tarda lo de antes no son frames perdidos */
-    input_now = 0x7F;                   /* lo que esté pulsado al empezar no cuenta */
+    zxv_input_init(&input, &keys);
+    zxv_input_update(&input);           /* lo que esté pulsado al empezar no cuenta */
+    input_now = input.held;
     for (;;) {
         int r = title();
         if (r < 0)
@@ -717,6 +741,7 @@ int main(void)
         demo = r;
         frame = 0;
         ap_steer = ap_hold = 0;
+        ap_lane = 1;
         rng_state = demo ? 4242 : (rng_state ^ *(volatile uint32_t *)(uintptr_t)ZXV_SV_FRAMES);
         if (race() && !demo)
             continue;                   /* Esc en la carrera: al título */

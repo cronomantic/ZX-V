@@ -27,8 +27,8 @@ nada: el software de las dos Pico viene listo para copiarlo en ellas.
 - **El firmware**: dos ficheros `.uf2`, uno para cada Pico
   ([El firmware](firmware.md)).
 - **Una pantalla con entrada HDMI** (una tele o un monitor) y un cable HDMI.
-- **Un teclado USB.** Si quieres, también un ratón USB, uno o dos mandos USB y
-  un hub USB para enchufarlo todo.
+- **Un teclado USB.** Si quieres, también un ratón USB, hasta cuatro mandos USB
+  y un hub USB para enchufarlo todo.
 - **Una tarjeta microSD**, para guardar tus programas y cargar otros.
 - **Un cargador de móvil USB-C** de 5 V que dé 2 A, con su cable.
 - Si quieres, **unos altavoces con amplificador** para la salida de audio, y
